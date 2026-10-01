@@ -1,0 +1,10 @@
+node_modules
+.npm-cache
+.preview
+dist
+site-dist
+test-results
+playwright-report
+package-lock.json
+src/ui/slots.ts
+public/*.tgz

@@ -1,0 +1,95 @@
+:root {
+  --ui-background: #ffffff;
+  --ui-foreground: #202321;
+  --ui-surface: #ffffff;
+  --ui-muted: #f5f6f5;
+  --ui-muted-foreground: #666b68;
+  --ui-border: #e5e7e6;
+  --ui-input-border: #858e87;
+  --ui-accent: #252826;
+  --ui-accent-foreground: #ffffff;
+  --ui-accent-soft: #f2f3f2;
+  --ui-danger: #bd2436;
+  --ui-danger-soft: #fff0f1;
+  --ui-radius: 6px;
+  --ui-control-height: 40px;
+  --ui-font: 'Inter Variable', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ui-shadow: 0 8px 32px #101a1212, 0 2px 8px #101a1208;
+  color-scheme: light;
+}
+[data-theme='dark'] {
+  --ui-background: #141615;
+  --ui-foreground: #edeff0;
+  --ui-surface: #1b1e1c;
+  --ui-muted: #242825;
+  --ui-muted-foreground: #a2aaa5;
+  --ui-border: #333a35;
+  --ui-input-border: #666f69;
+  --ui-accent: #e6ebe7;
+  --ui-accent-foreground: #171a18;
+  --ui-accent-soft: #292e2b;
+  --ui-danger: #ff8796;
+  --ui-danger-soft: #3a2028;
+  --ui-shadow: 0 12px 36px #00000040;
+  color-scheme: dark;
+}
+[data-accent='emerald'] {
+  --ui-accent: #087f5b;
+  --ui-accent-soft: #edf7f2;
+}
+[data-accent='blue'] {
+  --ui-accent: #2563eb;
+  --ui-accent-soft: #eff4ff;
+}
+[data-accent='rose'] {
+  --ui-accent: #be185d;
+  --ui-accent-soft: #fff0f5;
+}
+[data-accent='amber'] {
+  --ui-accent: #976900;
+  --ui-accent-soft: #fff8e6;
+}
+[data-accent='violet'] {
+  --ui-accent: #6d28d9;
+  --ui-accent-soft: #f5f0ff;
+}
+[data-accent='neutral'] {
+  --ui-accent: #252826;
+  --ui-accent-soft: #f2f3f2;
+}
+[data-theme='dark'][data-accent='emerald'] {
+  --ui-accent: #34d399;
+  --ui-accent-soft: #1b3328;
+  --ui-accent-foreground: #072c1e;
+}
+[data-theme='dark'][data-accent='blue'] {
+  --ui-accent: #8bb2ff;
+  --ui-accent-soft: #202c42;
+  --ui-accent-foreground: #121d35;
+}
+[data-theme='dark'][data-accent='rose'] {
+  --ui-accent: #fb8ebb;
+  --ui-accent-soft: #3b2231;
+  --ui-accent-foreground: #3b1025;
+}
+[data-theme='dark'][data-accent='amber'] {
+  --ui-accent: #eac460;
+  --ui-accent-soft: #362e1c;
+  --ui-accent-foreground: #342607;
+}
+[data-theme='dark'][data-accent='violet'] {
+  --ui-accent: #bda0ff;
+  --ui-accent-soft: #2e2340;
+  --ui-accent-foreground: #281347;
+}
+[data-theme='dark'][data-accent='neutral'] {
+  --ui-accent: #e6ebe7;
+  --ui-accent-soft: #292e2b;
+  --ui-accent-foreground: #171a18;
+}
+[data-density='compact'] {
+  --ui-control-height: 32px;
+}
+[data-density='spacious'] {
+  --ui-control-height: 48px;
+}
