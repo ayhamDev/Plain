@@ -5,7 +5,7 @@
     "emitDeclarationOnly": true,
     "declaration": true,
     "declarationMap": true,
-    "rootDir": "src/ui",
+    "rootDir": "src",
     "outDir": "dist",
     "noUnusedLocals": false
   },

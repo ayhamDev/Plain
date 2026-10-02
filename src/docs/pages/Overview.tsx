@@ -32,14 +32,14 @@ import {
 export default function Overview() {
   const { customize } = useAppPreferences();
   useEffect(() => {
-    document.title = 'PlainUI - A little less. A lot more.';
+    document.title = 'P.UI - A little less. A lot more.';
   }, []);
   return (
     <div className="overview-page">
       <section className="overview-hero">
         <div className="hero-eyebrow">
           <span className="eyebrow-line" />A considered starting point
-          <Badge variant="outline">v0.1.0</Badge>
+          <Badge variant="outline">v0.2.0</Badge>
         </div>
         <h1>
           PlainUI<span>.</span>
@@ -85,9 +85,9 @@ export default function Overview() {
         </div>
         <div className="hero-code">
           <code>
-            import {'{ Button }'} from <span>'@plainui/react'</span>
+            import {'{ Button }'} from <span>'@plain/ui'</span>
           </code>
-          <CopyButton text="import { Button } from '@plainui/react';" label="Copy import" />
+          <CopyButton text="import { Button } from '@plain/ui';" label="Copy import" />
         </div>
       </section>
       <section className="showcase-section" aria-label="Live component examples">

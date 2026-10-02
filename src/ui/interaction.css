@@ -1,0 +1,338 @@
+@layer components {
+  .ui-interactive {
+    transition-property: background-color, border-color, color, box-shadow, opacity, filter;
+    transition-duration: calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1));
+    transition-timing-function: var(--ui-ease-standard, ease);
+  }
+
+  .ui-motion-transform {
+    transition-property: transform, translate, rotate;
+    transition-duration: calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1));
+    transition-timing-function: var(--ui-ease-out, ease-out);
+  }
+
+  .ui-popup {
+    transform-origin: var(
+      --radix-popover-content-transform-origin,
+      var(
+        --radix-dropdown-menu-content-transform-origin,
+        var(
+          --radix-select-content-transform-origin,
+          var(--radix-tooltip-content-transform-origin, center)
+        )
+      )
+    );
+    animation: ui-surface-in
+      max(1ms, calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-out, ease-out) both;
+  }
+
+  .ui-popup[data-state='closed'] {
+    animation-name: ui-surface-out;
+    animation-duration: max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)));
+  }
+
+  /* Radix flips submenus but does not shift the side axis when neither side fits. */
+  .ui-submenu[data-collision-aware][data-side='left'] {
+    translate: max(0px, calc(100% - var(--radix-dropdown-menu-content-available-width, 100%))) 0;
+  }
+
+  .ui-submenu[data-collision-aware][data-side='right'] {
+    translate: calc(
+        -1 * max(0px, calc(100% - var(--radix-dropdown-menu-content-available-width, 100%)))
+      )
+      0;
+  }
+
+  .ui-overlay {
+    animation: ui-fade-in
+      max(1ms, calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-out, ease-out) both;
+  }
+
+  .ui-overlay[data-state='closed'] {
+    animation-name: ui-fade-out;
+    animation-duration: max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)));
+  }
+
+  /* Tailwind's individual translate already centers the dialog. Animate scale without replacing it. */
+  .ui-dialog {
+    animation: ui-surface-in
+      max(1ms, calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-out, ease-out) both;
+  }
+
+  .ui-dialog[data-state='closed'] {
+    animation-name: ui-surface-out;
+    animation-duration: max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)));
+  }
+
+  .ui-accordion {
+    --ui-disclosure-height: var(--radix-accordion-content-height);
+  }
+
+  .ui-collapsible {
+    --ui-disclosure-height: var(--radix-collapsible-content-height);
+  }
+
+  .ui-accordion[data-state='open'],
+  .ui-collapsible[data-state='open'] {
+    animation: ui-disclosure-open
+      max(1ms, calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-out, ease-out);
+  }
+
+  .ui-accordion[data-state='closed'],
+  .ui-collapsible[data-state='closed'] {
+    animation: ui-disclosure-close
+      max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-standard, ease) both;
+  }
+
+  .ui-state-indicator[data-state='checked'],
+  .ui-state-indicator[data-state='indeterminate'] {
+    animation: ui-surface-in
+      max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-out, ease-out);
+  }
+
+  .ui-state-indicator[data-state='unchecked'] {
+    animation: ui-surface-out
+      max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-standard, ease) both;
+  }
+
+  .ui-tab-panel[data-state='active'] {
+    animation: ui-fade-in
+      max(1ms, calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-out, ease-out);
+  }
+
+  .ui-navigation-viewport {
+    transition-property: width, height;
+    transition-duration: calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1));
+    transition-timing-function: var(--ui-ease-out, ease-out);
+  }
+
+  .ui-navigation-content[data-motion='from-start'] {
+    animation: ui-navigation-from-start
+      max(1ms, calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-out, ease-out) both;
+  }
+
+  .ui-navigation-content[data-motion='from-end'] {
+    animation: ui-navigation-from-end
+      max(1ms, calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-out, ease-out) both;
+  }
+
+  .ui-navigation-content[data-motion='to-start'],
+  .ui-navigation-content[data-motion='to-end'] {
+    animation: ui-fade-out
+      max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-standard, ease) both;
+    pointer-events: none;
+  }
+
+  .ui-scroll-viewport[data-orientation='vertical'] > div {
+    /* Radix's measurement table otherwise makes unbroken content widen a vertical viewport. */
+    display: block !important;
+    overflow-wrap: anywhere;
+  }
+
+  .ui-scrollbar {
+    transition: opacity calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1))
+      var(--ui-ease-standard, ease);
+  }
+
+  .ui-scrollbar[data-state='visible'] {
+    animation: ui-fade-in max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-out, ease-out);
+  }
+
+  .ui-scrollbar[data-state='hidden'] {
+    animation: ui-fade-out
+      max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)))
+      var(--ui-ease-standard, ease) both;
+  }
+
+  .ui-skeleton {
+    animation: ui-skeleton-pulse calc(1600ms * var(--ui-motion-scale, 1))
+      var(--ui-ease-standard, ease-in-out) infinite;
+  }
+}
+
+.ui-toast[data-sonner-toast][data-styled] [data-description] {
+  color: var(--ui-toast-description, currentColor) !important;
+}
+
+.ui-toast[data-sonner-toast][data-styled][data-invert='false'] [data-description] {
+  color: var(--ui-muted-foreground, currentColor) !important;
+}
+
+.ui-toast[data-sonner-toast][data-styled] [data-button],
+.ui-toast[data-sonner-toast][data-styled] [data-close-button] {
+  border-radius: min(var(--ui-toast-radius, var(--ui-radius)), 6px);
+}
+
+.ui-toast[data-sonner-toast][data-styled][data-invert='true'] [data-action] {
+  background: var(--ui-toast-action-background, var(--ui-toast-foreground));
+  color: var(--ui-toast-action-foreground, var(--ui-toast-background));
+}
+
+/* Vaul owns panel transforms and snap-point transitions, including while the pointer is down. */
+.ui-panel-handle[data-vaul-handle] {
+  background: var(--ui-input-border);
+  border-radius: var(--ui-sheet-radius, var(--ui-radius));
+}
+
+.ui-sheet[data-vaul-drawer][data-ui-motion='reduced'],
+.ui-drawer[data-vaul-drawer][data-ui-motion='reduced'],
+[data-ui='sheet'][data-vaul-overlay][data-ui-motion='reduced'] {
+  animation-duration: 1ms !important;
+  transition-duration: 0ms !important;
+}
+
+:where([data-motion='none'], [data-motion='reduced']) .ui-skeleton,
+:where([data-motion='none'], [data-motion='reduced']) [data-ui='progress'] .animate-pulse,
+:where([data-motion='none'], [data-motion='reduced']) [data-ui='button'] .animate-spin,
+:where([data-motion='none'], [data-motion='reduced']) [data-ui='spinner'] .animate-spin {
+  animation: none;
+}
+
+@keyframes ui-surface-in {
+  from {
+    opacity: 0;
+    scale: 0.98;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes ui-surface-out {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 0.98;
+  }
+}
+
+@keyframes ui-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ui-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes ui-disclosure-open {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--ui-disclosure-height);
+  }
+}
+
+@keyframes ui-disclosure-close {
+  from {
+    height: var(--ui-disclosure-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@keyframes ui-navigation-from-start {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ui-navigation-from-end {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes ui-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.ui-switch-thumb {
+  inset-inline-start: 2px;
+  transition:
+    inset-inline-start calc(var(--ui-duration-normal) * var(--ui-motion-scale))
+      var(--ui-ease-standard),
+    background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard);
+}
+.ui-switch-thumb[data-state='checked'] {
+  inset-inline-start: calc(100% - 18px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-interactive,
+  .ui-motion-transform,
+  .ui-navigation-viewport,
+  .ui-scrollbar {
+    transition-duration: 0ms;
+  }
+
+  .ui-popup,
+  .ui-overlay,
+  .ui-dialog,
+  .ui-accordion,
+  .ui-collapsible,
+  .ui-state-indicator,
+  .ui-tab-panel,
+  .ui-navigation-content,
+  .ui-scrollbar {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1;
+  }
+
+  .ui-skeleton,
+  [data-ui='progress'] .animate-pulse,
+  [data-ui='button'] .animate-spin,
+  [data-ui='spinner'] .animate-spin {
+    animation: none;
+  }
+
+  .ui-sheet[data-vaul-drawer],
+  .ui-drawer[data-vaul-drawer],
+  [data-ui='sheet'][data-vaul-overlay] {
+    animation-duration: 1ms !important;
+    transition-duration: 0ms !important;
+  }
+}

@@ -9,5 +9,7 @@ export default defineConfig({
     include: ['tests/**/*.test.{ts,tsx}'],
     restoreMocks: true,
     clearMocks: true,
+    maxWorkers: 2,
+    server: { deps: { inline: ['@material/material-color-utilities'] } },
   },
 });

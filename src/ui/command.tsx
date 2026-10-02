@@ -166,6 +166,7 @@ export interface ComboboxOption {
   label: string;
   disabled?: boolean;
   keywords?: string[];
+  description?: string;
 }
 export interface ComboboxProps extends Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -179,107 +180,115 @@ export interface ComboboxProps extends Omit<
   searchPlaceholder?: string;
   emptyMessage?: string;
   name?: string;
+  contentProps?: React.ComponentProps<typeof PopoverContent>;
 }
 export const Combobox = /* @__PURE__ */ React.forwardRef<
   HTMLButtonElement,
   ComboboxProps & PlainStyleProps
->(
-  (
-    {
-      options,
-      value,
-      defaultValue = '',
-      onValueChange,
-      placeholder = 'Select an option',
-      searchPlaceholder = 'Search options...',
-      emptyMessage = 'No options found.',
-      name,
-      className,
-      unstyled,
-      ...props
-    },
-    ref,
-  ) => {
-    const styles = useStyles();
-    const [open, setOpen] = React.useState(false);
-    const [internalValue, setInternalValue] = React.useState(defaultValue);
-    const current = value ?? internalValue;
-    const selected = options.find((option) => option.value === current);
-    return (
-      <StyleProvider unstyled={unstyled}>
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              ref={ref}
-              variant="outline"
-              role="combobox"
-              aria-expanded={open}
-              aria-haspopup="listbox"
-              aria-label={props['aria-label'] ?? placeholder}
-              {...styles(
-                'combobox.root',
-                cn(
-                  'w-full justify-between border-input-border font-normal',
-                  !selected && 'text-muted-foreground',
-                ),
-                className,
-                unstyled,
-              )}
-              {...props}
-            >
-              {selected?.label ?? placeholder}
-              <ChevronsUpDown
-                {...styles('combobox.icon', 'opacity-60', undefined, unstyled)}
-                aria-hidden="true"
-              />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="start"
+>((allProps, ref) => {
+  const {
+    options,
+    value,
+    defaultValue = '',
+    onValueChange,
+    placeholder = 'Select an option',
+    searchPlaceholder = 'Search options...',
+    emptyMessage = 'No options found.',
+    name,
+    className,
+    unstyled,
+    contentProps,
+    ...props
+  } = allProps;
+  const styles = useStyles();
+  const controlled = Object.prototype.hasOwnProperty.call(allProps, 'value');
+  const [open, setOpen] = React.useState(false);
+  const [internalValue, setInternalValue] = React.useState(defaultValue);
+  const current = controlled ? (value ?? '') : internalValue;
+  const selected = options.find((option) => option.value === current);
+  const { className: contentClassName, ...contentRest } = contentProps ?? {};
+  return (
+    <StyleProvider unstyled={unstyled}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            ref={ref}
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            aria-haspopup="listbox"
+            aria-label={props['aria-label'] ?? placeholder}
             {...styles(
-              'combobox.content',
-              'w-[var(--radix-popover-trigger-width)] p-0',
-              undefined,
+              'combobox.root',
+              cn(
+                'w-full justify-between border-input-border font-normal',
+                !selected && 'text-muted-foreground',
+              ),
+              className,
               unstyled,
             )}
+            {...props}
           >
-            <Command>
-              <CommandInput placeholder={searchPlaceholder} aria-label={searchPlaceholder} />
-              <CommandList>
-                <CommandEmpty>{emptyMessage}</CommandEmpty>
-                <CommandGroup>
-                  {options.map((option) => (
-                    <CommandItem
-                      key={option.value}
-                      value={option.label}
-                      keywords={option.keywords}
-                      disabled={option.disabled}
-                      onSelect={() => {
-                        if (value === undefined) setInternalValue(option.value);
-                        onValueChange?.(option.value);
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        aria-hidden="true"
-                        {...styles(
-                          'combobox.selected-icon',
-                          cn(current === option.value ? 'opacity-100' : 'opacity-0'),
-                          undefined,
-                          unstyled,
-                        )}
-                      />
+            {selected?.label ?? placeholder}
+            <ChevronsUpDown
+              {...styles('combobox.icon', 'opacity-60', undefined, unstyled)}
+              aria-hidden="true"
+            />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          {...styles(
+            'combobox.content',
+            'w-[var(--radix-popover-trigger-width)] min-w-48 max-w-[calc(100vw-32px)] p-0',
+            contentClassName,
+            unstyled,
+          )}
+          {...contentRest}
+        >
+          <Command>
+            <CommandInput placeholder={searchPlaceholder} aria-label={searchPlaceholder} />
+            <CommandList>
+              <CommandEmpty>{emptyMessage}</CommandEmpty>
+              <CommandGroup>
+                {options.map((option) => (
+                  <CommandItem
+                    key={option.value}
+                    value={option.label}
+                    keywords={option.keywords}
+                    disabled={option.disabled}
+                    onSelect={() => {
+                      if (!controlled) setInternalValue(option.value);
+                      onValueChange?.(option.value);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      aria-hidden="true"
+                      {...styles(
+                        'combobox.selected-icon',
+                        cn(current === option.value ? 'opacity-100' : 'opacity-0'),
+                        undefined,
+                        unstyled,
+                      )}
+                    />
+                    <span>
                       {option.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-          {name && <input type="hidden" name={name} value={current} disabled={props.disabled} />}
-        </Popover>
-      </StyleProvider>
-    );
-  },
-);
+                      {option.description && (
+                        <span className="block text-xs text-muted-foreground">
+                          {option.description}
+                        </span>
+                      )}
+                    </span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+        {name && <input type="hidden" name={name} value={current} disabled={props.disabled} />}
+      </Popover>
+    </StyleProvider>
+  );
+});
 Combobox.displayName = 'Combobox';

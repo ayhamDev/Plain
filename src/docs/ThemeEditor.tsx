@@ -1,4 +1,5 @@
-import { Download, RotateCcw, Sun, Moon, Monitor, Check } from 'lucide-react';
+import { useState } from 'react';
+import { Download, RotateCcw, Sun, Moon, Monitor, Check, ChevronDown, Trash2 } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -7,6 +8,17 @@ import {
   SheetDescription,
   Button,
   Label,
+  Field,
+  Input,
+  Combobox,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
   Slider,
   RadioGroup,
   RadioGroupItem,
@@ -20,6 +32,14 @@ import {
   type AccentColor,
   type Density,
   type ThemeMode,
+  type BorderStyle,
+  type ColorScheme,
+  type MotionPolicy,
+  type ThemeToken,
+  tokenNames,
+  tokenVariable,
+  themeCSS,
+  normalizeColor,
 } from '../ui';
 import { useAppPreferences } from './preferences';
 import { CodeBlock } from './shared';
@@ -40,28 +60,44 @@ export function ThemeEditor({
   onOpenChange: (open: boolean) => void;
 }) {
   const theme = useTheme();
-  const { direction, setDirection } = useAppPreferences();
+  const { direction, setDirection, tokens, setTokens } = useAppPreferences();
+  const [sourceDraft, setSourceDraft] = useState<string>();
+  const [overrideToken, setOverrideToken] = useState<ThemeToken>('sidebar.background');
+  const [overrideValue, setOverrideValue] = useState('');
+  const validOverride =
+    !overrideValue ||
+    typeof CSS === 'undefined' ||
+    CSS.supports(
+      /radius|height|width|day-size|space-/.test(overrideToken)
+        ? 'width'
+        : overrideToken.startsWith('duration-')
+          ? 'transition-duration'
+          : overrideToken.startsWith('ease-')
+            ? 'transition-timing-function'
+            : overrideToken.includes('shadow')
+              ? 'box-shadow'
+              : overrideToken === 'font'
+                ? 'font-family'
+                : overrideToken.endsWith('weight')
+                  ? 'font-weight'
+                  : overrideToken.startsWith('layer-')
+                    ? 'z-index'
+                    : overrideToken === 'motion-scale'
+                      ? 'opacity'
+                      : 'color',
+      overrideValue,
+    );
   const exportTheme = () => {
     const computed = getComputedStyle(document.documentElement);
-    const keys = [
-      'background',
-      'foreground',
-      'surface',
-      'muted',
-      'muted-foreground',
-      'border',
-      'input-border',
-      'accent',
-      'accent-foreground',
-      'accent-soft',
-      'danger',
-      'danger-soft',
-      'radius',
-      'control-height',
-      'font',
-      'shadow',
-    ];
-    const css = `:root {\n${keys.map((key) => `  --ui-${key}: ${computed.getPropertyValue(`--ui-${key}`).trim()};`).join('\n')}\n  color-scheme: ${theme.resolvedMode};\n}\n`;
+    const resolved = Object.fromEntries(
+      tokenNames
+        .map((key) => [key, computed.getPropertyValue(tokenVariable(key)).trim()])
+        .filter(([, value]) => value),
+    );
+    const css = themeCSS(resolved).replace(
+      '\n}\n',
+      `\n  color-scheme: ${theme.resolvedMode};\n}\n`,
+    );
     const url = URL.createObjectURL(new Blob([css], { type: 'text/css' }));
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -71,7 +107,7 @@ export function ThemeEditor({
     toast.success('Theme exported');
   };
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet side="end" open={open} onOpenChange={onOpenChange}>
       <SheetContent className="theme-editor" side="end">
         <SheetHeader>
           <SheetTitle>Make it yours</SheetTitle>
@@ -102,8 +138,10 @@ export function ThemeEditor({
         </div>
         <div className="theme-section">
           <div className="theme-label-row">
-            <Label>Accent color</Label>
-            <span>{accents.find((accent) => accent.value === theme.accent)?.label}</span>
+            <Label>Vibe color</Label>
+            <span>
+              {theme.color ?? accents.find((accent) => accent.value === theme.accent)?.label}
+            </span>
           </div>
           <div className="theme-swatches" role="group" aria-label="Accent color">
             {accents.map((accent) => (
@@ -111,18 +149,64 @@ export function ThemeEditor({
                 <TooltipTrigger asChild>
                   <button
                     aria-label={accent.label}
-                    aria-pressed={accent.value === theme.accent}
+                    aria-pressed={!theme.color && accent.value === theme.accent}
                     className="color-swatch"
                     style={{ background: accent.color }}
-                    onClick={() => theme.setTheme({ accent: accent.value })}
+                    onClick={() => {
+                      theme.setTheme({ accent: accent.value, color: null });
+                      setSourceDraft(undefined);
+                    }}
                   >
-                    {accent.value === theme.accent && <Check size={16} aria-hidden="true" />}
+                    {!theme.color && accent.value === theme.accent && (
+                      <Check size={16} aria-hidden="true" />
+                    )}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>{accent.label}</TooltipContent>
               </Tooltip>
             ))}
           </div>
+          <div className="theme-source-row">
+            <input
+              type="color"
+              className="theme-source-swatch"
+              aria-label="Choose source color"
+              value={theme.resolvedColor ?? '#252826'}
+              onChange={(event) => {
+                theme.setTheme({ color: event.target.value });
+                setSourceDraft(undefined);
+              }}
+            />
+            <Input
+              aria-label="Source color"
+              placeholder={theme.resolvedColor ?? '#RRGGBB'}
+              value={sourceDraft ?? theme.resolvedColor ?? ''}
+              onChange={(event) => {
+                const next = event.target.value;
+                setSourceDraft(next);
+                const color = normalizeColor(next);
+                if (color) theme.setTheme({ color });
+              }}
+              aria-invalid={Boolean(sourceDraft && !normalizeColor(sourceDraft)) || undefined}
+            />
+          </div>
+        </div>
+        <div className="theme-section">
+          <Select
+            value={theme.scheme}
+            onValueChange={(scheme) => theme.setTheme({ scheme: scheme as ColorScheme })}
+          >
+            <Field label="Palette">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+            </Field>
+            <SelectContent>
+              <SelectItem value="tonal">Tonal</SelectItem>
+              <SelectItem value="vibrant">Vibrant</SelectItem>
+              <SelectItem value="expressive">Expressive</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="theme-section">
           <div className="theme-label-row">
@@ -132,7 +216,7 @@ export function ThemeEditor({
           <Slider
             id="theme-radius"
             value={[theme.radius]}
-            max={16}
+            max={24}
             step={2}
             onValueChange={([radius]) => theme.setTheme({ radius })}
             aria-label="Corner radius"
@@ -141,6 +225,39 @@ export function ThemeEditor({
             <span>Sharp</span>
             <span>Soft</span>
           </div>
+        </div>
+        <div className="theme-section">
+          <Label>Borders</Label>
+          <ToggleGroup
+            type="single"
+            value={theme.borders}
+            onValueChange={(borders) =>
+              borders && theme.setTheme({ borders: borders as BorderStyle })
+            }
+            aria-label="Border treatment"
+            className="theme-segmented"
+          >
+            <ToggleGroupItem value="none">None</ToggleGroupItem>
+            <ToggleGroupItem value="subtle">Subtle</ToggleGroupItem>
+            <ToggleGroupItem value="strong">Strong</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+        <div className="theme-section">
+          <Select
+            value={theme.motion}
+            onValueChange={(motion) => theme.setTheme({ motion: motion as MotionPolicy })}
+          >
+            <Field label="Motion">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+            </Field>
+            <SelectContent>
+              <SelectItem value="system">Follow system</SelectItem>
+              <SelectItem value="reduced">Reduced</SelectItem>
+              <SelectItem value="none">None</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="theme-section">
           <Label>Density</Label>
@@ -177,10 +294,83 @@ export function ThemeEditor({
             <ToggleGroupItem value="rtl">Right to left</ToggleGroupItem>
           </ToggleGroup>
         </div>
+        <Collapsible className="theme-advanced">
+          <CollapsibleTrigger className="theme-advanced-trigger">
+            Advanced
+            <ChevronDown size={16} aria-hidden="true" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="theme-section">
+              <div className="theme-label-row">
+                <Label htmlFor="theme-contrast">Contrast</Label>
+                <output>{Math.round(theme.contrast * 100)}%</output>
+              </div>
+              <Slider
+                id="theme-contrast"
+                aria-label="Contrast"
+                min={0}
+                max={1}
+                step={0.1}
+                value={[theme.contrast]}
+                onValueChange={([contrast]) => theme.setTheme({ contrast })}
+              />
+            </div>
+            <div className="theme-section">
+              <Field label="Token">
+                <Combobox
+                  value={overrideToken}
+                  onValueChange={(value) => {
+                    setOverrideToken(value as ThemeToken);
+                    setOverrideValue(tokens[value as ThemeToken] ?? '');
+                  }}
+                  options={tokenNames.map((value) => ({ value, label: value }))}
+                  searchPlaceholder="Find a token..."
+                />
+              </Field>
+              <Field
+                label="CSS value"
+                error={!validOverride ? 'Enter a valid CSS value.' : undefined}
+              >
+                <Input
+                  value={overrideValue}
+                  onChange={(event) => setOverrideValue(event.target.value)}
+                  placeholder="var(--ui-background)"
+                />
+              </Field>
+              <div className="theme-override-actions">
+                <Button
+                  size="sm"
+                  disabled={!overrideValue || !validOverride}
+                  onClick={() => setTokens({ ...tokens, [overrideToken]: overrideValue })}
+                >
+                  <Check size={14} aria-hidden="true" />
+                  Apply
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={!tokens[overrideToken]}
+                  onClick={() => {
+                    const next = { ...tokens };
+                    delete next[overrideToken];
+                    setTokens(next);
+                    setOverrideValue('');
+                  }}
+                >
+                  <Trash2 size={14} aria-hidden="true" />
+                  Remove
+                </Button>
+              </div>
+              {Object.entries(tokens).length > 0 && (
+                <CodeBlock compact title="Overrides" code={themeCSS(tokens)} language="css" />
+              )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
         <CodeBlock
           compact
           title="Your theme"
-          code={`<PlainProvider\n  dir="${direction}"\n  theme={{\n    mode: '${theme.mode}',\n    accent: '${theme.accent}',\n    radius: ${theme.radius},\n    density: '${theme.density}',\n  }}\n>\n  <App />\n</PlainProvider>`}
+          code={`<PlainProvider\n  dir="${direction}"\n  theme={{\n    mode: '${theme.mode}',\n    color: ${theme.resolvedColor ? `'${theme.resolvedColor}'` : 'null'},\n    scheme: '${theme.scheme}',\n    radius: ${theme.radius},\n    density: '${theme.density}',\n    borders: '${theme.borders}',\n    motion: '${theme.motion}',\n    contrast: ${theme.contrast},\n  }}\n>\n  <App />\n</PlainProvider>`}
         />
         <div className="theme-actions">
           <Button
@@ -188,6 +378,9 @@ export function ThemeEditor({
             onClick={() => {
               theme.resetTheme();
               setDirection('ltr');
+              setTokens({});
+              setSourceDraft(undefined);
+              setOverrideValue('');
             }}
           >
             <RotateCcw aria-hidden="true" />

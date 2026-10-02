@@ -113,7 +113,7 @@ export default function ComponentPage() {
         <section id="usage" className="doc-section">
           <h2>Usage</h2>
           <CodeBlock
-            code={`import { ${component.imports.join(', ')} } from '@plainui/react';`}
+            code={`import { ${component.imports.join(', ')} } from '${component.entry ?? '@plain/ui'}';${component.stylesheet ? `\nimport '${component.stylesheet}';` : ''}`}
             compact
           />
           {component.usage && <p>{component.usage}</p>}

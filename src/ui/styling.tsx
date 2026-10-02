@@ -3,30 +3,40 @@ import { Direction } from 'radix-ui';
 import { ThemeProvider, type ThemeSettings } from './theme';
 import { cn } from './utils';
 import type { StyleSlot } from './slots';
+import {
+  tokensToStyle,
+  lightTokens,
+  componentTokenAliases,
+  type ThemeTokens,
+} from './token-contract';
+export type { ThemeToken, ThemeTokens } from './token-contract';
 
 export type TextDirection = 'ltr' | 'rtl';
 export interface PlainStyleProps {
   unstyled?: boolean;
 }
-export type ThemeToken =
-  | 'background'
-  | 'foreground'
-  | 'surface'
-  | 'muted'
-  | 'muted-foreground'
-  | 'border'
-  | 'input-border'
-  | 'accent'
-  | 'accent-foreground'
-  | 'accent-soft'
-  | 'danger'
-  | 'danger-soft'
-  | 'radius'
-  | 'control-height'
-  | 'font'
-  | 'shadow';
-export type ThemeTokens = Partial<Record<ThemeToken, string>>;
 export type ComponentStyles = Partial<Record<StyleSlot, string>>;
+const TokenOverridesContext = /* @__PURE__ */ React.createContext<ThemeTokens>({});
+const aliasNames = /* @__PURE__ */ createAliasNames();
+function createAliasNames() {
+  return new Set([
+    ...Object.keys(componentTokenAliases),
+    ...Object.entries(lightTokens)
+      .filter(([, value]) => value.includes('var('))
+      .map(([key]) => key),
+  ]);
+}
+function TokenOverridesProvider({
+  tokens,
+  children,
+}: {
+  tokens?: ThemeTokens;
+  children: React.ReactNode;
+}) {
+  const parent = React.useContext(TokenOverridesContext);
+  const value = React.useMemo(() => ({ ...parent, ...tokens }), [parent, tokens]);
+  return <TokenOverridesContext.Provider value={value}>{children}</TokenOverridesContext.Provider>;
+}
 interface StyleContextValue {
   unstyled: boolean;
   styles: ComponentStyles;
@@ -118,9 +128,11 @@ export function PlainProvider({
   return (
     <DirectionProvider dir={dir}>
       <ThemeProvider defaultSettings={theme} persist={persist} tokens={tokens}>
-        <StyleProvider styles={styles} unstyled={unstyled}>
-          {children}
-        </StyleProvider>
+        <TokenOverridesProvider tokens={tokens}>
+          <StyleProvider styles={styles} unstyled={unstyled}>
+            {children}
+          </StyleProvider>
+        </TokenOverridesProvider>
       </ThemeProvider>
     </DirectionProvider>
   );
@@ -130,31 +142,45 @@ export interface ThemeScopeProps extends React.HTMLAttributes<HTMLDivElement> {
   tokens?: ThemeTokens;
   unstyled?: boolean;
   componentStyles?: ComponentStyles;
+  mode?: 'light' | 'dark';
 }
-export const ThemeScope = /* @__PURE__ */ React.forwardRef<HTMLDivElement, ThemeScopeProps>(
-  ({ children, tokens, componentStyles, unstyled, style, dir, ...props }, ref) => {
-    const direction = useDirection(dir as TextDirection | undefined);
-    const [container, setContainer] = React.useState<HTMLDivElement>();
-    const nodeRef = React.useRef<HTMLDivElement>(null);
-    const scopeRef = React.useCallback((node: HTMLDivElement | null) => {
-      nodeRef.current = node;
-      setContainer(node ?? undefined);
-    }, []);
-    React.useImperativeHandle(ref, () => nodeRef.current!, []);
-    const variables = Object.fromEntries(
-      Object.entries(tokens ?? {}).map(([key, value]) => [`--ui-${key}`, value]),
-    ) as React.CSSProperties;
-    return (
-      <DirectionProvider dir={direction}>
-        <StyleProvider styles={componentStyles} unstyled={unstyled}>
-          <div ref={scopeRef} dir={direction} style={{ ...variables, ...style }} {...props}>
-            <PortalContainerContext.Provider value={container}>
-              {children}
-            </PortalContainerContext.Provider>
-          </div>
-        </StyleProvider>
-      </DirectionProvider>
-    );
-  },
+export const ThemeScope = /* @__PURE__ */ Object.assign(
+  React.forwardRef<HTMLDivElement, ThemeScopeProps>(
+    ({ children, tokens, componentStyles, unstyled, style, dir, mode, ...props }, ref) => {
+      const direction = useDirection(dir as TextDirection | undefined);
+      const [container, setContainer] = React.useState<HTMLDivElement>();
+      const nodeRef = React.useRef<HTMLDivElement>(null);
+      const scopeRef = React.useCallback((node: HTMLDivElement | null) => {
+        nodeRef.current = node;
+        setContainer(node ?? undefined);
+      }, []);
+      React.useImperativeHandle(ref, () => nodeRef.current!, []);
+      const parentOverrides = React.useContext(TokenOverridesContext);
+      const inheritedAliases = Object.fromEntries(
+        Object.entries(parentOverrides).filter(([key]) => aliasNames.has(key)),
+      );
+      const variables = tokensToStyle({ ...inheritedAliases, ...tokens }) as React.CSSProperties;
+      return (
+        <DirectionProvider dir={direction}>
+          <TokenOverridesProvider tokens={tokens}>
+            <StyleProvider styles={componentStyles} unstyled={unstyled}>
+              <div
+                ref={scopeRef}
+                dir={direction}
+                data-ui-theme-scope=""
+                data-theme={mode}
+                style={{ ...variables, ...style }}
+                {...props}
+              >
+                <PortalContainerContext.Provider value={container}>
+                  {children}
+                </PortalContainerContext.Provider>
+              </div>
+            </StyleProvider>
+          </TokenOverridesProvider>
+        </DirectionProvider>
+      );
+    },
+  ),
+  { displayName: 'ThemeScope' },
 );
-ThemeScope.displayName = 'ThemeScope';

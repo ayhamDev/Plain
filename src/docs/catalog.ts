@@ -1,4 +1,17 @@
-export type Category = 'Actions' | 'Forms' | 'Navigation' | 'Feedback' | 'Overlays' | 'Layout';
+import { extendedComponents } from './extended-catalog.ts';
+
+export type Category =
+  | 'Actions'
+  | 'Forms'
+  | 'Navigation'
+  | 'Feedback'
+  | 'Overlays'
+  | 'Layout'
+  | 'Virtualization'
+  | 'Scheduling'
+  | 'Charts'
+  | 'Typography'
+  | 'Motion';
 export interface PropDefinition {
   name: string;
   type: string;
@@ -15,6 +28,9 @@ export interface ComponentDefinition {
   props: PropDefinition[];
   accessibility: string;
   usage?: string;
+  entry?: string;
+  setup?: string;
+  stylesheet?: string;
 }
 const prop = (
   name: string,
@@ -392,20 +408,59 @@ export const components: ComponentDefinition[] = [
       'SheetDescription',
       'Button',
     ],
-    '<Sheet>\n  <SheetTrigger asChild><Button variant="outline">Open settings</Button></SheetTrigger>\n  <SheetContent side="right">\n    <SheetHeader>\n      <SheetTitle>Project settings</SheetTitle>\n      <SheetDescription>Make this space your own.</SheetDescription>\n    </SheetHeader>\n  </SheetContent>\n</Sheet>',
-    [...overlay, prop('side', 'left | right | bottom', 'The edge used by SheetContent.', 'right')],
-    'Uses Radix Dialog focus management. Include SheetTitle and SheetDescription; Escape and the close button dismiss the panel.',
+    '<Sheet side="end">\n  <SheetTrigger asChild><Button variant="outline">Open settings</Button></SheetTrigger>\n  <SheetContent>\n    <SheetHeader>\n      <SheetTitle>Project settings</SheetTitle>\n      <SheetDescription>Make this space your own.</SheetDescription>\n    </SheetHeader>\n  </SheetContent>\n</Sheet>',
+    [
+      ...overlay,
+      prop(
+        'side',
+        'start | end | left | right | top | bottom',
+        'Root panel edge. Logical start/end follow the local text direction.',
+        'end',
+      ),
+      prop(
+        'snapPoints',
+        '(number | string)[]',
+        'Optional Vaul snap positions: viewport fractions or pixel strings.',
+      ),
+      prop(
+        'activeSnapPoint',
+        'number | string | null',
+        'Controlled snap point; pair with setActiveSnapPoint.',
+      ),
+      prop('dismissible', 'boolean', 'Allow drag, Escape, and outside dismissal.', 'true'),
+      prop('showClose', 'boolean', 'Display the SheetContent close control.', 'true'),
+    ],
+    'Vaul provides focus trapping, touch dragging, and snap points. Include SheetTitle and SheetDescription. SheetHandle can cycle snap points with Enter or Space; Escape restores focus to the trigger.',
+    'Set the edge on Sheet so Vaul knows its direction before opening. SheetContent side remains available for compatibility; the root side takes precedence. Portals inherit the nearest ThemeScope.',
   ),
   definition(
     'drawer',
     'Drawer',
     'Overlays',
     'A bottom panel for compact, mobile-friendly tasks.',
-    ['Drawer', 'DrawerTrigger', 'DrawerContent', 'DrawerTitle', 'DrawerDescription', 'Button'],
-    '<Drawer>\n  <DrawerTrigger asChild><Button variant="outline">Quick actions</Button></DrawerTrigger>\n  <DrawerContent>\n    <DrawerTitle>Quick actions</DrawerTitle>\n    <DrawerDescription>Choose your next step.</DrawerDescription>\n  </DrawerContent>\n</Drawer>',
-    overlay,
-    'A bottom-positioned dialog with focus trapping, background dismissal, and Escape support. Include a title and description.',
-    'Drawer supports button and backdrop dismissal. Swipe-to-dismiss is not part of this implementation.',
+    [
+      'Drawer',
+      'DrawerTrigger',
+      'DrawerContent',
+      'DrawerHandle',
+      'DrawerTitle',
+      'DrawerDescription',
+      'Button',
+    ],
+    '<Drawer snapPoints={[0.5, 0.9]}>\n  <DrawerTrigger asChild><Button variant="outline">Quick actions</Button></DrawerTrigger>\n  <DrawerContent>\n    <DrawerHandle />\n    <DrawerTitle>Quick actions</DrawerTitle>\n    <DrawerDescription>Choose your next step.</DrawerDescription>\n  </DrawerContent>\n</Drawer>',
+    [
+      ...overlay,
+      prop('snapPoints', '(number | string)[]', 'Optional fractional or pixel snap positions.'),
+      prop(
+        'activeSnapPoint',
+        'number | string | null',
+        'Controlled snap position; pair with setActiveSnapPoint.',
+      ),
+      prop('dismissible', 'boolean', 'Allow swipe, Escape, and outside dismissal.', 'true'),
+      prop('showClose', 'boolean', 'Display the DrawerContent close control.', 'true'),
+    ],
+    'A Vaul bottom panel with focus trapping, touch gestures, safe-area padding, background dismissal, and Escape support. Include a title and description. The handle supports keyboard snap cycling.',
+    'Drawer defaults to the bottom edge and shares the Sheet motion, token, scoped portal, and gesture APIs. Prefer a compact task over putting an entire page in a drawer.',
   ),
   definition(
     'dropdown-menu',
@@ -507,7 +562,7 @@ export const components: ComponentDefinition[] = [
         'bottom-right (LTR) / bottom-left (RTL)',
       ),
       prop('duration', 'number', 'Display duration in milliseconds.', '4000'),
-      prop('closeButton', 'boolean', 'Display a close control.', 'true'),
+      prop('closeButton', 'boolean', 'Display an optional close control.', 'false'),
     ],
     'Sonner announces notifications to assistive technology. Add one Toaster at your application root; keep actionable or critical messages visible elsewhere.',
   ),
@@ -743,6 +798,7 @@ export const components: ComponentDefinition[] = [
     ],
     'The title is a heading and the action remains keyboard accessible. Use a meaningful next step for filtered and empty collections.',
   ),
+  ...extendedComponents,
 ];
 
 export const categories: Category[] = [
@@ -752,13 +808,22 @@ export const categories: Category[] = [
   'Feedback',
   'Overlays',
   'Layout',
+  'Virtualization',
+  'Scheduling',
+  'Charts',
+  'Typography',
+  'Motion',
 ];
 export const getComponent = (slug: string) =>
   components.find((component) => component.slug === slug);
 export function componentCode(component: ComponentDefinition) {
-  const imports = `import { ${component.imports.join(', ')} } from '@plainui/react';`;
+  const imports = `import { ${component.imports.join(', ')} } from '${component.entry ?? '@plain/ui'}';${component.stylesheet ? `\nimport '${component.stylesheet}';` : ''}`;
   const split = component.slug === 'data-table' ? component.code.indexOf('\n\n<DataTable') : -1;
-  const prefix = split >= 0 ? `${component.code.slice(0, split)}\n\n` : '';
+  const prefix = component.setup
+    ? `${component.setup}\n\n`
+    : split >= 0
+      ? `${component.code.slice(0, split)}\n\n`
+      : '';
   const jsx = split >= 0 ? component.code.slice(split + 2) : component.code;
   return `${imports}\n\n${prefix}export function Example() {\n  return (\n    <>\n${jsx
     .split('\n')
@@ -772,4 +837,10 @@ export const guideLinks = [
   { slug: 'tokens', title: 'Design tokens' },
   { slug: 'accessibility', title: 'Accessibility' },
   { slug: 'performance', title: 'Performance' },
+  { slug: 'motion', title: 'Motion' },
+  { slug: 'layouts', title: 'Layouts' },
+  { slug: 'virtualization', title: 'Virtualization' },
+  { slug: 'charts', title: 'Charts' },
+  { slug: 'scheduling', title: 'Scheduling' },
+  { slug: 'blocks-templates', title: 'Blocks & templates' },
 ];

@@ -40,7 +40,12 @@ export const Table = /* @__PURE__ */ React.forwardRef<HTMLTableElement, TablePro
       >
         <table
           ref={ref}
-          {...styles('table.root', 'w-full caption-bottom text-sm', className, unstyled)}
+          {...styles(
+            'table.root',
+            'w-full caption-bottom bg-[var(--ui-table-background)] text-sm text-[var(--ui-table-foreground)]',
+            className,
+            unstyled,
+          )}
           {...props}
         />
       </div>
@@ -55,7 +60,15 @@ export function TableHeader({
 }: React.ComponentProps<'thead'> & PlainStyleProps) {
   const styles = useStyles();
   return (
-    <thead {...styles('table.header', 'border-b bg-muted/50', className, unstyled)} {...props} />
+    <thead
+      {...styles(
+        'table.header',
+        'border-b-[length:var(--ui-border-width)] border-[var(--ui-table-border)] bg-[var(--ui-table-header)]',
+        className,
+        unstyled,
+      )}
+      {...props}
+    />
   );
 }
 export function TableBody({
@@ -79,7 +92,12 @@ export function TableFooter({
   const styles = useStyles();
   return (
     <tfoot
-      {...styles('table.footer', 'border-t bg-muted font-medium', className, unstyled)}
+      {...styles(
+        'table.footer',
+        'border-t-[length:var(--ui-border-width)] border-[var(--ui-table-border)] bg-[var(--ui-table-header)] font-medium',
+        className,
+        unstyled,
+      )}
       {...props}
     />
   );
@@ -94,7 +112,7 @@ export function TableRow({
     <tr
       {...styles(
         'table.row',
-        'border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-accent-soft',
+        'ui-interactive border-b-[length:var(--ui-border-width)] border-[var(--ui-table-border)] hover:bg-[var(--ui-table-hover)] data-[state=selected]:bg-[var(--ui-table-selected)] data-[state=selected]:text-[var(--ui-table-selected-foreground)]',
         className,
         unstyled,
       )}
@@ -114,7 +132,7 @@ export function TableHead({
       scope={scope}
       {...styles(
         'table.head',
-        'h-11 px-4 text-start align-middle text-xs font-medium whitespace-nowrap text-muted-foreground',
+        'h-11 px-4 text-start align-middle text-xs font-medium whitespace-nowrap text-[var(--ui-table-muted-foreground)]',
         className,
         unstyled,
       )}

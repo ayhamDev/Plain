@@ -16,7 +16,9 @@ import {
   Layers,
 } from 'lucide-react';
 import * as UI from '../ui';
-import { ProjectDemo, TeamDemo, DepartmentSelect, PersonAvatar } from './showcase';
+const ExtendedExamples = React.lazy(() => import('./ExtendedExamples'));
+const SheetExample = React.lazy(() => import('./examples/SheetExample'));
+import { ProjectDemo, DepartmentSelect, PersonAvatar } from './showcase';
 
 export type Invoice = {
   id: string;
@@ -422,28 +424,9 @@ export function ComponentExample({ slug }: { slug: string }) {
       );
     case 'sheet':
       return (
-        <UI.Sheet>
-          <UI.SheetTrigger asChild>
-            <UI.Button variant="outline">Open settings</UI.Button>
-          </UI.SheetTrigger>
-          <UI.SheetContent>
-            <UI.SheetHeader>
-              <UI.SheetTitle>Project settings</UI.SheetTitle>
-              <UI.SheetDescription>A few details to make this space yours.</UI.SheetDescription>
-            </UI.SheetHeader>
-            <div className="demo-form-stack">
-              <UI.Field label="Project name">
-                <UI.Input defaultValue="Website redesign" />
-              </UI.Field>
-              <UI.Field label="Description">
-                <UI.Textarea defaultValue="Good things are taking shape." />
-              </UI.Field>
-              <UI.SheetClose asChild>
-                <UI.Button onClick={saved}>Save changes</UI.Button>
-              </UI.SheetClose>
-            </div>
-          </UI.SheetContent>
-        </UI.Sheet>
+        <React.Suspense fallback={<UI.Spinner />}>
+          <SheetExample />
+        </React.Suspense>
       );
     case 'drawer':
       return (
@@ -841,6 +824,10 @@ export function ComponentExample({ slug }: { slug: string }) {
         />
       );
     default:
-      return <TeamDemo />;
+      return (
+        <React.Suspense fallback={<UI.Spinner label="Loading example" />}>
+          <ExtendedExamples slug={slug} />
+        </React.Suspense>
+      );
   }
 }

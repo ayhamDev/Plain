@@ -1,6 +1,11 @@
 @import 'tailwindcss' source(none);
 @import './tokens.css';
 @import 'react-day-picker/style.css';
+@import './interaction.css';
+@import './layout.css';
+@import './advanced.css';
+@import './date-time.css';
+@import './typography.css';
 @source './';
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
@@ -17,6 +22,23 @@
   --color-accent-soft: var(--ui-accent-soft);
   --color-danger: var(--ui-danger);
   --color-danger-soft: var(--ui-danger-soft);
+  --color-primary: var(--ui-primary);
+  --color-primary-foreground: var(--ui-primary-foreground);
+  --color-primary-container: var(--ui-primary-container);
+  --color-primary-container-foreground: var(--ui-primary-container-foreground);
+  --color-secondary: var(--ui-secondary);
+  --color-secondary-foreground: var(--ui-secondary-foreground);
+  --color-secondary-container: var(--ui-secondary-container);
+  --color-secondary-container-foreground: var(--ui-secondary-container-foreground);
+  --color-tertiary: var(--ui-tertiary);
+  --color-tertiary-foreground: var(--ui-tertiary-foreground);
+  --color-tertiary-container: var(--ui-tertiary-container);
+  --color-tertiary-container-foreground: var(--ui-tertiary-container-foreground);
+  --color-accent-soft-foreground: var(--ui-accent-soft-foreground);
+  --color-inverse: var(--ui-inverse);
+  --color-inverse-foreground: var(--ui-inverse-foreground);
+  --color-surface-low: var(--ui-surface-low);
+  --color-surface-high: var(--ui-surface-high);
   --radius-ui: var(--ui-radius);
   --font-sans: var(--ui-font);
   --shadow-popover: var(--ui-shadow);
@@ -45,12 +67,12 @@
     cursor: pointer;
   }
   :focus-visible {
-    outline: 2px solid var(--ui-accent);
+    outline: 2px solid var(--ui-focus-ring);
     outline-offset: 3px;
   }
   ::selection {
     background: var(--ui-accent-soft);
-    color: var(--ui-accent);
+    color: var(--ui-accent-soft-foreground);
   }
 }
 
@@ -58,97 +80,14 @@
   .ui-control {
     min-height: var(--ui-control-height);
   }
-  .ui-popup {
-    animation: ui-appear 150ms ease-out;
-    transform-origin: var(--radix-popover-content-transform-origin);
-  }
-  .ui-popup[data-state='closed'] {
-    animation: ui-disappear 100ms ease-in;
-  }
-  .ui-overlay {
-    animation: ui-fade 150ms ease-out;
-  }
-  .ui-dialog {
-    animation: ui-dialog-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .ui-sheet {
-    animation: ui-sheet-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .ui-drawer {
-    animation: ui-drawer-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .ui-accordion[data-state='open'] {
-    animation: ui-expand 180ms ease-out;
-  }
-  .ui-accordion[data-state='closed'] {
-    animation: ui-collapse 150ms ease-out;
-  }
 }
-@keyframes ui-appear {
-  from {
-    opacity: 0;
-    transform: translateY(4px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-@keyframes ui-disappear {
-  to {
-    opacity: 0;
-    transform: translateY(2px);
-  }
-}
-@keyframes ui-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes ui-dialog-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -48%) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-@keyframes ui-sheet-in {
-  from {
-    transform: translateX(var(--sheet-direction, 100%));
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-@keyframes ui-drawer-in {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-@keyframes ui-expand {
-  from {
-    height: 0;
-  }
-  to {
-    height: var(--radix-accordion-content-height);
-  }
-}
-@keyframes ui-collapse {
-  from {
-    height: var(--radix-accordion-content-height);
-  }
-  to {
-    height: 0;
-  }
+:where([data-motion='none'], [data-motion='reduced']) *,
+:where([data-motion='none'], [data-motion='reduced']) *::before,
+:where([data-motion='none'], [data-motion='reduced']) *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -164,18 +103,30 @@
 .ui-calendar.rdp-root {
   --rdp-accent-color: var(--ui-accent);
   --rdp-accent-background-color: var(--ui-accent-soft);
-  --rdp-day-height: 34px;
-  --rdp-day-width: 34px;
-  --rdp-day_button-height: 32px;
-  --rdp-day_button-width: 32px;
-  --rdp-day_button-border-radius: var(--ui-radius);
-  --rdp-selected-border: 1px solid var(--ui-accent);
+  --rdp-day-height: var(--ui-calendar-day-size);
+  --rdp-day-width: var(--ui-calendar-day-size);
+  --rdp-day_button-height: var(--ui-calendar-day-size);
+  --rdp-day_button-width: var(--ui-calendar-day-size);
+  --rdp-day_button-border-radius: var(--ui-calendar-radius);
+  --rdp-selected-border: none;
+  --rdp-range_middle-background-color: var(--ui-calendar-range);
+  --rdp-range_start-color: var(--ui-calendar-selected-foreground);
+  --rdp-range_end-color: var(--ui-calendar-selected-foreground);
   --rdp-outside-opacity: 1;
   --rdp-today-color: var(--ui-accent);
   --rdp-weekday-opacity: 1;
   --rdp-months-gap: 24px;
   font-size: 13px;
-  color: var(--ui-foreground);
+  color: var(--ui-calendar-foreground);
+}
+.ui-calendar .rdp-day,
+.ui-calendar .rdp-day_button {
+  font-size: 13px;
+}
+.ui-calendar .rdp-day_button {
+  transition:
+    background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard),
+    color calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard);
 }
 .ui-calendar .rdp-caption_label {
   font-size: 14px;
@@ -187,19 +138,20 @@
   font-weight: 400;
 }
 .ui-calendar .rdp-selected .rdp-day_button {
-  background: var(--ui-accent);
-  color: var(--ui-accent-foreground);
+  background: var(--ui-calendar-selected);
+  color: var(--ui-calendar-selected-foreground);
+  font-size: 13px;
   font-weight: 500;
 }
 .ui-calendar .rdp-outside {
   color: var(--ui-muted-foreground);
 }
 .ui-calendar .rdp-day:not(.rdp-selected) .rdp-day_button:hover:not(:disabled) {
-  background: var(--ui-muted);
+  background: var(--ui-calendar-hover);
 }
 .ui-calendar .rdp-range_middle .rdp-day_button {
-  background: var(--ui-accent-soft);
-  color: var(--ui-accent);
+  background: var(--ui-calendar-range);
+  color: var(--ui-calendar-range-foreground);
 }
 .ui-calendar .rdp-chevron {
   fill: var(--ui-muted-foreground);

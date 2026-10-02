@@ -35,6 +35,93 @@ const scenarios = [
     path: '/components/input',
   },
 ];
+scenarios.push(
+  {
+    name: 'typography-seeded-rtl',
+    width: 640,
+    height: 960,
+    mode: 'dark',
+    dir: 'rtl',
+    color: '#2563eb',
+    path: '/components/typography',
+  },
+  {
+    name: 'submenu-mobile-light',
+    width: 390,
+    height: 844,
+    mode: 'light',
+    dir: 'ltr',
+    path: '/components/dropdown-menu',
+    submenu: true,
+  },
+  {
+    name: 'submenu-mobile-rtl',
+    width: 390,
+    height: 844,
+    mode: 'dark',
+    dir: 'rtl',
+    path: '/components/dropdown-menu',
+    submenu: true,
+  },
+  {
+    name: 'sheet-mobile-rtl',
+    width: 390,
+    height: 844,
+    mode: 'dark',
+    dir: 'rtl',
+    path: '/components/sheet',
+    sheet: true,
+  },
+  {
+    name: 'calendar-narrow',
+    width: 320,
+    height: 740,
+    mode: 'light',
+    dir: 'ltr',
+    path: '/components/calendar',
+  },
+  {
+    name: 'time-range-mobile-rtl',
+    width: 390,
+    height: 844,
+    mode: 'light',
+    dir: 'rtl',
+    path: '/components/time-range-picker',
+  },
+  {
+    name: 'event-calendar',
+    width: 1440,
+    height: 1000,
+    mode: 'light',
+    dir: 'ltr',
+    path: '/components/full-calendar',
+  },
+  {
+    name: 'chart-seeded-mobile-rtl',
+    width: 390,
+    height: 844,
+    mode: 'dark',
+    dir: 'rtl',
+    color: '#be185d',
+    path: '/components/bar-chart',
+  },
+  {
+    name: 'copy-block',
+    width: 1440,
+    height: 1000,
+    mode: 'light',
+    dir: 'ltr',
+    path: '/blocks?category=authentication&item=auth-password',
+  },
+  {
+    name: 'mobile-template',
+    width: 390,
+    height: 844,
+    mode: 'dark',
+    dir: 'rtl',
+    path: '/templates?category=mobile-apps&item=mobile-apps-routines',
+  },
+);
 const report = [];
 scenarios.push({
   name: 'dialog-mobile-rtl',
@@ -50,10 +137,10 @@ try {
     const context = await browser.newContext({
       viewport: { width: scenario.width, height: scenario.height },
     });
-    await context.addInitScript(({ mode, dir }) => {
+    await context.addInitScript(({ mode, dir, color = null }) => {
       localStorage.setItem(
         'plainui-theme',
-        JSON.stringify({ mode, accent: 'neutral', radius: 6, density: 'comfortable' }),
+        JSON.stringify({ mode, color, accent: 'neutral', radius: 6, density: 'comfortable' }),
       );
       localStorage.setItem('plainui-direction', dir);
     }, scenario);
@@ -61,7 +148,7 @@ try {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseURL}${scenario.path}`, { waitUntil: 'networkidle' });
-    await page.locator('h1').waitFor();
+    await page.locator('h1').first().waitFor();
     await page.evaluate(() => document.fonts.ready);
     if (scenario.path === '/') {
       await page.locator('.calendar-demo [data-ui="calendar"]').waitFor({ state: 'attached' });
@@ -81,6 +168,57 @@ try {
         'Dialog must fit entirely in the RTL mobile viewport.',
       );
     }
+    if (scenario.submenu) {
+      await page.getByRole('button', { name: 'Project actions', exact: true }).click();
+      const trigger = page.getByRole('menuitem', { name: 'Move to', exact: true });
+      await trigger.focus();
+      await trigger.press(scenario.dir === 'rtl' ? 'ArrowLeft' : 'ArrowRight');
+      await page.waitForTimeout(250);
+      const menu = page.getByRole('menu').last();
+      const bounds = await menu.boundingBox();
+      assert(
+        bounds && bounds.x >= 0 && bounds.x + bounds.width <= scenario.width,
+        'Submenu must fit the viewport.',
+      );
+      assert.equal(
+        await page
+          .getByRole('menu')
+          .first()
+          .evaluate((node) => node.scrollWidth <= node.clientWidth + 1),
+        true,
+      );
+    }
+    if (scenario.sheet) {
+      await page.getByRole('button', { name: 'Open settings', exact: true }).click();
+      await page.getByRole('dialog').waitFor();
+      await page.waitForTimeout(500);
+    }
+    if (scenario.path === '/components/full-calendar')
+      await page
+        .locator('.component-preview')
+        .getByText('Project kickoff', { exact: true })
+        .waitFor();
+    if (scenario.path.endsWith('-chart'))
+      await page.locator('.component-preview .recharts-surface[role="application"]').waitFor();
+    if (scenario.path.startsWith('/blocks') || scenario.path.startsWith('/templates'))
+      await page.locator('.composition-preview [data-block]').first().waitFor();
+    const assets = await page.locator('img').evaluateAll((images) =>
+      images
+        .filter((image) => {
+          const bounds = image.getBoundingClientRect();
+          return (
+            bounds.width > 0 && bounds.height > 0 && bounds.top < innerHeight && bounds.bottom > 0
+          );
+        })
+        .map((image) => ({
+          src: image.currentSrc,
+          loaded: image.complete && image.naturalWidth > 0,
+        })),
+    );
+    assert(
+      assets.every((image) => image.loaded),
+      `${scenario.name}: visible image asset failed to load`,
+    );
     await page.screenshot({ path: `${outputDirectory}/${scenario.name}.png` });
     await page.screenshot({ path: `${outputDirectory}/${scenario.name}-full.png`, fullPage: true });
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
@@ -103,7 +241,11 @@ try {
       overflow,
       errors,
       accessibilityViolations: 0,
+      assets,
+      browserVersion: browser.version(),
     });
+    await writeFile(`${outputDirectory}/report.json`, JSON.stringify(report, null, 2));
+    console.log(`${engine}: ${scenario.name} passed`);
     await context.close();
   }
 } finally {

@@ -1,15 +1,6 @@
 import * as React from 'react';
 import { Link, useParams } from 'react-router-dom';
-import {
-  ArrowRight,
-  Check,
-  MoveHorizontal,
-  Accessibility,
-  Blocks,
-  Paintbrush,
-  Package,
-  ArrowUpRight,
-} from 'lucide-react';
+import { ArrowRight, Check, MoveHorizontal, Paintbrush } from 'lucide-react';
 import {
   Alert,
   AlertTitle,
@@ -17,349 +8,1211 @@ import {
   Badge,
   Button,
   Field,
+  Grid,
   Input,
-  ThemeScope,
-  Switch,
   Label,
-  DirectionProvider,
+  Switch,
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
   Tabs,
+  TabsContent,
   TabsList,
   TabsTrigger,
-  TabsContent,
+  ThemeScope,
+  componentTokenAliases,
+  createTheme,
+  darkTokens,
+  lightTokens,
+  tokenNames,
+  tokenVariable,
+  type ThemeToken,
+  type ThemeTokens,
 } from '../../ui';
-import { components } from '../catalog';
-import { CodeBlock, PackageDownload } from '../shared';
+import { CodeBlock } from '../shared';
 import { useAppPreferences } from '../preferences';
 
 const guideInfo: Record<string, { title: string; description: string }> = {
   introduction: {
-    title: 'A considered beginning.',
-    description:
-      'PlainUI is a neutral foundation for prototypes, MVPs, and the products they become.',
+    title: 'P.UI',
+    description: 'A neutral React DOM foundation for real application workflows.',
   },
   installation: {
-    title: 'Your next idea starts here.',
-    description:
-      'Add PlainUI to your React app. One stylesheet, a few imports, and room to create.',
+    title: 'Installation',
+    description: 'Use @plain/ui 0.2, its precompiled styles, and the optional entries you need.',
   },
   theming: {
-    title: 'One foundation. Your feeling.',
+    title: 'Theming',
     description:
-      'Control color, corners, density, and appearance through a small set of shared tokens.',
+      'Generate a complete light and dark color system, then override the roles you own.',
   },
   tokens: {
-    title: 'The small things add up.',
-    description:
-      'A coherent set of colors, typography, spacing, and motion connects every component.',
-  },
-  accessibility: {
-    title: 'Consider everyone.',
-    description:
-      'Accessible primitives are a starting point. Your content and composition complete the experience.',
+    title: 'Design tokens',
+    description: 'Root roles, component aliases, and tonal palettes in one typed contract.',
   },
   customization: {
-    title: 'Plain, until it is yours.',
+    title: 'Customization',
+    description: 'Keep native controls and refs while shaping tokens, slots, and brand components.',
+  },
+  accessibility: {
+    title: 'Accessibility',
     description:
-      'Start with a finished default. Shape every part as your product finds its identity.',
+      'Primitive behavior is a starting point. Content, composition, and testing matter.',
   },
   rtl: {
-    title: 'Every direction.',
+    title: 'Right to left',
+    description: 'Connect direction-aware behavior with logical layout and localized content.',
+  },
+  motion: {
+    title: 'Motion',
     description:
-      'Direction-aware behavior and logical layout for interfaces that read from right to left.',
+      'Explain changes with optional animation that follows the application motion policy.',
+  },
+  layouts: {
+    title: 'Layouts',
+    description: 'Compose responsive workspaces, mobile navigation, and resizable panels.',
+  },
+  virtualization: {
+    title: 'Virtualization',
+    description: 'Window large collections without confusing it with data loading or pagination.',
+  },
+  'blocks-templates': {
+    title: 'Blocks and templates',
+    description: 'Start from a working composition, then adapt its data, navigation, and actions.',
+  },
+  charts: {
+    title: 'Charts',
+    description: 'Use Recharts-backed views with meaningful labels and readable data alternatives.',
+  },
+  scheduling: {
+    title: 'Dates and scheduling',
+    description: 'Choose date-only, wall-time, and event-calendar APIs deliberately.',
   },
   performance: {
-    title: 'Only what you need.',
+    title: 'Performance',
     description:
-      'Static CSS, modular exports, and careful composition keep your application focused.',
+      'Load optional engines where needed and measure the application you actually ship.',
   },
 };
-const themesCode = `import { PlainProvider } from '@plainui/react';\nimport '@plainui/react/styles.css';\n\nexport function Root() {\n  return (\n    <PlainProvider\n      theme={{ mode: 'system', accent: 'neutral', radius: 6 }}\n      dir="ltr"\n    >\n      <App />\n    </PlainProvider>\n  );\n}`;
+
+const previewTheme = createTheme({ color: '#2f6b59', scheme: 'tonal', contrast: 0 });
+const neutralTheme = createTheme({ color: null });
+const rootDefaults: ThemeTokens = { ...lightTokens, ...neutralTheme.light };
+const darkDefaults: ThemeTokens = { ...lightTokens, ...darkTokens, ...neutralTheme.dark };
+const aliasDefaults: ThemeTokens = componentTokenAliases;
+
+const examples = {
+  provider: `import type { ReactNode } from 'react';
+import { PlainProvider } from '@plain/ui';
+import '@plain/ui/styles.css';
+
+export function AppProviders({ children }: { children: ReactNode }) {
+  return (
+    <PlainProvider
+      theme={{
+        color: null,
+        mode: 'system',
+        radius: 6,
+        density: 'comfortable',
+        borders: 'subtle',
+        motion: 'system',
+      }}
+      dir="ltr"
+    >
+      {children}
+    </PlainProvider>
+  );
+}`,
+  form: `import { useState, type FormEvent } from 'react';
+import { Button, Field, Input, Stack } from '@plain/ui';
+
+export function NewProject() {
+  const [created, setCreated] = useState('');
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    setCreated(String(data.get('name') ?? ''));
+  }
+  return (
+    <form onSubmit={submit}>
+      <Stack gap={2}>
+        <Field label="Project name" required>
+          <Input name="name" required autoComplete="off" />
+        </Field>
+        <Button type="submit">Create project</Button>
+        <p role="status">{created ? created + ' created locally' : ''}</p>
+      </Stack>
+    </form>
+  );
+}`,
+  brand: `import type { ReactNode } from 'react';
+import { PlainProvider } from '@plain/ui';
+
+export function BrandProviders({ children }: { children: ReactNode }) {
+  return (
+    <PlainProvider
+      theme={{
+        color: '#2f6b59',
+        scheme: 'tonal',
+        contrast: 0.2,
+        mode: 'system',
+        radius: 6,
+        density: 'comfortable',
+        borders: 'none',
+        motion: 'reduced',
+      }}
+      tokens={{
+        'sidebar.background': 'var(--ui-surface-low)',
+        'sidebar.foreground': 'var(--ui-foreground)',
+        'button.radius': '4px',
+      }}
+    >
+      {children}
+    </PlainProvider>
+  );
+}`,
+  themeControls: `import { Button, Inline, useTheme } from '@plain/ui';
+
+export function ThemeControls() {
+  const { resolvedMode, setTheme, resetTheme } = useTheme();
+  return (
+    <Inline gap={1}>
+      <Button type="button" onClick={() => setTheme({
+        mode: resolvedMode === 'dark' ? 'light' : 'dark',
+      })}>Change appearance</Button>
+      <Button type="button" variant="outline" onClick={() => setTheme({
+        color: null, accent: 'neutral',
+      })}>Neutral colors</Button>
+      <Button type="button" variant="ghost" onClick={resetTheme}>
+        Reset all preferences
+      </Button>
+    </Inline>
+  );
+}`,
+  generated: `import { createTheme } from '@plain/ui/color-theme';
+
+export const brand = createTheme({
+  color: '#2f6b59',
+  scheme: 'expressive',
+  contrast: 0.2,
+  tokens: { 'button.radius': '4px' },
+  light: {
+    background: '#f7fbf8', foreground: '#18231c',
+    'sidebar.background': 'var(--ui-surface-low)',
+  },
+  dark: {
+    background: '#111a15', foreground: '#e0ebe3',
+    'sidebar.background': 'var(--ui-surface-lowest)',
+  },
+});
+
+// { color, light, dark, css }; maps contain CSS string values.
+export function BrandStyles() {
+  return <style>{brand.css}</style>;
+}`,
+  scopes: `import { Button, Field, Grid, Input, ThemeScope } from '@plain/ui';
+import { createTheme } from '@plain/ui/color-theme';
+
+const brand = createTheme({ color: '#2f6b59', scheme: 'tonal' });
+
+export function ScopedBrands() {
+  return (
+    <Grid columns={{ base: 1, sm: 2 }} gap={2}>
+      {(['light', 'dark'] as const).map((mode) => (
+        <ThemeScope
+          key={mode}
+          mode={mode}
+          tokens={{
+            ...brand[mode],
+            radius: '6px',
+            'sidebar.background': 'var(--ui-surface-low)',
+            'button.radius': '4px',
+          }}
+          componentStyles={{ 'dialog.content': 'max-w-lg' }}
+          style={{
+            background: 'var(--ui-background)',
+            color: 'var(--ui-foreground)',
+            padding: '24px',
+          }}
+        >
+          <Field label="Project name"><Input name={mode} /></Field>
+          <Button type="button" variant="accent">Save project</Button>
+        </ThemeScope>
+      ))}
+    </Grid>
+  );
+}`,
+  tokenHelpers: `import {
+  lightTokens, darkTokens, componentTokenAliases,
+  tokenNames, tokenVariable, tokensToStyle, themeCSS,
+  type ThemeTokens,
+} from '@plain/ui/tokens';
+import { createTheme } from '@plain/ui/color-theme';
+
+const local: ThemeTokens = {
+  background: 'var(--ui-surface-low)',
+  'control-border': 'var(--ui-outline)',
+  'button.radius': '4px',
+  'sidebar.background': 'var(--ui-surface-container)',
+};
+
+const neutral = createTheme({ color: null });
+
+export const variables = tokensToStyle(local);
+export const css = themeCSS(local, '.workspace');
+export const sidebarVariable = tokenVariable('sidebar.background');
+// --ui-sidebar-background
+export const contract = {
+  names: tokenNames,
+  light: { ...lightTokens, ...neutral.light },
+  dark: { ...lightTokens, ...darkTokens, ...neutral.dark },
+  aliases: componentTokenAliases,
+};`,
+  extension: `import { useRef } from 'react';
+import { Button, extendComponent, tokensToStyle } from '@plain/ui';
+
+const BrandButton = extendComponent(Button, {
+  displayName: 'BrandButton',
+  defaults: { variant: 'accent', type: 'button' },
+  className: 'font-medium px-4',
+  variants: { tone: { brand: 'font-semibold', quiet: 'opacity-90' } },
+  defaultVariants: { tone: 'brand' },
+  compoundVariants: [{ when: { tone: 'quiet', size: 'sm' }, className: 'px-2' }],
+  tokens: { 'button.radius': '8px' },
+  styles: { 'button.root': 'shadow-none' },
+});
+
+export function SaveAction() {
+  const ref = useRef<HTMLButtonElement>(null);
+  return (
+    <>
+      <BrandButton
+        ref={ref}
+        tone="quiet"
+        variant="outline"
+        size="sm"
+        name="action"
+        value="save"
+        className="px-6"
+        style={{ ...tokensToStyle({ 'button.radius': '4px' }), fontWeight: 600 }}
+        onClick={() => console.log('Save requested')}
+      >Save project</BrandButton>
+      <Button type="button" variant="ghost" onClick={() => ref.current?.focus()}>
+        Focus save action
+      </Button>
+    </>
+  );
+}`,
+  slots: `import { Button, PlainProvider, StyleProvider } from '@plain/ui';
+
+export function SlotOverrides() {
+  return (
+    <PlainProvider persist={false} styles={{
+      'button.root': 'font-medium',
+      'dialog.content': 'max-w-lg p-6',
+      'dialog.title': 'text-lg',
+    }}>
+      <StyleProvider styles={{ 'button.root': 'font-semibold' }}>
+        <Button type="button" className="font-normal">Local action</Button>
+      </StyleProvider>
+    </PlainProvider>
+  );
+}`,
+  unstyled: `import {
+  Button, Dialog, DialogContent, DialogDescription,
+  DialogTitle, DialogTrigger, StyleProvider,
+} from '@plain/ui';
+
+export function CustomDialog() {
+  return (
+    <StyleProvider unstyled>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button type="button" className="my-button">Edit project</Button>
+        </DialogTrigger>
+        <DialogContent className="my-dialog">
+          <DialogTitle className="my-title">Edit project</DialogTitle>
+          <DialogDescription>Change the project details.</DialogDescription>
+        </DialogContent>
+      </Dialog>
+    </StyleProvider>
+  );
+}`,
+  asChild: `import { Button } from '@plain/ui';
+
+export function ProjectLink() {
+  return (
+    <Button asChild variant="outline">
+      <a href="/projects">Your projects</a>
+    </Button>
+  );
+}`,
+  rtl: `import {
+  Button, DirectionProvider, Field, Input,
+  Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger,
+} from '@plain/ui';
+
+export function ProjectFilters() {
+  return (
+    <DirectionProvider dir="rtl">
+      <section dir="rtl" className="ps-6 pe-4 text-start">
+        <Sheet side="end">
+          <SheetTrigger asChild>
+            <Button type="button" variant="outline">Filters</Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetTitle>Project filters</SheetTitle>
+            <SheetDescription>Limit the projects in the list.</SheetDescription>
+            <Field label="Owner"><Input name="owner" /></Field>
+          </SheetContent>
+        </Sheet>
+      </section>
+    </DirectionProvider>
+  );
+}`,
+  validation: `import { Field, Input } from '@plain/ui';
+
+export function EmailField({ error }: { error?: string }) {
+  return (
+    <Field label="Email address" description="Used for account updates." error={error} required>
+      <Input name="email" type="email" autoComplete="email" required />
+    </Field>
+  );
+}`,
+  motion: `import { useState } from 'react';
+import { Button, PlainProvider } from '@plain/ui';
+import { Motion, MotionProvider, Presence } from '@plain/ui/motion';
+
+export function SavedNotice() {
+  const [saved, setSaved] = useState(false);
+  return (
+    <PlainProvider persist={false} theme={{ motion: 'system' }}>
+      <MotionProvider duration={0.2}>
+        <Button type="button" onClick={() => setSaved(!saved)}>
+          {saved ? 'Clear confirmation' : 'Save locally'}
+        </Button>
+        <div role="status" aria-live="polite">
+          <Presence initial={false}>
+            {saved && <Motion key="saved" preset="fade">Changes saved locally.</Motion>}
+          </Presence>
+        </div>
+      </MotionProvider>
+    </PlainProvider>
+  );
+}`,
+  motionPolicy: `import { Button, useMotionSettings, useTheme } from '@plain/ui';
+
+export function MotionPreferences() {
+  const { setTheme, motion } = useTheme();
+  const { enabled } = useMotionSettings();
+  return (
+    <>
+      <label htmlFor="motion-policy">Motion</label>
+      <select id="motion-policy" value={motion} onChange={(event) => {
+        const policy = event.currentTarget.value;
+        if (policy === 'system' || policy === 'reduced' || policy === 'none') {
+          setTheme({ motion: policy });
+        }
+      }}>
+        <option value="system">Follow device preference</option>
+        <option value="reduced">Reduced</option>
+        <option value="none">None</option>
+      </select>
+      <Button type="button" style={{ transitionDuration: enabled ? '120ms' : '0ms' }}>
+        Apply changes
+      </Button>
+    </>
+  );
+}`,
+  layout: `import { Box, Button, Container, Grid, Inline, Stack } from '@plain/ui';
+
+export function ProjectWorkspace() {
+  return (
+    <Container maxWidth="80rem" gutter={{ base: 2, md: 3 }}>
+      <Stack gap={3}>
+        <Inline justify="between" gap={2}>
+          <h1>Projects</h1>
+          <Button asChild><a href="/projects/new">New project</a></Button>
+        </Inline>
+        <Grid columns={{ base: 1, md: '16rem minmax(0, 1fr)' }} gap={3}>
+          <Box asChild padding={2}>
+            <nav aria-label="Projects">
+              <Stack gap={1}>
+                <a href="/projects" aria-current="page">All projects</a>
+                <a href="/projects/archived">Archived</a>
+              </Stack>
+            </nav>
+          </Box>
+          <section aria-labelledby="project-list-title">
+            <h2 id="project-list-title">Active projects</h2>
+            <ul><li><a href="/projects/launch">Website launch</a></li></ul>
+          </section>
+        </Grid>
+      </Stack>
+    </Container>
+  );
+}`,
+  splitPane: `import { SplitPane, SplitPaneHandle, SplitPanePanel } from '@plain/ui';
+
+export function ReviewWorkspace() {
+  return (
+    <SplitPane orientation="horizontal" style={{ height: 480 }}>
+      <SplitPanePanel defaultSize="35%" minSize="20%">
+        <section aria-label="Review queue">Items awaiting review</section>
+      </SplitPanePanel>
+      <SplitPaneHandle aria-label="Resize review queue" />
+      <SplitPanePanel minSize="30%">
+        <section aria-label="Review details">Selected record details</section>
+      </SplitPanePanel>
+    </SplitPane>
+  );
+}`,
+  mobileNav: `import { NavLink } from 'react-router-dom';
+import { Folder, Inbox, Settings } from 'lucide-react';
+
+const destinations = [
+  { to: '/projects', label: 'Projects', icon: Folder },
+  { to: '/inbox', label: 'Inbox', icon: Inbox },
+  { to: '/settings', label: 'Settings', icon: Settings },
+];
+
+export function MobileNavigation() {
+  return (
+    <nav aria-label="Primary" className="mobile-navigation">
+      {destinations.map(({ to, label, icon: Icon }) => (
+        <NavLink key={to} to={to}>
+          <Icon size={20} aria-hidden="true" /><span>{label}</span>
+        </NavLink>
+      ))}
+    </nav>
+  );
+}`,
+  virtualList: `import { VirtualList } from '@plain/ui';
+
+const items = Array.from({ length: 1000 }, (_, index) => ({
+  id: 'project-' + index,
+  name: 'Project ' + (index + 1),
+}));
+
+export function ProjectList() {
+  return (
+    <VirtualList
+      aria-label="Projects"
+      items={items}
+      getItemKey={(item) => item.id}
+      height={400}
+      estimateSize={56}
+      overscan={6}
+      ssrCount={10}
+      gap={1}
+      emptyContent="No projects match the current filters."
+      renderItem={(item) => (
+        <a href={'/projects/' + item.id} style={{ display: 'block', padding: 16 }}>
+          {item.name}
+        </a>
+      )}
+    />
+  );
+}`,
+  virtualLayouts: `import { VirtualGrid, VirtualMasonry } from '@plain/ui';
+
+const items = Array.from({ length: 500 }, (_, index) => ({
+  id: 'asset-' + index, name: 'Asset ' + (index + 1),
+}));
+
+export function AssetGrid() {
+  return <VirtualGrid
+    aria-label="Assets"
+    items={items}
+    getItemKey={(item) => item.id}
+    height={480}
+    columns={{ base: 1, sm: 2, lg: 3 }}
+    rowHeight={120}
+    gap={2}
+    renderItem={(item) => <a href={'/assets/' + item.id}>{item.name}</a>}
+  />;
+}
+
+export function AssetMasonry() {
+  return <VirtualMasonry
+    aria-label="Asset descriptions"
+    items={items}
+    getItemKey={(item) => item.id}
+    height={480}
+    lanes={{ base: 1, sm: 2, lg: 3 }}
+    estimateSize={180}
+    gap={2}
+    renderItem={(item) => <article><h2>{item.name}</h2><p>Asset details</p></article>}
+  />;
+}`,
+  blocks: `// These are files downloaded from the documentation, owned by your app.
+import AuthPassword from './examples/auth-password';
+import StudioBooking from './examples/web-apps-studio-booking';
+
+export function SignInPrototype() {
+  return <AuthPassword />;
+}
+
+export function BookingPrototype() {
+  return <StudioBooking />;
+}`,
+  blockConfig: `import { useState } from 'react';
+import { Button, Field, Input, Textarea, P } from '@plain/ui';
+import { Stack } from '@plain/ui/layout';
+import '@plain/ui/styles.css';
+
+export function ProjectIntake() {
+  const [submitted, setSubmitted] = useState(false);
+  return <form onSubmit={(event) => {
+    event.preventDefault();
+    // Replace this local feedback with your application's submission.
+    setSubmitted(true);
+  }}>
+    <Stack gap={2}>
+      <Field label="Project name"><Input name="name" required /></Field>
+      <Field label="Details"><Textarea name="details" required /></Field>
+      <Button type="submit">Create request</Button>
+      {submitted && <P role="status">Request recorded locally.</P>}
+    </Stack>
+  </form>;
+}`,
+  templateConfig: `import { useState } from 'react';
+import { H1, P } from '@plain/ui/typography';
+import {
+  AppShell, SidebarProvider, Sidebar, SidebarContent,
+  SidebarItem, SidebarTrigger,
+} from '@plain/ui/sidebar';
+import { Agenda } from './screens/Agenda';
+import { Requests } from './screens/Requests';
+import '@plain/ui/styles.css';
+
+export function StudioPrototype() {
+  const [screen, setScreen] = useState<'agenda' | 'requests'>('agenda');
+  return <SidebarProvider>
+    <AppShell
+      header={<><SidebarTrigger /><P>Studio</P></>}
+      sidebar={<Sidebar label="Studio navigation"><SidebarContent>
+        <SidebarItem active={screen === 'agenda'} onClick={() => setScreen('agenda')}>
+          Agenda
+        </SidebarItem>
+        <SidebarItem active={screen === 'requests'} onClick={() => setScreen('requests')}>
+          Requests
+        </SidebarItem>
+      </SidebarContent></Sidebar>}
+    >
+      <H1>{screen === 'agenda' ? 'Studio schedule' : 'Incoming work'}</H1>
+      {screen === 'agenda' ? <Agenda /> : <Requests />}
+    </AppShell>
+  </SidebarProvider>;
+}`,
+  chart: `import { BarChart } from '@plain/ui/charts';
+import '@plain/ui/styles.css';
+import '@plain/ui/charts.css';
+
+const data = [
+  { month: 'July', revenue: 12400, costs: 7200 },
+  { month: 'August', revenue: 14600, costs: 8100 },
+  { month: 'September', revenue: 13200, costs: 7800 },
+];
+const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+export function RevenueChart() {
+  return <BarChart
+    data={data}
+    index="month"
+    label="Revenue and costs, July to September, in US dollars"
+    caption="Monthly revenue and costs"
+    description="August has the highest revenue and costs in this period."
+    height={320}
+    series={[
+      { dataKey: 'revenue', label: 'Revenue' },
+      { dataKey: 'costs', label: 'Costs' },
+    ]}
+    config={{ month: { label: 'Month' } }}
+    valueFormatter={(value) => usd.format(value)}
+    dataTable="visible"
+    chartProps={{ accessibilityLayer: true }}
+  />;
+}`,
+  composedChart: `import { ComposedChart } from 'recharts';
+import {
+  Chart, ChartBar, ChartGrid, ChartLegend, ChartLine,
+  ChartTooltip, ChartXAxis, ChartYAxis,
+} from '@plain/ui/charts';
+import '@plain/ui/styles.css';
+import '@plain/ui/charts.css';
+
+const data = [
+  { week: 'Week 1', opened: 18, resolved: 12 },
+  { week: 'Week 2', opened: 15, resolved: 17 },
+];
+
+export function SupportChart() {
+  return (
+    <Chart
+      data={data}
+      label="Support tickets opened and resolved per week"
+      height={300}
+      dataTable="visible"
+      config={{
+        week: { label: 'Week' },
+        opened: { label: 'Opened', color: 'var(--ui-chart-1)' },
+        resolved: { label: 'Resolved', color: 'var(--ui-chart-2)' },
+      }}
+    >
+      <ComposedChart data={data} accessibilityLayer>
+        <ChartGrid /><ChartXAxis dataKey="week" /><ChartYAxis />
+        <ChartTooltip /><ChartLegend />
+        <ChartBar dataKey="opened" name="Opened" />
+        <ChartLine dataKey="resolved" name="Resolved" strokeDasharray="4 4" />
+      </ComposedChart>
+    </Chart>
+  );
+}`,
+  pickers: `import { useState } from 'react';
+import {
+  DateRangePicker, DateTimePicker, TimeRangePicker,
+  Field, Stack, type DateRange, type TimeRange,
+} from '@plain/ui';
+
+export function BookingFields() {
+  const [dates, setDates] = useState<DateRange>();
+  const [start, setStart] = useState<string>();
+  const [hours, setHours] = useState<TimeRange>();
+  return (
+    <Stack gap={3}>
+      <Field label="Stay dates" required>
+        <DateRangePicker
+          name="stay" value={dates} onValueChange={setDates}
+          min="2026-10-01" max="2026-12-31" minNights={1} required
+        />
+      </Field>
+      <Field label="Appointment in New York" required>
+        <DateTimePicker
+          name="startsAt" value={start} onValueChange={setStart}
+          timeZone="America/New_York" disambiguation="reject"
+          min="2026-10-01T09:00" step={60} required
+        />
+      </Field>
+      <TimeRangePicker
+        aria-label="Support hours" name="hours"
+        value={hours} onValueChange={setHours}
+        fromLabel="Opens" toLabel="Closes" allowOvernight
+      />
+    </Stack>
+  );
+}`,
+  temporal: `import { Temporal } from 'temporal-polyfill';
+
+export function appointmentInstant(wall: string, timeZone: string) {
+  return Temporal.PlainDateTime.from(wall)
+    .toZonedDateTime(timeZone, { disambiguation: 'reject' })
+    .toInstant()
+    .toString();
+}
+
+export function exclusiveRangeEnd(inclusiveDay: string) {
+  return Temporal.PlainDate.from(inclusiveDay).add({ days: 1 }).toString();
+}`,
+  fullCalendar: `import { useRef, useState } from 'react';
+import { Button } from '@plain/ui';
+import { FullCalendar, type FullCalendarRef } from '@plain/ui/full-calendar';
+import '@plain/ui/styles.css';
+import '@plain/ui/full-calendar.css';
+
+export function TeamSchedule() {
+  const ref = useRef<FullCalendarRef>(null);
+  const [selection, setSelection] = useState('');
+  return (
+    <>
+      <Button type="button" variant="outline" onClick={() => ref.current?.getApi().today()}>
+        Today
+      </Button>
+      <FullCalendar
+        ref={ref}
+        aria-label="Team schedule"
+        defaultView="timeGridWeek"
+        initialDate="2026-10-05"
+        timeZone="local"
+        height={560}
+        mobileView="listWeek"
+        mobileBreakpoint={640}
+        selectable
+        events={[{
+          id: 'kickoff', title: 'Project kickoff',
+          start: '2026-10-05T09:00:00', end: '2026-10-05T10:00:00',
+        }]}
+        select={({ startStr, endStr }) => setSelection(startStr + ' to ' + endStr)}
+        eventClick={({ event }) => setSelection(event.title)}
+      />
+      <p role="status">{selection}</p>
+    </>
+  );
+}`,
+  lazyView: `import { lazy, Suspense } from 'react';
+import { Spinner } from '@plain/ui';
+
+const Reports = lazy(() => import('./Reports'));
+
+export function ReportsRoute() {
+  return <Suspense fallback={<Spinner label="Loading reports" />}>
+    <Reports />
+  </Suspense>;
+}`,
+};
+
+function GuideSection({
+  title,
+  id,
+  children,
+}: {
+  title: string;
+  id?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="doc-section" id={id}>
+      <h2>{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function Checklist({ items }: { items: string[] }) {
+  return (
+    <ul className="guide-check-list">
+      {items.map((item) => (
+        <li key={item}>
+          <Check size={15} aria-hidden="true" />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 function Introduction() {
   return (
     <>
-      <section className="doc-section">
-        <h2>From first idea to your own identity</h2>
+      <GuideSection title="A neutral starting point">
         <p>
-          PlainUI brings {components.length} common components together with a quiet default
-          appearance. Start with a prototype that already feels complete. Keep the same components
-          when you add your brand, your layouts, and your product's behavior.
+          P.UI combines styled components with native props, refs, typed styling slots, and scoped
+          tokens. It works without a consumer Tailwind setup or a downloaded font. Add a brand when
+          your application needs one; the default is neutral.
         </p>
-        <div className="guide-feature-grid">
+        <CodeBlock code={examples.form} title="NewProject.tsx" />
+        <p>
+          This example records a project locally. Connect submission, authorization, persistence,
+          and errors to your application services before treating it as a production workflow.
+        </p>
+      </GuideSection>
+      <GuideSection title="Choose the surface for the task">
+        <p>
+          Use a table to compare records, a list and detail view to review work, or a calendar to
+          schedule events. A stack of generic cards is not a substitute for navigation, editing, and
+          a clear return path. Keep page sections unframed; use cards for independent objects.
+        </p>
+        <div className="guide-link-list">
           {[
             {
-              icon: Blocks,
-              title: 'Compose',
-              copy: 'Small, predictable parts instead of rigid templates.',
+              to: '/docs/installation',
+              title: 'Install @plain/ui',
+              copy: 'Set up the package and styles.',
             },
             {
-              icon: Paintbrush,
-              title: 'Customize',
-              copy: 'Native props, tokens, named slots, and unstyled parts.',
+              to: '/components',
+              title: 'Components',
+              copy: 'Inspect examples, props, and styling slots.',
             },
+            { to: '/blocks', title: 'Blocks', copy: 'Adapt a focused workflow composition.' },
             {
-              icon: Accessibility,
-              title: 'Include',
-              copy: 'Focus management and keyboard behavior built on Radix.',
+              to: '/templates',
+              title: 'Templates',
+              copy: 'Explore connected application screens.',
             },
-            {
-              icon: MoveHorizontal,
-              title: 'Adapt',
-              copy: 'Responsive layouts and right-to-left interaction.',
-            },
-          ].map(({ icon: Icon, title, copy }) => (
-            <div key={title}>
-              <Icon size={20} aria-hidden="true" />
-              <h3>{title}</h3>
-              <p>{copy}</p>
-            </div>
+          ].map(({ to, title, copy }) => (
+            <Link key={to} to={to}>
+              <div>
+                <strong>{title}</strong>
+                <span>{copy}</span>
+              </div>
+              <ArrowRight size={16} aria-hidden="true" />
+            </Link>
           ))}
         </div>
-      </section>
-      <section className="doc-section">
-        <h2>A familiar way to build</h2>
-        <CodeBlock
-          code={`import { Button, Field, Input } from '@plainui/react';\n\nexport function NewProject() {\n  return (\n    <form onSubmit={handleCreate}>\n      <Field label="Project name">\n        <Input name="name" required />\n      </Field>\n      <Button type="submit">Create project</Button>\n    </form>\n  );\n}`}
-        />
+      </GuideSection>
+      <GuideSection title="What changes in 0.2">
         <p>
-          Components forward native props and refs. Form controls work with native HTML validation
-          and form libraries. Interactive parts support controlled and uncontrolled state.
+          The package name changes from <code>@plainui/react</code> to <code>@plain/ui</code>.
+          Update JavaScript and stylesheet imports together. Version 0.2 adds layered color roles,
+          brand extensions, responsive and virtual layouts, date/time controls, optional charts and
+          scheduling, motion policies, blocks, and templates. Review Sheet direction at its root
+          when migrating to the Vaul-backed implementation.
         </p>
-      </section>
-      <section className="doc-section">
-        <h2>Choose your starting point</h2>
-        <div className="guide-link-list">
-          <Link to="/docs/installation">
-            <Package size={18} aria-hidden="true" />
-            <div>
-              <strong>Install the library</strong>
-              <span>Add the local build to your React project.</span>
-            </div>
-            <ArrowUpRight size={16} aria-hidden="true" />
-          </Link>
-          <Link to="/components">
-            <Blocks size={18} aria-hidden="true" />
-            <div>
-              <strong>Explore the collection</strong>
-              <span>Live examples and API references for every component.</span>
-            </div>
-            <ArrowUpRight size={16} aria-hidden="true" />
-          </Link>
-          <Link to="/examples">
-            <Paintbrush size={18} aria-hidden="true" />
-            <div>
-              <strong>Bring the pieces together</strong>
-              <span>Dashboard, settings, and authentication examples.</span>
-            </div>
-            <ArrowUpRight size={16} aria-hidden="true" />
-          </Link>
-        </div>
-      </section>
+      </GuideSection>
       <Alert>
-        <AlertTitle>Made for the web</AlertTitle>
+        <AlertTitle>React DOM, including mobile web</AlertTitle>
         <AlertDescription>
-          PlainUI targets React DOM, including responsive mobile web apps and PWAs. It does not
-          provide React Native components.
+          These are web components for React applications, responsive mobile sites, and PWAs. They
+          are not React Native controls or a native desktop runtime.
         </AlertDescription>
       </Alert>
     </>
   );
 }
+
 function Installation() {
   return (
     <>
-      <section className="doc-section">
-        <h2>1. Get this build</h2>
+      <GuideSection title="1. Install the local package">
         <p>
-          This version is available as a local package. Download the archive, then install it in
-          your React project.
+          This workspace describes the 0.2 release; it does not establish npm publication. Build and
+          pack the repository, then install the resulting archive in a consuming project.
         </p>
-        <PackageDownload />
-        <CodeBlock language="sh" code="npm install ./plainui-react-0.1.0.tgz" />
-        <p>
-          React and React DOM are peer dependencies. The library supports React 18.3 and 19. Use
-          Node 22.12 or newer for the local build tools.
-        </p>
-        <Alert>
-          <AlertTitle>Registry publication</AlertTitle>
-          <AlertDescription>
-            The @plainui/react name is used by this local package. This project has not been
-            published to npm by this setup.
-          </AlertDescription>
-        </Alert>
-      </section>
-      <section className="doc-section">
-        <h2>2. Add the stylesheet and provider</h2>
-        <p>
-          Import the stylesheet once at your application entry point. PlainProvider connects theme
-          preferences, styling slots, and direction without adding a layout wrapper.
-        </p>
-        <CodeBlock code={themesCode} title="Root.tsx" />
-        <p>
-          The provider defaults to a neutral accent, system appearance, a 6px radius, and 40px
-          controls. Set <code>persist={'{false}'}</code> to keep preferences within the current
-          session.
-        </p>
-      </section>
-      <section className="doc-section">
-        <h2>3. Start composing</h2>
+        <CodeBlock language="sh" title="In the P.UI workspace" code={`npm install\nnpm pack`} />
         <CodeBlock
-          code={`import { Button, Card, CardHeader, CardTitle, CardContent } from '@plainui/react';\n\nexport function FirstProject() {\n  return (\n    <Card>\n      <CardHeader><CardTitle>Your next idea</CardTitle></CardHeader>\n      <CardContent>\n        <Button onClick={() => console.log('Start')}>Create project</Button>\n      </CardContent>\n    </Card>\n  );\n}`}
+          language="sh"
+          title="In your React application"
+          code="npm install ./plain-ui-0.2.0.tgz"
         />
-      </section>
-      <section className="doc-section">
-        <h2>Using Tailwind CSS v4</h2>
         <p>
-          The provided CSS is precompiled, so a consuming application does not need Tailwind to
-          render the defaults. When your app uses Tailwind, its normal source scan picks up your
-          custom classes.
+          React and React DOM are peers supporting React 18.3 or 19. Local build tooling requires
+          Node 22.12 or newer. Use the repository lockfile for development; compatibility-tested
+          engine pins are intentional, not a request to upgrade every dependency.
+        </p>
+      </GuideSection>
+      <GuideSection title="2. Import styles and configure the root">
+        <CodeBlock code={examples.provider} title="AppProviders.tsx" />
+        <p>
+          Import <code>@plain/ui/styles.css</code> once. PlainProvider combines theme, direction,
+          token overrides, and styling context without a layout wrapper. Its theme settings are
+          initial defaults, not controlled props; use <code>useTheme().setTheme</code> for changes.
+        </p>
+        <p>
+          Persistence uses local storage and synchronizes theme settings between tabs when storage
+          is available. <code>persist={'{false}'}</code> disables storage reads and writes; it is
+          not session storage. Use a single application-level provider because it writes HTML root
+          attributes and variables. Use ThemeScope for local appearance.
+        </p>
+      </GuideSection>
+      <GuideSection title="3. Add optional engines deliberately">
+        <CodeBlock
+          title="Optional entry points"
+          code={`import { Motion, MotionProvider, Presence } from '@plain/ui/motion';\n\nimport { BarChart } from '@plain/ui/charts';\nimport '@plain/ui/charts.css';\n\nimport { FullCalendar } from '@plain/ui/full-calendar';\nimport '@plain/ui/full-calendar.css';`}
+        />
+        <p>
+          These entries are separate from the root component collection. Motion needs
+          MotionProvider; charts and FullCalendar need their optional stylesheets in addition to the
+          base styles. Blocks and templates are copied application source, not package entries.
+          Lazy-load heavy application views when appropriate; an opt-in import is not a guarantee of
+          a particular bundle size.
+        </p>
+      </GuideSection>
+      <GuideSection title="Tailwind and unstyled applications">
+        <p>
+          The distributed CSS is precompiled. Consumers do not need Tailwind to render defaults.
+          This repository uses Tailwind CSS 4.3.3. When compiling library source yourself, include
+          that source in your own build scan; installed precompiled styles need no extra scan.
         </p>
         <CodeBlock
           language="css"
-          code={`@import 'tailwindcss';\n\n/* Needed only if you compile the library source yourself */\n@source '../node_modules/@plainui/react/dist';`}
+          code={`@import 'tailwindcss';\n/* Only when compiling library classes yourself. Adjust for your CSS file's location. */\n@source '../node_modules/@plain/ui/dist';`}
         />
         <p>
-          CSS is opt-in. For a fully unstyled application, omit the stylesheet and supply your own
-          CSS. You can import <code>@plainui/react/tokens.css</code> independently.
+          For an unstyled integration, enable <code>unstyled</code> and provide your own CSS.
+          Omitting the stylesheet also removes token defaults and baseline behavior. Import
+          <code> @plain/ui/tokens.css</code> separately when you want the token layer without
+          component CSS.
         </p>
-      </section>
-      <section className="doc-section">
-        <h2>Building from this workspace</h2>
-        <CodeBlock language="sh" code={`npm install\nnpm run dev\nnpm run build\nnpm pack`} />
+      </GuideSection>
+      <GuideSection title="Server rendering">
         <p>
-          The library is built into <code>dist/</code>. The documentation site is built into{' '}
-          <code>site-dist/</code>. The package includes ESM modules, type declarations, source maps,
-          and CSS.
+          In Next.js App Router, put PlainProvider in a client component and import global styles in
+          the root layout. Use <code>@plain/ui/color-theme</code> for server-side generation. Emit
+          initial theme CSS and HTML theme/direction attributes before paint. A system preference
+          cannot be known from JavaScript on the server; choose a consistent fallback or resolve a
+          saved preference and hydrate with matching settings.
         </p>
         <p>
-          In Next.js App Router, import the stylesheet in your root layout and place PlainProvider
-          in a client component. Include initial <code>dir</code> and theme attributes on the
-          server-rendered HTML to avoid a direction or appearance flash.
+          <Link className="text-link" to="/docs/theming">
+            See generated themes and scopes
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
         </p>
-      </section>
+      </GuideSection>
     </>
   );
 }
+
 function Theming() {
   const { customize } = useAppPreferences();
   return (
     <>
-      <section className="doc-section">
-        <h2>Small choices, everywhere</h2>
+      <GuideSection title="A seed changes the whole color system">
         <p>
-          Use the live theme editor to explore the defaults. The same settings apply to every
-          component, including portaled menus and dialogs.
+          Set a hex <code>color</code> to generate light and dark backgrounds, layered surfaces,
+          foregrounds, primary/secondary/tertiary roles, containers, inverse roles, errors,
+          outlines, focus, chart colors, and tonal palettes. This is not just a tinted button. The
+          default
+          <code> color: null</code> with <code>accent: 'neutral'</code> preserves the original 0.1
+          hand-authored neutral colors exactly. The default does not use Material palette
+          generation.
         </p>
-        <Button variant="outline" onClick={customize}>
+        <Button type="button" variant="outline" onClick={customize}>
           <Paintbrush aria-hidden="true" />
           Open theme editor
         </Button>
-        <CodeBlock code={themesCode} />
-      </section>
-      <section className="doc-section">
-        <h2>Change themes in your app</h2>
-        <CodeBlock
-          code={`import { Button, useTheme } from '@plainui/react';\n\nexport function ThemeToggle() {\n  const { resolvedMode, setTheme } = useTheme();\n  return (\n    <Button onClick={() => setTheme({\n      mode: resolvedMode === 'dark' ? 'light' : 'dark',\n    })}>\n      Change appearance\n    </Button>\n  );\n}`}
-        />
+        <CodeBlock code={examples.brand} title="BrandProviders.tsx" />
         <p>
-          <code>useTheme()</code> exposes mode, resolvedMode, accent, radius, density, setTheme, and
-          resetTheme. System mode follows the operating system. Preferences are stored locally and
-          synchronize between browser tabs.
+          Seeds accept <code>#RGB</code> or <code>#RRGGBB</code>. Schemes are <code>tonal</code>,
+          <code> vibrant</code>, or <code>expressive</code>; contrast is clamped to{' '}
+          <code>0..1</code>. Contrast changes generation, not an accessibility score. Check the
+          final content, selected, hover, disabled, and focus states in both modes after overriding
+          colors.
         </p>
-      </section>
-      <section className="doc-section">
-        <h2>Your colors, your tokens</h2>
+      </GuideSection>
+      <GuideSection title="Root policy and explicit overrides">
         <p>
-          Theme tokens are CSS custom properties. Supply token overrides through PlainProvider or
-          author your own stylesheet.
+          Theme radius is a number in pixels, density is compact/comfortable/spacious, and borders
+          are subtle/none/strong. Borderless mode changes shared border tokens; use surface levels,
+          spacing, and visible focus to preserve control boundaries. Explicit token or local style
+          overrides can reintroduce a border. Motion policy is system/reduced/none and is
+          independent of color generation.
         </p>
-        <CodeBlock
-          code={`<PlainProvider tokens={{\n  accent: '#1d4ed8',\n  'accent-foreground': '#ffffff',\n  'accent-soft': '#eff6ff',\n  font: "'Your font', sans-serif",\n}}>\n  <App />\n</PlainProvider>`}
-        />
-        <CodeBlock
-          language="css"
-          code={`:root {\n  --ui-accent: #1d4ed8;\n  --ui-accent-foreground: #ffffff;\n  --ui-accent-soft: #eff6ff;\n}\n\n[data-theme='dark'] {\n  --ui-accent: #93c5fd;\n  --ui-accent-foreground: #172554;\n  --ui-accent-soft: #172554;\n}`}
-        />
         <p>
-          When you change colors, check text and control contrast in both light and dark mode. Token
-          overrides are explicit; PlainUI does not generate a contrast-safe palette from an
-          arbitrary brand color.
+          Provider token overrides win over generated roles and settings. Root keys such as
+          <code> background</code> change shared roles; dotted keys such as
+          <code> sidebar.background</code> change one component family. Changing a background alone
+          does not regenerate a matching foreground.
         </p>
-      </section>
-      <section className="doc-section">
-        <h2>Local themes</h2>
+        <CodeBlock code={examples.themeControls} />
         <p>
-          ThemeScope applies tokens, styling slots, and direction to a section of your application.
+          <code>useTheme()</code> exposes all ThemeSettings, <code>resolvedMode</code>,
+          <code> resolvedColor</code>, <code>setTheme</code>, and <code>resetTheme</code>. An
+          explicit color wins over the legacy accent preset. When color is null, accent is the
+          fallback; reset both to clear a legacy brand. Resetting settings does not remove provider
+          token overrides.
         </p>
-        <CodeBlock
-          code={`<ThemeScope tokens={{\n  accent: '#1d4ed8',\n  'accent-foreground': '#fff',\n  'accent-soft': '#eff6ff',\n  radius: '12px',\n}}>\n  <Button variant="accent">A different feeling</Button>\n</ThemeScope>`}
-        />
-      </section>
+      </GuideSection>
+      <GuideSection title="Generate once for the server or a local brand">
+        <CodeBlock code={examples.generated} title="brand.tsx" />
+        <p>
+          <code>createTheme</code> returns <code>{'{ color, light, dark, css }'}</code>. Shared{' '}
+          <code>tokens</code> override generation, then <code>light</code>/<code>dark</code>
+          overrides win for their mode. Invalid non-null seeds throw. Geometry, density, border, and
+          motion settings belong to the provider, not this color generator.
+        </p>
+        <p>
+          The CSS contains light <code>:root</code> declarations and
+          <code> [data-theme='dark']</code> overrides. Emit it before paint and align the initial
+          HTML attributes and provider settings. For multiple local brands, use the token maps
+          rather than injecting competing root stylesheets. Account for your application's CSP when
+          emitting an inline style element.
+        </p>
+      </GuideSection>
+      <GuideSection title="Scope a complete light or dark system">
+        <Grid columns={{ base: 1, sm: 2 }} gap={2}>
+          {(['light', 'dark'] as const).map((mode) => (
+            <ThemeScope
+              key={mode}
+              mode={mode}
+              tokens={{ ...previewTheme[mode], 'button.radius': '4px' }}
+              style={{
+                background: 'var(--ui-background)',
+                color: 'var(--ui-foreground)',
+                padding: 24,
+                minWidth: 0,
+              }}
+            >
+              <h3 style={{ fontSize: 16, marginBlockEnd: 16 }}>
+                {mode === 'light' ? 'Light' : 'Dark'} workspace
+              </h3>
+              <Field label="Project name">
+                <Input placeholder="Studio launch" />
+              </Field>
+              <Button type="button" variant="accent" style={{ marginBlockStart: 16 }}>
+                Save project
+              </Button>
+            </ThemeScope>
+          ))}
+        </Grid>
+        <CodeBlock code={examples.scopes} />
+        <p>
+          ThemeScope accepts <code>mode="light"</code> or <code>mode="dark"</code>, not system. Pass
+          the matching generated map when switching a branded root to the opposite mode; a mode
+          attribute alone does not replace inherited inline brand variables. Component aliases
+          resolve within the scope. The local slot prop is <code>componentStyles</code>;
+          PlainProvider calls it <code>styles</code>.
+        </p>
+        <p>
+          Scope-aware overlays use the local portal container. Verify open dialogs, menus, and other
+          portaled content, not just inline controls. Do not nest application providers to create a
+          local theme; their settings target the document root.
+        </p>
+      </GuideSection>
     </>
   );
 }
+
+function tokenGroup(token: ThemeToken) {
+  return token.startsWith('palette.') ? 'palette' : token.includes('.') ? 'component' : 'root';
+}
+
 function Tokens() {
+  const [query, setQuery] = React.useState('');
+  const [group, setGroup] = React.useState('root');
+  const search = query.trim().toLowerCase();
+  const visible = tokenNames.filter(
+    (token) =>
+      (group === 'all' || tokenGroup(token) === group) &&
+      (token.includes(search) || tokenVariable(token).includes(search)),
+  );
+  const counts = {
+    root: Object.keys(lightTokens).length,
+    component: Object.keys(componentTokenAliases).length,
+  };
   return (
     <>
-      <section className="doc-section" id="colors">
-        <h2>Color</h2>
+      <GuideSection title="Read the current contract" id="colors">
         <p>
-          Semantic tokens make the default neutral and your eventual brand consistent. Surface,
-          text, and border roles stay separate.
+          <code>tokenNames</code> lists {tokenNames.length} typed names: {counts.root} root tokens,{' '}
+          {counts.component} component aliases, and tonal palette names. Root names are flat;
+          component aliases use dots. <code>tokenVariable('sidebar.background')</code>
+          returns <code>--ui-sidebar-background</code>. Slots such as <code>button.root</code>
+          are class targets, not color tokens.
         </p>
-        <div className="token-colors">
-          {[
-            { name: 'Background', token: 'background' },
-            { name: 'Foreground', token: 'foreground' },
-            { name: 'Surface', token: 'surface' },
-            { name: 'Muted', token: 'muted' },
-            { name: 'Accent', token: 'accent' },
-            { name: 'Border', token: 'border' },
-          ].map(({ name, token }) => (
-            <div key={token}>
-              <span style={{ background: `var(--ui-${token})` }} />
-              <strong>{name}</strong>
-              <code>--ui-{token}</code>
-            </div>
-          ))}
-        </div>
-        <CodeBlock
-          language="css"
-          compact
-          code={`--ui-background: #ffffff;\n--ui-foreground: #202321;\n--ui-muted: #f5f6f5;\n--ui-muted-foreground: #666b68;\n--ui-border: #e5e7e6;\n--ui-input-border: #b5bbb7;\n--ui-accent: #252826;\n--ui-accent-foreground: #ffffff;\n--ui-accent-soft: #f2f3f2;`}
-        />
-      </section>
-      <section className="doc-section" id="typography">
-        <h2>Typography</h2>
+        <CodeBlock code={examples.tokenHelpers} title="Token helpers" />
         <p>
-          One sans-serif family, a restrained scale, and clear weight changes. The documentation
-          uses Inter Variable, loaded locally. The library itself uses your system font unless Inter
-          is available.
+          Palette tones have defined neutral defaults, included by{' '}
+          <code>createTheme({'{ color: null }'})</code>. A hex seed generates new palette values and
+          semantic color roles. Use <code>control-border</code>
+          for a shared control outline; <code>input.border</code> resolves to it. The legacy
+          <code> input-border</code> key and <code>input.border</code> map to the same CSS variable.
+          Do not point that alias at <code>--ui-input-border</code>, which would reference itself.
+        </p>
+      </GuideSection>
+      <GuideSection title="Token reference">
+        <Field label="Filter tokens">
+          <Input
+            type="search"
+            dir="ltr"
+            value={query}
+            onChange={(event) => setQuery(event.currentTarget.value)}
+            placeholder="background, button, --ui-chart..."
+          />
+        </Field>
+        <Tabs value={group} onValueChange={setGroup} style={{ marginBlockStart: 16 }}>
+          <TabsList
+            aria-label="Token category"
+            style={{ display: 'flex', flexWrap: 'wrap', height: 'auto', gap: 4 }}
+          >
+            <TabsTrigger value="root">Root</TabsTrigger>
+            <TabsTrigger value="component">Components</TabsTrigger>
+            <TabsTrigger value="palette">Palettes</TabsTrigger>
+            <TabsTrigger value="all">All</TabsTrigger>
+          </TabsList>
+          {['root', 'component', 'palette', 'all'].map((category) => (
+            <TabsContent key={category} value={category}>
+              <p role="status" style={{ fontSize: 13, marginBlock: 16 }}>
+                {visible.length} matching tokens
+              </p>
+              <Table
+                aria-label="Design token reference"
+                style={{ fontSize: 12, tableLayout: 'fixed', minWidth: 560 }}
+                wrapperProps={{
+                  tabIndex: 0,
+                  role: 'region',
+                  'aria-label': 'Token reference scroll area',
+                  style: { maxHeight: 560 },
+                }}
+              >
+                <TableCaption>
+                  Neutral light/dark defaults and component alias references. A color seed replaces
+                  palette tones and semantic color roles.
+                </TableCaption>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead style={{ width: '40%' }}>Token / CSS variable</TableHead>
+                    <TableHead>Light</TableHead>
+                    <TableHead>Dark</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {visible.map((token) => (
+                    <TableRow key={token}>
+                      <TableHead
+                        scope="row"
+                        className="whitespace-normal"
+                        style={{ overflowWrap: 'anywhere' }}
+                      >
+                        <code dir="ltr">{token}</code>
+                        <br />
+                        <code dir="ltr">{tokenVariable(token)}</code>
+                      </TableHead>
+                      <TableCell style={{ overflowWrap: 'anywhere' }}>
+                        <code dir="ltr">
+                          {rootDefaults[token] ?? aliasDefaults[token] ?? 'Not defined'}
+                        </code>
+                      </TableCell>
+                      <TableCell style={{ overflowWrap: 'anywhere' }}>
+                        <code dir="ltr">
+                          {darkDefaults[token] ?? aliasDefaults[token] ?? 'Not defined'}
+                        </code>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {!visible.length && (
+                    <TableRow>
+                      <TableCell colSpan={3}>No matching tokens.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TabsContent>
+          ))}
+        </Tabs>
+      </GuideSection>
+      <GuideSection title="Typography" id="typography">
+        <p>
+          The font token prefers Inter when available and falls back to system fonts. The library
+          does not download a font; this documentation bundles Inter locally. Use a compact heading
+          hierarchy, comfortable line height, and tabular numbers for comparable metrics. Keep
+          letter spacing at zero and avoid viewport-scaled text in controls or panels.
+        </p>
+        <CodeBlock
+          code={`import { H1, H2, P, A, Strong, Code } from '@plain/ui/typography';\n\nexport function ProjectHeader() {\n  return <>\n    <H1 size="2xl">Project activity</H1>\n    <P tone="muted">A clear view of <Strong>your work</Strong>.</P>\n    <H2 size="lg">Latest changes</H2>\n    <P><A href="/projects">All projects</A> use <Code>projectId</Code>.</P>\n  </>;\n}`}
+        />
+        <p>
+          H1-H6, P, Span, Small, Strong, Em, A, Code, Pre, Blockquote, Ul, Ol, Li, and Mark retain
+          their native HTML tags, attributes, and refs. Size is independent from heading level. Use
+          logical alignment, tone, weight, wrapping, tokens, or unstyled for local styling.
         </p>
         <div className="typography-specimen">
           <div>
-            <span>Display / 48px / 600</span>
-            <strong style={{ fontSize: 48 }}>Aa. Plain & simple.</strong>
+            <span>Heading / 24px</span>
+            <strong style={{ fontSize: 24 }}>Project activity</strong>
           </div>
           <div>
-            <span>Heading / 24px / 600</span>
-            <strong style={{ fontSize: 24 }}>A little room for your ideas.</strong>
+            <span>Body / 16px</span>
+            <p>A clear view of the work that needs attention.</p>
           </div>
           <div>
-            <span>Body / 16px / 400</span>
-            <p>A considered foundation for whatever comes next.</p>
-          </div>
-          <div>
-            <span>Label / 14px / 500</span>
+            <span>Label / 14px</span>
             <Label>Project name</Label>
           </div>
         </div>
-      </section>
-      <section className="doc-section" id="spacing">
-        <h2>Spacing</h2>
+      </GuideSection>
+      <GuideSection title="Spacing and density" id="spacing">
         <p>
-          Use an 8px layout grid: 8, 16, 24, 32, 48, and 64px. Small internal gaps and icon
-          alignment use 4px subdivisions.
+          Use an 8px spacing rhythm with 4px optical adjustments. Layout numbers are grid units:
+          <code> gap={'{2}'}</code> means 16px; CSS token values remain strings. Root radius
+          defaults to 6px. Comfortable control height is 40px, compact is 32px, and spacious is
+          48px. Explicit component sizes may use a different height; inspect touch targets rather
+          than assuming density makes every control touch-friendly.
         </p>
         <div className="spacing-scale">
           {[8, 16, 24, 32, 48, 64].map((space) => (
@@ -369,205 +1222,179 @@ function Tokens() {
             </div>
           ))}
         </div>
-        <CodeBlock
-          language="tsx"
-          compact
-          code={`<div className="grid grid-cols-12 gap-6">\n  <aside className="col-span-12 md:col-span-3" />\n  <main className="col-span-12 md:col-span-9" />\n</div>`}
-        />
-      </section>
-      <section className="doc-section" id="shape">
-        <h2>Shape & density</h2>
+      </GuideSection>
+      <GuideSection title="Motion and layers" id="motion">
         <p>
-          <code>--ui-radius</code> defaults to 6px. <code>--ui-control-height</code> defaults to
-          40px. Density changes standard controls to 32px, 40px, or 48px; explicit component sizes
-          stay predictable.
+          Duration and easing tokens control CSS transitions. Default layer values are dropdown 100,
+          overlay 80, dialog 90, and toast 110. Direct component props can override them; keep
+          related portal layers coherent. System reduction or explicit reduced/none policy removes
+          the default motion. Custom CSS and external engines need to follow that policy too.
         </p>
-        <div className="shape-specimen">
-          {[0, 4, 8, 16].map((radius) => (
-            <div key={radius}>
-              <span style={{ borderRadius: radius }} />
-              <code>{radius}px</code>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="doc-section" id="motion">
-        <h2>Motion</h2>
         <p>
-          Color transitions are brief. Popovers enter in 150ms, dialogs in 180ms, and sheets in
-          200ms. Components respect <code>prefers-reduced-motion</code>; focus and state changes
-          remain visible without motion.
+          <Link className="text-link" to="/docs/motion">
+            Motion policy and optional animation
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
         </p>
-      </section>
+      </GuideSection>
     </>
   );
 }
+
 function Customization() {
-  const [active, setActive] = React.useState('default');
+  const [feedback, setFeedback] = React.useState('');
   return (
     <>
-      <section className="doc-section">
-        <h2>Keep the components. Find your identity.</h2>
+      <GuideSection title="Use the smallest useful override">
         <p>
-          Start with the defaults, then customize at the level your product needs. There is no
-          required styling runtime and no special prop language to learn.
+          Use theme settings for shared appearance, semantic tokens for shared values, typed slots
+          for component parts, and native props/classes for one instance. Use ThemeScope for a local
+          brand or direction. Unstyled mode is for owning the complete presentation, not just
+          removing an unwanted corner.
         </p>
-        <div className="customization-comparison">
-          <Tabs value={active} onValueChange={setActive}>
-            <TabsList aria-label="Brand comparison">
-              <TabsTrigger value="default">Plain</TabsTrigger>
-              <TabsTrigger value="branded">Your identity</TabsTrigger>
-              <TabsTrigger value="unstyled">Unstyled</TabsTrigger>
-            </TabsList>
-            <TabsContent value="default">
+        <Tabs defaultValue="default" onValueChange={() => setFeedback('')}>
+          <TabsList
+            aria-label="Customization comparison"
+            style={{ display: 'flex', flexWrap: 'wrap', height: 'auto' }}
+          >
+            <TabsTrigger value="default">Neutral</TabsTrigger>
+            <TabsTrigger value="brand">Branded</TabsTrigger>
+            <TabsTrigger value="unstyled">Unstyled</TabsTrigger>
+          </TabsList>
+          <TabsContent value="default">
+            <div className="brand-preview">
+              <Field label="Project name">
+                <Input placeholder="Studio launch" />
+              </Field>
+              <Button type="button" onClick={() => setFeedback('Saved locally')}>
+                Save project
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="brand">
+            <ThemeScope
+              tokens={{ ...previewTheme.light, 'button.radius': '4px' }}
+              mode="light"
+              style={{
+                background: 'var(--ui-background)',
+                color: 'var(--ui-foreground)',
+                padding: 16,
+              }}
+            >
               <div className="brand-preview">
                 <Field label="Project name">
-                  <Input placeholder="Your next idea" />
+                  <Input placeholder="Studio launch" />
                 </Field>
-                <Button>Make a start</Button>
+                <Button type="button" variant="accent" onClick={() => setFeedback('Saved locally')}>
+                  Save project
+                  <ArrowRight aria-hidden="true" />
+                </Button>
               </div>
-            </TabsContent>
-            <TabsContent value="branded">
-              <ThemeScope
-                tokens={{
-                  accent: '#1d4ed8',
-                  'accent-foreground': '#ffffff',
-                  'accent-soft': '#eff6ff',
-                  radius: '16px',
-                }}
-                componentStyles={{ 'button.root': 'rounded-full px-6' }}
-              >
-                <div className="brand-preview">
-                  <Field label="Project name">
-                    <Input placeholder="Something distinctly yours" />
-                  </Field>
-                  <Button variant="accent">
-                    Make a start
-                    <ArrowRight aria-hidden="true" />
-                  </Button>
-                </div>
-              </ThemeScope>
-            </TabsContent>
-            <TabsContent value="unstyled">
-              <ThemeScope unstyled>
-                <div className="brand-preview unstyled-preview">
-                  <Field label="Project name">
-                    <Input className="raw-input" placeholder="Your own CSS, your own feeling" />
-                  </Field>
-                  <Button className="raw-button">Make a start</Button>
-                </div>
-              </ThemeScope>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </section>
-      <section className="doc-section">
-        <h2>1. Style it like HTML</h2>
-        <p>
-          Every styled part accepts <code>className</code>, <code>style</code>, native event
-          handlers, and ARIA attributes. Classes merge using tailwind-merge, so a conflicting
-          utility can replace a default.
+            </ThemeScope>
+          </TabsContent>
+          <TabsContent value="unstyled">
+            <ThemeScope unstyled>
+              <div className="brand-preview unstyled-preview">
+                <Field label="Project name">
+                  <Input className="raw-input" placeholder="Studio launch" />
+                </Field>
+                <Button
+                  type="button"
+                  className="raw-button"
+                  onClick={() => setFeedback('Saved locally')}
+                >
+                  Save project
+                </Button>
+              </div>
+            </ThemeScope>
+          </TabsContent>
+        </Tabs>
+        <p role="status" style={{ fontSize: 14, minHeight: 24 }}>
+          {feedback}
         </p>
-        <CodeBlock
-          code={`<Button\n  className="rounded-full px-6"\n  style={{ fontWeight: 600 }}\n  onClick={handleCreate}\n>\n  Create project\n</Button>`}
-        />
+      </GuideSection>
+      <GuideSection title="Extend a component without hiding its control">
+        <CodeBlock code={examples.extension} title="BrandButton.tsx" />
         <p>
-          For stylesheet rules, target the stable part attributes instead of implementation classes.
+          <code>extendComponent</code>, also exported as <code>extend</code>, preserves the
+          component's native props and ref. Caller props replace <code>defaults</code>, including
+          event handlers; handlers are not automatically chained. Custom variants are consumed
+          rather than sent to the DOM. Choose names such as <code>tone</code> that do not collide
+          with native or existing component props.
+        </p>
+        <p>
+          Classes merge in this order: defaults, configured className, selected and compound
+          variants, caller className. Conflicting Tailwind utilities merge last; ordinary CSS still
+          follows specificity and the cascade. With configured tokens, inline styles merge defaults,
+          token variables, then caller style. The caller's 4px token wins over the configured 8px
+          radius above. Slot styles provide classes through a local StyleProvider.
+        </p>
+      </GuideSection>
+      <GuideSection title="Style named parts, not private engine markup">
+        <CodeBlock code={examples.slots} />
+        <p>
+          <code>ComponentStyles</code> is a typed map of public slots. Local providers replace the
+          inherited class string for the same slot; they do not concatenate it. Component defaults
+          are merged first, the slot class next, and an instance class last. Check the component
+          reference for available parts. A slot key and a dotted token key are different contracts.
         </p>
         <CodeBlock
           language="css"
-          code={`[data-ui='button'][data-slot='root'] {\n  border-radius: 999px;\n}\n\n[data-ui='input'][data-slot='root']:focus-visible {\n  outline-width: 3px;\n}`}
+          code={`/* Stable part attributes for your own stylesheet */\n[data-ui='button'][data-slot='root'] {\n  font-weight: 600;\n}\n\n[data-ui='input'][data-slot='root']:focus-visible {\n  outline: 3px solid var(--ui-focus-ring);\n  outline-offset: 3px;\n}`}
         />
-      </section>
-      <section className="doc-section">
-        <h2>2. Set shared tokens</h2>
+      </GuideSection>
+      <GuideSection title="Unstyled is a presentation responsibility">
+        <CodeBlock code={examples.unstyled} />
         <p>
-          Change the shared foundation once, then let the system carry those choices through forms,
-          menus, dialogs, and feedback.
+          Unstyled parts retain their native or primitive semantics and interaction, but remove
+          default classes. Your CSS must supply overlay positioning, stacking, focus visibility,
+          disabled and invalid states, contrast, motion behavior, and usable targets. Provider slot
+          classes and explicit instance classes are still applied. A component can opt back in with
+          <code> unstyled={'{false}'}</code>.
         </p>
-        <CodeBlock
-          code={`<PlainProvider\n  theme={{ radius: 12, density: 'spacious' }}\n  tokens={{\n    accent: '#1d4ed8',\n    'accent-foreground': '#ffffff',\n    'accent-soft': '#eff6ff',\n  }}\n>\n  <App />\n</PlainProvider>`}
-        />
-      </section>
-      <section className="doc-section">
-        <h2>3. Style named parts</h2>
+      </GuideSection>
+      <GuideSection title="Keep one semantic element">
+        <CodeBlock code={examples.asChild} />
         <p>
-          The typed <code>styles</code> map applies classes to a named part everywhere in the
-          provider. Every component page lists its available slots.
+          Use <code>asChild</code> on supported components and primitive triggers to compose a link
+          or your own forwarding component. Supply one element that accepts the passed props and
+          ref. Do not nest a button inside a link or another button. A disabled button style does
+          not make an anchor non-navigable; define disabled-link behavior in your application.
         </p>
-        <CodeBlock
-          code={`<PlainProvider styles={{\n  'button.root': 'rounded-full font-semibold',\n  'input.root': 'rounded-lg',\n  'dialog.content': 'max-w-xl p-8',\n  'dialog.title': 'text-xl',\n  'select.trigger': 'rounded-lg',\n}}>\n  <App />\n</PlainProvider>`}
-        />
         <p>
-          Use StyleProvider for a local override without changing your theme. Local component
-          classes have the final say.
+          <Link className="text-link" to="/docs/theming">
+            Root tokens, component aliases, and border policies
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
         </p>
-        <CodeBlock
-          code={`<StyleProvider styles={{ 'button.root': 'rounded-none' }}>\n  <Button>Local treatment</Button>\n</StyleProvider>`}
-        />
-      </section>
-      <section className="doc-section">
-        <h2>4. Go unstyled</h2>
-        <p>
-          Use the behavior with your own styling. Individual styled parts support{' '}
-          <code>unstyled</code>, and StyleProvider can remove defaults for a whole subtree.
-        </p>
-        <CodeBlock
-          code={`<Button unstyled className="my-button">Create project</Button>\n\n<StyleProvider unstyled>\n  <Dialog>\n    <DialogTrigger className="my-button">Open</DialogTrigger>\n    <DialogContent className="my-dialog">\n      <DialogTitle className="my-title">Your design</DialogTitle>\n      <DialogDescription>Your accessible dialog.</DialogDescription>\n    </DialogContent>\n  </Dialog>\n</StyleProvider>`}
-        />
-        <p>
-          The styled parts keep their semantics and interaction. Without default CSS, you are
-          responsible for positioning overlays, styling focus, and providing usable touch targets.
-          Calendar also accepts DayPicker's classNames and components for deeper rendering control.
-          Toast accepts Sonner's toastOptions.
-        </p>
-      </section>
-      <section className="doc-section">
-        <h2>5. Compose your own elements</h2>
-        <p>
-          Use <code>asChild</code> on Button and primitive triggers to keep one semantic element.
-          Compound components expose their individual parts.
-        </p>
-        <CodeBlock
-          code={`<Button asChild variant="outline">\n  <a href="/projects">Your projects</a>\n</Button>\n\n<Card className="rounded-xl">\n  <CardHeader><CardTitle>Your own layout</CardTitle></CardHeader>\n  <CardContent className="grid gap-6">{children}</CardContent>\n</Card>`}
-        />
-      </section>
+      </GuideSection>
     </>
   );
 }
+
 function RTL() {
   const { direction, setDirection } = useAppPreferences();
   const id = React.useId();
   return (
     <>
-      <section className="doc-section">
-        <h2>Direction is behavior, too</h2>
+      <GuideSection title="Direction affects behavior and layout">
         <p>
-          PlainProvider connects the HTML direction and Radix's direction context. Layout uses
-          logical spacing; arrows, selection controls, and calendar navigation respond to the
-          reading direction.
+          PlainProvider sets HTML direction and primitive direction context. ThemeScope supplies
+          both locally. DirectionProvider only supplies context; set <code>dir</code> on the DOM
+          element you own as well. Localize labels and calendar locale data separately.
         </p>
-        <Button variant="outline" onClick={() => setDirection(direction === 'rtl' ? 'ltr' : 'rtl')}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setDirection(direction === 'rtl' ? 'ltr' : 'rtl')}
+        >
           <MoveHorizontal aria-hidden="true" />
           {direction === 'rtl' ? 'Use left-to-right layout' : 'Try right-to-left layout'}
         </Button>
-        <CodeBlock code={`<PlainProvider dir="rtl">\n  <App />\n</PlainProvider>`} />
-      </section>
-      <section className="doc-section">
-        <h2>Mix directions locally</h2>
-        <p>
-          ThemeScope adds a direction attribute to its DOM scope and provides direction context for
-          portaled primitives. Use DirectionProvider when you already own the element; set{' '}
-          <code>dir</code> on that element as well.
-        </p>
         <div className="rtl-preview">
           <ThemeScope dir="rtl" lang="ar">
             <Field label={'\u0627\u0633\u0645 \u0627\u0644\u0645\u0634\u0631\u0648\u0639'}>
-              <Input
-                placeholder={
-                  '\u0641\u0643\u0631\u062a\u0643 \u0627\u0644\u062a\u0627\u0644\u064a\u0629'
-                }
-              />
+              <Input name="rtl-project" />
             </Field>
             <div className="rtl-switch-row">
               <Label htmlFor={id}>
@@ -575,188 +1402,511 @@ function RTL() {
               </Label>
               <Switch id={id} defaultChecked />
             </div>
-            <Button>
-              {'\u0625\u0646\u0634\u0627\u0621 \u0645\u0634\u0631\u0648\u0639'}
-              <ArrowRight className="rtl-arrow" aria-hidden="true" />
-            </Button>
           </ThemeScope>
         </div>
-        <CodeBlock
-          code={`<ThemeScope dir="rtl" lang="ar">\n  <Field label="Project name">\n    <Input name="project" />\n  </Field>\n  <Button>Create project</Button>\n</ThemeScope>`}
-        />
-      </section>
-      <section className="doc-section">
-        <h2>Use logical layout</h2>
-        <CodeBlock
-          code={`// Logical spacing works in either direction\n<div className="ps-6 pe-4 text-start">\n  <span className="ms-auto">Aligned to the end</span>\n</div>\n\n// The end edge changes with the reading direction\n<SheetContent side="end">...</SheetContent>`}
-        />
+      </GuideSection>
+      <GuideSection title="Use logical edges and root Sheet direction">
+        <CodeBlock code={examples.rtl} />
         <p>
-          Sheet supports <code>start</code>, <code>end</code>, and <code>bottom</code>. Physical{' '}
-          <code>left</code> and <code>right</code> remain available when a layout specifically
-          requires them.
+          Prefer padding-inline, margin-inline, inset-inline, and text-align: start/end, or logical
+          utilities such as <code>ps</code>, <code>pe</code>, <code>ms</code>, and <code>me</code>.
+          <code> Sheet side="end"</code> resolves to right in LTR and left in RTL at the Vaul root.
+          Sheet supports start/end/left/right/top/bottom; Drawer defaults to bottom.
         </p>
         <p>
-          Keep code, email addresses, and URLs in explicit LTR spans where appropriate. Direction
-          does not translate text; supply localized labels and DayPicker locale data separately.
+          Root <code>side</code> takes precedence over Vaul's physical <code>direction</code> and
+          the legacy <code>SheetContent side</code> fallback. Prefer setting it on the root so drag
+          direction and placement agree. Test swipe, focus return, and scrolling in both directions.
+          Use explicit LTR spans or <code>bdi</code> for mixed identifiers; do not mirror every
+          icon, chart, or media control.
         </p>
-      </section>
-      <section className="doc-section">
-        <h2>Keyboard behavior</h2>
-        <ul className="guide-check-list">
-          {[
-            'Tabs and radio groups follow direction-aware arrow-key navigation.',
-            'Horizontal sliders increase and decrease along the intended reading direction.',
-            'Select and dropdown menus maintain focus and support typeahead.',
-            'Breadcrumb and pagination arrows point in the reading direction.',
-            'Calendar month navigation and day navigation honor direction.',
-          ].map((text) => (
-            <li key={text}>
-              <Check size={15} aria-hidden="true" />
-              {text}
-            </li>
-          ))}
-        </ul>
-      </section>
-      <DirectionProvider dir="ltr">
-        <span />
-      </DirectionProvider>
+      </GuideSection>
+      <GuideSection title="Verify keyboard behavior in context">
+        <Checklist
+          items={[
+            'Test arrows in tabs, radio groups, sliders, and calendar navigation.',
+            'Test typeahead, Escape, and focus return in open menus and overlays.',
+            'Keep DOM and reading order meaningful across responsive layouts.',
+            'Check mixed-language text, long labels, and local portaled content.',
+          ]}
+        />
+      </GuideSection>
     </>
   );
 }
+
 function AccessibilityGuide() {
   return (
     <>
-      <section className="doc-section">
-        <h2>Built on accessible primitives</h2>
+      <GuideSection title="Primitives do not replace application testing">
         <p>
-          Radix handles focus management, keyboard patterns, and ARIA relationships for interactive
-          components. Native elements carry semantics for buttons, forms, and tables. React
-          DayPicker, cmdk, and Sonner provide their domain interactions.
+          Native elements provide button, form, and table semantics. Radix and Vaul provide
+          interaction patterns for overlays and composite controls; DayPicker, cmdk, Sonner,
+          Recharts, and FullCalendar handle their respective domains. Names, descriptions, content
+          order, navigation, and application state still belong to you.
         </p>
+      </GuideSection>
+      <GuideSection title="Label the focusable control">
+        <CodeBlock code={examples.validation} />
         <p>
-          <a
-            className="text-link"
-            href="https://www.radix-ui.com/primitives/docs/overview/accessibility"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Radix accessibility documentation
-            <ArrowUpRight size={14} aria-hidden="true" />
-          </a>
+          Field connects its label, description, and error to the child control. Its required
+          indication does not replace native <code>required</code> validation. With a compound
+          control, attach field props to its focusable trigger or input, not a non-DOM root. Give
+          icon-only actions names and unfamiliar tools tooltips; do not use a placeholder as the
+          only label.
         </p>
-      </section>
-      <section className="doc-section">
-        <h2>Labels and validation</h2>
-        <CodeBlock
-          code={`<Field\n  label="Email address"\n  description="We will only send important updates."\n  error={errors.email}\n  required\n>\n  <Input type="email" required name="email" />\n</Field>`}
+      </GuideSection>
+      <GuideSection title="Plan focus after every transition">
+        <Checklist
+          items={[
+            'Reach actions with Tab and Shift+Tab; use arrow keys where the composite pattern expects them.',
+            'Give dialogs and sheets useful titles; retain an explicit, reachable close action.',
+            'Check initial focus, Escape, focus trapping when modal, and focus return after closing.',
+            'Move focus deliberately after deleting a record or changing route; preserve useful list state.',
+            'Keep focused controls visible above fixed navigation and the software keyboard.',
+          ]}
         />
+      </GuideSection>
+      <GuideSection title="Color, motion, reflow, and alternatives">
         <p>
-          Field connects labels and messages automatically. Required markers use aria-required;
-          native validation still needs <code>required</code> on the input. Icon-only buttons need
-          an accessible name.
-        </p>
-      </section>
-      <section className="doc-section">
-        <h2>Focus and keyboard</h2>
-        <p>
-          Focus rings remain visible on keyboard navigation. Dialogs and sheets trap focus and
-          return it to the trigger. Dropdown menus, selects, tabs, and radio groups implement the
-          corresponding keyboard pattern.
-        </p>
-        <ul className="guide-check-list">
-          {[
-            'Reach every action with Tab and Shift+Tab.',
-            'Open and close overlays with keyboard controls.',
-            'Retain meaningful focus after saving, removing, or navigating.',
-            'Use an appropriate heading order and named landmarks.',
-            'Keep interactive targets large enough for touch input.',
-          ].map((item) => (
-            <li key={item}>
-              <Check size={15} aria-hidden="true" />
-              {item}
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section className="doc-section">
-        <h2>Color, motion, and zoom</h2>
-        <p>
-          Default text and controls use contrast-aware colors. Status is always expressed in text.
-          Reduced-motion preferences remove nonessential transitions and animations. Layouts must
-          remain usable with enlarged text and narrow viewports.
+          Do not encode status only in color. Check text, non-text controls, focus, selected, and
+          error contrast after customization, including borderless mode. Use spacious density or
+          additional padding for touch workflows, while checking explicit small/icon sizes. Test
+          reduced/none motion, enlarged text, narrow layouts, and 200% zoom.
         </p>
         <p>
-          Compact and icon controls are designed for dense desktop interfaces. Use spacious density
-          or additional target padding when building a touch-first app.
+          Charts need a textual insight and accessible data alternative. Virtualized content needs
+          pagination, export, or a nonvirtual view where full traversal, printing, or browser find
+          matters. Dragging and swiping need usable non-gesture alternatives.
         </p>
-      </section>
-      <section className="doc-section">
-        <h2>Check the whole experience</h2>
+      </GuideSection>
+      <GuideSection title="Record what was actually verified">
         <p>
-          Automated checks find many issues, but they do not establish complete WCAG compliance.
-          Test your application's actual content with a keyboard and a screen reader, including
-          loading, empty, validation, and error states. Recheck contrast and focus when you
-          customize the design.
+          Run automated checks on meaningful states, then test keyboard and screen-reader use with
+          actual application content. Cover loading, empty, error, invalid, disabled, long-content,
+          dark, and RTL states. Record browser and viewport separately from physical-device and
+          assistive-technology coverage. Generated colors and automated scans do not certify WCAG
+          compliance or complete accessibility.
         </p>
-        <a
-          href="https://www.w3.org/WAI/WCAG22/quickref/"
-          className="text-link"
-          target="_blank"
-          rel="noreferrer"
-        >
+        <a className="text-link" href="https://www.w3.org/WAI/WCAG22/quickref/">
           WCAG 2.2 quick reference
-          <ArrowUpRight size={14} aria-hidden="true" />
+          <ArrowRight size={14} aria-hidden="true" />
         </a>
-      </section>
+      </GuideSection>
     </>
   );
 }
+
+function MotionGuide() {
+  return (
+    <>
+      <GuideSection title="Policy works without the animation entry">
+        <p>
+          Set <code>theme.motion</code> on PlainProvider: system follows
+          <code> prefers-reduced-motion</code>; reduced and none explicitly disable the optional
+          Motion wrapper's transitions, entrance, and exit animation. The CSS motion scale becomes
+          zero for reduced/none, making default effects effectively instant; duration tokens remain
+          available for custom styling. Neither policy removes feedback or functionality.
+        </p>
+        <CodeBlock code={examples.motionPolicy} />
+        <p>
+          <code>useMotionSettings()</code> returns <code>policy</code>, <code>reduced</code>, and
+          <code> enabled</code>. Use it for custom effects or third-party animations; arbitrary
+          animation code does not automatically obey the provider. Scope the hook's JS policy with
+          MotionPolicyProvider when needed; that context alone does not set CSS attributes.
+        </p>
+      </GuideSection>
+      <GuideSection title="Opt into Motion and Presence">
+        <CodeBlock code={examples.motion} />
+        <p>
+          Import from <code>@plain/ui/motion</code>, not the root collection. MotionProvider loads
+          the engine features lazily and sets a default transition; its duration is in seconds.
+          Motion renders a ref-forwarding div and supports <code>fade</code>, <code>slide</code>,
+          and <code>scale</code> presets plus Motion's div props. Presence is AnimatePresence; keyed
+          children are needed for exit tracking.
+        </p>
+      </GuideSection>
+      <GuideSection title="Use motion to explain, then verify without it">
+        <Checklist
+          items={[
+            'Use brief feedback for a state transition, not a decorative looping entrance.',
+            'Keep completion, dismissal, and focus independent of animation-end events.',
+            'Avoid hiding essential content until an animation runs.',
+            'Test a system preference change and explicit reduced/none policies while the view is mounted.',
+            'Keep CSS millisecond tokens distinct from Motion transition durations in seconds.',
+          ]}
+        />
+      </GuideSection>
+    </>
+  );
+}
+
+function LayoutsGuide() {
+  return (
+    <>
+      <GuideSection title="Compose an actual workspace">
+        <CodeBlock code={examples.layout} />
+        <p>
+          Box supplies a wrapper or <code>asChild</code> padding. Stack is vertical; Inline is a
+          wrapping row by default; Flex exposes direction, alignment, justification, and wrapping.
+          Grid accepts a column count or CSS track string, plus <code>minItemWidth</code> for
+          auto-fit layouts. Container constrains width and uses logical gutters. Use links for
+          destinations and tabs for peer views within a task.
+        </p>
+      </GuideSection>
+      <GuideSection title="Know which numbers are spacing units">
+        <p>
+          Responsive values use <code>base</code>, <code>sm</code> (640px), <code>md</code>
+          (768px), and <code>lg</code> (1024px). Unspecified larger values inherit the previous
+          breakpoint. Numeric gap, padding, gutter, and Spacer size are multiples of 8px; strings
+          are CSS lengths. Container's numeric <code>maxWidth</code> is pixels, not spacing units.
+          Keep shrinking grid/flex children at <code>min-width: 0</code>.
+        </p>
+        <p>
+          Center aligns a small surface; Spacer can consume free flex space. CSS-column Masonry
+          flows down a column before the next one, so its visual order differs from a row-major
+          grid. Prefer ordinary Grid for ordered forms, comparisons, and sequential tasks.
+        </p>
+      </GuideSection>
+      <GuideSection title="Resizable panels are a tool surface">
+        <CodeBlock code={examples.splitPane} />
+        <p>
+          SplitPane, SplitPanePanel, and SplitPaneHandle wrap react-resizable-panels. Use the
+          engine's orientation and size constraints; explicit percentages avoid ambiguous numeric
+          sizing. Name the resize handle, preserve its keyboard behavior, and give the group a
+          bounded height. Switch to a route or stacked detail view when a narrow layout cannot
+          accommodate both panels. Recheck embedded charts after resizing.
+        </p>
+      </GuideSection>
+      <GuideSection title="Mobile navigation is application navigation">
+        <CodeBlock code={examples.mobileNav} />
+        <CodeBlock
+          language="css"
+          code={`.mobile-navigation {\n  display: flex;\n  justify-content: space-around;\n  gap: 8px;\n  padding: 8px 16px max(8px, env(safe-area-inset-bottom));\n}\n.mobile-navigation a {\n  display: grid;\n  justify-items: center;\n  gap: 4px;\n  min-block-size: 48px;\n  padding: 8px;\n}\n.mobile-navigation a[aria-current='page'] {\n  color: var(--ui-accent);\n  font-weight: 600;\n}`}
+        />
+        <p>
+          A small set of primary destinations can use bottom navigation; secondary destinations or
+          filters can use a Sheet/Drawer. Preserve the same destination model across breakpoints.
+          Use safe-area spacing and dynamic viewport height, avoid competing scroll regions, and
+          reserve content space when navigation is fixed. Check Back, unsaved edits, focus, and
+          software-keyboard overlap rather than treating a small desktop shell as a mobile app.
+        </p>
+      </GuideSection>
+    </>
+  );
+}
+
+function VirtualizationGuide() {
+  return (
+    <>
+      <GuideSection title="Window rendering, not data fetching">
+        <p>
+          VirtualList, VirtualGrid, and VirtualMasonry use TanStack Virtual to mount a window of
+          items inside a bounded scroll viewport. They do not fetch records, sort them, or implement
+          server pagination. Keep item IDs stable across filtering and sorting; array indexes are
+          unsuitable keys when records can move.
+        </p>
+        <CodeBlock code={examples.virtualList} />
+        <p>
+          <code>estimateSize</code> and <code>height</code> are pixels when numeric;
+          <code> gap</code> uses 8px units. List rows are measured after mounting; estimate
+          realistic heights to reduce jumps. <code>ssrCount</code> renders a bounded initial set on
+          the server and before measurement, not the entire collection.
+        </p>
+      </GuideSection>
+      <GuideSection title="Choose grid or masonry deliberately">
+        <CodeBlock code={examples.virtualLayouts} />
+        <p>
+          VirtualGrid uses responsive column counts and a fixed <code>rowHeight</code> (pixels); it
+          does not measure variable-height grid rows. Cell overflow can create nested scrolling, so
+          fit the content or choose another layout. VirtualMasonry uses responsive lane counts, an
+          estimated item height, and measurement for variable items. Keep reading order and focus
+          order understandable when visual lanes differ.
+        </p>
+      </GuideSection>
+      <GuideSection title="Focus retention is not full-dataset access">
+        <p>
+          The viewport is a list and items expose list-item position/count metadata. It is not an
+          ARIA grid with roving cell navigation. A focused row stays in the render range while focus
+          remains inside; removing or filtering that record still needs an application focus plan.
+          Viewport arrows, Page Up/Down, and Home/End scroll only when the viewport itself is the
+          event target, leaving child control keys alone.
+        </p>
+        <Alert>
+          <AlertTitle>Unmounted records are not document content</AlertTitle>
+          <AlertDescription>
+            Browser find, printing, and screen-reader traversal cannot access every unmounted row.
+            Offer pagination, export, or a nonvirtual view when those workflows matter. Test resize,
+            hidden-tab reveal, variable content, both scroll ends, and focused items beyond the
+            initial window.
+          </AlertDescription>
+        </Alert>
+      </GuideSection>
+    </>
+  );
+}
+
+function BlocksTemplatesGuide() {
+  return (
+    <>
+      <GuideSection title="Copy application source">
+        <p>
+          The 0.2 collection contains 120 blocks in 12 workflow categories and 60 templates in five
+          platform categories: web apps, mobile apps, desktop apps, dashboards, and websites.
+          Platform categories describe React DOM layouts, not native runtimes. The examples use
+          local state and sample data; signing in, payments, invitations, and scheduling are not
+          connected services.
+        </p>
+        <CodeBlock code={examples.blocks} />
+        <p>
+          Preview an example, then use its Code, Copy, or Download action. Each TSX file includes
+          its own React implementation, data, helpers, and styles. Place it in your application,
+          rename it, and edit it directly. It imports public P.UI primitives and, where needed,
+          established engines; no block renderer or template registry is bundled in @plain/ui.
+        </p>
+        <p>
+          <Link className="text-link" to="/blocks">
+            Browse blocks
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+          {' / '}
+          <Link className="text-link" to="/templates">
+            Browse templates
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
+        </p>
+      </GuideSection>
+      <GuideSection title="Own the markup and behavior">
+        <CodeBlock code={examples.blockConfig} />
+        <p>
+          The downloaded file is ordinary TypeScript and React, not a configuration-only API. Change
+          its structure, fields, data, actions, and styling as freely as native HTML. Local types
+          and sample configurations are editable conveniences, not a runtime contract with the
+          library. Keep only the pieces your workflow needs.
+        </p>
+      </GuideSection>
+      <GuideSection title="Connect screens around the workflow">
+        <CodeBlock code={examples.templateConfig} />
+        <p>
+          Templates include their screens, navigation, local state, and styles in the copied file.
+          You can split those into your own modules, as in this shell example. The Agenda and
+          Requests imports represent application-owned screens. Local navigation and created records
+          are not browser routing or durable storage; add URLs, Back behavior, authorization, remote
+          data, and persistence according to your application.
+        </p>
+        <Checklist
+          items={[
+            'Keep the product-specific task, useful fields, and navigation model; remove sample branding.',
+            'Connect actions to real services with loading, error, validation, and permission states.',
+            'Review nested landmarks and headings when inserting a full template in another shell.',
+            'Test list/detail return paths and mobile navigation, not just the first screen.',
+            'Reuse theme tokens and slots so an adapted composition still follows light/dark, RTL, and motion policy.',
+          ]}
+        />
+      </GuideSection>
+    </>
+  );
+}
+
+function ChartsGuide() {
+  return (
+    <>
+      <GuideSection title="Name the data and show an alternative">
+        <CodeBlock code={examples.chart} />
+        <p>
+          AreaChart, BarChart, and LineChart accept records, a categorical <code>index</code>, typed
+          series definitions, height, labels, and a valueFormatter. DonutChart uses nameKey and
+          valueKey instead. Import these from <code>@plain/ui/charts</code> with
+          <code> @plain/ui/charts.css</code>, not the root component collection.
+        </p>
+        <p>
+          The wrappers use Chart for a named figure and an automatic data table. The default table
+          is screen-reader-only; <code>dataTable="visible"</code> exposes it to everyone. Keep
+          units, time range, series labels, and a short textual insight. Disable the table only when
+          an equivalent accessible alternative is provided. A tooltip alone is not that alternative.
+        </p>
+      </GuideSection>
+      <GuideSection title="Compose with the Recharts engine">
+        <CodeBlock code={examples.composedChart} />
+        <p>
+          Chart accepts one Recharts chart element. Supply <code>data</code> for the table and
+          <code> config</code> for labels/colors; optional <code>columns</code> can choose accessors
+          and formatting. ChartGrid, axes, tooltip, legend, and series wrappers connect theme roles
+          and motion policy. A raw Recharts series does not gain the wrapper's motion controls
+          automatically. Install Recharts directly when importing its engine in your application.
+        </p>
+        <p>
+          Colors are optional. Series receive distinct chart tokens automatically, including
+          composed ChartArea, ChartBar and ChartLine children. A selected vibe generates eight
+          coordinated categorical colors for light and dark mode; neutral themes keep their curated
+          palette. Override a series with <code>config[key].color</code>, a series color, or{' '}
+          <code>chart-1</code> through <code>chart-8</code> theme tokens. Area fills use unique
+          gradients by default; <code>gradient={'{false}'}</code> restores a flat fill, and an
+          explicit fill always wins. ChartTooltipContent supports dot, line and dashed indicators
+          and can be supplied through the native tooltip content prop.
+        </p>
+        <p>
+          Retain Recharts' <code>accessibilityLayer</code>; the composed example enables it
+          explicitly. Keyboard support varies by chart type and custom content. Test point
+          navigation, announcements, and custom tooltips rather than assuming every chart has
+          identical behavior. Distinguish series by labels, shape, dash, or a data table, not color
+          alone.
+        </p>
+      </GuideSection>
+      <GuideSection title="Size and state are part of the chart">
+        <p>
+          Height defaults to 300px and is stable during loading/empty states. Give responsive charts
+          a shrinking parent with <code>min-width: 0</code> and a nonzero width. Recheck hidden
+          tabs, panels, and resize. Use loading/empty labels appropriate to the view; network error
+          states and retry belong to your application. Seed-derived chart colors still need
+          comparison checks in light and dark mode.
+        </p>
+        <p>
+          Chart animation follows the provider motion policy; <code>animate={'{false}'}</code>
+          disables it for an individual view. Test zero, negative, missing, and single-point values.
+          DonutChart plots only positive finite values while its table retains the supplied records;
+          do not silently turn signed data into a part-to-whole story.
+        </p>
+      </GuideSection>
+    </>
+  );
+}
+
+function SchedulingGuide() {
+  return (
+    <>
+      <GuideSection title="Pick the value model first">
+        <p>
+          Calendar and DateRangePicker use DayPicker for date selection. TimePicker, DateTimePicker,
+          TimeRangePicker, and DateTimeRangePicker use native time/datetime-local controls with
+          Temporal-backed validation. FullCalendar is the separate event scheduling engine. Do not
+          recreate their navigation, date arithmetic, parsing, or range logic.
+        </p>
+        <CodeBlock code={examples.pickers} />
+        <p>
+          A DateRangePicker range is inclusive and uses local calendar dates. Do not serialize those
+          dates with <code>toISOString()</code> to obtain a date-only value; conversion to UTC can
+          shift the day. Its minNights/maxNights constrain day differences. Range form names default
+          to <code>name[from]</code> and <code>name[to]</code>, with explicit fromName/toName
+          overrides. Partial and cleared ranges are possible; clearing returns undefined.
+        </p>
+      </GuideSection>
+      <GuideSection title="Native inputs remain wall-clock inputs">
+        <p>
+          Time values are <code>HH:mm</code> with optional seconds/milliseconds. Date-time values
+          are <code>YYYY-MM-DDTHH:mm</code> with optional seconds/milliseconds, without an offset or
+          Z. DateTimePicker's <code>timeZone</code> validates/formats the wall time in that zone; it
+          does not convert the returned string to UTC. Use disambiguation to decide how repeated or
+          nonexistent daylight-saving times are handled; reject makes that ambiguity a validation
+          error.
+        </p>
+        <p>
+          Browser and operating system determine the native editor, keyboard, and popup appearance.
+          Locale affects formatting, but does not guarantee an identical localized native picker on
+          every device. Native step is in seconds. allowOvernight on TimeRangePicker permits an end
+          time before the start, but supplies no dates or duration. Store the intended zone and date
+          alongside wall times; validate them again on the server.
+        </p>
+        <CodeBlock code={examples.temporal} title="Explicit wall time conversion" />
+        <p>
+          If your application imports temporal-polyfill directly, declare it as an application
+          dependency. Catch rejected/invalid conversions and present a useful field error. Preserve
+          recurring schedules as wall time plus zone when that is the product model, rather than
+          assuming every date-time field is an instant.
+        </p>
+      </GuideSection>
+      <GuideSection title="Opt into the event calendar and its stylesheet">
+        <CodeBlock code={examples.fullCalendar} />
+        <p>
+          <code>@plain/ui/full-calendar</code> wraps the installed FullCalendar v7 React engine.
+          Import <code>@plain/ui/full-calendar.css</code> for its skeleton and neutral classic
+          styling, plus base styles. Defaults include day-grid, time-grid, list, and interaction
+          plugins. Supplying plugins replaces that set; use the installed v7 plugin exports rather
+          than copying older plugin-package examples.
+        </p>
+        <p>
+          The forwarded ref is FullCalendarRef, exposing <code>getApi()</code>, not the outer div.
+          Use <code>containerRef</code> for that DOM element. Native region props and rootProps
+          apply to the container. Engine options may be passed directly or via <code>options</code>;
+          direct props take precedence. Editing, eventDrop, selection, and eventClick still need
+          application persistence and permission checks.
+        </p>
+      </GuideSection>
+      <GuideSection title="Controlled views, exclusive ends, and time zones">
+        <p>
+          Use defaultView/initialDate for initial engine state, or view/onViewChange and
+          date/onDateChange for controlled state. Update the controlled value when its callback
+          fires. The default narrow-screen view is listWeek at 640px; automatic mobile switching
+          applies only to an uncontrolled view. Set <code>mobileView={'{false}'}</code> to disable
+          it.
+        </p>
+        <p>
+          FullCalendar event and selection ends are exclusive, unlike the inclusive date picker
+          range. Use calendar-day arithmetic for all-day range conversion, not a fixed 24-hour
+          millisecond addition. The default event timeZone is local; strings without an offset are
+          interpreted in the configured calendar zone. If the product needs a named zone, verify the
+          installed engine's required time-zone implementation and input/output semantics.
+        </p>
+        <Checklist
+          items={[
+            'Offer a form-based editing path alongside event dragging, resizing, or selecting.',
+            'Test locale, RTL, clearing, min/max, unavailable dates, and range endpoints.',
+            'Test month/year boundaries, leap days, and daylight-saving cases relevant to the chosen zone.',
+            'Check focus, keyboard use, event names, and the mobile agenda view with realistic content.',
+          ]}
+        />
+      </GuideSection>
+    </>
+  );
+}
+
 function Performance() {
   return (
     <>
-      <section className="doc-section">
-        <h2>Modular by default</h2>
+      <GuideSection title="Keep optional engines out of unrelated routes">
         <p>
-          The library ships ESM modules with external dependencies and side effects limited to CSS.
-          A bundler can remove unused exports. Import only the components you use, and import the
-          stylesheet once.
+          The package uses ESM modules and CSS side effects so bundlers can remove unused exports.
+          Use root imports for ordinary controls and the optional motion/charts/full-calendar/blocks
+          entries for the workflows that need them. Lazy-load reports, schedules, and secondary
+          application views; measure the production bundle rather than assuming an import style
+          alone proves tree-shaking.
         </p>
-        <CodeBlock
-          code={`import { Button, Input } from '@plainui/react';\nimport '@plainui/react/styles.css';`}
-        />
-      </section>
-      <section className="doc-section">
-        <h2>No styling runtime</h2>
+        <CodeBlock code={examples.lazyView} title="ReportsRoute.tsx" />
+        <p>The Reports module is your application view, with a default component export.</p>
+      </GuideSection>
+      <GuideSection title="Static styles and generated roles">
         <p>
-          Tailwind generates static CSS. Theme changes update CSS custom properties and data
-          attributes. Class merging occurs when components render; there is no runtime stylesheet
-          generation.
+          Component CSS is precompiled. Providers update custom properties and data attributes;
+          classes merge during render. createTheme computes color maps and optional CSS text, so
+          generate shared brands outside frequently rendered components or memoize by stable inputs.
+          Emit server CSS once rather than regenerating it for each control.
         </p>
-      </section>
-      <section className="doc-section">
-        <h2>Keep expensive views focused</h2>
+      </GuideSection>
+      <GuideSection title="Rendering and loading are different problems">
         <p>
-          Memoize table data and column definitions. Paginate larger collections and use
-          virtualization or server data operations when needed. Lazy-load calendar, data-heavy
-          views, and secondary routes in your app.
+          Keep table data and columns stable where useful. DataTable's convenience search, sorting,
+          and pagination operate on the supplied client data; design explicit server operations when
+          the dataset demands them. Virtual layouts reduce mounted content, not downloaded records.
+          An accessible data table for a chart can also be large; choose aggregation, pagination, or
+          an equivalent data alternative deliberately.
         </p>
-        <CodeBlock
-          code={`const Reports = lazy(() => import('./Reports'));\n\n<Suspense fallback={<Spinner label="Loading reports" />}>\n  <Reports />\n</Suspense>`}
-        />
         <p>
-          PlainUI's DataTable uses client-side search, sorting, and pagination. It is appropriate
-          for small collections; use TanStack Table directly for server data operations.
+          Profile actual interactions, including hidden-tab reveal, panel resizing, filtering, and
+          long localized content. Verify a packed consumer separately from this docs app when
+          changing package exports or CSS. Compatibility pins, including the Material color engine,
+          should be revisited with Node/SSR imports as well as browser checks.
         </p>
-      </section>
+      </GuideSection>
     </>
   );
 }
+
 export default function GuidePage() {
   const { slug = 'introduction' } = useParams();
-  const info = guideInfo[slug];
+  const info = Object.hasOwn(guideInfo, slug) ? guideInfo[slug] : undefined;
   React.useEffect(() => {
-    document.title = `${info ? slug.charAt(0).toUpperCase() + slug.slice(1) : 'Not found'} - PlainUI`;
-  }, [slug, info]);
+    document.title = `${info?.title ?? 'Not found'} - P.UI`;
+  }, [info]);
   if (!info)
     return (
       <div className="not-found">
@@ -769,19 +1919,23 @@ export default function GuidePage() {
     installation: <Installation />,
     theming: <Theming />,
     tokens: <Tokens />,
-    accessibility: <AccessibilityGuide />,
     customization: <Customization />,
+    accessibility: <AccessibilityGuide />,
     rtl: <RTL />,
+    motion: <MotionGuide />,
+    layouts: <LayoutsGuide />,
+    virtualization: <VirtualizationGuide />,
+    'blocks-templates': <BlocksTemplatesGuide />,
+    charts: <ChartsGuide />,
+    scheduling: <SchedulingGuide />,
     performance: <Performance />,
   };
   return (
     <article className="guide-page" key={slug}>
       <div className="doc-breadcrumb">
         <Link to="/docs/introduction">Documentation</Link>
-        <span>/</span>
-        <span>
-          {slug === 'rtl' ? 'Right to left' : slug.charAt(0).toUpperCase() + slug.slice(1)}
-        </span>
+        <span aria-hidden="true">/</span>
+        <span>{slug === 'introduction' ? 'Introduction' : info.title}</span>
       </div>
       <h1>{info.title}</h1>
       <p className="page-lead">{info.description}</p>
@@ -791,7 +1945,7 @@ export default function GuidePage() {
           Explore the components
           <ArrowRight size={14} aria-hidden="true" />
         </Link>
-        <Badge variant="outline">v0.1.0</Badge>
+        <Badge variant="outline">v0.2.0</Badge>
       </div>
     </article>
   );

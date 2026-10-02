@@ -1,4 +1,4 @@
-import { useStyles, usePortalContainer, type PlainStyleProps } from './styling';
+import { useStyles, useDirection, usePortalContainer, type PlainStyleProps } from './styling';
 import * as React from 'react';
 import {
   Label as LabelPrimitive,
@@ -15,7 +15,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from './utils';
 import { useModalInert } from './modal-accessibility';
 const inputClass =
-  'ui-control flex w-full min-w-0 rounded-ui border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus-visible:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-55 aria-invalid:border-danger aria-invalid:focus-visible:outline-danger';
+  'ui-interactive flex min-h-[var(--ui-input-height,var(--ui-control-height))] w-full min-w-0 rounded-[var(--ui-input-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-input-border bg-[var(--ui-input-background,var(--ui-surface))] px-3 py-2 text-sm text-[var(--ui-input-foreground,var(--ui-foreground))] placeholder:text-[var(--ui-input-placeholder,var(--ui-muted-foreground))] focus-visible:border-[var(--ui-input-focus,var(--ui-accent))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-input-focus,var(--ui-accent))] disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-55 aria-invalid:border-danger aria-invalid:focus-visible:outline-danger';
 export const Input = /* @__PURE__ */ React.forwardRef<
   HTMLInputElement,
   React.InputHTMLAttributes<HTMLInputElement> & PlainStyleProps
@@ -159,14 +159,19 @@ export const Checkbox = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       {...styles(
         'checkbox.root',
-        'peer flex size-4.5 shrink-0 items-center justify-center rounded-[min(var(--ui-radius),4px)] border border-input-border bg-surface text-accent-foreground transition-colors data-[state=checked]:border-accent data-[state=checked]:bg-accent data-[state=indeterminate]:border-accent data-[state=indeterminate]:bg-accent disabled:cursor-not-allowed disabled:opacity-45',
+        'ui-interactive peer flex size-4.5 shrink-0 items-center justify-center rounded-[var(--ui-checkbox-radius,min(var(--ui-radius),4px))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-checkbox-border)] bg-[var(--ui-checkbox-background,var(--ui-surface))] text-[var(--ui-checkbox-foreground,var(--ui-accent-foreground))] data-[state=checked]:border-[var(--ui-checkbox-checked,var(--ui-accent))] data-[state=checked]:bg-[var(--ui-checkbox-checked,var(--ui-accent))] data-[state=indeterminate]:border-[var(--ui-checkbox-checked,var(--ui-accent))] data-[state=indeterminate]:bg-[var(--ui-checkbox-checked,var(--ui-accent))] disabled:cursor-not-allowed disabled:opacity-45',
         className,
         unstyled,
       )}
       {...props}
     >
       <CheckboxPrimitive.Indicator
-        {...styles('checkbox.indicator', 'flex items-center justify-center', undefined, unstyled)}
+        {...styles(
+          'checkbox.indicator',
+          'ui-state-indicator flex items-center justify-center',
+          undefined,
+          unstyled,
+        )}
       >
         <Minus
           {...styles(
@@ -197,12 +202,14 @@ export const Switch = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SwitchPrimitive.Root> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+  const dir = useDirection(props.dir === 'rtl' || props.dir === 'ltr' ? props.dir : undefined);
   return (
     <SwitchPrimitive.Root
       ref={ref}
+      dir={dir}
       {...styles(
         'switch.root',
-        'peer inline-flex h-5.5 w-10 shrink-0 items-center rounded-full border border-input-border bg-border p-0.5 transition-colors data-[state=checked]:border-accent data-[state=checked]:bg-accent disabled:cursor-not-allowed disabled:opacity-45',
+        'ui-interactive ui-switch peer relative inline-flex h-5.5 w-10 shrink-0 items-center rounded-[var(--ui-switch-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-switch-border)] bg-[var(--ui-switch-background,var(--ui-border))] p-0.5 data-[state=checked]:border-[var(--ui-switch-checked,var(--ui-accent))] data-[state=checked]:bg-[var(--ui-switch-checked,var(--ui-accent))] disabled:cursor-not-allowed disabled:opacity-45',
         className,
         unstyled,
       )}
@@ -211,7 +218,7 @@ export const Switch = /* @__PURE__ */ React.forwardRef<
       <SwitchPrimitive.Thumb
         {...styles(
           'switch.thumb',
-          'block size-4 rounded-full bg-white shadow-sm transition-transform data-[state=checked]:translate-x-4.5 data-[state=unchecked]:translate-x-0 rtl:data-[state=checked]:-translate-x-4.5',
+          'ui-switch-thumb absolute top-1/2 block size-4 -translate-y-1/2 rounded-[var(--ui-switch-thumb-radius,var(--ui-radius))] bg-[var(--ui-switch-thumb,white)] shadow-sm data-[state=unchecked]:bg-[var(--ui-switch-thumb-unchecked,var(--ui-foreground))]',
           undefined,
           unstyled,
         )}
@@ -244,7 +251,7 @@ export const RadioGroupItem = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       {...styles(
         'radio-group.item',
-        'size-4.5 shrink-0 rounded-full border border-input-border bg-surface text-accent data-[state=checked]:border-accent disabled:cursor-not-allowed disabled:opacity-45',
+        'ui-interactive size-4.5 shrink-0 rounded-full border-[length:var(--ui-border-width,1px)] border-[var(--ui-radio-border)] bg-[var(--ui-radio-background)] text-[var(--ui-radio-checked,var(--ui-accent))] data-[state=checked]:border-[var(--ui-radio-checked,var(--ui-accent))] disabled:cursor-not-allowed disabled:opacity-45',
         className,
         unstyled,
       )}
@@ -253,7 +260,7 @@ export const RadioGroupItem = /* @__PURE__ */ React.forwardRef<
       <RadioPrimitive.Indicator
         {...styles(
           'radio-group.indicator',
-          'flex items-center justify-center',
+          'ui-state-indicator flex items-center justify-center',
           undefined,
           unstyled,
         )}
@@ -289,7 +296,7 @@ export const Slider = /* @__PURE__ */ React.forwardRef<
       <SliderPrimitive.Track
         {...styles(
           'slider.track',
-          'relative h-1 w-full grow overflow-hidden rounded-full bg-border data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1',
+          'relative h-1 w-full grow overflow-hidden rounded-full bg-[var(--ui-slider-track,var(--ui-border))] data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1',
           undefined,
           unstyled,
         )}
@@ -297,7 +304,7 @@ export const Slider = /* @__PURE__ */ React.forwardRef<
         <SliderPrimitive.Range
           {...styles(
             'slider.range',
-            'absolute h-full bg-accent data-[orientation=vertical]:w-full',
+            'absolute h-full bg-[var(--ui-slider-range,var(--ui-accent))] data-[orientation=vertical]:w-full',
             undefined,
             unstyled,
           )}
@@ -313,7 +320,7 @@ export const Slider = /* @__PURE__ */ React.forwardRef<
           }
           {...styles(
             'slider.thumb',
-            'block size-4 rounded-full border-2 border-accent bg-surface shadow-sm transition-shadow hover:shadow-[0_0_0_4px_var(--ui-accent-soft)] focus-visible:outline-2 focus-visible:outline-accent disabled:pointer-events-none',
+            'ui-interactive block size-4 rounded-full border-2 border-accent bg-[var(--ui-slider-thumb,var(--ui-surface))] shadow-sm hover:shadow-[0_0_0_4px_var(--ui-accent-soft)] focus-visible:outline-2 focus-visible:outline-accent disabled:pointer-events-none',
             undefined,
             unstyled,
           )}
@@ -357,7 +364,7 @@ export const SelectTrigger = /* @__PURE__ */ React.forwardRef<
         'select.trigger',
         cn(
           inputClass,
-          'items-center justify-between gap-2 text-start data-[placeholder]:text-muted-foreground [&>span]:truncate',
+          'items-center justify-between gap-2 border-[var(--ui-select-border)] bg-[var(--ui-select-background)] text-[var(--ui-select-foreground)] rounded-[var(--ui-select-radius)] min-h-[var(--ui-select-height)] focus-visible:outline-[var(--ui-select-focus)] text-start data-[placeholder]:text-[var(--ui-select-placeholder)] [&>span]:truncate',
         ),
         className,
         unstyled,
@@ -388,7 +395,7 @@ export const SelectContent = /* @__PURE__ */ React.forwardRef<
         sideOffset={sideOffset}
         {...styles(
           'select.content',
-          'ui-popup z-50 max-h-[var(--radix-select-content-available-height)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-ui border bg-surface text-foreground shadow-popover',
+          'ui-popup z-[var(--ui-layer-dropdown)] max-h-[var(--radix-select-content-available-height)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))]',
           className,
           unstyled,
         )}
@@ -422,7 +429,7 @@ export const SelectItem = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       {...styles(
         'select.item',
-        'relative flex min-h-9 cursor-default select-none items-center rounded-[min(var(--ui-radius),4px)] py-2 pe-8 ps-3 text-sm outline-none data-[highlighted]:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-45',
+        'ui-interactive relative flex min-h-9 cursor-default select-none items-center rounded-[min(var(--ui-radius),4px)] py-2 pe-8 ps-3 text-sm outline-none data-[highlighted]:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-45',
         className,
         unstyled,
       )}
@@ -472,7 +479,7 @@ export const SelectSeparator = /* @__PURE__ */ React.forwardRef<
 });
 SelectSeparator.displayName = 'SelectSeparator';
 export const toggleVariants = /* @__PURE__ */ cva(
-  'inline-flex items-center justify-center gap-2 rounded-ui border text-sm font-medium transition-colors hover:bg-muted data-[state=on]:bg-accent-soft data-[state=on]:text-accent disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-4',
+  'ui-interactive inline-flex items-center justify-center gap-2 rounded-ui border text-sm font-medium hover:bg-muted data-[state=on]:bg-accent-soft data-[state=on]:text-accent disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-4',
   {
     variants: {
       variant: { default: 'border-transparent', outline: 'border-border' },

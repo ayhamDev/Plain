@@ -1,4 +1,11 @@
-import { useStyles, useDirection, usePortalContainer, type PlainStyleProps } from './styling';
+import {
+  DirectionProvider,
+  useStyles,
+  useDirection,
+  usePortalContainer,
+  type PlainStyleProps,
+  type TextDirection,
+} from './styling';
 import * as React from 'react';
 import {
   Dialog as DialogPrimitive,
@@ -9,9 +16,11 @@ import {
 } from 'radix-ui';
 import { Check, ChevronRight, Circle, X } from 'lucide-react';
 import { Toaster as Sonner, toast, type ToasterProps as SonnerToasterProps } from 'sonner';
+import { Drawer as Vaul } from 'vaul';
 import { cn } from './utils';
 import { buttonVariants } from './primitives';
 import { useModalInert } from './modal-accessibility';
+import { useMotionSettings } from './motion-policy';
 export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
@@ -29,7 +38,7 @@ export const DialogOverlay = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       {...styles(
         'dialog.overlay',
-        'ui-overlay fixed inset-0 z-50 bg-black/40',
+        'ui-overlay fixed inset-0 z-[var(--ui-layer-overlay)] bg-[var(--ui-overlay,#00000066)]',
         className,
         unstyled,
       )}
@@ -48,12 +57,15 @@ export const DialogContent = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   return (
     <DialogPortal>
-      <DialogOverlay />
+      <DialogOverlay unstyled={unstyled} />
       <DialogPrimitive.Content
         ref={ref}
         {...styles(
           'dialog.content',
-          'ui-dialog fixed top-1/2 left-1/2 z-50 max-h-[85dvh] w-[calc(100%-32px)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-ui border bg-surface p-6 text-foreground shadow-popover',
+          cn(
+            'ui-dialog fixed top-1/2 left-1/2 z-[var(--ui-layer-dialog)] max-h-[calc(100dvh-32px)] w-[calc(100%-32px)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto overscroll-contain rounded-[var(--ui-dialog-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-dialog-border,var(--ui-border))] bg-[var(--ui-dialog-background,var(--ui-surface))] p-5 text-[var(--ui-dialog-foreground,var(--ui-foreground))] shadow-[var(--ui-dialog-shadow,var(--ui-shadow))] sm:p-6',
+            showClose && '[&_[data-slot=header]]:pe-8',
+          ),
           className,
           unstyled,
         )}
@@ -64,7 +76,7 @@ export const DialogContent = /* @__PURE__ */ React.forwardRef<
           <DialogClose
             {...styles(
               'dialog.close',
-              'absolute top-4 end-4 flex size-7 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
+              'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
               undefined,
               unstyled,
             )}
@@ -86,7 +98,7 @@ export function DialogHeader({
   const styles = useStyles();
   return (
     <div
-      {...styles('dialog.header', 'mb-6 flex flex-col gap-2 pe-7', className, unstyled)}
+      {...styles('dialog.header', 'mb-5 flex flex-col gap-1.5 text-start', className, unstyled)}
       {...props}
     />
   );
@@ -101,7 +113,7 @@ export function DialogFooter({
     <div
       {...styles(
         'dialog.footer',
-        'mt-6 flex flex-wrap items-center justify-end gap-2',
+        'mt-5 flex flex-wrap items-center justify-end gap-2',
         className,
         unstyled,
       )}
@@ -142,85 +154,213 @@ export const DialogDescription = /* @__PURE__ */ React.forwardRef<
   );
 });
 DialogDescription.displayName = 'DialogDescription';
-export const Sheet = Dialog;
-export const SheetTrigger = DialogTrigger;
-export const SheetClose = DialogClose;
+export type SheetSide = 'start' | 'end' | 'left' | 'right' | 'top' | 'bottom';
+export type SheetProps = React.ComponentProps<typeof Vaul.Root> & {
+  /** Takes precedence over native direction and the legacy SheetContent side. */
+  side?: SheetSide;
+  dir?: TextDirection;
+};
+export type DrawerProps = SheetProps;
+type PanelConfiguration = { side?: SheetSide; dir?: TextDirection };
+const PanelContext = /* @__PURE__ */ React.createContext<{
+  side: 'left' | 'right' | 'top' | 'bottom';
+  hasSnapPoints: boolean;
+  configure: React.Dispatch<React.SetStateAction<PanelConfiguration>>;
+} | null>(null);
+const usePanelLayoutEffect =
+  typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect;
+
+function PanelRoot({
+  side,
+  dir,
+  direction,
+  children,
+  autoFocus = true,
+  defaultSide,
+  ...props
+}: SheetProps & { defaultSide: SheetSide }) {
+  const [configuration, configure] = React.useState<PanelConfiguration>({});
+  const textDirection = useDirection(dir ?? configuration.dir);
+  const logicalSide = side ?? direction ?? configuration.side ?? defaultSide;
+  const resolvedSide =
+    logicalSide === 'start'
+      ? textDirection === 'rtl'
+        ? 'right'
+        : 'left'
+      : logicalSide === 'end'
+        ? textDirection === 'rtl'
+          ? 'left'
+          : 'right'
+        : logicalSide;
+  const context = React.useMemo(
+    () => ({ side: resolvedSide, hasSnapPoints: Boolean(props.snapPoints?.length), configure }),
+    [resolvedSide, props.snapPoints?.length],
+  );
+  return (
+    <DirectionProvider dir={textDirection}>
+      <PanelContext.Provider value={context}>
+        <Vaul.Root direction={resolvedSide} autoFocus={autoFocus} {...props}>
+          {children}
+        </Vaul.Root>
+      </PanelContext.Provider>
+    </DirectionProvider>
+  );
+}
+
+export function Sheet(props: SheetProps) {
+  return <PanelRoot defaultSide="end" {...props} />;
+}
+export function Drawer(props: DrawerProps) {
+  return <PanelRoot defaultSide="bottom" {...props} />;
+}
+export const SheetTrigger = Vaul.Trigger;
+export const SheetClose = Vaul.Close;
 export const SheetTitle = DialogTitle;
 export const SheetDescription = DialogDescription;
 export const SheetHeader = DialogHeader;
 export const SheetFooter = DialogFooter;
+export function SheetPortal(props: React.ComponentProps<typeof Vaul.Portal>) {
+  const container = usePortalContainer();
+  return <Vaul.Portal container={container} {...props} />;
+}
+export const SheetOverlay = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof Vaul.Overlay>,
+  React.ComponentPropsWithoutRef<typeof Vaul.Overlay> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  const motion = useMotionSettings();
+  return (
+    <Vaul.Overlay
+      ref={ref}
+      data-ui-motion={motion.reduced ? 'reduced' : undefined}
+      {...styles(
+        'sheet.overlay',
+        'fixed inset-0 z-[var(--ui-layer-overlay)] bg-[var(--ui-overlay,#00000066)]',
+        className,
+        unstyled,
+      )}
+      {...props}
+    />
+  );
+});
+SheetOverlay.displayName = 'SheetOverlay';
+export const SheetHandle = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof Vaul.Handle>,
+  React.ComponentPropsWithoutRef<typeof Vaul.Handle> & PlainStyleProps
+>(({ className, unstyled, preventCycle, onKeyDown, ...props }, ref) => {
+  const styles = useStyles();
+  const context = React.useContext(PanelContext);
+  const keyboardInteractive = context?.hasSnapPoints && !preventCycle;
+  return (
+    <Vaul.Handle
+      ref={ref}
+      preventCycle={preventCycle}
+      role={keyboardInteractive ? 'button' : undefined}
+      tabIndex={keyboardInteractive ? 0 : undefined}
+      aria-hidden={keyboardInteractive ? false : true}
+      aria-label={keyboardInteractive ? 'Resize panel' : undefined}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        if (
+          !event.defaultPrevented &&
+          keyboardInteractive &&
+          (event.key === 'Enter' || event.key === ' ')
+        ) {
+          event.preventDefault();
+          event.currentTarget.click();
+        }
+      }}
+      {...styles('sheet.handle', 'ui-panel-handle mb-5 shrink-0', className, unstyled)}
+      {...props}
+    />
+  );
+});
+SheetHandle.displayName = 'SheetHandle';
 export const SheetContent = /* @__PURE__ */ React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
-  (React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
-    side?: 'start' | 'end' | 'left' | 'right' | 'bottom';
+  React.ElementRef<typeof Vaul.Content>,
+  (React.ComponentPropsWithoutRef<typeof Vaul.Content> & {
+    side?: SheetSide;
     showClose?: boolean;
   }) &
     PlainStyleProps
->(({ className, children, side = 'end', showClose = true, unstyled, ...props }, ref) => {
+>(({ className, children, side, showClose = true, unstyled, dir, ...props }, ref) => {
   const styles = useStyles();
-  const direction = useDirection(props.dir as 'ltr' | 'rtl' | undefined);
-  side =
-    side === 'start'
-      ? direction === 'rtl'
-        ? 'right'
-        : 'left'
-      : side === 'end'
-        ? direction === 'rtl'
-          ? 'left'
-          : 'right'
-        : side;
+  const motion = useMotionSettings();
+  const context = React.useContext(PanelContext);
+  const localDirection = dir === 'ltr' || dir === 'rtl' ? dir : undefined;
+  const textDirection = useDirection(localDirection);
+  const configure = context?.configure;
+  // The wrapper stays mounted while its portal is closed, so Vaul knows the legacy content side before opening.
+  usePanelLayoutEffect(() => {
+    configure?.({ side, dir: localDirection });
+    return () => configure?.({});
+  }, [configure, side, localDirection]);
+  const resolvedSide = context?.side ?? 'right';
+  const vertical = resolvedSide === 'top' || resolvedSide === 'bottom';
   return (
-    <DialogPortal>
-      <DialogOverlay />
-      <DialogPrimitive.Content
+    <SheetPortal>
+      <SheetOverlay unstyled={unstyled} />
+      <Vaul.Content
         ref={ref}
         {...styles(
           'sheet.content',
           cn(
-            'fixed z-50 overflow-y-auto border bg-surface p-6 text-foreground shadow-popover',
-            side === 'bottom'
-              ? 'ui-drawer inset-x-0 bottom-0 max-h-[90dvh] rounded-t-ui'
-              : 'ui-sheet inset-y-0 w-[min(400px,calc(100%-32px))]',
-            side === 'left'
-              ? 'left-0 border-r data-[side=left]:[--sheet-direction:-100%]'
-              : side === 'right'
-                ? 'right-0 border-l'
-                : 'border-t',
+            'fixed z-[var(--ui-layer-dialog)] overflow-y-auto overscroll-contain border-[length:var(--ui-border-width,1px)] border-[var(--ui-sheet-border,var(--ui-border))] bg-[var(--ui-sheet-background,var(--ui-surface))] p-5 text-[var(--ui-sheet-foreground,var(--ui-foreground))] shadow-[var(--ui-sheet-shadow,var(--ui-shadow))] outline-none sm:p-6',
+            vertical
+              ? cn(
+                  'ui-drawer inset-x-0',
+                  context?.hasSnapPoints ? 'h-dvh max-h-none' : 'max-h-[90dvh]',
+                  resolvedSide === 'bottom'
+                    ? 'bottom-0 rounded-t-[var(--ui-sheet-radius,var(--ui-radius))] pb-[max(1.5rem,env(safe-area-inset-bottom))]'
+                    : 'top-0 rounded-b-[var(--ui-sheet-radius,var(--ui-radius))] pt-[max(1.5rem,env(safe-area-inset-top))]',
+                )
+              : cn(
+                  'ui-sheet inset-y-0 h-dvh',
+                  context?.hasSnapPoints ? 'w-screen' : 'w-[min(400px,calc(100%-24px))]',
+                  resolvedSide === 'left' ? 'left-0' : 'right-0',
+                ),
+            showClose && '[&_[data-slot=header]]:pe-8',
           ),
           className,
           unstyled,
         )}
-        data-side={side}
+        dir={textDirection}
+        data-side={resolvedSide}
+        data-ui-motion={motion.reduced ? 'reduced' : undefined}
         {...props}
       >
         {children}
         {showClose && (
-          <DialogClose
+          <SheetClose
             {...styles(
               'sheet.close',
-              'absolute top-4 end-4 flex size-7 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted',
+              'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
               undefined,
               unstyled,
             )}
             aria-label="Close panel"
           >
             <X {...styles('sheet.close-icon', 'size-4', undefined, unstyled)} aria-hidden="true" />
-          </DialogClose>
+          </SheetClose>
         )}
-      </DialogPrimitive.Content>
-    </DialogPortal>
+      </Vaul.Content>
+    </SheetPortal>
   );
 });
 SheetContent.displayName = 'SheetContent';
-export const Drawer = Sheet;
 export const DrawerTrigger = SheetTrigger;
 export const DrawerClose = SheetClose;
 export const DrawerTitle = SheetTitle;
 export const DrawerDescription = SheetDescription;
+export const DrawerHeader = SheetHeader;
+export const DrawerFooter = SheetFooter;
+export const DrawerPortal = SheetPortal;
+export const DrawerOverlay = SheetOverlay;
+export const DrawerHandle = SheetHandle;
 export const DrawerContent = /* @__PURE__ */ React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ElementRef<typeof Vaul.Content>,
   Omit<React.ComponentPropsWithoutRef<typeof SheetContent>, 'side'>
->((props, ref) => <SheetContent ref={ref} side="bottom" {...props} />);
+>((props, ref) => <SheetContent ref={ref} {...props} />);
 DrawerContent.displayName = 'DrawerContent';
 export const AlertDialog = AlertDialogPrimitive.Root;
 export const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
@@ -234,7 +374,7 @@ export const AlertDialogContent = /* @__PURE__ */ React.forwardRef<
       <AlertDialogPrimitive.Overlay
         {...styles(
           'alert-dialog.overlay',
-          'ui-overlay fixed inset-0 z-50 bg-black/40',
+          'ui-overlay fixed inset-0 z-[var(--ui-layer-overlay)] bg-[var(--ui-overlay,#00000066)]',
           undefined,
           unstyled,
         )}
@@ -243,7 +383,7 @@ export const AlertDialogContent = /* @__PURE__ */ React.forwardRef<
         ref={ref}
         {...styles(
           'alert-dialog.content',
-          'ui-dialog fixed top-1/2 left-1/2 z-50 w-[calc(100%-32px)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-ui border bg-surface p-6 text-foreground shadow-popover',
+          'ui-dialog fixed top-1/2 left-1/2 z-[var(--ui-layer-dialog)] max-h-[calc(100dvh-32px)] w-[calc(100%-32px)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto overscroll-contain rounded-[var(--ui-dialog-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-dialog-border,var(--ui-border))] bg-[var(--ui-dialog-background,var(--ui-surface))] p-5 text-[var(--ui-dialog-foreground,var(--ui-foreground))] shadow-[var(--ui-dialog-shadow,var(--ui-shadow))] sm:p-6',
           className,
           unstyled,
         )}
@@ -336,7 +476,7 @@ export const PopoverContent = /* @__PURE__ */ React.forwardRef<
         sideOffset={sideOffset}
         {...styles(
           'popover.content',
-          'ui-popup z-50 max-w-[calc(100vw-32px)] rounded-ui border bg-surface p-4 text-foreground shadow-popover outline-none',
+          'ui-popup z-[var(--ui-layer-dropdown)] max-w-[calc(100vw-32px)] rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] p-4 text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))] outline-none',
           className,
           unstyled,
         )}
@@ -361,7 +501,7 @@ export const TooltipContent = /* @__PURE__ */ React.forwardRef<
         sideOffset={sideOffset}
         {...styles(
           'tooltip.content',
-          'ui-popup z-[70] max-w-64 rounded-ui bg-foreground px-3 py-2 text-xs leading-5 text-background shadow-popover',
+          'ui-popup z-[var(--ui-layer-dropdown)] max-w-64 rounded-[var(--ui-tooltip-radius,var(--ui-radius))] bg-[var(--ui-tooltip-background,var(--ui-foreground))] px-3 py-2 text-xs leading-5 text-[var(--ui-tooltip-foreground,var(--ui-background))] shadow-popover',
           className,
           unstyled,
         )}
@@ -369,7 +509,12 @@ export const TooltipContent = /* @__PURE__ */ React.forwardRef<
       >
         {children}
         <TooltipPrimitive.Arrow
-          {...styles('tooltip.arrow', 'fill-foreground', undefined, unstyled)}
+          {...styles(
+            'tooltip.arrow',
+            'fill-[var(--ui-tooltip-background,var(--ui-foreground))]',
+            undefined,
+            unstyled,
+          )}
         />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
@@ -403,9 +548,9 @@ export const DropdownMenuGroup = DropdownPrimitive.Group;
 export const DropdownMenuSub = DropdownPrimitive.Sub;
 export const DropdownMenuRadioGroup = DropdownPrimitive.RadioGroup;
 const menuContent =
-  'ui-popup z-50 min-w-44 max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto rounded-ui border bg-surface p-1 text-foreground shadow-popover';
+  'ui-popup z-[var(--ui-layer-dropdown)] min-w-44 max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] p-1 text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))]';
 const menuItem =
-  'relative flex min-h-9 cursor-default select-none items-center gap-2 rounded-[min(var(--ui-radius),4px)] px-3 py-2 text-sm outline-none data-[highlighted]:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-45 [&_svg]:size-4 [&_svg]:text-muted-foreground';
+  'ui-interactive relative flex min-h-9 cursor-default select-none items-center gap-2 rounded-[min(var(--ui-radius),4px)] px-3 py-2 text-sm outline-none data-[highlighted]:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-45 [&_svg]:size-4 [&_svg]:text-muted-foreground';
 export const DropdownMenuContent = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof DropdownPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownPrimitive.Content> & PlainStyleProps
@@ -552,14 +697,19 @@ DropdownMenuSubTrigger.displayName = 'DropdownMenuSubTrigger';
 export const DropdownMenuSubContent = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof DropdownPrimitive.SubContent>,
   React.ComponentPropsWithoutRef<typeof DropdownPrimitive.SubContent> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
+>(({ className, unstyled, avoidCollisions = true, ...props }, ref) => {
   const styles = useStyles();
   return (
-    <DropdownPrimitive.SubContent
-      ref={ref}
-      {...styles('dropdown-menu.content', menuContent, className, unstyled)}
-      {...props}
-    />
+    <DropdownPrimitive.Portal container={usePortalContainer()}>
+      <DropdownPrimitive.SubContent
+        ref={ref}
+        collisionPadding={8}
+        avoidCollisions={avoidCollisions}
+        data-collision-aware={avoidCollisions || undefined}
+        {...styles('dropdown-menu.content', cn(menuContent, 'ui-submenu'), className, unstyled)}
+        {...props}
+      />
+    </DropdownPrimitive.Portal>
   );
 });
 DropdownMenuSubContent.displayName = 'DropdownMenuSubContent';
@@ -582,29 +732,51 @@ export function DropdownMenuShortcut({
   );
 }
 export type ToasterProps = SonnerToasterProps & PlainStyleProps;
-export function Toaster({ toastOptions, unstyled, ...props }: ToasterProps) {
+export function Toaster({
+  toastOptions,
+  unstyled,
+  dir: localDirection,
+  invert = true,
+  style,
+  ...props
+}: ToasterProps) {
   const styles = useStyles();
-  const dir = useDirection(props.dir === 'auto' ? undefined : props.dir);
+  const dir = useDirection(localDirection === 'auto' ? undefined : localDirection);
   const isUnstyled = unstyled ?? styles.unstyled;
+  const toastUnstyled = toastOptions?.unstyled ?? isUnstyled;
+  const background = invert
+    ? 'var(--ui-toast-background,var(--ui-foreground))'
+    : 'var(--ui-surface)';
+  const foreground = invert
+    ? 'var(--ui-toast-foreground,var(--ui-background))'
+    : 'var(--ui-foreground)';
   return (
     <Sonner
       dir={dir}
+      invert={invert}
       position={dir === 'rtl' ? 'bottom-left' : 'bottom-right'}
-      closeButton
+      closeButton={false}
       gap={8}
+      style={{ zIndex: 'var(--ui-layer-toast)', ...style }}
       toastOptions={{
         unstyled: isUnstyled,
         ...toastOptions,
-        style: isUnstyled
+        className: styles('toast.root', 'ui-toast', toastOptions?.className, toastUnstyled)
+          .className,
+        style: toastUnstyled
           ? toastOptions?.style
-          : {
-              background: 'var(--ui-surface)',
-              color: 'var(--ui-foreground)',
-              border: '1px solid var(--ui-border)',
-              borderRadius: 'var(--ui-radius)',
+          : ({
+              '--normal-bg': background,
+              '--normal-text': foreground,
+              '--normal-border': 'var(--ui-toast-border,var(--ui-border))',
+              background,
+              color: foreground,
+              border: 'var(--ui-border-width,1px) solid var(--ui-toast-border,var(--ui-border))',
+              borderRadius: 'var(--ui-toast-radius,var(--ui-radius))',
+              boxShadow: 'var(--ui-toast-shadow,var(--ui-shadow))',
               fontFamily: 'var(--ui-font)',
               ...toastOptions?.style,
-            },
+            } as React.CSSProperties),
       }}
       {...props}
     />

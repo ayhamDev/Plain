@@ -1,0 +1,153 @@
+.pui-logo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.24em;
+  line-height: 1;
+  white-space: nowrap;
+  direction: ltr;
+  color: var(--ui-foreground);
+}
+.pui-glyph {
+  position: relative;
+  font-weight: 650;
+}
+.pui-pip {
+  position: absolute;
+  width: 0.13em;
+  height: 0.13em;
+  inset-inline-end: -0.15em;
+  bottom: 0.07em;
+  border-radius: 0.025em;
+  background: #07845c;
+}
+.pui-word {
+  font-weight: 450;
+}
+.brand .pui-logo {
+  font-size: 28px;
+}
+.overview-hero h1 .pui-logo {
+  font-size: inherit;
+  color: var(--ui-foreground);
+}
+.overview-hero h1 .pui-logo span {
+  color: inherit;
+}
+.version-switcher {
+  width: 88px;
+  min-height: 28px;
+  height: 28px;
+  padding: 4px 8px;
+  font-size: 11px;
+  background: transparent;
+  border-color: transparent;
+}
+.version-switcher:hover {
+  background: var(--ui-muted);
+}
+.sidebar-version {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--ui-muted-foreground);
+  font-size: 11px;
+  margin-bottom: 16px;
+  padding-inline: 10px 0;
+}
+.sidebar-version > .version-switcher {
+  width: 88px;
+}
+.desktop-sidebar {
+  scrollbar-width: none;
+}
+.desktop-sidebar:hover {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-outline) transparent;
+}
+.sidebar-inner nav a.active {
+  color: var(--ui-sidebar-accent-foreground);
+}
+.sidebar-inner nav a {
+  transition:
+    color calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard),
+    background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard);
+}
+.footer-brand .pui-logo {
+  font-size: 20px;
+}
+@media (max-width: 1280px) {
+  .header-nav {
+    gap: 16px;
+  }
+  .header-search {
+    width: 196px;
+  }
+  .header-nav a[href='/examples'] {
+    display: none;
+  }
+}
+@media (max-width: 1100px) {
+  .header-search {
+    width: 172px;
+  }
+  .header-nav a[href='/changelog'] {
+    display: none;
+  }
+  .header-main {
+    padding-inline: 16px;
+  }
+}
+@media (max-width: 800px) {
+  .header-brand-area > .version-switcher {
+    display: none;
+  }
+  .header-brand-area {
+    gap: 16px;
+  }
+  .brand .pui-logo {
+    font-size: 26px;
+  }
+}
+.theme-source-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.theme-source-swatch {
+  width: 40px;
+  height: 40px;
+  padding: 2px;
+  border: 1px solid var(--ui-input-border);
+  border-radius: var(--ui-radius);
+  background: var(--ui-surface);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.theme-advanced {
+  border-block: 1px solid var(--ui-border);
+  margin-block: 24px;
+}
+.theme-advanced-trigger {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.theme-advanced-trigger svg {
+  transition: rotate calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard);
+}
+.theme-advanced-trigger[data-state='open'] svg {
+  rotate: 180deg;
+}
+.theme-override-actions {
+  display: flex;
+  gap: 8px;
+  margin-block: 16px;
+}
+.theme-section .ui-control {
+  max-width: 100%;
+}

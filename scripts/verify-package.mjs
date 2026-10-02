@@ -30,6 +30,15 @@ const [packed] = JSON.parse(
   ]),
 );
 const packageFiles = new Set(packed.files.map((file) => file.path));
+const compositions = JSON.parse(await readFile('public/compositions/manifest.json', 'utf8'));
+const compositionExamples = [...compositions.blocks, ...compositions.templates];
+assert.equal(compositions.blocks.length, 120);
+assert.equal(compositions.templates.length, 60);
+assert.equal(new Set(compositionExamples.map((item) => item.id)).size, 180);
+assert(
+  !packed.files.some((file) => /blocks|compositions|templates/.test(file.path)),
+  'Copy/paste examples must not be embedded in the npm package.',
+);
 assert(
   !packed.files.some((file) => /\.(tgz|woff2|png|svg)$/.test(file.path)),
   'The library must not contain documentation assets or previous archives.',
@@ -37,9 +46,9 @@ assert(
 for (const expected of [
   'LICENSE',
   'README.md',
-  'dist/index.js',
-  'dist/index.d.ts',
-  'dist/plainui.css',
+  'dist/ui/index.js',
+  'dist/ui/index.d.ts',
+  'dist/ui/styles.css',
   'dist/tokens.css',
 ])
   assert(packageFiles.has(expected), `Missing ${expected}`);
@@ -49,7 +58,7 @@ await writeFile(
   JSON.stringify({ name: 'plainui-package-check', private: true, type: 'module' }),
 );
 await copyFile(resolve('tests/fixtures/consumer.tsx'), join(consumer, 'consumer.tsx'));
-await writeFile(join(consumer, 'button-only.ts'), "export { Button } from '@plainui/react';\n");
+await writeFile(join(consumer, 'button-only.ts'), "export { Button } from '@plain/ui';\n");
 await writeFile(
   join(consumer, 'tsconfig.json'),
   JSON.stringify({
@@ -67,6 +76,12 @@ await writeFile(
 );
 for (const component of components)
   await writeFile(join(consumer, 'examples', `${component.slug}.tsx`), componentCode(component));
+for (const item of compositionExamples) {
+  assert(/^(blocks|templates)\/[a-z0-9-]+\.tsx$/.test(item.path));
+  const source = await readFile(resolve('public/compositions', item.path), 'utf8');
+  assert(!source.includes('@plain/ui/blocks'), 'Examples must contain their own implementation.');
+  await writeFile(join(consumer, 'examples', `${item.id}.tsx`), source);
+}
 run(process.execPath, [
   npmCli,
   'install',
@@ -104,13 +119,24 @@ const chunks = builds
 const modules = chunks.flatMap((chunk) =>
   Object.keys(chunk.modules).filter((id) => chunk.modules[id].renderedLength > 0),
 );
-for (const heavy of ['react-day-picker', '@tanstack', 'cmdk', 'sonner'])
+for (const heavy of [
+  'react-day-picker',
+  '@tanstack',
+  'cmdk',
+  'sonner',
+  'recharts',
+  '@fullcalendar',
+  '/motion/',
+  'material-color-utilities',
+  'vaul',
+  'react-resizable-panels',
+])
   assert(!modules.some((id) => id.includes(heavy)), `Button bundle retained ${heavy}`);
 const bundle = chunks.map((chunk) => chunk.code).join('\n');
 const gzipBytes = gzipSync(bundle).length;
 assert(gzipBytes < 25000, `Button bundle exceeded 25 kB gzip: ${gzipBytes}`);
 const library = await import(
-  pathToFileURL(join(consumer, 'node_modules/@plainui/react/dist/index.js')).href
+  pathToFileURL(join(consumer, 'node_modules/@plain/ui/dist/ui/index.js')).href
 );
 const require = createRequire(join(consumer, 'package.json'));
 const { createElement } = require('react');
@@ -119,11 +145,53 @@ assert(
   renderToString(createElement(library.Button, null, 'Package works')).includes('Package works'),
 );
 const metadata = JSON.parse(
-  await readFile(join(consumer, 'node_modules/@plainui/react/package.json'), 'utf8'),
+  await readFile(join(consumer, 'node_modules/@plain/ui/package.json'), 'utf8'),
 );
 for (const value of Object.values(metadata.exports)) {
   for (const file of typeof value === 'string' ? [value] : Object.values(value))
-    await readFile(join(consumer, 'node_modules/@plainui/react', file));
+    await readFile(join(consumer, 'node_modules/@plain/ui', file));
+}
+const minimumConsumer = resolve('.preview/package-consumer-react18');
+await mkdir(minimumConsumer, { recursive: true });
+await writeFile(
+  join(minimumConsumer, 'package.json'),
+  JSON.stringify({ name: 'plainui-react18-check', private: true, type: 'module' }),
+);
+run(process.execPath, [
+  npmCli,
+  'install',
+  '--prefix',
+  minimumConsumer,
+  '--ignore-scripts',
+  '--no-audit',
+  '--no-fund',
+  '--cache',
+  resolve('.npm-cache'),
+  resolve('public', packed.filename),
+  'react@18.3.1',
+  'react-dom@18.3.1',
+]);
+for (const directory of [consumer, minimumConsumer]) {
+  const peerRequire = createRequire(join(directory, 'package.json'));
+  const peerReact = peerRequire('react');
+  const peerServer = peerRequire('react-dom/server');
+  const peerLibrary = await import(
+    pathToFileURL(join(directory, 'node_modules/@plain/ui/dist/ui/index.js')).href
+  );
+  const markup = peerServer.renderToString(
+    peerReact.createElement(
+      peerLibrary.LoadingOverlay,
+      null,
+      peerReact.createElement(peerLibrary.Button, null, 'Loading action'),
+    ),
+  );
+  assert(markup.includes(' inert=""'), `React ${peerReact.version} dropped the inert attribute.`);
+  assert(markup.includes('aria-hidden="true"'));
+  assert(
+    peerServer
+      .renderToString(peerReact.createElement(peerLibrary.H1, null, 'Native heading'))
+      .startsWith('<h1'),
+  );
 }
 console.log(
   JSON.stringify(
@@ -132,9 +200,11 @@ console.log(
       packageBytes: packed.size,
       files: packed.files.length,
       compiledExamples: components.length,
+      compiledCompositions: compositionExamples.length,
       buttonGzipBytes: gzipBytes,
       heavyFeaturesExcluded: true,
       ssr: true,
+      ssrReactVersions: ['18.3.1', '19.3.0'],
     },
     null,
     2,

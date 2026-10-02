@@ -20,7 +20,12 @@ export default defineConfig({
           fileName: 'tokens.css',
           source: readFileSync(new URL('./src/ui/tokens.css', import.meta.url), 'utf8'),
         });
-        for (const fileName of ['styles.css.d.ts', 'tokens.css.d.ts']) {
+        for (const fileName of [
+          'styles.css.d.ts',
+          'tokens.css.d.ts',
+          'charts.css.d.ts',
+          'full-calendar.css.d.ts',
+        ]) {
           this.emitFile({ type: 'asset', fileName, source: 'export {};\n' });
         }
       },
@@ -29,10 +34,16 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    cssCodeSplit: true,
     lib: {
       entry: {
-        index: resolve(import.meta.dirname, 'src/ui/index.ts'),
-        stylesheet: resolve(import.meta.dirname, 'src/ui/stylesheet.ts'),
+        'ui/index': resolve(import.meta.dirname, 'src/ui/index.ts'),
+        'ui/stylesheet': resolve(import.meta.dirname, 'src/ui/stylesheet.ts'),
+        'ui/motion': resolve(import.meta.dirname, 'src/ui/motion.tsx'),
+        'ui/charts': resolve(import.meta.dirname, 'src/ui/charts.tsx'),
+        'ui/full-calendar': resolve(import.meta.dirname, 'src/ui/full-calendar.tsx'),
+        'charts-styles': resolve(import.meta.dirname, 'src/ui/charts.css'),
+        'full-calendar-styles': resolve(import.meta.dirname, 'src/ui/full-calendar.css'),
       },
       formats: ['es'],
       cssFileName: 'plainui',
@@ -41,7 +52,7 @@ export default defineConfig({
       external: (id) => external.some((name) => id === name || id.startsWith(`${name}/`)),
       output: {
         preserveModules: true,
-        preserveModulesRoot: 'src/ui',
+        preserveModulesRoot: 'src',
         entryFileNames: '[name].js',
         banner: "'use client';",
       },

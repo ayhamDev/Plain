@@ -1,0 +1,6 @@
+interface:
+  display_name: 'P.UI Design'
+  short_description: 'Compose P.UI workflows, themes, and accessible UI'
+  default_prompt: 'Use $p-ui-design to build or review this P.UI interface for its real workflow.'
+policy:
+  allow_implicit_invocation: true

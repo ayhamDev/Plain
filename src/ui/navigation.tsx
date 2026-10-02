@@ -1,4 +1,4 @@
-import { StyleProvider, useStyles, type PlainStyleProps } from './styling';
+import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './styling';
 import * as React from 'react';
 import {
   Accordion as AccordionPrimitive,
@@ -36,7 +36,7 @@ export const AccordionTrigger = /* @__PURE__ */ React.forwardRef<
         ref={ref}
         {...styles(
           'accordion.trigger',
-          'group flex min-h-12 flex-1 items-center justify-between gap-4 py-4 text-start text-sm font-medium hover:text-accent disabled:opacity-45',
+          'ui-interactive group flex min-h-12 flex-1 items-center justify-between gap-4 py-4 text-start text-sm font-medium hover:text-accent disabled:opacity-45',
           className,
           unstyled,
         )}
@@ -46,7 +46,7 @@ export const AccordionTrigger = /* @__PURE__ */ React.forwardRef<
         <ChevronDown
           {...styles(
             'accordion.icon',
-            'size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180',
+            'ui-motion-transform size-4 shrink-0 text-muted-foreground group-data-[state=open]:rotate-180',
             undefined,
             unstyled,
           )}
@@ -100,7 +100,7 @@ export const TabsList = /* @__PURE__ */ React.forwardRef<
         cn(
           'group flex w-fit max-w-full items-center gap-1',
           variant === 'segmented'
-            ? 'rounded-ui border border-border bg-muted p-1'
+            ? 'rounded-[var(--ui-tabs-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-border bg-[var(--ui-tabs-background,var(--ui-muted))] p-1'
             : 'gap-6 border-b border-border',
         ),
         className,
@@ -121,7 +121,7 @@ export const TabsTrigger = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       {...styles(
         'tabs.trigger',
-        'inline-flex min-h-8 items-center justify-center gap-2 rounded-[min(var(--ui-radius),4px)] px-3 py-1 text-sm font-medium whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground data-[state=active]:bg-surface data-[state=active]:text-foreground disabled:pointer-events-none disabled:opacity-45 group-data-[variant=underline]:rounded-none group-data-[variant=underline]:border-b-2 group-data-[variant=underline]:border-transparent group-data-[variant=underline]:px-0 group-data-[variant=underline]:py-3 group-data-[variant=underline]:data-[state=active]:border-foreground group-data-[variant=underline]:data-[state=active]:bg-transparent [&_svg]:size-4',
+        'ui-interactive inline-flex min-h-8 items-center justify-center gap-2 rounded-[min(var(--ui-tabs-radius,var(--ui-radius)),4px)] px-3 py-1 text-sm font-medium whitespace-nowrap text-[var(--ui-tabs-foreground,var(--ui-muted-foreground))] hover:text-foreground data-[state=active]:bg-[var(--ui-tabs-active,var(--ui-surface))] data-[state=active]:text-[var(--ui-tabs-active-foreground,var(--ui-foreground))] disabled:pointer-events-none disabled:opacity-45 group-data-[variant=underline]:rounded-none group-data-[variant=underline]:border-b-2 group-data-[variant=underline]:border-transparent group-data-[variant=underline]:px-0 group-data-[variant=underline]:py-3 group-data-[variant=underline]:data-[state=active]:border-foreground group-data-[variant=underline]:data-[state=active]:bg-transparent [&_svg]:size-4',
         className,
         unstyled,
       )}
@@ -138,41 +138,131 @@ export const TabsContent = /* @__PURE__ */ React.forwardRef<
   return (
     <TabsPrimitive.Content
       ref={ref}
-      {...styles('tabs.content', 'mt-4 outline-offset-4', className, unstyled)}
+      {...styles('tabs.content', 'ui-tab-panel mt-4 outline-offset-4', className, unstyled)}
       {...props}
     />
   );
 });
 TabsContent.displayName = 'TabsContent';
-export const Collapsible = CollapsiblePrimitive.Root;
-export const CollapsibleTrigger = CollapsiblePrimitive.Trigger;
-export const CollapsibleContent = CollapsiblePrimitive.Content;
-export const ScrollArea = /* @__PURE__ */ React.forwardRef<
-  React.ElementRef<typeof ScrollAreaPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & PlainStyleProps
+export const Collapsible = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof CollapsiblePrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Root> & PlainStyleProps
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
   return (
-    <ScrollAreaPrimitive.Root
-      ref={ref}
-      {...styles('scroll-area.root', 'relative overflow-hidden', className, unstyled)}
-      {...props}
-    >
-      <ScrollAreaPrimitive.Viewport
-        {...styles(
-          'scroll-area.viewport',
-          'size-full rounded-[inherit] outline-offset-[-2px]',
-          undefined,
-          unstyled,
-        )}
+    <StyleProvider unstyled={unstyled}>
+      <CollapsiblePrimitive.Root
+        ref={ref}
+        {...styles('collapsible.root', '', className, unstyled)}
+        {...props}
       >
         {children}
-      </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
-      <ScrollAreaPrimitive.Corner />
-    </ScrollAreaPrimitive.Root>
+      </CollapsiblePrimitive.Root>
+    </StyleProvider>
   );
 });
+Collapsible.displayName = 'Collapsible';
+export const CollapsibleTrigger = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof CollapsiblePrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Trigger> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <CollapsiblePrimitive.Trigger
+      ref={ref}
+      {...styles('collapsible.trigger', 'ui-interactive', className, unstyled)}
+      {...props}
+    />
+  );
+});
+CollapsibleTrigger.displayName = 'CollapsibleTrigger';
+export const CollapsibleContent = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof CollapsiblePrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Content> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <CollapsiblePrimitive.Content
+      ref={ref}
+      {...styles('collapsible.content', 'ui-collapsible overflow-hidden', className, unstyled)}
+      {...props}
+    />
+  );
+});
+CollapsibleContent.displayName = 'CollapsibleContent';
+export interface ScrollAreaProps
+  extends React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>, PlainStyleProps {
+  orientation?: 'vertical' | 'horizontal' | 'both';
+  viewportProps?: React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Viewport> &
+    PlainStyleProps;
+  viewportRef?: React.Ref<React.ElementRef<typeof ScrollAreaPrimitive.Viewport>>;
+}
+export const ScrollArea = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof ScrollAreaPrimitive.Root>,
+  ScrollAreaProps
+>(
+  (
+    {
+      className,
+      children,
+      unstyled,
+      orientation = 'vertical',
+      viewportProps = {},
+      viewportRef,
+      onScroll,
+      dir,
+      ...props
+    },
+    ref,
+  ) => {
+    const styles = useStyles();
+    const direction = useDirection(dir);
+    const {
+      className: viewportClassName,
+      unstyled: viewportUnstyled,
+      onScroll: onViewportScroll,
+      ...nativeViewportProps
+    } = viewportProps;
+    return (
+      <ScrollAreaPrimitive.Root
+        ref={ref}
+        dir={direction}
+        {...styles(
+          'scroll-area.root',
+          'relative min-h-0 min-w-0 overflow-hidden',
+          className,
+          unstyled,
+        )}
+        {...props}
+      >
+        <ScrollAreaPrimitive.Viewport
+          ref={viewportRef}
+          tabIndex={0}
+          role="region"
+          aria-label={props['aria-label']}
+          aria-labelledby={props['aria-labelledby']}
+          data-orientation={orientation}
+          {...styles(
+            'scroll-area.viewport',
+            'ui-scroll-viewport size-full rounded-[inherit] overscroll-contain outline-offset-[-2px]',
+            viewportClassName,
+            viewportUnstyled ?? unstyled,
+          )}
+          {...nativeViewportProps}
+          onScroll={(event) => {
+            onViewportScroll?.(event);
+            onScroll?.(event);
+          }}
+        >
+          {children}
+        </ScrollAreaPrimitive.Viewport>
+        {orientation !== 'horizontal' && <ScrollBar unstyled={unstyled} />}
+        {orientation !== 'vertical' && <ScrollBar orientation="horizontal" unstyled={unstyled} />}
+        <ScrollAreaPrimitive.Corner />
+      </ScrollAreaPrimitive.Root>
+    );
+  },
+);
 ScrollArea.displayName = 'ScrollArea';
 export const ScrollBar = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
@@ -186,10 +276,10 @@ export const ScrollBar = /* @__PURE__ */ React.forwardRef<
       {...styles(
         'scroll-bar.root',
         cn(
-          'flex touch-none select-none p-0.5 transition-colors',
+          'ui-scrollbar flex touch-none select-none bg-[var(--ui-scrollbar-track,transparent)] p-0.5',
           orientation === 'vertical'
-            ? 'h-full w-2 border-l border-transparent'
-            : 'h-2 flex-col border-t border-transparent',
+            ? 'h-full w-[var(--ui-scrollbar-width,8px)] border-s border-transparent'
+            : 'h-[var(--ui-scrollbar-width,8px)] flex-col border-t border-transparent',
         ),
         className,
         unstyled,
@@ -199,7 +289,7 @@ export const ScrollBar = /* @__PURE__ */ React.forwardRef<
       <ScrollAreaPrimitive.ScrollAreaThumb
         {...styles(
           'scroll-bar.thumb',
-          'relative flex-1 rounded-full bg-input-border/60',
+          'relative flex-1 rounded-full bg-[var(--ui-scrollbar-thumb,var(--ui-input-border))]',
           undefined,
           unstyled,
         )}
@@ -380,7 +470,7 @@ export const NavigationMenu = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       {...styles(
         'navigation-menu.root',
-        'relative flex max-w-max flex-1 items-center',
+        'relative flex max-w-max flex-1 items-center text-[var(--ui-navigation-foreground,var(--ui-foreground))]',
         className,
         unstyled,
       )}
@@ -398,7 +488,7 @@ export const NavigationMenu = /* @__PURE__ */ React.forwardRef<
         <NavigationPrimitive.Viewport
           {...styles(
             'navigation-menu.viewport',
-            'ui-popup mt-2 h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] overflow-hidden rounded-ui border bg-surface shadow-popover transition-[width,height]',
+            'ui-popup ui-navigation-viewport mt-2 h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] max-w-[calc(100vw-32px)] overflow-hidden rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))]',
             undefined,
             unstyled,
           )}
@@ -433,7 +523,7 @@ export const NavigationMenuLink = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       {...styles(
         'navigation-menu.link',
-        'block rounded-ui px-3 py-2 text-sm font-medium hover:bg-muted',
+        'ui-interactive block rounded-[var(--ui-navigation-radius,var(--ui-radius))] px-3 py-2 text-sm font-medium hover:bg-muted data-[active]:bg-[var(--ui-navigation-active,var(--ui-muted))] data-[active]:text-[var(--ui-navigation-active-foreground,var(--ui-foreground))]',
         className,
         unstyled,
       )}
@@ -452,7 +542,7 @@ export const NavigationMenuTrigger = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       {...styles(
         'navigation-menu.trigger',
-        'group flex items-center gap-2 rounded-ui px-3 py-2 text-sm font-medium hover:bg-muted data-[state=open]:bg-muted',
+        'ui-interactive group flex items-center gap-2 rounded-[var(--ui-navigation-radius,var(--ui-radius))] px-3 py-2 text-sm font-medium hover:bg-muted data-[state=open]:bg-[var(--ui-navigation-active,var(--ui-muted))] data-[state=open]:text-[var(--ui-navigation-active-foreground,var(--ui-foreground))]',
         className,
         unstyled,
       )}
@@ -462,7 +552,7 @@ export const NavigationMenuTrigger = /* @__PURE__ */ React.forwardRef<
       <ChevronDown
         {...styles(
           'navigation-menu.indicator',
-          'size-3.5 transition-transform group-data-[state=open]:rotate-180',
+          'ui-motion-transform size-3.5 group-data-[state=open]:rotate-180',
           undefined,
           unstyled,
         )}
@@ -482,7 +572,7 @@ export const NavigationMenuContent = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       {...styles(
         'navigation-menu.content',
-        'top-0 start-0 w-[min(360px,calc(100vw-32px))] p-2 md:absolute',
+        'ui-navigation-content absolute top-0 start-0 w-[min(360px,calc(100vw-32px))] max-h-[calc(100dvh-96px)] overflow-y-auto p-2',
         className,
         unstyled,
       )}

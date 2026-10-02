@@ -14,6 +14,7 @@ import {
   ThemeScope,
   useTheme,
   validateTheme,
+  defaultTheme,
   Dialog,
   DialogTrigger,
   DialogContent,
@@ -207,7 +208,7 @@ describe('styling and direction', () => {
   it('sanitizes corrupt persisted settings', () => {
     expect(
       validateTheme({ mode: 'unknown', accent: 'magenta', radius: Infinity, density: 'tiny' }),
-    ).toEqual({ mode: 'system', accent: 'neutral', radius: 6, density: 'comfortable' });
+    ).toEqual(defaultTheme);
     expect(validateTheme({ radius: 200 }).radius).toBe(24);
   });
   it('keeps explicit token overrides when the theme changes', async () => {

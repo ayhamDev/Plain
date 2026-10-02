@@ -1,0 +1,124 @@
+/* Opt-in engine styles. This entry must stay separate from the general UI stylesheet. */
+@import '@fullcalendar/react/skeleton.css';
+@import '@fullcalendar/react/themes/classic/theme.css';
+
+.ui-full-calendar {
+  --fc-classic-background: var(--ui-calendar-background, var(--ui-surface, #fff));
+  --fc-classic-foreground: var(--ui-calendar-foreground, var(--ui-foreground, #202321));
+  --fc-classic-faint-foreground: var(
+    --ui-calendar-muted-foreground,
+    var(--ui-muted-foreground, #666b68)
+  );
+  --fc-classic-muted-foreground: var(
+    --ui-calendar-muted-foreground,
+    var(--ui-muted-foreground, #666b68)
+  );
+  --fc-classic-faint: var(--ui-calendar-muted, var(--ui-muted, #f5f6f5));
+  --fc-classic-muted: var(--ui-calendar-muted, var(--ui-muted, #f5f6f5));
+  --fc-classic-strong: var(--ui-border, #e5e7e6);
+  --fc-classic-border: var(--ui-calendar-border, var(--ui-border, #e5e7e6));
+  --fc-classic-strong-border: var(--ui-input-border, #858e87);
+  --fc-classic-primary: var(--ui-calendar-event, var(--ui-accent, #267f60));
+  --fc-classic-primary-foreground: var(
+    --ui-calendar-event-foreground,
+    var(--ui-accent-foreground, #fff)
+  );
+  --fc-classic-event: var(--fc-classic-primary);
+  --fc-classic-event-contrast: var(--fc-classic-primary-foreground);
+  --fc-classic-button: var(--ui-calendar-button, var(--ui-surface, #fff));
+  --fc-classic-button-border: var(--ui-calendar-border, var(--ui-border, #e5e7e6));
+  --fc-classic-button-foreground: var(--ui-calendar-foreground, var(--ui-foreground, #202321));
+  --fc-classic-button-strong: var(--ui-calendar-muted, var(--ui-muted, #f5f6f5));
+  --fc-classic-button-strong-border: var(--ui-input-border, #858e87);
+  --fc-classic-button-outline: var(--ui-accent, #267f60);
+  --fc-classic-today: var(--ui-calendar-today, var(--ui-accent-soft, #e8f5ee));
+  --fc-classic-highlight: var(--ui-calendar-selection, var(--ui-accent-soft, #e8f5ee));
+  --fc-classic-now: var(--ui-calendar-now, var(--ui-danger, #bd2436));
+  --fc-classic-background-event: var(--ui-calendar-event, var(--ui-accent, #267f60));
+  --fc-classic-background-event-opacity: 15%;
+  --fc-classic-background-event-foreground-opacity: 50%;
+  --fc-classic-small-dot-width: 8px;
+  --fc-classic-large-dot-width: 10px;
+  min-width: 0;
+  width: 100%;
+  font-family: var(--ui-font, inherit);
+  font-size: 14px;
+  color: var(--ui-foreground, #202321);
+}
+
+.ui-full-calendar-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.ui-full-calendar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 0;
+}
+.ui-full-calendar-toolbar-section {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+.ui-full-calendar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: var(--ui-border-width, 1px) solid var(--ui-border, #e5e7e6);
+  border-radius: min(var(--ui-radius, 6px), 8px);
+  color: var(--ui-foreground, #202321);
+  background: var(--ui-surface, #fff);
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  cursor: pointer;
+}
+.ui-full-calendar-button:hover:not(:disabled),
+.ui-full-calendar-button-selected {
+  background: var(--ui-muted, #f5f6f5);
+  border-color: var(--ui-input-border, #858e87);
+}
+.ui-full-calendar-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ui-full-calendar-button:focus-visible {
+  outline: 2px solid var(--ui-accent, #267f60);
+  outline-offset: 2px;
+}
+.ui-full-calendar[data-disabled] {
+  opacity: 0.55;
+}
+
+@media (max-width: 640px) {
+  .ui-full-calendar-toolbar {
+    align-items: flex-start;
+  }
+  .ui-full-calendar-title {
+    font-size: 16px;
+  }
+  .ui-full-calendar-button {
+    padding: 6px 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-full-calendar *,
+  .ui-full-calendar *::before,
+  .ui-full-calendar *::after {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}

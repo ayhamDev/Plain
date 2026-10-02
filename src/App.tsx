@@ -15,7 +15,6 @@ import {
   TooltipProvider,
   Toaster,
   Kbd,
-  Badge,
   Sheet,
   SheetContent,
   SheetTitle,
@@ -23,6 +22,8 @@ import {
   Spinner,
   useTheme,
   type TextDirection,
+  tokenNames,
+  type ThemeTokens,
 } from './ui';
 import { Sidebar } from './docs/Sidebar';
 import { IconButton } from './docs/shared';
@@ -30,11 +31,18 @@ import { SearchDialog } from './docs/SearchDialog';
 import { ThemeEditor } from './docs/ThemeEditor';
 import { AppPreferences } from './docs/preferences';
 import Overview from './docs/pages/Overview';
+import { BrandLogo } from './docs/BrandLogo';
+import { VersionSwitcher } from './docs/VersionSwitcher';
 const ComponentPage = React.lazy(() => import('./docs/pages/ComponentPage'));
 const ComponentsPage = React.lazy(() => import('./docs/pages/ComponentsPage'));
 const GuidePage = React.lazy(() => import('./docs/pages/GuidePage'));
 const ExamplesPage = React.lazy(() => import('./docs/pages/ExamplesPage'));
 const Changelog = React.lazy(() => import('./docs/pages/Changelog'));
+const BlocksPage = React.lazy(() => import('./docs/pages/BlocksPage'));
+const TemplatesPage = React.lazy(() => import('./docs/pages/TemplatesPage'));
+const AppShellPreview = React.lazy(() =>
+  import('./docs/ExtendedExamples').then((module) => ({ default: module.AppShellPreview })),
+);
 
 function RouteEffects() {
   const location = useLocation();
@@ -51,6 +59,30 @@ function Shell() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [themeOpen, setThemeOpen] = React.useState(false);
+  const [tokens, updateTokens] = React.useState<ThemeTokens>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('plainui-token-overrides') ?? '{}');
+      if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return {};
+      return Object.fromEntries(
+        Object.entries(saved).filter(
+          ([key, value]) =>
+            tokenNames.includes(key as keyof ThemeTokens) &&
+            typeof value === 'string' &&
+            value.length < 400,
+        ),
+      );
+    } catch {
+      return {};
+    }
+  });
+  const setTokens = React.useCallback((next: ThemeTokens) => {
+    updateTokens(next);
+    try {
+      localStorage.setItem('plainui-token-overrides', JSON.stringify(next));
+    } catch {
+      /* Live overrides still work when persistence is unavailable. */
+    }
+  }, []);
   const [direction, updateDirection] = React.useState<TextDirection>(() => {
     try {
       return localStorage.getItem('plainui-direction') === 'rtl' ? 'rtl' : 'ltr';
@@ -67,11 +99,11 @@ function Shell() {
     }
   }, []);
   const preferences = React.useMemo(
-    () => ({ direction, setDirection, customize: () => setThemeOpen(true) }),
-    [direction, setDirection],
+    () => ({ direction, setDirection, tokens, setTokens, customize: () => setThemeOpen(true) }),
+    [direction, setDirection, tokens, setTokens],
   );
   return (
-    <PlainProvider dir={direction}>
+    <PlainProvider dir={direction} tokens={tokens}>
       <TooltipProvider delayDuration={350}>
         <AppPreferences.Provider value={preferences}>
           <SiteHeader
@@ -100,6 +132,10 @@ function Shell() {
                   <Route path="/docs/:slug" element={<GuidePage />} />
                   <Route path="/examples" element={<ExamplesPage />} />
                   <Route path="/changelog" element={<Changelog />} />
+                  <Route path="/blocks" element={<BlocksPage />} />
+                  <Route path="/blocks/:id" element={<BlocksPage />} />
+                  <Route path="/templates" element={<TemplatesPage />} />
+                  <Route path="/templates/:id" element={<TemplatesPage />} />
                   <Route
                     path="*"
                     element={
@@ -115,7 +151,7 @@ function Shell() {
               </React.Suspense>
               <footer className="site-footer">
                 <Link to="/" className="footer-brand">
-                  plain<span>ui</span>.
+                  <BrandLogo />
                 </Link>
                 <span>Less noise. More room for ideas.</span>
                 <div>
@@ -129,7 +165,7 @@ function Shell() {
               </footer>
             </main>
           </div>
-          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <Sheet side="start" open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetContent side="start" className="mobile-sidebar">
               <SheetTitle className="sr-only">Navigation</SheetTitle>
               <SheetDescription className="sr-only">
@@ -174,15 +210,10 @@ function SiteHeader({
               <Menu aria-hidden="true" />
             </IconButton>
           </div>
-          <Link to="/" className="brand" aria-label="PlainUI home">
-            <span className="brand-mark" aria-hidden="true">
-              p<span />
-            </span>
-            <span>
-              plain<span className="brand-light">ui</span>
-            </span>
-            <Badge variant="outline">0.1</Badge>
+          <Link to="/" className="brand" aria-label="P.UI home">
+            <BrandLogo />
           </Link>
+          <VersionSwitcher />
         </div>
         <div className="header-main">
           <nav aria-label="Main navigation" className="header-nav">
@@ -191,6 +222,8 @@ function SiteHeader({
             </NavLink>
             <NavLink to="/components">Components</NavLink>
             <NavLink to="/examples">Examples</NavLink>
+            <NavLink to="/blocks">Blocks</NavLink>
+            <NavLink to="/templates">Templates</NavLink>
             <NavLink to="/changelog">Changelog</NavLink>
           </nav>
           <div className="header-actions">
@@ -244,7 +277,17 @@ function SiteHeader({
 export default function App() {
   return (
     <BrowserRouter>
-      <Shell />
+      <Routes>
+        <Route
+          path="/preview/app-shell"
+          element={
+            <React.Suspense fallback={<Spinner />}>
+              <AppShellPreview />
+            </React.Suspense>
+          }
+        />
+        <Route path="*" element={<Shell />} />
+      </Routes>
     </BrowserRouter>
   );
 }

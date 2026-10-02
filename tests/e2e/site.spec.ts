@@ -24,7 +24,7 @@ for (const viewport of [
     const errors: string[] = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: 'PlainUI.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'PlainUI.', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Start building' })).toBeVisible();
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth))
@@ -42,6 +42,8 @@ for (const component of components) {
     await page.goto(`/components/${component.slug}`);
     await expect(page.getByRole('heading', { name: component.name, exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'API reference' })).toBeVisible();
+    if (component.slug === 'motion')
+      await expect(page.locator('.component-preview [data-ui="motion"]')).toHaveCSS('opacity', '1');
     await expectAccessible(page);
     expect(errors).toEqual([]);
   });
@@ -57,6 +59,8 @@ for (const component of components) {
     await page.goto(`/components/${component.slug}`);
     await expect(page.getByRole('heading', { name: component.name, exact: true })).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    if (component.slug === 'motion')
+      await expect(page.locator('.component-preview [data-ui="motion"]')).toHaveCSS('opacity', '1');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
@@ -142,7 +146,7 @@ test('navigation restores the home title and the skip link focuses main content'
 }) => {
   await page.goto('/docs/installation');
   await page.getByRole('link', { name: 'Overview', exact: true }).first().click();
-  await expect(page).toHaveTitle('PlainUI - A little less. A lot more.');
+  await expect(page).toHaveTitle('P.UI - A little less. A lot more.');
   await page.getByRole('link', { name: 'Skip to content' }).focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('#main-content')).toBeFocused();
@@ -240,7 +244,7 @@ test('mobile navigation and empty component search are usable', async ({ page })
   await page.getByRole('textbox', { name: 'Find a component' }).fill('not-a-component');
   await expect(page.getByRole('heading', { name: 'Nothing here just yet' })).toBeVisible();
   await page.getByRole('button', { name: 'Clear filters' }).click();
-  await expect(page.locator('.component-tile')).toHaveCount(44);
+  await expect(page.locator('.component-tile')).toHaveCount(components.length);
 });
 for (const path of [
   '/docs/installation',

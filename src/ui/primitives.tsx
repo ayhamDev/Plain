@@ -11,22 +11,24 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { LoaderCircle, Info, CircleCheck, TriangleAlert, Inbox } from 'lucide-react';
 import { cn } from './utils';
 export const buttonVariants = /* @__PURE__ */ cva(
-  'inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-ui border text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-4 [&_svg]:shrink-0',
+  'ui-interactive inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[var(--ui-button-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
-        primary: 'border-foreground bg-foreground text-background hover:opacity-85',
+        primary:
+          'border-[var(--ui-button-border,var(--ui-border))] bg-[var(--ui-button-background,var(--ui-foreground))] text-[var(--ui-button-foreground,var(--ui-background))] hover:opacity-85',
         accent: 'border-accent bg-accent text-accent-foreground hover:brightness-95',
         secondary: 'border-transparent bg-muted text-foreground hover:bg-border',
         outline: 'border-border bg-surface text-foreground hover:bg-muted',
         ghost: 'border-transparent bg-transparent text-foreground hover:bg-muted',
-        destructive: 'border-danger bg-danger text-background hover:brightness-95',
+        destructive:
+          'border-danger bg-danger text-[var(--ui-danger-foreground,var(--ui-background))] hover:brightness-95',
         link: 'border-transparent bg-transparent text-accent underline-offset-4 hover:underline',
       },
       size: {
         xs: 'h-7 px-2 text-xs',
         sm: 'h-8 px-3',
-        md: 'ui-control px-4 py-2',
+        md: 'min-h-[var(--ui-button-height,var(--ui-control-height))] px-4 py-2',
         lg: 'h-12 px-5',
         icon: 'size-9 p-0',
       },
@@ -120,15 +122,17 @@ export const Button = /* @__PURE__ */ React.forwardRef<
 );
 Button.displayName = 'Button';
 export const badgeVariants = /* @__PURE__ */ cva(
-  'inline-flex items-center gap-1.5 rounded-ui border px-2 py-0.5 text-xs font-medium [&_svg]:size-3',
+  'inline-flex items-center gap-1.5 rounded-[var(--ui-badge-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] px-2 py-0.5 text-xs font-medium [&_svg]:size-3',
   {
     variants: {
       variant: {
-        default: 'border-border bg-muted text-foreground',
-        accent: 'border-transparent bg-accent-soft text-accent',
+        default:
+          'border-border bg-[var(--ui-badge-background,var(--ui-muted))] text-[var(--ui-badge-foreground,var(--ui-foreground))]',
+        accent: 'border-transparent bg-accent-soft text-accent-soft-foreground',
         outline: 'border-border text-muted-foreground',
         solid: 'border-transparent bg-foreground text-background',
-        destructive: 'border-transparent bg-danger-soft text-danger',
+        destructive:
+          'border-transparent bg-danger-soft text-[var(--ui-danger-soft-foreground,var(--ui-danger))]',
       },
     },
     defaultVariants: { variant: 'default' },
@@ -154,7 +158,12 @@ export const Card = /* @__PURE__ */ React.forwardRef<
   return (
     <div
       ref={ref}
-      {...styles('card.root', 'rounded-ui border border-border bg-surface', className, unstyled)}
+      {...styles(
+        'card.root',
+        'rounded-[var(--ui-card-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-card-border,var(--ui-border))] bg-[var(--ui-card-background,var(--ui-surface))] text-[var(--ui-card-foreground,var(--ui-foreground))]',
+        className,
+        unstyled,
+      )}
       {...props}
     />
   );
@@ -305,12 +314,12 @@ export function Alert({
       {...styles(
         'alert.root',
         cn(
-          'flex gap-3 rounded-ui border p-4 text-sm [&>svg]:mt-0.5 [&>svg]:size-4 [&>svg]:shrink-0',
+          'flex gap-3 rounded-[var(--ui-alert-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] p-4 text-sm [&>svg]:mt-0.5 [&>svg]:size-4 [&>svg]:shrink-0',
           variant === 'destructive'
-            ? 'border-danger/25 bg-danger-soft text-danger'
+            ? 'border-danger/25 bg-danger-soft text-[var(--ui-danger-soft-foreground,var(--ui-danger))]'
             : variant === 'success'
               ? 'border-accent/20 bg-accent-soft text-accent'
-              : 'border-border bg-muted text-foreground',
+              : 'border-[var(--ui-alert-border,var(--ui-border))] bg-[var(--ui-alert-background,var(--ui-muted))] text-[var(--ui-alert-foreground,var(--ui-foreground))]',
         ),
         className,
         unstyled,
@@ -391,10 +400,7 @@ export const Progress = /* @__PURE__ */ React.forwardRef<
       <ProgressPrimitive.Indicator
         {...styles(
           'progress.indicator',
-          cn(
-            'h-full w-full bg-accent transition-transform duration-300',
-            safeValue === null && 'animate-pulse',
-          ),
+          cn('ui-motion-transform h-full w-full bg-accent', safeValue === null && 'animate-pulse'),
           undefined,
           unstyled,
         )}
@@ -406,20 +412,26 @@ export const Progress = /* @__PURE__ */ React.forwardRef<
   );
 });
 Progress.displayName = 'Progress';
-export function Skeleton({
-  className,
-  unstyled,
-  ...props
-}: React.ComponentProps<'div'> & PlainStyleProps) {
+export const Skeleton = /* @__PURE__ */ React.forwardRef<
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<'div'> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
   return (
     <div
+      ref={ref}
       aria-hidden="true"
-      {...styles('skeleton.root', 'animate-pulse rounded-ui bg-muted', className, unstyled)}
+      {...styles(
+        'skeleton.root',
+        'ui-skeleton h-4 w-full rounded-[var(--ui-skeleton-radius,var(--ui-radius))] bg-[var(--ui-skeleton-background,var(--ui-border))]',
+        className,
+        unstyled,
+      )}
       {...props}
     />
   );
-}
+});
+Skeleton.displayName = 'Skeleton';
 export function Spinner({
   className,
   label = 'Loading',

@@ -1,11 +1,24 @@
 import { NavLink } from 'react-router-dom';
-import { BookOpen, Blocks, ArrowUpRight, Sparkles, ChevronDown } from 'lucide-react';
+import {
+  BookOpen,
+  Blocks,
+  ArrowUpRight,
+  Sparkles,
+  ChevronDown,
+  LayoutTemplate,
+  Layers,
+} from 'lucide-react';
 import { components, categories, guideLinks } from './catalog';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent, Badge } from '../ui';
+import { VersionSwitcher } from './VersionSwitcher';
 
 export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="sidebar-inner">
+      <div className="sidebar-version">
+        <span>Version</span>
+        <VersionSwitcher label="Documentation version" onNavigate={onNavigate} />
+      </div>
       <nav aria-label="Documentation">
         <div className="sidebar-top">
           <NavLink to="/" end onClick={onNavigate}>
@@ -19,6 +32,14 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           <NavLink to="/examples" onClick={onNavigate}>
             <Sparkles size={15} aria-hidden="true" />
             Examples<Badge variant="outline">3</Badge>
+          </NavLink>
+          <NavLink to="/blocks" onClick={onNavigate}>
+            <Layers size={15} aria-hidden="true" />
+            Blocks<span className="sidebar-count">120</span>
+          </NavLink>
+          <NavLink to="/templates" onClick={onNavigate}>
+            <LayoutTemplate size={15} aria-hidden="true" />
+            Templates<span className="sidebar-count">60</span>
           </NavLink>
         </div>
         <div className="sidebar-group">

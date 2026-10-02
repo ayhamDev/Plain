@@ -35,6 +35,9 @@ button {
   background: var(--ui-background);
 }
 .header-brand-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   flex: 0 0 var(--site-sidebar);
   padding-inline: 24px;
 }
@@ -79,7 +82,7 @@ button {
 }
 .header-nav {
   display: flex;
-  gap: 28px;
+  gap: 20px;
   height: 64px;
   align-items: stretch;
 }
@@ -155,7 +158,9 @@ button {
   position: sticky;
   inset-block-start: var(--site-header);
   height: calc(100dvh - var(--site-header));
-  border-inline-end: 1px solid var(--ui-border);
+  border-inline-end: 0;
+  background: var(--ui-sidebar-background);
+  color: var(--ui-sidebar-foreground);
   overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--ui-border) transparent;
@@ -184,7 +189,7 @@ button {
   color: var(--ui-foreground);
 }
 .sidebar-inner nav a.active {
-  background: var(--ui-accent-soft);
+  background: var(--ui-sidebar-accent);
   color: var(--ui-accent);
   font-weight: 500;
 }
@@ -748,20 +753,6 @@ button {
   font-size: 9px;
   color: var(--ui-muted-foreground);
   margin-top: 4px;
-}
-.preference-row [role='switch'] {
-  width: 32px;
-  height: 18px;
-}
-.preference-row [data-slot='thumb'] {
-  width: 12px;
-  height: 12px;
-}
-.preference-row [data-state='checked'][data-slot='thumb'] {
-  transform: translateX(12px);
-}
-[dir='rtl'] .preference-row [data-state='checked'][data-slot='thumb'] {
-  transform: translateX(-12px);
 }
 .buttons-demo {
   padding-block: 25px;
@@ -2054,6 +2045,12 @@ button {
 .theme-editor {
   max-width: 380px;
   padding: 28px;
+  overflow-x: hidden;
+}
+.theme-editor .code-block,
+.theme-editor .code-block pre {
+  width: 100%;
+  max-width: 100%;
 }
 .theme-section {
   display: flex;

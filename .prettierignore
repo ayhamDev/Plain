@@ -7,4 +7,6 @@ test-results
 playwright-report
 package-lock.json
 src/ui/slots.ts
+src/ui/tokens.css
+src/ui/neutral-palette.ts
 public/*.tgz
