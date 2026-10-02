@@ -19,7 +19,7 @@ history, including the 0.1 local-release status and its original QA limitations.
    During 0.x, breaking migrations use the agreed next minor version and must be
    explicitly described; choosing `major` advances to 1.0.
 2. Confirm every Changeset names the affected public package(s) and `baseBranch`
-   names the integration branch (currently `codex/next`). There are no fixed or
+   names the integration branch (currently `main`). There are no fixed or
    linked release groups; private workspaces are excluded. Read the plan:
 
    ```sh

@@ -27,7 +27,7 @@ Changesets 3.0.3 is installed locally. Use `npm run changeset`,
 `npm run release:status`, and `npm run version:packages`. Do not reinitialize this
 directory. `config.json` uses public access, no fixed or linked groups, and no
 automatic commits. Private workspaces are not versioned or tagged.
-`baseBranch: codex/next` matches the existing integration branch;
+`baseBranch: main` matches the existing integration branch;
 update it when the integration target changes.
 
 See the [release workflow](../docs/releases/README.md) and
