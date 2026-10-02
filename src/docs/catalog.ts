@@ -242,7 +242,7 @@ export const components: ComponentDefinition[] = [
       prop(
         'position',
         'popper | item-aligned',
-        'Positioning strategy for SelectContent.',
+        'Popper anchors beside the trigger; item-aligned centers the selected option over it. Side, align, and sideOffset apply only to popper.',
         'popper',
       ),
     ],
@@ -833,6 +833,7 @@ export function componentCode(component: ComponentDefinition) {
 export const guideLinks = [
   { slug: 'introduction', title: 'Introduction' },
   { slug: 'installation', title: 'Installation' },
+  { slug: 'versions', title: 'Documentation versions' },
   { slug: 'theming', title: 'Theming' },
   { slug: 'tokens', title: 'Design tokens' },
   { slug: 'accessibility', title: 'Accessibility' },

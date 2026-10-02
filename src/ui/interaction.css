@@ -46,25 +46,31 @@
 
   .ui-overlay {
     animation: ui-fade-in
-      max(1ms, calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1)))
+      max(1ms, calc(var(--ui-dialog-duration-enter, 320ms) * var(--ui-motion-scale, 1)))
       var(--ui-ease-out, ease-out) both;
   }
 
   .ui-overlay[data-state='closed'] {
     animation-name: ui-fade-out;
-    animation-duration: max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)));
+    animation-duration: max(
+      1ms,
+      calc(var(--ui-dialog-duration-exit, 200ms) * var(--ui-motion-scale, 1))
+    );
   }
 
   /* Tailwind's individual translate already centers the dialog. Animate scale without replacing it. */
   .ui-dialog {
-    animation: ui-surface-in
-      max(1ms, calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1)))
+    animation: ui-dialog-in
+      max(1ms, calc(var(--ui-dialog-duration-enter, 320ms) * var(--ui-motion-scale, 1)))
       var(--ui-ease-out, ease-out) both;
   }
 
   .ui-dialog[data-state='closed'] {
-    animation-name: ui-surface-out;
-    animation-duration: max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)));
+    animation-name: ui-dialog-out;
+    animation-duration: max(
+      1ms,
+      calc(var(--ui-dialog-duration-exit, 200ms) * var(--ui-motion-scale, 1))
+    );
   }
 
   .ui-accordion {
@@ -208,6 +214,31 @@
   to {
     opacity: 1;
     scale: 1;
+  }
+}
+
+@keyframes ui-dialog-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes ui-dialog-out {
+  from {
+    opacity: 1;
+    scale: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    scale: 0.98;
+    transform: translateY(4px);
   }
 }
 

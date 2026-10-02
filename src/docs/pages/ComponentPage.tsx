@@ -18,6 +18,7 @@ import {
 import { components, getComponent, componentCode } from '../catalog';
 import { CodeBlock } from '../shared';
 import { ComponentExample } from '../demos';
+import { PropPlayground, propPreviews } from '../previews';
 
 export default function ComponentPage() {
   const { slug = '' } = useParams();
@@ -110,6 +111,7 @@ export default function ComponentPage() {
             </TabsContent>
           </Tabs>
         </section>
+        {propPreviews[slug] && <PropPlayground key={slug} slug={slug} />}
         <section id="usage" className="doc-section">
           <h2>Usage</h2>
           <CodeBlock
@@ -227,6 +229,7 @@ export default function ComponentPage() {
         <span>On this page</span>
         {[
           ['preview', 'Preview'],
+          ...(propPreviews[slug] ? [['props-preview', 'Props playground']] : []),
           ['usage', 'Usage'],
           ['api', 'API reference'],
           ['styling', 'Customization'],

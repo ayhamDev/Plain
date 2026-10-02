@@ -19,7 +19,7 @@ export function sourceComponentName(id: string) {
     .join('');
 }
 export function sourceURL(kind: 'blocks' | 'templates', id: string) {
-  return `/compositions/${kind}/${encodeURIComponent(id)}.tsx`;
+  return `${import.meta.env.BASE_URL}compositions/${kind}/${encodeURIComponent(id)}.tsx`;
 }
 const cache = new Map<string, Promise<string>>();
 export function loadCompositionSource(url: string): Promise<string> {

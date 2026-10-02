@@ -35,6 +35,7 @@ import {
 } from '../../ui';
 import { CodeBlock } from '../shared';
 import { useAppPreferences } from '../preferences';
+import { useDocsVersions, versionDestination } from '../versioning';
 
 const guideInfo: Record<string, { title: string; description: string }> = {
   introduction: {
@@ -44,6 +45,10 @@ const guideInfo: Record<string, { title: string; description: string }> = {
   installation: {
     title: 'Installation',
     description: 'Use @plain/ui 0.2, its precompiled styles, and the optional entries you need.',
+  },
+  versions: {
+    title: 'Documentation versions',
+    description: 'Browse the guides, API, examples, and source belonging to your release.',
   },
   theming: {
     title: 'Theming',
@@ -1708,6 +1713,73 @@ function BlocksTemplatesGuide() {
   );
 }
 
+function VersionsGuide() {
+  const { manifest, error } = useDocsVersions();
+  return (
+    <>
+      <GuideSection title="Choose your release">
+        <p>
+          The version menu opens that release's complete documentation, not just its changelog.
+          Switching preserves the current page, query, and fragment when the target contains it. A
+          component added later falls back to the older component index. Archived releases retain
+          their original APIs, live previews, guides, search, colors, and downloadable package.
+        </p>
+        <Table>
+          <TableCaption>Available documentation releases</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Release</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Source</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {manifest.versions.map((version) => (
+              <TableRow key={version.version}>
+                <TableCell>
+                  <a href={versionDestination(version, '/')}>{version.version}</a>
+                </TableCell>
+                <TableCell>
+                  {version.status === 'current' ? 'Current checkout' : 'Archived snapshot'}
+                </TableCell>
+                <TableCell>
+                  {version.ref ? <code>{version.ref.slice(0, 7)}</code> : 'Working checkout'}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        {error && <p role="status">The version registry could not load. Refresh to retry.</p>}
+      </GuideSection>
+      <GuideSection title="Stable URLs and historical behavior">
+        <p>
+          Unversioned URLs follow the current release. Use <code>/v/0.2.0/components/select</code>{' '}
+          for an explicit version, or <code>/v/0.1.0/components/select</code> for the original 0.1
+          implementation. Refresh, internal navigation, and search stay in the chosen version. The
+          current release tracks this checkout until it is frozen at a Git revision.
+        </p>
+        <p>
+          Archives are historical references, not backported fixes. The 0.1 package remains
+          <code> @plainui/react</code>; the current package is <code>@plain/ui</code>. Read the{' '}
+          <Link to="/changelog">changelog and migration notes</Link> before upgrading. Blocks and
+          templates introduced in 0.2 remain application-owned copy/paste source.
+        </p>
+      </GuideSection>
+      <GuideSection title="Maintain an archive">
+        <CodeBlock language="sh" code="npm run docs:versions\nnpm run build:docs" />
+        <p>
+          Maintainers register releases in <code>docs/versions.json</code>. Archived entries pin an
+          immutable commit; each builds against its own source and dependencies, independently from
+          the current library. Generated HTML, assets, route manifests, and source downloads are
+          deployment output, not manually maintained copies of component pages. Follow{' '}
+          <code>docs/versions/README.md</code> for the freeze and hosting workflow. Building an
+          archive does not publish a package or deploy the site.
+        </p>
+      </GuideSection>
+    </>
+  );
+}
+
 function ChartsGuide() {
   return (
     <>
@@ -1727,6 +1799,16 @@ function ChartsGuide() {
         </p>
       </GuideSection>
       <GuideSection title="Compose with the Recharts engine">
+        <p>
+          The component pages include live prop playgrounds with matching copyable code. Hide an
+          axis with <code>xAxis={'{false}'}</code> or configure its native props, for example
+          <code> yAxis={'{{ width: 48, tickFormatter: (value) => "$" + value }}'}</code>. Grid,
+          legend, and tooltip also accept native Recharts props. Use <code>stacked</code> for a
+          total and <code>curve="linear"</code> or <code>curve="step"</code> when the data calls for
+          it. Series can supply <code>strokeDasharray</code> for an additional distinction. Tooltip
+          foreground and background have paired theme tokens; overriding either requires checking
+          their contrast together.
+        </p>
         <CodeBlock code={examples.composedChart} />
         <p>
           Chart accepts one Recharts chart element. Supply <code>data</code> for the table and
@@ -1917,6 +1999,7 @@ export default function GuidePage() {
   const body: Record<string, React.ReactNode> = {
     introduction: <Introduction />,
     installation: <Installation />,
+    versions: <VersionsGuide />,
     theming: <Theming />,
     tokens: <Tokens />,
     customization: <Customization />,

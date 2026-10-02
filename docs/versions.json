@@ -1,0 +1,7 @@
+{
+  "current": "0.2.0",
+  "versions": [
+    { "version": "0.2.0", "status": "current" },
+    { "version": "0.1.0", "status": "archived", "ref": "0188733" }
+  ]
+}

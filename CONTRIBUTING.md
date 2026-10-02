@@ -45,3 +45,7 @@ Maintainers follow [docs/releases/README.md](docs/releases/README.md) to version
 review migrations, validate the exact candidate, and record a local release.
 Publishing or deploying follows the user's existing authorization and is recorded
 only after it succeeds. Keep historical release evidence separate from current QA.
+
+Documentation releases are registered in [docs/versions.json](docs/versions.json).
+Follow [the archive workflow](docs/versions/README.md) to pin and build a complete
+version, including its own implementations, guides, previews and downloads.

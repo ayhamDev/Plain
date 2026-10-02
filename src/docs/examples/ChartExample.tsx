@@ -1,41 +1,103 @@
 import { AreaChart, BarChart, LineChart, DonutChart } from '../../ui/charts';
+import { chartSampleData, donutSampleData } from '../chart-samples';
 import '../../ui/charts.css';
-const data = [
-  { month: 'May', revenue: 320, costs: 180 },
-  { month: 'Jun', revenue: 510, costs: 270 },
-  { month: 'Jul', revenue: 390, costs: 220 },
-  { month: 'Aug', revenue: 420, costs: 240 },
-  { month: 'Sep', revenue: 580, costs: 300 },
-  { month: 'Oct', revenue: 680, costs: 360 },
-];
-export default function ChartExample({ slug }: { slug: string }) {
-  if (slug === 'donut-chart')
-    return (
+
+export default function ChartExample({
+  slug,
+  state,
+}: {
+  slug: string;
+  state?: Record<string, string | number | boolean>;
+}) {
+  const settings = {
+    legend: true,
+    tooltip: true,
+    grid: true,
+    xAxis: true,
+    yAxis: true,
+    stacked: false,
+    curve: 'monotone',
+    loading: false,
+    empty: false,
+    dataTable: 'sr-only',
+    ...state,
+  };
+  const dataTable =
+    settings.dataTable === 'false'
+      ? false
+      : settings.dataTable === 'visible'
+        ? 'visible'
+        : 'sr-only';
+  const height = 280;
+  const chart =
+    slug === 'donut-chart' ? (
       <DonutChart
-        label="Projects by status"
-        height={280}
-        legend
-        data={[
-          { name: 'Active', value: 18 },
-          { name: 'Review', value: 8 },
-          { name: 'Complete', value: 24 },
-        ]}
-        style={{ width: '100%' }}
+        label={state ? 'Status comparison' : 'Projects by status'}
+        height={height}
+        legend={!!settings.legend}
+        tooltip={!!settings.tooltip}
+        data={donutSampleData}
+        innerRadius={`${state?.innerRadius ?? 64}%`}
+        outerRadius="88%"
+        loading={!!settings.loading}
+        empty={!!settings.empty}
+        dataTable={dataTable}
       />
+    ) : (
+      (() => {
+        const Chart =
+          slug === 'area-chart' ? AreaChart : slug === 'bar-chart' ? BarChart : LineChart;
+        return (
+          <Chart
+            data={chartSampleData}
+            index="month"
+            label={state ? 'Revenue comparison' : 'Monthly revenue and costs'}
+            height={height}
+            series={[
+              { dataKey: 'revenue', label: 'Revenue' },
+              {
+                dataKey: 'costs',
+                label: 'Costs',
+                strokeDasharray: slug === 'line-chart' ? '4 4' : undefined,
+              },
+            ]}
+            legend={!!settings.legend}
+            tooltip={!!settings.tooltip}
+            grid={!!settings.grid}
+            xAxis={!!settings.xAxis}
+            yAxis={!!settings.yAxis}
+            stacked={!!settings.stacked}
+            curve={
+              settings.curve === 'linear'
+                ? 'linear'
+                : settings.curve === 'step'
+                  ? 'step'
+                  : 'monotone'
+            }
+            dataTable={dataTable}
+            loading={!!settings.loading}
+            empty={!!settings.empty}
+          />
+        );
+      })()
     );
-  const Chart = slug === 'area-chart' ? AreaChart : slug === 'bar-chart' ? BarChart : LineChart;
   return (
-    <Chart
-      data={data}
-      index="month"
-      label="Monthly revenue and costs"
-      height={280}
-      series={[
-        { dataKey: 'revenue', label: 'Revenue' },
-        { dataKey: 'costs', label: 'Costs' },
-      ]}
-      legend
-      style={{ width: '100%' }}
-    />
+    <div className="chart-doc-example">
+      {!state && (
+        <div className="chart-doc-heading">
+          <div>
+            <h3>{slug === 'donut-chart' ? 'Projects by status' : 'Revenue & costs'}</h3>
+            <p>
+              {slug === 'donut-chart' ? '50 projects across your workspace' : 'May - October 2026'}
+            </p>
+          </div>
+          <div className="chart-doc-metric">
+            <strong>{slug === 'donut-chart' ? '50' : '$2,900'}</strong>
+            <span>{slug === 'donut-chart' ? 'total projects' : 'total revenue'}</span>
+          </div>
+        </div>
+      )}
+      {chart}
+    </div>
   );
 }

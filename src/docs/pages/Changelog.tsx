@@ -13,6 +13,23 @@ export default function Changelog() {
       <div className="page-eyebrow">Always considered</div>
       <h1>Changelog</h1>
       <p className="page-lead">Small improvements. A better starting point.</p>
+      <section className="release-entry" id="unreleased">
+        <div className="release-meta">
+          <Badge variant="outline">Unreleased</Badge>
+          <span>Working checkout</span>
+        </div>
+        <h2>Documentation that follows your release</h2>
+        <p>
+          Complete documentation snapshots replace changelog-only version switching. Live prop
+          playgrounds include Select positioning, chart configuration and layout/calendar states.
+          Chart tooltip values now use paired surface colors; dialogs have gentler entry and exit
+          timing, with reduced-motion support.
+        </p>
+        <Link to="/docs/versions" className="text-link">
+          Documentation versions
+          <ArrowRight size={14} aria-hidden="true" />
+        </Link>
+      </section>
       <section className="release-entry" id="release-0-2">
         <div className="release-meta">
           <Badge variant="solid">v0.2.0</Badge>
@@ -82,10 +99,10 @@ export default function Changelog() {
           This build is available as a local package. Registry publication and hosted deployment are
           separate release steps.
         </p>
-        <Link to="/docs/installation" className="text-link">
-          Get the build
+        <a href="/v/0.1.0/docs/installation" className="text-link">
+          Original 0.1 documentation
           <ArrowRight size={14} aria-hidden="true" />
-        </Link>
+        </a>
       </section>
     </article>
   );

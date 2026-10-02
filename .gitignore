@@ -8,6 +8,9 @@ coverage/
 .preview/
 *.tsbuildinfo
 public/compositions/
+public/v/
+public/docs-versions.json
+public/_redirects
 .env
 .env.*
 !.env.example

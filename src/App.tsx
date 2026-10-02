@@ -33,6 +33,7 @@ import { AppPreferences } from './docs/preferences';
 import Overview from './docs/pages/Overview';
 import { BrandLogo } from './docs/BrandLogo';
 import { VersionSwitcher } from './docs/VersionSwitcher';
+import { currentDocsVersion } from './docs/versioning';
 const ComponentPage = React.lazy(() => import('./docs/pages/ComponentPage'));
 const ComponentsPage = React.lazy(() => import('./docs/pages/ComponentsPage'));
 const GuidePage = React.lazy(() => import('./docs/pages/GuidePage'));
@@ -276,7 +277,14 @@ function SiteHeader({
 }
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      basename={
+        window.location.pathname.startsWith(`/v/${currentDocsVersion}/`) ||
+        window.location.pathname === `/v/${currentDocsVersion}`
+          ? `/v/${currentDocsVersion}`
+          : '/'
+      }
+    >
       <Routes>
         <Route
           path="/preview/app-shell"

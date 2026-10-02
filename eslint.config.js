@@ -13,6 +13,7 @@ export default tseslint.config(
       'test-results/**',
       'playwright-report/**',
       '.preview/**',
+      'public/v/**',
     ],
   },
   js.configs.recommended,

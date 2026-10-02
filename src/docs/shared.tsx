@@ -113,7 +113,7 @@ export function CodeBlock({
 export function PackageDownload({ small }: { small?: boolean }) {
   return (
     <Button variant="outline" size={small ? 'sm' : 'md'} asChild>
-      <a href="/plain-ui-0.2.0.tgz" download>
+      <a href={`${import.meta.env.BASE_URL}plain-ui-0.2.0.tgz`} download>
         <Download aria-hidden="true" />
         Download package
       </a>

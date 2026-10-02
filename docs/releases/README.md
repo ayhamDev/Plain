@@ -41,6 +41,12 @@ history, including the 0.1 local-release status and its original QA limitations.
    and reconcile its prose. When finalizing the already assigned 0.2 version,
    promote its existing draft without another version bump. Preserve 0.1 history.
 
+   Freeze the outgoing documentation at its final release commit and register the
+   new current version in `docs/versions.json`. Follow the
+   [documentation archive workflow](../versions/README.md); do not relabel current
+   pages as historical docs. Build archives with their pinned dependencies and
+   preserve the referenced commits or release tags.
+
 4. Run the repository checks against the exact candidate:
 
    ```sh

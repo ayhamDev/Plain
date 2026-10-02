@@ -291,6 +291,8 @@
   --ui-dialog-border: var(--ui-border);
   --ui-dialog-radius: var(--ui-radius-lg);
   --ui-dialog-shadow: var(--ui-shadow-lg);
+  --ui-dialog-duration-enter: var(--ui-duration-slow);
+  --ui-dialog-duration-exit: var(--ui-duration-normal);
   --ui-sheet-background: var(--ui-surface);
   --ui-sheet-foreground: var(--ui-foreground);
   --ui-sheet-border: var(--ui-border);
@@ -368,8 +370,8 @@
   --ui-scrollbar-width: 6px;
   --ui-chart-background: var(--ui-surface);
   --ui-chart-foreground: var(--ui-foreground);
-  --ui-chart-tooltip-background: var(--ui-inverse);
-  --ui-chart-tooltip-foreground: var(--ui-inverse-foreground);
+  --ui-chart-tooltip-background: var(--ui-surface);
+  --ui-chart-tooltip-foreground: var(--ui-foreground);
   --ui-chart-radius: var(--ui-radius);
   --ui-badge-background: var(--ui-muted);
   --ui-badge-foreground: var(--ui-foreground);

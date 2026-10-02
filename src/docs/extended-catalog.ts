@@ -1,4 +1,5 @@
 import type { Category, ComponentDefinition, PropDefinition } from './catalog';
+import { chartSampleData } from './chart-samples.ts';
 
 const p = (
   name: string,
@@ -66,8 +67,7 @@ const virtualA11y =
   'The viewport is keyboard-focusable with Page, Home and End scrolling. List position and total size are announced; a focused item stays mounted. Virtualization is opt-in: provide a search or nonvirtual view when every record must be discoverable by assistive technology or browser find.';
 const virtualData =
   'const items = Array.from({ length: 1000 }, (_, i) => ({ id: String(i), name: `Project ${i + 1}` }));';
-const chartData =
-  'const data = [\n  { month: "Aug", revenue: 420, costs: 240 },\n  { month: "Sep", revenue: 580, costs: 300 },\n  { month: "Oct", revenue: 680, costs: 360 },\n];';
+const chartData = `const data = ${JSON.stringify(chartSampleData, null, 2)};`;
 
 export const extendedComponents: ComponentDefinition[] = [
   define(
@@ -786,7 +786,7 @@ export const extendedComponents: ComponentDefinition[] = [
       'Charts',
       `A responsive Recharts ${kind} visualization with theme roles and a readable data alternative.`,
       [`${kind[0].toUpperCase() + kind.slice(1)}Chart`],
-      `<${kind[0].toUpperCase() + kind.slice(1)}Chart data={data} index="month" label="Monthly revenue and costs" height={280}\n  series={[{ dataKey: "revenue", label: "Revenue" }, { dataKey: "costs", label: "Costs" }]} legend />`,
+      `<${kind[0].toUpperCase() + kind.slice(1)}Chart data={data} index="month" label="Monthly revenue and costs" height={280}\n  series={[{ dataKey: "revenue", label: "Revenue" }, { dataKey: "costs", label: "Costs"${kind === 'line' ? ', strokeDasharray: "4 4"' : ''} }]} legend />`,
       [
         p(
           'data / index / series',
@@ -794,7 +794,27 @@ export const extendedComponents: ComponentDefinition[] = [
           'Records, x-axis key and visible value series.',
         ),
         p('height', 'CSS height', 'Stable chart viewport.', '300'),
-        p('grid / legend / tooltip', 'boolean', 'Chart aids.'),
+        p(
+          'grid / legend / tooltip',
+          'boolean | native Recharts props',
+          'Hide an aid or configure its native props.',
+          'true',
+        ),
+        p(
+          'xAxis / yAxis',
+          'boolean | XAxisProps / YAxisProps',
+          'Axis visibility, format, spacing and orientation.',
+          'true',
+        ),
+        p(
+          'stacked',
+          'boolean',
+          'Stack visible series; explicit series stackId values take precedence.',
+          'false',
+        ),
+        ...(kind === 'bar'
+          ? []
+          : [p('curve', 'Recharts curve type', 'Change interpolation.', 'monotone')]),
         p('valueFormatter', '(value: number) => string', 'Format values consistently.'),
         p('dataTable', 'sr-only | visible | false', 'Accessible data alternative.', 'sr-only'),
         p('animate / loading / empty', 'boolean', 'Motion and state controls.'),
@@ -809,13 +829,13 @@ export const extendedComponents: ComponentDefinition[] = [
     'Charts',
     'Part-to-whole values with distinct series roles and an accessible table.',
     ['DonutChart'],
-    '<DonutChart label="Projects by status" height={280} legend data={[\n  { name: "Active", value: 18 }, { name: "Review", value: 8 }, { name: "Complete", value: 24 },\n]} />',
+    '<DonutChart label="Projects by status" height={280} innerRadius="64%" outerRadius="88%" legend data={[\n  { name: "Active", value: 18 }, { name: "Review", value: 8 }, { name: "Complete", value: 24 },\n]} />',
     [
       p('data / nameKey / valueKey', 'ChartDatum[] / string / string', 'Slice records and keys.'),
       p('innerRadius / outerRadius', 'number | string', 'Donut dimensions.'),
       p(
         'legend / tooltip / dataTable',
-        'boolean / boolean / table policy',
+        'boolean | native Recharts props / boolean | native Recharts props / table policy',
         'Legends and accessible data alternatives.',
       ),
       p(

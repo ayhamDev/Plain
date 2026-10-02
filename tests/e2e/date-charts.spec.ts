@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { build, normalizePath } from 'vite';
 import { fileURLToPath } from 'node:url';
+import { chartSampleData, donutSampleData } from '../../src/docs/chart-samples';
 
 test.use({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
 
@@ -137,7 +138,10 @@ async function expectPlot(page: Page, chart: Locator) {
   for (const count of pixels)
     expect(count, 'The rendered series must contain colored pixels').toBeGreaterThan(20);
   await expect(chart.locator(slot('chart', 'table'))).toHaveCount(1);
-  await expect(chart.locator('tbody tr')).toHaveCount(3);
+  const expectedRows = (await chart.locator('.recharts-pie-sector').count())
+    ? donutSampleData.length
+    : chartSampleData.length;
+  await expect(chart.locator('tbody tr')).toHaveCount(expectedRows);
   await expect(chart.locator('.recharts-default-legend')).toBeVisible();
 }
 
@@ -210,7 +214,7 @@ for (const mode of ['light', 'dark'] as const) {
 
 test('all native chart types have visible plots, data alternatives, keyboard tooltips and semantic palette colors', async ({
   page,
-}) => {
+}, testInfo) => {
   await initialize(page, { mode: 'light', dir: 'ltr', seed: '#2563eb' });
   for (const slug of ['area-chart', 'bar-chart', 'line-chart', 'donut-chart']) {
     const preview = await component(page, slug);
@@ -241,6 +245,7 @@ test('all native chart types have visible plots, data alternatives, keyboard too
       };
     }, plotSelector);
     expect(palette.actual).toBe(palette.expected);
+    await chart.screenshot({ path: testInfo.outputPath(`${slug}-keyboard.png`) });
   }
 });
 

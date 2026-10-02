@@ -10,3 +10,5 @@ src/ui/slots.ts
 src/ui/tokens.css
 src/ui/neutral-palette.ts
 public/*.tgz
+public/v
+public/docs-versions.json

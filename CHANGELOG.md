@@ -6,6 +6,19 @@ reconciled with the integrated package before release.
 
 ## Unreleased
 
+- Build complete documentation archives from immutable release revisions, with
+  isolated implementations, assets, API tables, guides, search and downloads.
+  Version switching retains available deep links; missing pages fall back to the
+  target release's appropriate index instead of its changelog. Register and freeze
+  future versions through `docs/versions.json` and the documented release workflow.
+- Add 54 interactive prop playgrounds with matching, typechecked copyable source,
+  including both Select positioning strategies and chart/layout/calendar states.
+- Add configurable native chart axes, grids, legends and tooltips, stacking, curves
+  and dashed series. Pair tooltip surface/foreground tokens to restore visible
+  values in dark mode; use slimmer bars and restrained legend text.
+- Use 320ms dialog entry and 200ms exit by default, with independent timing aliases
+  and subtle centered travel. Reduced/none motion remains supported.
+
 - Refine opt-in seeded themes with low-chroma elevated surfaces and quieter structural borders;
   keep the original 0.1 neutral defaults and standard Material text/action contrast.
 - Generate theme-coordinated categorical chart palettes rather than reusing action/error roles.

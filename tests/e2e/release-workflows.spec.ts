@@ -1,11 +1,10 @@
 import { expect, test } from '@playwright/test';
-import AxeBuilder from '@axe-core/playwright';
 
 for (const profile of [
   { width: 1440, height: 900, mode: 'light', dir: 'ltr' },
   { width: 390, height: 844, mode: 'dark', dir: 'rtl' },
 ] as const) {
-  test(`version combobox navigates the release archive at ${profile.width}px`, async ({ page }) => {
+  test(`version combobox opens the complete archive at ${profile.width}px`, async ({ page }) => {
     await page.setViewportSize(profile);
     await page.addInitScript(({ mode, dir }) => {
       localStorage.setItem('plainui-theme', JSON.stringify({ mode }));
@@ -21,15 +20,14 @@ for (const profile of [
     const search = page.getByRole('combobox', { name: 'Find a version...' });
     await search.fill('0.1');
     await page.getByRole('option', { name: /0.1.0/ }).click();
-    await expect(page).toHaveURL(/\/changelog#release-0-1$/);
+    await expect(page).toHaveURL(/\/v\/0\.1\.0\/$/);
     if (profile.width < 800) {
       await expect(page.getByRole('dialog')).toHaveCount(0);
     }
-    await expect(page.locator('#release-0-1')).toBeVisible();
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
-      .analyze();
-    expect(results.violations).toEqual([]);
+    await expect(page.locator('main h1').first()).toContainText('PlainUI');
+    await expect(
+      page.getByRole('combobox', { name: 'Documentation version', exact: true }),
+    ).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );

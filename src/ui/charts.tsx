@@ -51,6 +51,7 @@ export interface ChartSeries {
   color?: string;
   stackId?: string;
   yAxisId?: string | number;
+  strokeDasharray?: string;
 }
 
 /** Each palette color can be independently overridden with a semantic theme token. */
@@ -471,14 +472,14 @@ export function ChartTooltip({
       isAnimationActive={animate && motion.enabled ? (props.isAnimationActive ?? 'auto') : false}
       contentStyle={{
         background: 'var(--ui-chart-tooltip-background, var(--ui-surface, #fff))',
-        color: 'var(--ui-foreground, #202321)',
+        color: 'var(--ui-chart-tooltip-foreground, var(--ui-foreground, #202321))',
         border: `var(--ui-border-width, 1px) solid ${chartGrid}`,
         borderRadius: 'min(var(--ui-radius, 6px), 8px)',
         fontSize: 12,
         padding: '8px 12px',
         ...contentStyle,
       }}
-      labelStyle={{ color: 'var(--ui-foreground, #202321)', fontWeight: 600, ...labelStyle }}
+      labelStyle={{ color: 'inherit', fontWeight: 600, ...labelStyle }}
       itemStyle={itemStyle}
       formatter={
         formatter ??
@@ -493,7 +494,7 @@ export function ChartTooltip({
   );
 }
 
-export function ChartLegend({ formatter, wrapperStyle, ...props }: LegendProps) {
+export function ChartLegend({ formatter, wrapperStyle, labelStyle, ...props }: LegendProps) {
   const { config } = React.useContext(ChartContext);
   return (
     <Legend
@@ -501,6 +502,7 @@ export function ChartLegend({ formatter, wrapperStyle, ...props }: LegendProps) 
       iconSize={8}
       {...props}
       wrapperStyle={{ fontSize: 12, color: chartLabel, paddingTop: 12, ...wrapperStyle }}
+      labelStyle={{ color: chartLabel, ...labelStyle }}
       formatter={
         formatter ??
         ((value, entry) =>
@@ -556,7 +558,7 @@ export function ChartBar({ seriesIndex, ...props }: BarProps & { seriesIndex?: n
   return (
     <Bar
       fill={color}
-      maxBarSize={56}
+      maxBarSize={32}
       radius={[3, 3, 0, 0]}
       {...props}
       isAnimationActive={animate ? (props.isAnimationActive ?? 'auto') : false}
@@ -596,9 +598,15 @@ export interface CartesianChartProps extends Omit<ChartProps, 'children' | 'data
   /** Categorical axis key. Defaults to name. */
   index?: string;
   series?: readonly ChartSeries[];
-  grid?: boolean;
-  legend?: boolean;
-  tooltip?: boolean;
+  grid?: boolean | CartesianGridProps;
+  legend?: boolean | LegendProps;
+  tooltip?: boolean | ChartTooltipProps;
+  xAxis?: boolean | XAxisProps;
+  yAxis?: boolean | YAxisProps;
+  /** Stack visible series; individual stackId values still take precedence. */
+  stacked?: boolean;
+  /** Interpolation for area and line charts. */
+  curve?: AreaProps<ChartDatum, number>['type'];
   valueFormatter?: (value: number) => string;
   chartProps?: EngineChartProps;
   children?: React.ReactNode;
@@ -623,6 +631,10 @@ function CartesianChart({
     grid = true,
     legend = true,
     tooltip = true,
+    xAxis = true,
+    yAxis = true,
+    stacked = false,
+    curve = 'monotone',
     valueFormatter,
     chartProps,
     children,
@@ -645,7 +657,6 @@ function CartesianChart({
   }
   const Engine =
     kind === 'area' ? RechartsAreaChart : kind === 'bar' ? RechartsBarChart : RechartsLineChart;
-  const Series = kind === 'area' ? ChartArea : kind === 'bar' ? ChartBar : ChartLine;
   const vertical = chartProps?.layout === 'vertical';
   const tableColumns = columns ?? [
     { key: index, label: config?.[index]?.label ?? index },
@@ -666,17 +677,29 @@ function CartesianChart({
         desc={props.description ?? props.label}
         {...chartProps}
       >
-        {grid && <ChartGrid vertical={vertical} horizontal={!vertical} />}
-        <ChartXAxis
-          dataKey={vertical ? undefined : index}
-          type={vertical ? 'number' : 'category'}
-          tickFormatter={vertical ? valueFormatter : undefined}
-        />
-        <ChartYAxis
-          dataKey={vertical ? index : undefined}
-          type={vertical ? 'category' : 'number'}
-          tickFormatter={vertical ? undefined : valueFormatter}
-        />
+        {grid && (
+          <ChartGrid
+            vertical={vertical}
+            horizontal={!vertical}
+            {...(typeof grid === 'object' ? grid : {})}
+          />
+        )}
+        {xAxis && (
+          <ChartXAxis
+            dataKey={vertical ? undefined : index}
+            type={vertical ? 'number' : 'category'}
+            tickFormatter={vertical ? valueFormatter : undefined}
+            {...(typeof xAxis === 'object' ? xAxis : {})}
+          />
+        )}
+        {yAxis && (
+          <ChartYAxis
+            dataKey={vertical ? index : undefined}
+            type={vertical ? 'category' : 'number'}
+            tickFormatter={vertical ? undefined : valueFormatter}
+            {...(typeof yAxis === 'object' ? yAxis : {})}
+          />
+        )}
         {tooltip && (
           <ChartTooltip
             formatter={
@@ -687,19 +710,27 @@ function CartesianChart({
                   ]
                 : undefined
             }
+            {...(typeof tooltip === 'object' ? tooltip : {})}
           />
         )}
-        {legend && <ChartLegend />}
-        {entries.map((item, seriesIndex) => (
-          <Series
-            key={item.dataKey}
-            dataKey={item.dataKey}
-            name={item.label ?? item.dataKey}
-            stackId={item.stackId}
-            yAxisId={item.yAxisId}
-            seriesIndex={seriesIndex}
-          />
-        ))}
+        {legend && <ChartLegend {...(typeof legend === 'object' ? legend : {})} />}
+        {entries.map((item, seriesIndex) => {
+          const seriesProps = {
+            dataKey: item.dataKey,
+            name: item.label ?? item.dataKey,
+            stackId: item.stackId ?? (stacked ? 'total' : undefined),
+            yAxisId: item.yAxisId,
+            seriesIndex,
+            strokeDasharray: item.strokeDasharray,
+          };
+          return kind === 'bar' ? (
+            <ChartBar key={item.dataKey} {...seriesProps} />
+          ) : kind === 'area' ? (
+            <ChartArea key={item.dataKey} {...seriesProps} type={curve} />
+          ) : (
+            <ChartLine key={item.dataKey} {...seriesProps} type={curve} />
+          );
+        })}
         {children}
       </Engine>
     </Chart>
@@ -725,8 +756,8 @@ export interface DonutChartProps extends Omit<ChartProps, 'children' | 'data'> {
   valueKey?: string;
   innerRadius?: number | string;
   outerRadius?: number | string;
-  legend?: boolean;
-  tooltip?: boolean;
+  legend?: boolean | LegendProps;
+  tooltip?: boolean | ChartTooltipProps;
   valueFormatter?: (value: number) => string;
   chartProps?: Omit<
     React.ComponentProps<typeof RechartsPieChart>,
@@ -812,9 +843,10 @@ export const DonutChart = /* @__PURE__ */ React.forwardRef<HTMLElement, DonutCha
                     ]
                   : undefined
               }
+              {...(typeof tooltip === 'object' ? tooltip : {})}
             />
           )}
-          {legend && <ChartLegend />}
+          {legend && <ChartLegend {...(typeof legend === 'object' ? legend : {})} />}
           {children}
         </RechartsPieChart>
       </Chart>

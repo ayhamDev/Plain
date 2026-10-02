@@ -134,6 +134,21 @@ Date-time values are local wall-time strings. IANA timezone validation and Tempo
 
 ## Quality And Releases
 
+The documentation has complete version snapshots at `/v/0.1.0/` and `/v/0.2.0/`.
+The current version tracks this checkout until frozen; historical pages use their
+own implementations, dependencies, API tables, search, examples and downloads.
+Version switching keeps available deep links and intentionally falls back when a
+page did not exist yet. See [the archive workflow](docs/versions/README.md) and
+[docs/versions.json](docs/versions.json) for registering releases and hosting rules.
+Component pages include 54 typed prop playgrounds with matching copyable TSX.
+
+Charts accept native axis/grid/legend/tooltip props as well as visibility booleans.
+Use `stacked`, area/line `curve`, or per-series `strokeDasharray` for different data
+views. Colors still follow the theme unless configured. Tooltip surface and
+foreground tokens should be overridden as a pair. Dialog motion defaults to 320ms
+entry and 200ms exit; override `dialog.duration-enter` and `dialog.duration-exit`
+without changing reduced/none motion behavior.
+
 Tests cover behavior, native forms, scoped portals, palettes, SSR, package-consumer examples and tree shaking. Browser QA covers responsive layouts, light/dark, RTL, keyboard behavior, motion policies, rendered assets and automated accessibility. See [QA.md](QA.md) for the actual verified results and limits. Automated checks are not a WCAG certification; final applications still need assistive-technology, device, security and backend testing.
 
 Agents follow [AGENTS.md](AGENTS.md) and the repository's P.UI design skill. Releases use Changesets; see [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md) and [docs/releases](docs/releases/README.md). `dist/` contains the library and `site-dist/` the website. Nothing is published or deployed automatically.

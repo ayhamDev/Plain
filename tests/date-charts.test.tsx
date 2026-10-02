@@ -23,6 +23,7 @@ import {
   ChartGrid,
   ChartLine,
   ChartTooltip,
+  ChartTooltipContent,
   ChartXAxis,
   ChartYAxis,
 } from '../src/ui/charts';
@@ -628,6 +629,112 @@ describe('Recharts wrappers', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Loading sales');
     expect(screen.getByLabelText('Sales')).toHaveAttribute('aria-busy', 'true');
     expect(container.querySelector('[data-slot="viewport"]')).toHaveStyle({ height: '240px' });
+  });
+
+  it('renders tooltip labels and values independently with formatter and indicator overrides', () => {
+    const { container, rerender } = render(
+      <ChartTooltipContent
+        active
+        label="May"
+        accessibilityLayer
+        indicator="dashed"
+        payload={[
+          {
+            graphicalItemId: 'revenue-series',
+            dataKey: 'revenue',
+            name: 'Revenue',
+            value: 320,
+            color: '#267f60',
+          },
+          { graphicalItemId: 'cost-series', dataKey: 'cost', name: 'Cost', value: 180 },
+        ]}
+        formatter={(value, name) => [`$${value}`, name]}
+      />,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent('MayRevenue$320Cost$180');
+    expect(container.querySelectorAll('.ui-chart-tooltip-value')).toHaveLength(2);
+    expect(container.querySelector('[data-indicator="dashed"]')).toBeInTheDocument();
+    rerender(<ChartTooltipContent active={false} payload={[]} />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('supports hidden aids and native axis, grid, tooltip and legend configuration', async () => {
+    const { container, rerender } = render(
+      <BarChart
+        label="Revenue"
+        data={chartData}
+        animate={false}
+        grid={false}
+        xAxis={false}
+        yAxis={false}
+        legend={false}
+        tooltip={false}
+      />,
+    );
+    await screen.findByRole('application');
+    await waitFor(() =>
+      expect(container.querySelectorAll('.recharts-bar-rectangle').length).toBeGreaterThan(0),
+    );
+    expect(container.querySelector('.recharts-cartesian-axis')).toBeNull();
+    expect(container.querySelector('.recharts-cartesian-grid')).toBeNull();
+    expect(container.querySelector('.recharts-tooltip-wrapper')).toBeNull();
+    expect(container.querySelector('.recharts-default-legend')).toBeNull();
+    rerender(
+      <BarChart
+        label="Revenue"
+        data={chartData}
+        animate={false}
+        xAxis={{ tickFormatter: (value) => String(value).toUpperCase() }}
+        yAxis={{ tickFormatter: (value) => `$${value}` }}
+        grid={{ strokeDasharray: '3 3' }}
+        legend={{ iconType: 'square', labelStyle: { color: '#123456' } }}
+        tooltip={{ defaultIndex: 0, active: true, formatter: (value, name) => [`$${value}`, name] }}
+      />,
+    );
+    await waitFor(() =>
+      expect(container.querySelector('.recharts-surface')).toHaveTextContent('JAN'),
+    );
+    expect(container.querySelector('.recharts-surface')).toHaveTextContent('$');
+    expect(container.querySelector('.recharts-legend-item-text')).toHaveStyle({ color: '#123456' });
+    expect(container.querySelector('.recharts-cartesian-grid line')).toHaveAttribute(
+      'stroke-dasharray',
+      '3 3',
+    );
+    await waitFor(() =>
+      expect(container.querySelector('.ui-chart-tooltip')).toHaveTextContent('$1200'),
+    );
+    expect((container.querySelector('.ui-chart-tooltip') as HTMLElement).style.color).toContain(
+      '--ui-chart-tooltip-foreground',
+    );
+    expect(
+      (container.querySelector('.ui-chart-tooltip') as HTMLElement).style.background,
+    ).toContain('--ui-chart-tooltip-background');
+  });
+
+  it('exposes linear and step curves with optional stacking and dashed series', async () => {
+    const { container, rerender } = render(
+      <AreaChart label="Revenue" data={chartData} curve="linear" stacked animate={false} />,
+    );
+    await screen.findByRole('application');
+    await waitFor(() => expect(container.querySelectorAll('.recharts-area-curve')).toHaveLength(2));
+    const linear = container.querySelector('.recharts-area-curve')!.getAttribute('d');
+    expect(linear).toContain('L');
+    rerender(
+      <LineChart
+        label="Revenue"
+        data={chartData}
+        curve="step"
+        animate={false}
+        series={[{ dataKey: 'cost', strokeDasharray: '4 4' }]}
+      />,
+    );
+    await waitFor(() =>
+      expect(container.querySelector('.recharts-line-curve')).toHaveAttribute(
+        'stroke-dasharray',
+        '4 4',
+      ),
+    );
+    expect(container.querySelector('.recharts-line-curve')!.getAttribute('d')).not.toBe(linear);
   });
 
   it('renders actual donut sectors with palette tokens and treats zero totals as empty', async () => {

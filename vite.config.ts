@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { docsVersionMiddleware } from './scripts/docs-version-middleware.ts';
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [docsVersionMiddleware(), react(), tailwindcss()],
   build: {
     outDir: 'site-dist',
     sourcemap: true,
@@ -21,5 +22,11 @@ export default defineConfig({
       },
     },
   },
-  server: { port: 5173, strictPort: false },
+  server: {
+    port: 5173,
+    strictPort: false,
+    watch: {
+      ignored: ['**/.preview/**', '**/.npm-cache/**', '**/dist/**', '**/public/v/**'],
+    },
+  },
 });

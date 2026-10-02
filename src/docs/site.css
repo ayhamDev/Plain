@@ -1098,6 +1098,91 @@ button {
   overflow: visible;
   background: var(--ui-background);
 }
+
+.prop-playground-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.prop-playground-heading h2 {
+  margin: 0;
+}
+.prop-playground-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(144px, 100%), 1fr));
+  gap: 16px;
+  margin-block: 16px 24px;
+}
+.prop-playground-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+}
+.prop-playground-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.chart-doc-example {
+  width: 100%;
+  min-width: 0;
+}
+.chart-doc-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-block-end: 24px;
+}
+.chart-doc-heading h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
+.chart-doc-heading p {
+  font-size: 12px;
+  color: var(--ui-muted-foreground);
+  margin-block: 4px 0;
+}
+.chart-doc-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: end;
+  flex-shrink: 0;
+}
+.chart-doc-metric strong {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.chart-doc-metric span {
+  color: var(--ui-muted-foreground);
+  font-size: 11px;
+}
+.prop-playground-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 240px;
+  padding: 32px 24px;
+  margin-block: 16px;
+  border: 1px solid var(--ui-border);
+  border-radius: min(var(--ui-radius), 8px);
+  overflow-x: auto;
+}
+.prop-playground-stage > [data-ui='field'] {
+  width: 100%;
+  max-width: 320px;
+}
+@media (max-width: 480px) {
+  .prop-playground-stage {
+    padding: 24px 16px;
+  }
+}
 .demo-wrap {
   display: flex;
   align-items: center;
