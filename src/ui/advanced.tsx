@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from './i18n';
 import {
   ContextMenu as ContextPrimitive,
   HoverCard as HoverPrimitive,
@@ -109,6 +110,7 @@ export const NumberInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Nu
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
     const input = React.useRef<HTMLInputElement>(null);
     React.useImperativeHandle(ref, () => input.current!, []);
     const [raw, setValue, reset] = useValue(controlled, defaultValue, onValueChange);
@@ -140,8 +142,8 @@ export const NumberInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Nu
             disabled={
               disabled || readOnly || (value !== '' && lower !== undefined && value <= lower)
             }
-            aria-label="Decrease value"
-            title="Decrease value"
+            aria-label={t('input.decrease')}
+            title={t('input.decrease')}
             {...styles('number-input.decrease', 'ui-input-action', undefined, unstyled)}
             onClick={() => changeBy(-1)}
           >
@@ -154,7 +156,7 @@ export const NumberInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Nu
         <input
           ref={input}
           type="number"
-          aria-label="Number"
+          aria-label={t('input.number')}
           value={value}
           min={lower}
           max={upper}
@@ -181,8 +183,8 @@ export const NumberInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Nu
             disabled={
               disabled || readOnly || (value !== '' && upper !== undefined && value >= upper)
             }
-            aria-label="Increase value"
-            title="Increase value"
+            aria-label={t('input.increase')}
+            title={t('input.increase')}
             {...styles('number-input.increase', 'ui-input-action', undefined, unstyled)}
             onClick={() => changeBy(1)}
           >
@@ -215,7 +217,7 @@ export const SearchInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Se
       defaultValue = '',
       onValueChange,
       onClear,
-      clearLabel = 'Clear search',
+      clearLabel: clearLabelProp,
       className,
       unstyled,
       disabled,
@@ -226,6 +228,7 @@ export const SearchInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Se
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
     const input = React.useRef<HTMLInputElement>(null);
     React.useImperativeHandle(ref, () => input.current!, []);
     const [value, setValue, reset] = useValue(controlled, defaultValue, onValueChange);
@@ -242,7 +245,7 @@ export const SearchInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Se
         <input
           ref={input}
           type="search"
-          aria-label="Search"
+          aria-label={t('common.search')}
           value={value}
           disabled={disabled}
           readOnly={readOnly}
@@ -255,8 +258,8 @@ export const SearchInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Se
         />
         <button
           type="button"
-          aria-label={clearLabel}
-          title={clearLabel}
+          aria-label={clearLabelProp ?? t('input.clear')}
+          title={clearLabelProp ?? t('input.clear')}
           tabIndex={value ? 0 : -1}
           disabled={disabled || readOnly || !value}
           data-empty={!value || undefined}
@@ -307,6 +310,7 @@ export const PasswordInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, 
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
     const input = React.useRef<HTMLInputElement>(null);
     React.useImperativeHandle(ref, () => input.current!, []);
     const [value, setValue, reset] = useValue(controlled, defaultValue, onValueChange);
@@ -320,7 +324,7 @@ export const PasswordInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, 
         <input
           ref={input}
           type={visible ? 'text' : 'password'}
-          aria-label="Password"
+          aria-label={t('input.password')}
           autoComplete="current-password"
           value={value}
           disabled={disabled}
@@ -334,8 +338,8 @@ export const PasswordInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, 
         <button
           type="button"
           disabled={disabled}
-          aria-label={visible ? 'Hide password' : 'Show password'}
-          title={visible ? 'Hide password' : 'Show password'}
+          aria-label={t(visible ? 'input.hidePassword' : 'input.showPassword')}
+          title={t(visible ? 'input.hidePassword' : 'input.showPassword')}
           aria-pressed={visible}
           {...styles('password-input.toggle', 'ui-input-action', undefined, unstyled)}
           onClick={() => setVisible(!visible)}
@@ -398,6 +402,8 @@ export const PinInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, PinIn
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
+
     const input = React.useRef<HTMLInputElement>(null);
     React.useImperativeHandle(ref, () => input.current!, []);
     const size = Number.isFinite(length) ? Math.max(1, Math.min(32, Math.floor(length))) : 6;
@@ -429,7 +435,7 @@ export const PinInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, PinIn
         <input
           ref={input}
           type={masked ? 'password' : 'text'}
-          aria-label="Verification code"
+          aria-label={t('input.pin')}
           inputMode={numeric ? 'numeric' : 'text'}
           autoComplete="one-time-code"
           pattern={numeric ? `[0-9]{${size}}` : undefined}
@@ -548,6 +554,7 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
     const input = React.useRef<HTMLInputElement>(null);
     React.useImperativeHandle(ref, () => input.current!, []);
     const [files, setFiles, reset] = useValue<readonly File[]>(controlled, defaultValue, (next) => {
@@ -625,7 +632,7 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
           <input
             ref={input}
             type="file"
-            aria-label="Upload files"
+            aria-label={t('file.upload')}
             accept={accept}
             multiple={multiple}
             disabled={disabled}
@@ -639,7 +646,7 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
         </div>
         {!!files.length && (
           <ul
-            aria-label="Selected files"
+            aria-label={t('file.selected')}
             {...styles('file-upload.list', 'ui-file-upload-list', undefined, unstyled)}
           >
             {files.map((file, index) => (
@@ -670,8 +677,8 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
                 <button
                   type="button"
                   disabled={disabled}
-                  aria-label={`Remove ${file.name}`}
-                  title={`Remove ${file.name}`}
+                  aria-label={t('file.remove', { label: file.name })}
+                  title={t('file.remove', { label: file.name })}
                   {...styles('file-upload.remove', 'ui-input-action', undefined, unstyled)}
                   onClick={() => {
                     const next = files.filter((_, i) => i !== index);
@@ -720,7 +727,7 @@ export const Rating = /* @__PURE__ */ React.forwardRef<HTMLDivElement, RatingPro
       max = 5,
       readOnly,
       allowClear,
-      getLabel = (n, total) => `${n} of ${total} stars`,
+      getLabel: getLabelProp,
       name,
       form,
       disabled,
@@ -733,6 +740,7 @@ export const Rating = /* @__PURE__ */ React.forwardRef<HTMLDivElement, RatingPro
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
     const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
     const root = React.useRef<HTMLDivElement>(null);
     React.useImperativeHandle(ref, () => root.current!, []);
@@ -746,7 +754,7 @@ export const Rating = /* @__PURE__ */ React.forwardRef<HTMLDivElement, RatingPro
           ref={root}
           dir={direction}
           orientation="horizontal"
-          aria-label="Rating"
+          aria-label={t('rating.title')}
           value={value ? String(value) : ''}
           disabled={disabled}
           required={required}
@@ -761,7 +769,10 @@ export const Rating = /* @__PURE__ */ React.forwardRef<HTMLDivElement, RatingPro
             <RadioGroup.Item
               key={index}
               value={String(index + 1)}
-              aria-label={getLabel(index + 1, limit)}
+              aria-label={
+                getLabelProp?.(index + 1, limit) ??
+                t('rating.label', { value: index + 1, max: limit })
+              }
               tabIndex={readOnly ? -1 : undefined}
               data-filled={index < value || undefined}
               {...styles('rating.item', 'ui-rating-item', undefined, unstyled)}
@@ -778,8 +789,8 @@ export const Rating = /* @__PURE__ */ React.forwardRef<HTMLDivElement, RatingPro
           <button
             type="button"
             disabled={disabled || value === 0}
-            aria-label="Clear rating"
-            title="Clear rating"
+            aria-label={t('rating.clear')}
+            title={t('rating.clear')}
             {...styles('rating.clear', 'ui-input-action', undefined, unstyled)}
             onClick={() => setValue(0)}
           >
@@ -830,6 +841,8 @@ export const TagsInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Tags
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
+
     const input = React.useRef<HTMLInputElement>(null);
     React.useImperativeHandle(ref, () => input.current!, []);
     const [tags, setTags, reset] = useValue<readonly string[]>(controlled, defaultValue, (next) =>
@@ -842,8 +855,8 @@ export const TagsInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Tags
     }, [reset]);
     useFormReset(input, resetAll);
     React.useEffect(() => {
-      input.current?.setCustomValidity(required && !tags.length ? 'Add at least one tag.' : '');
-    }, [required, tags.length]);
+      input.current?.setCustomValidity(required && !tags.length ? t('input.requiredTag') : '');
+    }, [required, tags.length, t]);
     const add = () => {
       const tag = draft.trim();
       if (!tag || tags.length >= maxTags || disabled || readOnly) return;
@@ -867,7 +880,7 @@ export const TagsInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Tags
               <button
                 type="button"
                 disabled={disabled}
-                aria-label={`Remove ${tag}`}
+                aria-label={t('common.remove', { label: tag })}
                 title={`Remove ${tag}`}
                 {...styles('tags-input.remove', 'ui-tag-remove', undefined, unstyled)}
                 onClick={() => {
@@ -889,7 +902,7 @@ export const TagsInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Tags
         <input
           ref={input}
           type="text"
-          aria-label="Tags"
+          aria-label={t('input.tags')}
           form={form}
           value={draft}
           required={required && !tags.length}
@@ -958,7 +971,7 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
       open: controlledOpen,
       defaultOpen = false,
       onOpenChange,
-      emptyLabel = 'No results',
+      emptyLabel: emptyLabelProp,
       name,
       form,
       required,
@@ -976,6 +989,7 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
     const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
     const portal = usePortalContainer();
     const input = React.useRef<HTMLInputElement>(null);
@@ -998,10 +1012,8 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
     }, [reset]);
     useFormReset(input, resetAll);
     React.useEffect(() => {
-      input.current?.setCustomValidity(
-        required && !values.length ? 'Select at least one option.' : '',
-      );
-    }, [required, values.length]);
+      input.current?.setCustomValidity(required && !values.length ? t('select.required') : '');
+    }, [required, values.length, t]);
     const filtered = options.filter((option) =>
       option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
     );
@@ -1048,7 +1060,9 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
                   <button
                     type="button"
                     disabled={disabled}
-                    aria-label={`Remove ${options.find((option) => option.value === value)?.label ?? value}`}
+                    aria-label={t('common.remove', {
+                      label: options.find((option) => option.value === value)?.label ?? value,
+                    })}
                     {...styles('multi-select.remove', 'ui-tag-remove', undefined, unstyled)}
                     onClick={() => {
                       setValues(values.filter((current) => current !== value));
@@ -1076,7 +1090,7 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
               id={id}
               type="text"
               role="combobox"
-              aria-label="Select options"
+              aria-label={t('select.options')}
               aria-autocomplete="list"
               aria-expanded={open && !disabled && !readOnly}
               aria-controls={open ? listId : undefined}
@@ -1130,8 +1144,8 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
               type="button"
               tabIndex={-1}
               disabled={disabled || readOnly}
-              aria-label="Toggle options"
-              title="Toggle options"
+              aria-label={t('select.toggle')}
+              title={t('select.toggle')}
               aria-expanded={open}
               {...styles('multi-select.toggle', 'ui-input-action', undefined, unstyled)}
               onClick={() => {
@@ -1163,7 +1177,7 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
             <div
               id={listId}
               role="listbox"
-              aria-label={props['aria-label'] ?? 'Options'}
+              aria-label={props['aria-label'] ?? t('common.options')}
               aria-multiselectable="true"
               {...styles('multi-select.list', 'ui-multi-select-list', undefined, unstyled)}
             >
@@ -1171,7 +1185,7 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
                 <div
                   {...styles('multi-select.empty', 'ui-multi-select-empty', undefined, unstyled)}
                 >
-                  {emptyLabel}
+                  {emptyLabelProp ?? t('common.noResults')}
                 </div>
               )}
               {filtered.map((option) => (
@@ -1218,6 +1232,7 @@ export type MenubarProps = React.ComponentPropsWithoutRef<typeof MenubarPrimitiv
 export const Menubar = /* @__PURE__ */ React.forwardRef<HTMLDivElement, MenubarProps>(
   ({ className, unstyled, dir, children, ...props }, ref) => {
     const styles = useStyles();
+
     const direction = useDirection(dir);
     return (
       <StyleProvider unstyled={unstyled}>
@@ -1243,6 +1258,7 @@ export const MenubarTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Trigger> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <MenubarPrimitive.Trigger
       ref={ref}
@@ -1257,6 +1273,7 @@ export const MenubarContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Content> & PlainStyleProps
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
+
   const container = usePortalContainer();
   return (
     <StyleProvider unstyled={unstyled}>
@@ -1282,6 +1299,7 @@ export const MenubarItem = /* @__PURE__ */ React.forwardRef<
     PlainStyleProps & { inset?: boolean; shortcut?: React.ReactNode }
 >(({ className, unstyled, inset, shortcut, children, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <MenubarPrimitive.Item
       ref={ref}
@@ -1304,6 +1322,7 @@ export const MenubarCheckboxItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.CheckboxItem> & PlainStyleProps
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <MenubarPrimitive.CheckboxItem
       ref={ref}
@@ -1325,6 +1344,7 @@ export const MenubarRadioItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.RadioItem> & PlainStyleProps
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <MenubarPrimitive.RadioItem
       ref={ref}
@@ -1346,6 +1366,7 @@ export const MenubarLabel = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Label> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <MenubarPrimitive.Label
       ref={ref}
@@ -1360,6 +1381,7 @@ export const MenubarSeparator = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Separator> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <MenubarPrimitive.Separator
       ref={ref}
@@ -1374,6 +1396,7 @@ export const MenubarSubTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.SubTrigger> & PlainStyleProps
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <MenubarPrimitive.SubTrigger
       ref={ref}
@@ -1394,6 +1417,7 @@ export const MenubarSubContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.SubContent> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   const container = usePortalContainer();
   return (
     <MenubarPrimitive.Portal container={container}>
@@ -1431,6 +1455,7 @@ export const ContextMenuTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextPrimitive.Trigger> & PlainStyleProps
 >(({ className, unstyled, disabled, onKeyDown, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <ContextPrimitive.Trigger
       ref={ref}
@@ -1464,6 +1489,7 @@ export const ContextMenuContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextPrimitive.Content> & PlainStyleProps
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
+
   const container = usePortalContainer();
   return (
     <StyleProvider unstyled={unstyled}>
@@ -1487,6 +1513,7 @@ export const ContextMenuItem = /* @__PURE__ */ React.forwardRef<
     PlainStyleProps & { inset?: boolean; shortcut?: React.ReactNode }
 >(({ className, unstyled, inset, shortcut, children, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <ContextPrimitive.Item
       ref={ref}
@@ -1509,6 +1536,7 @@ export const ContextMenuCheckboxItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextPrimitive.CheckboxItem> & PlainStyleProps
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <ContextPrimitive.CheckboxItem
       ref={ref}
@@ -1530,6 +1558,7 @@ export const ContextMenuRadioItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextPrimitive.RadioItem> & PlainStyleProps
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <ContextPrimitive.RadioItem
       ref={ref}
@@ -1551,6 +1580,7 @@ export const ContextMenuLabel = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextPrimitive.Label> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <ContextPrimitive.Label
       ref={ref}
@@ -1565,6 +1595,7 @@ export const ContextMenuSeparator = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextPrimitive.Separator> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <ContextPrimitive.Separator
       ref={ref}
@@ -1579,6 +1610,7 @@ export const ContextMenuSubTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextPrimitive.SubTrigger> & PlainStyleProps
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <ContextPrimitive.SubTrigger
       ref={ref}
@@ -1604,6 +1636,7 @@ export const ContextMenuSubContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ContextPrimitive.SubContent> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   const container = usePortalContainer();
   return (
     <ContextPrimitive.Portal container={container}>
@@ -1636,6 +1669,7 @@ export const HoverCardTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof HoverPrimitive.Trigger> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <HoverPrimitive.Trigger
       ref={ref}
@@ -1650,6 +1684,7 @@ export const HoverCardContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof HoverPrimitive.Content> & PlainStyleProps
 >(({ className, unstyled, dir, ...props }, ref) => {
   const styles = useStyles();
+
   const container = usePortalContainer();
   const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
   return (
@@ -1696,6 +1731,7 @@ export const TimelineItem = /* @__PURE__ */ React.forwardRef<HTMLLIElement, Time
     ref,
   ) => {
     const styles = useStyles();
+
     return (
       <li
         ref={ref}
@@ -1744,11 +1780,13 @@ export interface TimelineProps extends React.OlHTMLAttributes<HTMLOListElement>,
 export const Timeline = /* @__PURE__ */ React.forwardRef<HTMLOListElement, TimelineProps>(
   ({ items, children, className, unstyled, ...props }, ref) => {
     const styles = useStyles();
+    const { t } = useTranslation();
+
     return (
       <StyleProvider unstyled={unstyled}>
         <ol
           ref={ref}
-          aria-label="Activity"
+          aria-label={t('activity.label')}
           {...styles('timeline.root', 'ui-timeline', className, unstyled)}
           {...props}
         >
@@ -1779,7 +1817,7 @@ export const Banner = /* @__PURE__ */ React.forwardRef<HTMLDivElement, BannerPro
       variant = 'info',
       action,
       dismissible,
-      dismissLabel = 'Dismiss notification',
+      dismissLabel: dismissLabelProp,
       open: controlled,
       defaultOpen = true,
       onOpenChange,
@@ -1792,6 +1830,8 @@ export const Banner = /* @__PURE__ */ React.forwardRef<HTMLDivElement, BannerPro
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
+
     const [open, setOpen] = useValue(controlled, defaultOpen, onOpenChange);
     if (!open) return null;
     return (
@@ -1834,8 +1874,8 @@ export const Banner = /* @__PURE__ */ React.forwardRef<HTMLDivElement, BannerPro
         {dismissible && (
           <button
             type="button"
-            aria-label={dismissLabel}
-            title={dismissLabel}
+            aria-label={dismissLabelProp ?? t('banner.dismiss')}
+            title={dismissLabelProp ?? t('banner.dismiss')}
             {...styles('banner.dismiss', 'ui-input-action', undefined, unstyled)}
             onClick={() => {
               setOpen(false);
@@ -1859,8 +1899,9 @@ export interface LoadingOverlayProps extends React.HTMLAttributes<HTMLDivElement
   label?: string;
 }
 export const LoadingOverlay = /* @__PURE__ */ React.forwardRef<HTMLDivElement, LoadingOverlayProps>(
-  ({ visible = true, label = 'Loading', children, className, unstyled, ...props }, ref) => {
+  ({ visible = true, label: labelProp, children, className, unstyled, ...props }, ref) => {
     const styles = useStyles();
+    const { t } = useTranslation();
     return (
       <div
         ref={ref}
@@ -1878,7 +1919,7 @@ export const LoadingOverlay = /* @__PURE__ */ React.forwardRef<HTMLDivElement, L
         {visible && (
           <div
             role="status"
-            aria-label={label}
+            aria-label={labelProp ?? t('common.loading')}
             {...styles(
               'loading-overlay.overlay',
               'ui-loading-overlay-backdrop',
@@ -1891,7 +1932,7 @@ export const LoadingOverlay = /* @__PURE__ */ React.forwardRef<HTMLDivElement, L
               aria-hidden="true"
             />
             <span {...styles('loading-overlay.label', 'ui-visually-hidden', undefined, unstyled)}>
-              {label}
+              {labelProp ?? t('common.loading')}
             </span>
           </div>
         )}

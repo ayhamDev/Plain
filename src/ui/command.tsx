@@ -1,5 +1,6 @@
 import { StyleProvider, useStyles, type PlainStyleProps } from './styling';
 import * as React from 'react';
+import { useTranslation } from './i18n';
 import { Command as CommandPrimitive } from 'cmdk';
 import { Check, ChevronsUpDown, Search } from 'lucide-react';
 import { cn } from './utils';
@@ -191,9 +192,9 @@ export const Combobox = /* @__PURE__ */ React.forwardRef<
     value,
     defaultValue = '',
     onValueChange,
-    placeholder = 'Select an option',
-    searchPlaceholder = 'Search options...',
-    emptyMessage = 'No options found.',
+    placeholder: placeholderProp,
+    searchPlaceholder: searchPlaceholderProp,
+    emptyMessage: emptyMessageProp,
     name,
     className,
     unstyled,
@@ -201,6 +202,10 @@ export const Combobox = /* @__PURE__ */ React.forwardRef<
     ...props
   } = allProps;
   const styles = useStyles();
+  const { t } = useTranslation();
+  const placeholder = placeholderProp ?? t('select.option'),
+    searchPlaceholder = searchPlaceholderProp ?? t('select.search'),
+    emptyMessage = emptyMessageProp ?? t('select.empty');
   const controlled = Object.prototype.hasOwnProperty.call(allProps, 'value');
   const [open, setOpen] = React.useState(false);
   const [internalValue, setInternalValue] = React.useState(defaultValue);

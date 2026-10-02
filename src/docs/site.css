@@ -1210,6 +1210,9 @@ button {
   padding: 8px 12px;
   min-width: 0;
 }
+.sidebar-workspace .ui-sidebar[data-state='collapsed'] .workspace-search {
+  display: none;
+}
 .workspace-files {
   padding: 4px 8px;
 }

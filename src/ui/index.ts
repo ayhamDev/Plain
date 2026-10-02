@@ -1,6 +1,9 @@
 'use client';
 
 export * from './utils';
+export * from './i18n';
+export * from './chips';
+export * from './search-view';
 export * from './theme';
 export * from './styling';
 export * from './slots';
@@ -12,6 +15,7 @@ export * from './command';
 export * from './calendar';
 export * from './table';
 export * from './data-table';
+export * from './data-table-remote';
 export * from './token-contract';
 export * from './color-theme';
 export * from './extend';

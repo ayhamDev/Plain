@@ -16,33 +16,51 @@ import { cn } from './utils';
 import { useModalInert } from './modal-accessibility';
 const inputClass =
   'ui-interactive flex min-h-[var(--ui-input-height,var(--ui-control-height))] w-full min-w-0 rounded-[var(--ui-input-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-input-border bg-[var(--ui-input-background,var(--ui-surface))] px-3 py-2 text-sm text-[var(--ui-input-foreground,var(--ui-foreground))] placeholder:text-[var(--ui-input-placeholder,var(--ui-muted-foreground))] focus-visible:border-[var(--ui-input-focus,var(--ui-accent))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-input-focus,var(--ui-accent))] disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-55 aria-invalid:border-danger aria-invalid:focus-visible:outline-danger';
-export const Input = /* @__PURE__ */ React.forwardRef<
-  HTMLInputElement,
-  React.InputHTMLAttributes<HTMLInputElement> & PlainStyleProps
->(({ className, type = 'text', unstyled, ...props }, ref) => {
-  const styles = useStyles();
-  return (
-    <input
-      ref={ref}
-      type={type}
-      {...styles('input.root', inputClass, className, unstyled)}
-      {...props}
-    />
-  );
-});
+export type InputVariant = 'outlined' | 'filled' | 'ghost';
+export type InputProps = React.InputHTMLAttributes<HTMLInputElement> &
+  PlainStyleProps & { variant?: InputVariant };
+export const Input = /* @__PURE__ */ React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type = 'text', unstyled, variant = 'outlined', ...props }, ref) => {
+    const styles = useStyles();
+    return (
+      <input
+        ref={ref}
+        type={type}
+        data-variant={variant}
+        {...styles(
+          'input.root',
+          cn(
+            inputClass,
+            variant === 'filled' && 'border-transparent bg-muted',
+            variant === 'ghost' && 'border-transparent bg-transparent hover:bg-muted',
+          ),
+          className,
+          unstyled,
+        )}
+        {...props}
+      />
+    );
+  },
+);
 Input.displayName = 'Input';
 export const Textarea = /* @__PURE__ */ React.forwardRef<
   HTMLTextAreaElement,
-  React.TextareaHTMLAttributes<HTMLTextAreaElement> & PlainStyleProps
->(({ className, rows = 3, unstyled, ...props }, ref) => {
+  React.TextareaHTMLAttributes<HTMLTextAreaElement> & PlainStyleProps & { variant?: InputVariant }
+>(({ className, rows = 3, variant = 'outlined', unstyled, ...props }, ref) => {
   const styles = useStyles();
   return (
     <textarea
       ref={ref}
       rows={rows}
+      data-variant={variant}
       {...styles(
         'textarea.root',
-        cn(inputClass, 'min-h-24 resize-y leading-6'),
+        cn(
+          inputClass,
+          'min-h-24 resize-y leading-6',
+          variant === 'filled' && 'border-transparent bg-muted',
+          variant === 'ghost' && 'border-transparent bg-transparent hover:bg-muted',
+        ),
         className,
         unstyled,
       )}

@@ -179,7 +179,9 @@ describe('typed prop playgrounds', () => {
           ? { resolvedFileName: `${root}/src/ui/index.ts`, extension: ts.Extension.Ts }
           : name === '@plain/ui/charts'
             ? { resolvedFileName: `${root}/src/ui/charts.tsx`, extension: ts.Extension.Tsx }
-            : ts.resolveModuleName(name, containingFile, options, host).resolvedModule,
+            : name === '@plain/ui/kanban'
+              ? { resolvedFileName: `${root}/src/ui/kanban.tsx`, extension: ts.Extension.Tsx }
+              : ts.resolveModuleName(name, containingFile, options, host).resolvedModule,
       );
     const program = ts.createProgram([...sources.keys()], options, host);
     const errors = ts

@@ -1,5 +1,11 @@
 # P.UI QA
 
+**Latest workspace upgrade (2026-10-02):** See the
+[integration record](docs/releases/workspace-upgrade.md) for the final 176-unit
+run, 426 distinct browser scenarios verified across the full run and focused
+recovery runs, package checks, visual evidence and remaining validation limits.
+The older records below retain their original scope and results.
+
 Local integration checked on **2026-10-01**, Windows, Node **24.13.0**, React
 **19.3.0**, TypeScript **6.0.0**, Vite **8.3.1**, and Tailwind CSS **4.3.3**.
 The candidate is the `codex/next` commit containing this record, based on the

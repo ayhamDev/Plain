@@ -38,6 +38,8 @@
     flex-direction: column;
     gap: 8px;
     min-inline-size: 0;
+    align-items: inherit;
+    max-inline-size: 100%;
   }
   .ui-empty-state-icon {
     display: flex;
@@ -66,7 +68,7 @@
   }
   .ui-empty-state-actions {
     display: flex;
-    justify-content: inherit;
+    justify-content: center;
     flex-wrap: wrap;
     gap: 8px;
     margin-block-start: 8px;

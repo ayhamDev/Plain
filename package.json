@@ -124,6 +124,22 @@
     "./full-calendar.css": {
       "types": "./dist/full-calendar.css.d.ts",
       "default": "./dist/full-calendar-styles.css"
+    },
+    "./kanban": {
+      "types": "./dist/ui/kanban.d.ts",
+      "import": "./dist/ui/kanban.js"
+    },
+    "./i18n": {
+      "types": "./dist/ui/i18n.d.ts",
+      "import": "./dist/ui/i18n.js"
+    },
+    "./chips": {
+      "types": "./dist/ui/chips.d.ts",
+      "import": "./dist/ui/chips.js"
+    },
+    "./search-view": {
+      "types": "./dist/ui/search-view.d.ts",
+      "import": "./dist/ui/search-view.js"
     }
   },
   "scripts": {
@@ -163,6 +179,9 @@
     "access": "public"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@material/material-color-utilities": "^0.3.0",
     "@tanstack/react-table": "^9.2.4",
     "@tanstack/react-virtual": "^3.14.13",
@@ -199,8 +218,8 @@
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
     "jsdom": "^26.1.0",
-    "prettier": "^3.9.9",
     "postcss": "^8.5.28",
+    "prettier": "^3.9.9",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.4",

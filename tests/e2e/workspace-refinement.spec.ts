@@ -48,7 +48,9 @@ for (const width of [1440, 320]) {
     await preview.getByRole('button', { name: 'Clear selection', exact: true }).click();
     await preview.getByRole('button', { name: /^Filters/ }).click();
     await page.getByRole('button', { name: 'Add filter', exact: true }).click();
-    await page.getByRole('checkbox', { name: 'Paid', exact: true }).check();
+    await page.getByRole('combobox', { name: 'Filter value for Status', exact: true }).click();
+    await page.getByRole('option', { name: 'Paid', exact: true }).click();
+    await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Add filter', exact: true }).click();
     await page.getByRole('combobox', { name: 'Filter field', exact: true }).last().click();
     await page.getByRole('option', { name: 'Amount', exact: true }).click();

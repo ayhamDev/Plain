@@ -38,7 +38,6 @@ import {
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from './table';
 import {
   Input,
-  Label,
   Checkbox,
   Select,
   SelectTrigger,
@@ -46,7 +45,12 @@ import {
   SelectContent,
   SelectItem,
 } from './forms';
-import { DatePicker } from './calendar';
+import { useTranslation } from './i18n';
+import {
+  DataTableFilterValue,
+  DataTableSimpleFilter,
+  filterSummary,
+} from './data-table-filter-value';
 import { SearchInput } from './advanced';
 import {
   Popover,
@@ -99,13 +103,15 @@ export interface UseDataTableOptions<T extends RowData> extends Omit<
   'features'
 > {
   pageSize?: number;
+  serverSide?: boolean;
   query?: DataTableQuery;
   defaultQuery?: DataTableQuery;
   onQueryChange?: (query: DataTableQuery) => void;
-  filterFields?: readonly DataTableFilterField[];
+  filterFields?: readonly DataTableFilterField<T>[];
 }
 export function useDataTable<T extends RowData>({
   pageSize = 10,
+  serverSide,
   query,
   defaultQuery,
   onQueryChange,
@@ -119,6 +125,9 @@ export function useDataTable<T extends RowData>({
   return useTable({
     ...options,
     features: dataTableFeatures,
+    manualFiltering: options.manualFiltering ?? serverSide,
+    manualSorting: options.manualSorting ?? serverSide,
+    manualPagination: options.manualPagination ?? serverSide,
     initialState: {
       pagination: {
         pageIndex: 0,
@@ -149,10 +158,7 @@ export function useDataTable<T extends RowData>({
         .every((term) => text.includes(term));
       const results = q.filters.filter(isActiveTableFilter).map((rule) => {
         const field = filterFields.find((field) => field.id === rule.field);
-        const value = row
-          .getAllCells()
-          .find((cell) => cell.column.id === rule.field)
-          ?.getValue();
+        const value = field?.getValue ? field.getValue(row.original) : row.getValue(rule.field);
         return field?.test ? field.test(value, rule) : testTableFilter(value, rule, field?.type);
       });
       return (
@@ -168,7 +174,14 @@ export interface DataTableViewProps<T extends RowData>
   table: DataTableInstance<T>;
   searchable?: boolean;
   searchPlaceholder?: string;
-  filterFields?: readonly DataTableFilterField[];
+  filterFields?: readonly DataTableFilterField<T>[];
+  filterMode?: 'advanced' | 'simple';
+  stickyHeader?: boolean;
+  stickyFooter?: boolean;
+  stickyScrollbar?: boolean;
+  stickyHeaderOffset?: number;
+  stickyFooterOffset?: number;
+  scrollHeight?: React.CSSProperties['maxHeight'];
   columnControls?: boolean;
   selectable?: boolean;
   loading?: boolean;
@@ -225,10 +238,11 @@ export function DataTable<T extends RowData>(props: DataTableProps<T> | DataTabl
   return <OwnedDataTable {...(props as DataTableProps<T>)} />;
 }
 function RowSelection<T extends RowData>({ row }: { row: DataTableRow<T> }) {
+  const { t } = useTranslation();
   const click = React.useRef<React.MouseEvent<HTMLButtonElement> | undefined>(undefined);
   return (
     <Checkbox
-      aria-label={`Select row ${row.id}`}
+      aria-label={t('table.selectRow', { id: row.id })}
       checked={row.getIsSelected()}
       disabled={!row.getCanSelect()}
       onClick={(event) => {
@@ -245,41 +259,18 @@ function RowSelection<T extends RowData>({ row }: { row: DataTableRow<T> }) {
     />
   );
 }
-function filterDate(value: unknown) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? ''));
-  return match ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12) : undefined;
-}
-function filterDateString(date: Date | undefined) {
-  return date
-    ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-    : '';
-}
 function columnLabel(column: { id: string; columnDef: { header?: unknown } }) {
   return typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id;
 }
-const operatorLabels = {
-  contains: 'contains',
-  notContains: 'does not contain',
-  eq: 'is',
-  neq: 'is not',
-  in: 'is any of',
-  notIn: 'is none of',
-  gt: 'greater than',
-  gte: 'at least',
-  lt: 'less than',
-  lte: 'at most',
-  between: 'between',
-  empty: 'is empty',
-  notEmpty: 'is not empty',
-};
 export function DataTableFilters<T extends RowData>({
   table,
   fields,
 }: {
   table: DataTableInstance<T>;
-  fields: readonly DataTableFilterField[];
+  fields: readonly DataTableFilterField<T>[];
 }) {
   const styles = useStyles();
+  const { t } = useTranslation();
   const query = tableQuery(table.state.globalFilter);
   const id = React.useId();
   const update = (filters: DataTableFilter[]) => {
@@ -312,15 +303,17 @@ export function DataTableFilters<T extends RowData>({
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm">
           <Filter size={14} aria-hidden="true" />
-          Filters
-          {query.filters.length > 0 && (
-            <span {...styles('data-table.count', 'ui-table-count')}>{query.filters.length}</span>
+          {t('table.filters')}
+          {query.filters.filter(isActiveTableFilter).length > 0 && (
+            <span {...styles('data-table.count', 'ui-table-count')}>
+              {query.filters.filter(isActiveTableFilter).length}
+            </span>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" {...styles('data-table.filter-panel', 'ui-table-filter-panel')}>
         <div {...styles('data-table.filter-heading', 'ui-table-filter-heading')}>
-          <strong>Filters</strong>
+          <strong>{t('table.filters')}</strong>
           {select(
             query.join,
             (join) => {
@@ -328,17 +321,16 @@ export function DataTableFilters<T extends RowData>({
               table.setPageIndex(0);
             },
             [
-              { value: 'and', label: 'Match all' },
-              { value: 'or', label: 'Match any' },
+              { value: 'and', label: t('table.matchAll') },
+              { value: 'or', label: t('table.matchAny') },
             ],
-            'Filter matching',
+            t('table.matching'),
           )}
         </div>
         <div {...styles('data-table.filter-rules', 'ui-table-filter-rules')}>
           {query.filters.map((rule) => {
             const field = fields.find((field) => field.id === rule.field) ?? fields[0];
             if (!field) return null;
-            const multi = rule.operator === 'in' || rule.operator === 'notIn';
             return (
               <div {...styles('data-table.filter-rule', 'ui-table-filter-rule')} key={rule.id}>
                 {select(
@@ -352,7 +344,7 @@ export function DataTableFilters<T extends RowData>({
                     });
                   },
                   fields.map((field) => ({ value: field.id, label: field.label })),
-                  'Filter field',
+                  t('table.filterField'),
                 )}
                 {select(
                   rule.operator,
@@ -361,93 +353,18 @@ export function DataTableFilters<T extends RowData>({
                       operator: operator as DataTableFilter['operator'],
                       value: undefined,
                     }),
-                  filterOperators(field).map((value) => ({ value, label: operatorLabels[value] })),
-                  'Filter operator',
+                  filterOperators(field).map((value) => ({ value, label: t(`filter.${value}`) })),
+                  t('table.filterOperator'),
                 )}
-                {!['empty', 'notEmpty'].includes(rule.operator) &&
-                  (field.type === 'select' && multi ? (
-                    <div {...styles('data-table.filter-options', 'ui-table-filter-options')}>
-                      {field.options?.map((option) => (
-                        <Label key={option.value}>
-                          <Checkbox
-                            checked={Array.isArray(rule.value) && rule.value.includes(option.value)}
-                            onCheckedChange={(checked) =>
-                              patch(rule, {
-                                value: checked
-                                  ? [...(Array.isArray(rule.value) ? rule.value : []), option.value]
-                                  : (Array.isArray(rule.value) ? rule.value : []).filter(
-                                      (value) => value !== option.value,
-                                    ),
-                              })
-                            }
-                          />
-                          {option.label}
-                        </Label>
-                      ))}
-                    </div>
-                  ) : field.type === 'select' || field.type === 'boolean' ? (
-                    select(
-                      String(rule.value ?? ''),
-                      (value) => patch(rule, { value }),
-                      field.type === 'boolean'
-                        ? [
-                            { value: 'true', label: 'Yes' },
-                            { value: 'false', label: 'No' },
-                          ]
-                        : (field.options ?? []),
-                      'Filter value',
-                    )
-                  ) : rule.operator === 'between' ? (
-                    <div {...styles('data-table.filter-between', 'ui-table-filter-between')}>
-                      {[0, 1].map((i) =>
-                        field.type === 'date' ? (
-                          <DatePicker
-                            key={i}
-                            aria-label={i ? 'Maximum filter value' : 'Minimum filter value'}
-                            value={filterDate(Array.isArray(rule.value) ? rule.value[i] : '')}
-                            onValueChange={(date) => {
-                              const values = Array.isArray(rule.value) ? [...rule.value] : ['', ''];
-                              values[i] = filterDateString(date);
-                              patch(rule, { value: values });
-                            }}
-                          />
-                        ) : (
-                          <Input
-                            key={i}
-                            aria-label={i ? 'Maximum filter value' : 'Minimum filter value'}
-                            type={field.type === 'number' ? 'number' : 'text'}
-                            value={Array.isArray(rule.value) ? (rule.value[i] ?? '') : ''}
-                            onChange={(event) => {
-                              const values = Array.isArray(rule.value) ? [...rule.value] : ['', ''];
-                              values[i] = event.target.value;
-                              patch(rule, { value: values });
-                            }}
-                          />
-                        ),
-                      )}
-                    </div>
-                  ) : field.type === 'date' ? (
-                    <DatePicker
-                      aria-label={`Filter value for ${field.label}`}
-                      value={filterDate(rule.value)}
-                      onValueChange={(date) => patch(rule, { value: filterDateString(date) })}
-                    />
-                  ) : (
-                    <Input
-                      aria-label={`Filter value for ${field.label}`}
-                      type={field.type === 'number' ? 'number' : 'text'}
-                      value={
-                        typeof rule.value === 'boolean' || Array.isArray(rule.value)
-                          ? ''
-                          : (rule.value ?? '')
-                      }
-                      onChange={(event) => patch(rule, { value: event.target.value })}
-                    />
-                  ))}
+                <DataTableFilterValue
+                  field={field}
+                  rule={rule}
+                  onChange={(value) => patch(rule, { value })}
+                />
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Remove filter"
+                  aria-label={t('table.removeFilter')}
                   onClick={() => update(query.filters.filter((item) => item.id !== rule.id))}
                 >
                   <X size={14} />
@@ -474,7 +391,7 @@ export function DataTableFilters<T extends RowData>({
             }}
           >
             <Plus size={14} />
-            Add filter
+            {t('table.addFilter')}
           </Button>
           <Button
             size="sm"
@@ -482,7 +399,7 @@ export function DataTableFilters<T extends RowData>({
             disabled={!query.filters.length}
             onClick={() => update([])}
           >
-            Clear
+            {t('common.clear')}
           </Button>
         </div>
       </PopoverContent>
@@ -492,8 +409,9 @@ export function DataTableFilters<T extends RowData>({
 export function DataTableToolbar<T extends RowData>({
   table,
   searchable = true,
-  searchPlaceholder = 'Search records...',
+  searchPlaceholder,
   filterFields = [],
+  filterMode = 'advanced',
   columnControls = true,
   toolbarActions,
 }: Pick<
@@ -502,18 +420,20 @@ export function DataTableToolbar<T extends RowData>({
   | 'searchable'
   | 'searchPlaceholder'
   | 'filterFields'
+  | 'filterMode'
   | 'columnControls'
   | 'toolbarActions'
 >) {
   const styles = useStyles();
+  const { t } = useTranslation();
   const query = tableQuery(table.state.globalFilter),
     sorting = table.state.sorting;
   return (
     <div {...styles('data-table.toolbar', 'ui-table-toolbar')}>
       {searchable && (
         <SearchInput
-          aria-label={searchPlaceholder}
-          placeholder={searchPlaceholder}
+          aria-label={searchPlaceholder ?? t('table.search')}
+          placeholder={searchPlaceholder ?? t('table.search')}
           value={query.search}
           onValueChange={(search) => {
             table.setGlobalFilter({ ...query, search });
@@ -521,7 +441,32 @@ export function DataTableToolbar<T extends RowData>({
           }}
         />
       )}
-      {filterFields.length > 0 && <DataTableFilters table={table} fields={filterFields} />}
+      {filterFields.length > 0 &&
+        (filterMode === 'advanced' ? (
+          <DataTableFilters table={table} fields={filterFields} />
+        ) : (
+          filterFields.map((field) => (
+            <DataTableSimpleFilter
+              key={field.id}
+              field={field}
+              rule={query.filters.find((r) => r.field === field.id)}
+              onChange={(rule) => {
+                table.setGlobalFilter({
+                  ...query,
+                  filters: [...query.filters.filter((r) => r.field !== field.id), rule],
+                });
+                table.setPageIndex(0);
+              }}
+              onRemove={() => {
+                table.setGlobalFilter({
+                  ...query,
+                  filters: query.filters.filter((r) => r.field !== field.id),
+                });
+                table.setPageIndex(0);
+              }}
+            />
+          ))
+        ))}
       {!!(query.search || query.filters.length || table.state.columnFilters.length) && (
         <Button
           variant="ghost"
@@ -533,7 +478,7 @@ export function DataTableToolbar<T extends RowData>({
           }}
         >
           <RotateCcw size={14} />
-          Reset
+          {t('common.reset')}
         </Button>
       )}
       <div {...styles('data-table.toolbar-end', 'ui-table-toolbar-end')}>
@@ -541,14 +486,14 @@ export function DataTableToolbar<T extends RowData>({
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm">
               <ArrowUpDown size={14} />
-              Sort
+              {t('table.sort')}
               {sorting.length > 0 && (
                 <span {...styles('data-table.count', 'ui-table-count')}>{sorting.length}</span>
               )}
             </Button>
           </PopoverTrigger>
           <PopoverContent align="end" {...styles('data-table.sort-panel', 'ui-table-sort-panel')}>
-            <strong>Sort order</strong>
+            <strong>{t('table.sortOrder')}</strong>
             {sorting.map((rule, i) => (
               <div {...styles('data-table.sort-rule', 'ui-table-sort-rule')} key={rule.id}>
                 <span>{columnLabel(table.getColumn(rule.id)!)}</span>
@@ -562,18 +507,18 @@ export function DataTableToolbar<T extends RowData>({
                     )
                   }
                 >
-                  <SelectTrigger aria-label={`Direction for ${rule.id}`}>
+                  <SelectTrigger aria-label={t('table.sortDirection', { label: rule.id })}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="asc">Ascending</SelectItem>
-                    <SelectItem value="desc">Descending</SelectItem>
+                    <SelectItem value="asc">{t('table.ascending')}</SelectItem>
+                    <SelectItem value="desc">{t('table.descending')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label={`Remove sort ${rule.id}`}
+                  aria-label={t('table.removeSort', { label: rule.id })}
                   onClick={() => table.setSorting(sorting.filter((_, n) => n !== i))}
                 >
                   <X size={14} />
@@ -584,8 +529,8 @@ export function DataTableToolbar<T extends RowData>({
               value=""
               onValueChange={(id) => table.setSorting([...sorting, { id, desc: false }])}
             >
-              <SelectTrigger aria-label="Add sort">
-                <SelectValue placeholder="Add sort" />
+              <SelectTrigger aria-label={t('table.addSort')}>
+                <SelectValue placeholder={t('table.addSort')} />
               </SelectTrigger>
               <SelectContent>
                 {table
@@ -608,7 +553,7 @@ export function DataTableToolbar<T extends RowData>({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
                 <SlidersHorizontal size={14} />
-                Columns
+                {t('table.columns')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -633,12 +578,12 @@ export function DataTableToolbar<T extends RowData>({
       </div>
       {query.filters.length > 0 && (
         <div {...styles('data-table.active-filters', 'ui-table-active-filters')}>
-          {query.filters.map((rule) => (
+          {query.filters.filter(isActiveTableFilter).map((rule) => (
             <Button
               size="sm"
               variant="ghost"
               key={rule.id}
-              aria-label={`Remove ${rule.field} filter`}
+              aria-label={t('table.removeFilter')}
               onClick={() => {
                 table.setGlobalFilter({
                   ...query,
@@ -648,8 +593,14 @@ export function DataTableToolbar<T extends RowData>({
               }}
             >
               {filterFields.find((field) => field.id === rule.field)?.label ?? rule.field}{' '}
-              {operatorLabels[rule.operator]}{' '}
-              {Array.isArray(rule.value) ? rule.value.join(', ') : String(rule.value ?? '')}
+              {t(`filter.${rule.operator}`)}{' '}
+              {filterSummary(
+                filterFields.find((field) => field.id === rule.field) ?? {
+                  id: rule.field,
+                  label: rule.field,
+                },
+                rule,
+              )}
               <X size={12} />
             </Button>
           ))}
@@ -665,6 +616,7 @@ export function DataTablePagination<T extends RowData>({
   loading,
 }: Pick<DataTableViewProps<T>, 'table' | 'pageSizes' | 'selectable' | 'loading'>) {
   const styles = useStyles();
+  const { t } = useTranslation();
   const direction = useDirection();
   const { pageIndex, pageSize } = table.state.pagination;
   const count = table.getRowCount(),
@@ -686,25 +638,25 @@ export function DataTablePagination<T extends RowData>({
   };
   const tools = [
     [
-      'First page',
+      t('table.firstPage'),
       table.firstPage,
       !table.getCanPreviousPage(),
       direction === 'rtl' ? ChevronLast : ChevronFirst,
     ],
     [
-      'Previous page',
+      t('table.previousPage'),
       table.previousPage,
       !table.getCanPreviousPage(),
       direction === 'rtl' ? ChevronRight : ChevronLeft,
     ],
     [
-      'Next page',
+      t('table.nextPage'),
       table.nextPage,
       !table.getCanNextPage(),
       direction === 'rtl' ? ChevronLeft : ChevronRight,
     ],
     [
-      'Last page',
+      t('table.lastPage'),
       table.lastPage,
       unknown || !table.getCanNextPage(),
       direction === 'rtl' ? ChevronFirst : ChevronLast,
@@ -713,17 +665,21 @@ export function DataTablePagination<T extends RowData>({
   return (
     <div {...styles('data-table.pagination', 'ui-table-pagination')}>
       <span role="status" dir="auto" {...styles('data-table.status', 'ui-table-status')}>
-        {selectable ? `${table.getSelectedRowIds().length} selected · ` : ''}
-        {firstRow}-{lastRow} of {unknown ? 'many' : count}
+        {t('table.summary', {
+          selected: selectable ? table.getSelectedRowIds().length : 0,
+          from: firstRow,
+          to: lastRow,
+          total: unknown ? '?' : count,
+        })}
       </span>
       <div {...styles('data-table.page-size', 'ui-table-page-size')}>
-        <span>Rows per page</span>
+        <span>{t('table.rowsPerPage')}</span>
         <Select
           value={String(pageSize)}
           disabled={loading}
           onValueChange={(value) => table.setPageSize(Number(value))}
         >
-          <SelectTrigger aria-label="Rows per page">
+          <SelectTrigger aria-label={t('table.rowsPerPage')}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -736,12 +692,12 @@ export function DataTablePagination<T extends RowData>({
         </Select>
       </div>
       <div {...styles('data-table.page-jump', 'ui-table-page-jump')}>
-        <span>Page</span>
+        <span>{t('table.page')}</span>
         <Input
           type="number"
           min={1}
           max={unknown ? undefined : Math.max(1, pages)}
-          aria-label="Go to page"
+          aria-label={t('table.pageNumber')}
           value={draft}
           disabled={loading || !count}
           onChange={(event) => setDraft(event.target.value)}
@@ -753,7 +709,7 @@ export function DataTablePagination<T extends RowData>({
             }
           }}
         />
-        <span>of {unknown ? '?' : Math.max(1, pages)}</span>
+        <span>{t('table.of', { count: unknown ? '?' : Math.max(1, pages) })}</span>
       </div>
       <div {...styles('data-table.page-buttons', 'ui-table-page-buttons')}>
         {tools.map(([label, click, unavailable, Icon]) => (
@@ -778,12 +734,19 @@ export function DataTableView<T extends RowData>({
   searchable = true,
   searchPlaceholder,
   filterFields,
+  filterMode,
+  stickyHeader,
+  stickyFooter,
+  stickyScrollbar,
+  stickyHeaderOffset,
+  stickyFooterOffset,
+  scrollHeight,
   columnControls = true,
   selectable = false,
   loading,
-  emptyTitle = 'No results found',
+  emptyTitle,
   renderEmpty,
-  caption = 'Records',
+  caption,
   pageSizes,
   toolbar,
   toolbarActions,
@@ -796,6 +759,7 @@ export function DataTableView<T extends RowData>({
   ...props
 }: DataTableViewProps<T>) {
   const styles = useStyles();
+  const { t } = useTranslation();
   const rows = table.getRowModel().rows,
     columnCount = Math.max(1, table.getVisibleLeafColumns().length + Number(selectable));
   const selected = table.getSelectedRowIds().length;
@@ -833,6 +797,7 @@ export function DataTableView<T extends RowData>({
             searchable={searchable}
             searchPlaceholder={searchPlaceholder}
             filterFields={filterFields}
+            filterMode={filterMode}
             columnControls={columnControls}
             toolbarActions={toolbarActions}
           />
@@ -850,7 +815,12 @@ export function DataTableView<T extends RowData>({
           )}
         >
           <Table
-            aria-label={caption}
+            aria-label={caption ?? t('table.label')}
+            stickyHeader={stickyHeader}
+            stickyHeaderOffset={stickyHeaderOffset}
+            stickyScrollbar={stickyScrollbar}
+            stickyScrollbarOffset={stickyFooterOffset}
+            scrollHeight={scrollHeight}
             aria-busy={loading || undefined}
             style={
               table.getIsSomeColumnsPinned()
@@ -868,7 +838,7 @@ export function DataTableView<T extends RowData>({
                   {selectable && (
                     <TableHead {...styles('data-table.selection-cell', 'ui-table-selection-cell')}>
                       <Checkbox
-                        aria-label="Select current page"
+                        aria-label={t('table.selectPage')}
                         disabled={loading || !rows.length}
                         checked={
                           table.getIsAllPageRowsSelected()
@@ -936,7 +906,7 @@ export function DataTableView<T extends RowData>({
                 <TableRow>
                   <TableCell colSpan={columnCount}>
                     <div {...styles('data-table.loading', 'ui-table-loading')}>
-                      <Spinner label="Loading records" />
+                      <Spinner label={t('common.loading')} />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -969,8 +939,8 @@ export function DataTableView<T extends RowData>({
                   <TableCell colSpan={columnCount}>
                     {renderEmpty ?? (
                       <EmptyState
-                        title={emptyTitle}
-                        description="Try another search or clear your filters."
+                        title={emptyTitle ?? t('common.noResults')}
+                        description={t('table.empty')}
                         action={
                           <Button
                             variant="outline"
@@ -981,7 +951,7 @@ export function DataTableView<T extends RowData>({
                               table.setPageIndex(0);
                             }}
                           >
-                            Clear filters
+                            {t('table.clearFilters')}
                           </Button>
                         }
                       />
@@ -996,33 +966,45 @@ export function DataTableView<T extends RowData>({
           <div
             {...styles('data-table.selection-actions', 'ui-table-selection-actions')}
             role="region"
-            aria-label="Selected row actions"
+            aria-label={t('table.selectedActions')}
           >
             <span>{selected} selected</span>
             {selectionActions(table)}
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Clear selection"
+              aria-label={t('table.clearSelection')}
               onClick={() => table.resetRowSelection(true)}
             >
               <X size={14} />
             </Button>
           </div>
         )}
-        {footer === undefined ? (
-          <DataTablePagination
-            table={table}
-            pageSizes={pageSizes}
-            selectable={selectable}
-            loading={loading}
-          />
-        ) : typeof footer === 'function' ? (
-          footer(table)
-        ) : (
-          footer
-        )}
+        <div
+          {...styles('data-table.footer', 'ui-data-table-footer')}
+          data-sticky={stickyFooter || undefined}
+          style={{ bottom: stickyFooterOffset ?? 0 }}
+        >
+          {footer === undefined ? (
+            <DataTablePagination
+              table={table}
+              pageSizes={pageSizes}
+              selectable={selectable}
+              loading={loading}
+            />
+          ) : typeof footer === 'function' ? (
+            footer(table)
+          ) : (
+            footer
+          )}
+        </div>
       </div>
     </StyleProvider>
   );
 }
+export { useRemoteDataTable } from './data-table-remote';
+export type {
+  DataTableRequest,
+  DataTableResponse,
+  RemoteDataTableOptions,
+} from './data-table-remote';

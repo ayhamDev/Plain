@@ -50,6 +50,16 @@ const guideInfo: Record<string, { title: string; description: string }> = {
     title: 'Documentation versions',
     description: 'Browse the guides, API, examples, and source belonging to your release.',
   },
+  localization: {
+    title: 'Localization',
+    description:
+      'Translate library controls and format dates without coupling application content to the library.',
+  },
+  'data-tables': {
+    title: 'Data tables',
+    description:
+      'Typed local and remote filtering, controlled state, and predictable sticky layouts.',
+  },
   theming: {
     title: 'Theming',
     description:
@@ -459,19 +469,19 @@ export function ProjectWorkspace() {
     </Container>
   );
 }`,
-  splitPane: `import { SplitPane, SplitPaneHandle, SplitPanePanel } from '@plain/ui';
+  splitPane: `import { Resizable, ResizableHandle, ResizablePanel } from '@plain/ui';
 
 export function ReviewWorkspace() {
   return (
-    <SplitPane orientation="horizontal" style={{ height: 480 }}>
-      <SplitPanePanel defaultSize="35%" minSize="20%">
+    <Resizable orientation="horizontal" style={{ height: 480 }}>
+      <ResizablePanel defaultSize="35%" minSize="20%">
         <section aria-label="Review queue">Items awaiting review</section>
-      </SplitPanePanel>
-      <SplitPaneHandle aria-label="Resize review queue" />
-      <SplitPanePanel minSize="30%">
+      </ResizablePanel>
+      <ResizableHandle aria-label="Resize review queue" />
+      <ResizablePanel minSize="30%">
         <section aria-label="Review details">Selected record details</section>
-      </SplitPanePanel>
-    </SplitPane>
+      </ResizablePanel>
+    </Resizable>
   );
 }`,
   mobileNav: `import { NavLink } from 'react-router-dom';
@@ -1513,7 +1523,7 @@ function LayoutsGuide() {
       <GuideSection title="Resizable panels are a tool surface">
         <CodeBlock code={examples.splitPane} />
         <p>
-          SplitPane, SplitPanePanel, and SplitPaneHandle wrap react-resizable-panels. Use the
+          Resizable, ResizablePanel, and ResizableHandle wrap react-resizable-panels. Use the
           engine's orientation and size constraints; explicit percentages avoid ambiguous numeric
           sizing. Name the resize handle, preserve its keyboard behavior, and give the group a
           bounded height. Switch to a route or stacked detail view when a narrow layout cannot
@@ -1822,6 +1832,109 @@ function SchedulingGuide() {
   );
 }
 
+function LocalizationGuide() {
+  return (
+    <>
+      <GuideSection title="Provide a language">
+        <p>
+          LanguageProvider (also exported as TranslationProvider) translates internal labels,
+          actions, validation, calendar tools and table controls. It does not translate application
+          data. English and Arabic are built in; supplied dictionaries work with any Intl locale.
+          Missing messages fall back to English. Set the DOM lang and dir separately so native
+          controls and browser tools share the language.
+        </p>
+        <CodeBlock
+          title="AppLanguages.tsx"
+          code={
+            "import type { ReactNode } from 'react';\nimport { LanguageProvider, languageDirection, type TranslationMessages } from '@plain/ui';\n\nconst french: TranslationMessages = {\n  'common.loading': 'Chargement',\n  'table.rowsPerPage': 'Lignes par page',\n  'table.summary': ({ from, to, total }, locale) =>\n    new Intl.NumberFormat(locale).format(Number(from)) + '–' +\n    new Intl.NumberFormat(locale).format(Number(to)) + ' / ' + total,\n};\n\nexport function AppLanguages({ children, locale }: { children: ReactNode; locale: string }) {\n  return (\n    <LanguageProvider locale={locale} timeZone=\"Europe/Paris\" translations={{ fr: french }}>\n      <div lang={locale} dir={languageDirection(locale)}>{children}</div>\n    </LanguageProvider>\n  );\n}"
+          }
+        />
+      </GuideSection>
+      <GuideSection title="Override or extend messages">
+        <p>
+          TranslationMessages is a partial, typed key dictionary. A value is a string with named
+          placeholders or a function of values and locale, so an application can implement plural
+          rules without adding another runtime. translations selects the base language and then the
+          exact locale. messages is an explicit override. Nested providers inherit dictionaries and
+          overrides, but changing locale selects the new language rather than retaining the old
+          dictionary.
+        </p>
+        <CodeBlock
+          title="ScopedOverrides.tsx"
+          code={
+            "import { LanguageProvider, Pagination, useTranslation } from '@plain/ui';\n\nexport function ResultsPager() {\n  const { t } = useTranslation();\n  return (\n    <LanguageProvider messages={{ 'table.nextPage': 'More results' }}>\n      <section aria-label={t('search.results')}>\n        <Pagination page={1} pageCount={4} onPageChange={page => console.log(page)} />\n      </section>\n    </LanguageProvider>\n  );\n}"
+          }
+        />
+        <p>
+          useTranslation and useLanguage expose t, locale, timeZone and dir without creating a DOM
+          wrapper. Component-level label props remain authoritative. The date-picker engine accepts
+          a native locale through calendarProps.locale for additional grammatical rules, alongside
+          localeCode for Intl labels. Configure weekStartsOn and business-hour conventions
+          explicitly rather than inferring business policy from language.
+        </p>
+      </GuideSection>
+    </>
+  );
+}
+
+function DataTablesGuide() {
+  return (
+    <>
+      <GuideSection title="Own the table state">
+        <p>
+          Use DataTable for local data, or useDataTable plus DataTableView for controlled sorting,
+          pagination, selection, visibility and pinning. Native TanStack options pass through. Give
+          records stable IDs, including server pages, and keep column definitions stable. Row
+          selection uses Checkbox; enum and boolean filters use Select or MultiSelect, not checkbox
+          lists.
+        </p>
+        <p>
+          filterMode="simple" shows configured field chips with their active values.
+          filterMode="advanced" supplies a typed rule editor with AND/OR matching. Fields support
+          text, number, date, boolean, enum/select, custom getValue(row) and custom test(value,
+          rule). Filter option values retain number and boolean types. Date rules compare calendar
+          days; event instants should be normalized to the business timezone before filtering.
+        </p>
+      </GuideSection>
+      <GuideSection title="Load remote results">
+        <p>
+          useRemoteDataTable handles debouncing, stale-request cancellation, server totals and
+          returned filter configurations. It retains the last page while loading. Pagination,
+          sorting and filters are manual: loaded rows are not filtered or paginated a second time.
+          The hook never chooses an endpoint or database. load receives a structured request and
+          AbortSignal; onRequestChange can synchronize URL state. Call refresh after application
+          mutations or when changing an external data source.
+        </p>
+        <CodeBlock
+          title="RemoteInvoices.tsx"
+          code={
+            "import { DataTableView, Button, useRemoteDataTable,\n  type DataTableColumn, type DataTableResponse } from '@plain/ui';\n\ntype Invoice = { id: string; customer: string; amount: number; status: string };\nconst columns: DataTableColumn<Invoice>[] = [\n  { accessorKey: 'customer', header: 'Customer' },\n  { accessorKey: 'status', header: 'Status' },\n  { accessorKey: 'amount', header: 'Amount' },\n];\n\nexport function RemoteInvoices() {\n  const remote = useRemoteDataTable<Invoice>({\n    columns,\n    getRowId: row => row.id,\n    filterFields: [\n      { id: 'status', label: 'Status', type: 'enum',\n        options: [{ label: 'Paid', value: 'paid' }, { label: 'Pending', value: 'pending' }] },\n      { id: 'amount', label: 'Amount', type: 'number' },\n    ],\n    load: async (request, signal) => {\n      const response = await fetch('/api/invoices', {\n        method: 'POST',\n        headers: { 'Content-Type': 'application/json' },\n        body: JSON.stringify(request),\n        signal,\n      });\n      if (!response.ok) throw new Error('Unable to load invoices');\n      return await response.json() as DataTableResponse<Invoice>;\n    },\n  });\n  return <>\n    {!!remote.error && <Button onClick={remote.refresh}>Retry</Button>}\n    <DataTableView table={remote.table} loading={remote.loading}\n      filterFields={remote.filterFields} filterMode=\"simple\" selectable\n      stickyHeader stickyFooter stickyScrollbar scrollHeight={420} />\n  </>;\n}"
+          }
+        />
+        <p>
+          The response contains data for the requested page, rowCount for all matching rows, and
+          optional filterFields for dynamic remote facets. Only serialize field metadata; callbacks
+          and renderers belong to the client. Validate responses at your application boundary. The
+          server must whitelist columns and operators, validate values, enforce authorization and
+          compute totals. encodeTableQuery/decodeTableQuery can store filter rules in a URL; Date
+          values serialize as ISO strings.
+        </p>
+      </GuideSection>
+      <GuideSection title="Stick without duplicating content">
+        <p>
+          stickyHeader keeps the actual semantic header, including its interactive controls.
+          stickyHeaderOffset handles an application toolbar. stickyFooter and stickyFooterOffset
+          keep pagination reachable. stickyScrollbar provides a synchronized horizontal control,
+          including RTL; stickyScrollbarOffset positions it above a fixed footer. scrollHeight opts
+          into a contained viewport. Without it, page or outer-container scrolling remains
+          available. The implementation uses bounded animation-frame updates and ResizeObserver
+          instead of cloned tables or React state on every scroll.
+        </p>
+      </GuideSection>
+    </>
+  );
+}
+
 function Performance() {
   return (
     <>
@@ -1880,6 +1993,8 @@ export default function GuidePage() {
     introduction: <Introduction />,
     installation: <Installation />,
     versions: <VersionsGuide />,
+    localization: <LocalizationGuide />,
+    'data-tables': <DataTablesGuide />,
     theming: <Theming />,
     tokens: <Tokens />,
     customization: <Customization />,

@@ -230,14 +230,34 @@ export const extendedComponents: ComponentDefinition[] = [
     'CSS columns preserve source order down each column. Avoid masonry for content requiring a strict left-to-right sequence; use Grid instead.',
   ),
   define(
-    'split-pane',
-    'Split pane',
+    'resizable',
+    'Resizable',
     'Layout',
     'Keyboard and pointer resizing for editor-like workspaces.',
-    ['SplitPane', 'SplitPanePanel', 'SplitPaneHandle'],
-    '<SplitPane style={{ height: 240 }}>\n  <SplitPanePanel defaultSize="35%" minSize="20%">Files</SplitPanePanel>\n  <SplitPaneHandle />\n  <SplitPanePanel minSize="30%">Editor</SplitPanePanel>\n</SplitPane>',
+    ['Resizable', 'ResizablePanel', 'ResizableHandle'],
+    '<Resizable style={{ height: 240 }}>\n  <ResizablePanel defaultSize="35%" minSize="20%">Files</ResizablePanel>\n  <ResizableHandle />\n  <ResizablePanel minSize="30%">Editor</ResizablePanel>\n</Resizable>',
     [
       p('orientation', 'horizontal | vertical', 'Desktop resize axis.', 'horizontal'),
+      p(
+        'storageKey / storage',
+        'string / Storage adapter',
+        'Persist completed layouts, not every pointer movement. Use stable panel IDs.',
+      ),
+      p(
+        'collapseAt / adaptTo',
+        'number / hidden | docked | floating',
+        'Panel-level container breakpoint and compact representation.',
+      ),
+      p(
+        'open / onOpenChange / sheetProps / contentProps',
+        'panel configuration',
+        'Control panel visibility and compact overlay configuration.',
+      ),
+      p(
+        'collapsible / collapsedSize / collapsedThreshold',
+        'native panel configuration',
+        'Engine-managed collapsing with keyboard and pointer support.',
+      ),
       p(
         'mobileOrientation / mobileBreakpoint',
         'horizontal | vertical | false / number',
@@ -332,6 +352,11 @@ export const extendedComponents: ComponentDefinition[] = [
         'b',
       ),
       p('width / collapsedWidth', 'string', 'Provider widths or sidebar token overrides.'),
+      p(
+        'SidebarHeader / SidebarFooter.collapsedContent',
+        'ReactNode',
+        'Explicit compact content for the desktop icon rail. Mobile uses the full children.',
+      ),
       p('side', 'start | end', 'Logical side of Sidebar.', 'start'),
       p(
         'asChild / active / closeOnSelect',
@@ -339,7 +364,7 @@ export const extendedComponents: ComponentDefinition[] = [
         'SidebarItem composition, active state and mobile dismissal.',
       ),
     ],
-    'Compose Header, Footer, Content, GroupLabel, GroupContent, GroupAction, Input, Separator, Rail, MenuButton, MenuAction, MenuBadge, MenuSub and MenuSubButton. Native links use asChild on menu buttons. Nested expansion uses P.UI Collapsible. Desktop collapse and mobile open state are separate and controllable; Vaul handles the mobile focus trap, swipe dismissal and restoration. Motion follows the theme and reduced-motion preference. Inset accepts asChild to preserve application landmarks.',
+    'Compose Header, Footer, Content, GroupLabel, GroupContent, GroupAction, Input, Separator, Rail, MenuButton, MenuAction, MenuBadge, MenuSub and MenuSubButton. Supply collapsedContent on Header and Footer for a brand mark or avatar; SidebarInput is hidden in the icon rail without discarding its value. Native links use asChild on menu buttons. Nested expansion uses P.UI Collapsible. Desktop collapse and mobile open state are separate and controllable; Vaul handles the mobile focus trap, swipe dismissal and restoration. Motion follows the theme and reduced-motion preference. Inset accepts asChild to preserve application landmarks.',
   ),
   define(
     'app-shell',
@@ -373,6 +398,16 @@ export const extendedComponents: ComponentDefinition[] = [
         'Destination values, labels, icons, hrefs and disabled states.',
       ),
       ...value,
+      p(
+        'layout / mode / indicator / size',
+        'stacked | inline / attached | detached / icon | full / sm | md | lg',
+        'Touch-friendly destinations, active treatment and safe-area placement.',
+      ),
+      p(
+        'showLabels / items[].badge / items[].renderIcon',
+        'boolean / ReactNode / (active) => ReactNode',
+        'Accessible names remain available when labels are hidden; own badges and active icons.',
+      ),
       p('fixed', 'boolean', 'Fix to the viewport bottom.', 'false'),
     ],
     'Renders a named navigation landmark. Items with href use native links; selection exposes aria-current. Keep destinations few and labels short.',
@@ -388,6 +423,11 @@ export const extendedComponents: ComponentDefinition[] = [
       p('steps', 'StepperStep[]', 'Values, labels, descriptions, icons and disabled states.'),
       ...value,
       p('orientation', 'horizontal | vertical', 'Sequence direction.', 'horizontal'),
+      p(
+        'renderContent',
+        '(step, index) => ReactNode',
+        'Compose step content with a keyed transition that respects the motion policy.',
+      ),
       p('linear', 'boolean', 'Restrict forward navigation to the next step.'),
     ],
     'The current step uses aria-current=step. Step buttons remain keyboard-operable. Validate and render step content in the application.',
@@ -418,6 +458,12 @@ export const extendedComponents: ComponentDefinition[] = [
     ['TreeView'],
     '<TreeView aria-label="Project files" defaultExpandedIds={["project"]} nodes={[\n  { id: "project", label: "Website", children: [\n    { id: "design", label: "Design files" }, { id: "source", label: "Source code" },\n  ] },\n]} />',
     [
+      p(
+        'expandOnClick',
+        'boolean',
+        'Expand branches from the full row, while preserving the separate arrow and keyboard controls.',
+        'true',
+      ),
       p('nodes', 'TreeNode[]', 'Stable ids, labels, children, icons and disabled states.'),
       p('selectedId / onSelectionChange', 'string / callback', 'Selected item state.'),
       p('expandedIds / onExpandedChange', 'readonly string[] / callback', 'Expanded branches.'),
@@ -816,7 +862,7 @@ export const extendedComponents: ComponentDefinition[] = [
         'Own content without replacing the scheduling model.',
       ),
       p(
-        'printable / printMode / renderPrint / onPrint',
+        'printable / printMode / printProps / renderPrint / onPrint',
         'boolean / agenda | calendar / callbacks',
         'Print the visible range, add content, or replace printing with a PDF workflow.',
       ),

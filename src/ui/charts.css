@@ -108,16 +108,6 @@
   text-align: start;
   font-weight: 600;
 }
-.ui-chart-table th,
-.ui-chart-table td {
-  padding: 8px 12px;
-  border-bottom: var(--ui-border-width, 1px) solid var(--ui-chart-grid, var(--ui-border, #e5e7e6));
-  text-align: start;
-}
-.ui-chart-table th {
-  color: var(--ui-chart-label, var(--ui-muted-foreground, #666b68));
-  font-weight: 500;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .ui-chart *,
@@ -126,4 +116,176 @@
     animation-duration: 0ms !important;
     transition-duration: 0ms !important;
   }
+}
+.ui-heatmap,
+.ui-gantt {
+  margin: 0;
+  min-inline-size: 0;
+  color: var(--ui-foreground);
+}
+.ui-heatmap .ui-heatmap-scroll {
+  overflow: auto;
+}
+.ui-heatmap .ui-heatmap-grid {
+  min-inline-size: max-content;
+  display: grid;
+  gap: 4px;
+}
+.ui-heatmap .ui-heatmap-row {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: var(--ui-heatmap-label-width) repeat(
+      var(--ui-heatmap-columns),
+      var(--ui-heatmap-size)
+    );
+  align-items: center;
+}
+.ui-heatmap .ui-heatmap-row > [role='rowheader'],
+.ui-heatmap .ui-heatmap-row > [role='columnheader'] {
+  font-size: 11px;
+  color: var(--ui-muted-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ui-heatmap .ui-heatmap-cell {
+  display: grid;
+  place-items: center;
+  inline-size: var(--ui-heatmap-size);
+  block-size: var(--ui-heatmap-size);
+  border: 0;
+  border-radius: min(var(--ui-radius), 4px);
+  font-size: 10px;
+  color: var(--ui-foreground);
+}
+.ui-heatmap .ui-heatmap-cell:hover {
+  outline: 1px solid var(--ui-foreground);
+}
+.ui-heatmap .ui-heatmap-cell:focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+.ui-heatmap .ui-heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 11px;
+  margin-block-start: 12px;
+  color: var(--ui-muted-foreground);
+}
+.ui-heatmap .ui-heatmap-legend i {
+  inline-size: 16px;
+  block-size: 16px;
+  border-radius: 2px;
+}
+.ui-gantt .ui-gantt-scroll {
+  position: relative;
+  overflow: auto;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+}
+.ui-gantt .ui-gantt-header,
+.ui-gantt .ui-gantt-row {
+  display: grid;
+  grid-template-columns: var(--ui-gantt-label-width) var(--ui-gantt-width);
+}
+.ui-gantt .ui-gantt-header {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  min-inline-size: max-content;
+  block-size: 40px;
+  background: var(--ui-table-header, var(--ui-muted));
+  border-block-end: 1px solid var(--ui-border);
+  font-size: 11px;
+}
+.ui-gantt .ui-gantt-header > strong {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 2;
+  background: inherit;
+  padding: 12px;
+}
+.ui-gantt .ui-gantt-header > div {
+  position: relative;
+  overflow: hidden;
+}
+.ui-gantt .ui-gantt-header > div > span {
+  position: absolute;
+  inset-block-start: 12px;
+  white-space: nowrap;
+  padding-inline: 6px;
+}
+.ui-gantt .ui-gantt-body {
+  position: relative;
+}
+.ui-gantt .ui-gantt-row {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  border-block-end: 1px solid var(--ui-border);
+}
+.ui-gantt .ui-gantt-label {
+  position: sticky;
+  inset-inline-start: 0;
+  display: flex;
+  align-items: center;
+  background: var(--ui-surface);
+  z-index: 2;
+  border-inline-end: 1px solid var(--ui-border);
+  padding: 8px 12px;
+  font-size: 13px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ui-gantt .ui-gantt-lane {
+  position: relative;
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0,
+    transparent calc(var(--ui-gantt-day-width) - 1px),
+    var(--ui-border) var(--ui-gantt-day-width)
+  );
+}
+.ui-gantt-label-content {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-gantt .ui-gantt-task {
+  position: absolute;
+  inset-block-start: 8px;
+  block-size: calc(100% - 16px);
+  border: 1px solid var(--ui-gantt-task-color);
+  border-radius: min(var(--ui-radius), 4px);
+  background: color-mix(in srgb, var(--ui-gantt-task-color) 14%, var(--ui-surface));
+  color: var(--ui-foreground);
+  text-align: start;
+  overflow: hidden;
+  font-size: 11px;
+  padding: 0 8px;
+}
+.ui-gantt .ui-gantt-task > span:last-child {
+  position: relative;
+  white-space: nowrap;
+}
+.ui-gantt .ui-gantt-progress {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 0;
+  background: color-mix(in srgb, var(--ui-gantt-task-color) 22%, transparent);
+  pointer-events: none;
+}
+.ui-gantt .ui-gantt-dependencies {
+  position: absolute;
+  inset-block-start: 0;
+  pointer-events: none;
+}
+.ui-gantt .ui-gantt-dependencies path {
+  fill: none;
+  stroke: var(--ui-muted-foreground);
+  stroke-width: 1.2px;
+  opacity: 0.6;
 }

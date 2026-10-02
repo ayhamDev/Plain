@@ -579,6 +579,7 @@ test('P.UI scheduler views, event editor and compact month retain the chosen vie
   const editor = page.getByRole('dialog', { name: 'New event' });
   await editor.getByRole('textbox', { name: 'Event title' }).fill('New meeting');
   await editor.getByRole('button', { name: 'Save event' }).click();
+  await expect(editor).toBeHidden();
   await expect(calendar.getByText('New meeting', { exact: true })).toBeVisible();
   for (const [name, view] of [
     ['week', 'week'],

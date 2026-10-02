@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from './i18n';
 import { Check, Palette } from 'lucide-react';
 import { Input, Label, Slider } from './forms';
 import { Button } from './primitives';
@@ -83,7 +84,7 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
       defaultValue = '#252826',
       onValueChange,
       swatches = ['#252826', '#2563eb', '#08916b', '#be185d', '#c78115', '#7c3aed'],
-      pickerLabel = 'Choose color',
+      pickerLabel: pickerLabelProp,
       disabled,
       readOnly,
       className,
@@ -95,6 +96,8 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
     } = allProps;
     const controlled = Object.prototype.hasOwnProperty.call(allProps, 'value');
     const styles = useStyles();
+    const { t } = useTranslation();
+    const pickerLabel = pickerLabelProp ?? t('color.choose');
     const input = React.useRef<HTMLInputElement>(null);
     React.useImperativeHandle(ref, () => input.current!);
     const [local, setLocal] = React.useState(defaultValue);
@@ -128,10 +131,8 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
       return () => form?.removeEventListener('reset', reset);
     }, [controlled, defaultValue]);
     React.useEffect(() => {
-      input.current?.setCustomValidity(
-        draft && !hex(draft) ? 'Enter a valid hexadecimal color.' : '',
-      );
-    }, [draft]);
+      input.current?.setCustomValidity(draft && !hex(draft) ? t('color.invalid') : '');
+    }, [draft, t]);
     const commit = (next: string, nextHSV?: HSV) => {
       if (disabled || readOnly) return;
       if (!controlled) setLocal(next);
@@ -195,7 +196,7 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
                 undefined,
                 unstyled,
               )}
-              aria-label={props['aria-label'] ?? 'Hex color'}
+              aria-label={props['aria-label'] ?? t('color.hex')}
               maxLength={7}
               onChange={(event) => {
                 onChange?.(event);
@@ -225,7 +226,7 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
               {...styles('color-picker.area', 'ui-color-area', undefined, unstyled)}
               role="slider"
               tabIndex={disabled || readOnly ? -1 : 0}
-              aria-label="Color saturation and brightness"
+              aria-label={t('color.saturation')}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={Math.round(hsv.s)}
@@ -287,7 +288,7 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
             </span>
             <div {...styles('color-picker.hue', 'ui-color-hue', undefined, unstyled)}>
               <Slider
-                aria-label="Hue"
+                aria-label={t('color.hue')}
                 style={{ '--ui-slider-range': 'transparent' } as React.CSSProperties}
                 dir="ltr"
                 min={0}
@@ -325,7 +326,7 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
             <div
               {...styles('color-picker.swatches', 'ui-color-swatches', undefined, unstyled)}
               role="group"
-              aria-label="Color presets"
+              aria-label={t('color.presets')}
             >
               {swatches
                 .map(hex)
@@ -336,7 +337,7 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
                     size="icon"
                     variant="ghost"
                     {...styles('color-picker.swatch', 'size-8 rounded-full', undefined, unstyled)}
-                    aria-label={`Choose ${c}`}
+                    aria-label={t('color.choosePreset', { label: c })}
                     aria-pressed={c === color}
                     onClick={() => change(c)}
                     style={{

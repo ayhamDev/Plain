@@ -2,7 +2,10 @@ import * as React from 'react';
 import { RotateCcw, Code2, SlidersHorizontal } from 'lucide-react';
 import * as UI from '../ui';
 import { CodeBlock } from './shared';
+import { workspaceComponents as workspaceDefinitions } from './workspace-catalog';
 import { chartSampleData, donutSampleData } from './chart-samples';
+const WorkspacePreview = React.lazy(() => import('./examples/WorkspaceExample'));
+const TablePreview = React.lazy(() => import('./examples/TableWorkspaceExample'));
 const ChartPreview = React.lazy(() => import('./examples/ChartExample'));
 
 type State = Record<string, string | number | boolean>;
@@ -180,6 +183,7 @@ export const propPreviews: Record<string, PropPreview> = {
   input: {
     defaults: {
       type: 'text',
+      variant: 'outlined',
       disabled: false,
       readOnly: false,
       required: false,
@@ -187,22 +191,43 @@ export const propPreviews: Record<string, PropPreview> = {
     },
     controls: [
       options('type', ['text', 'email', 'url', 'tel', 'search']),
+      options('variant', ['outlined', 'filled', 'ghost']),
       bool('disabled'),
       bool('readOnly'),
       bool('required'),
       bool('aria-invalid'),
     ],
     render: (s) =>
-      field(<UI.Input type={String(s.type)} {...native(s)} placeholder="Project Atlas" />),
+      field(
+        <UI.Input
+          variant={choice(s, 'variant', ['outlined', 'filled', 'ghost'])}
+          type={String(s.type)}
+          {...native(s)}
+          placeholder="Project Atlas"
+        />,
+      ),
     code: (s) =>
       `<Field label="Project name"><Input ${attr(s)} placeholder="Project Atlas" /></Field>`,
   },
   textarea: {
-    defaults: { rows: 4, disabled: false, readOnly: false, 'aria-invalid': false },
-    controls: [number('rows', 2, 8), bool('disabled'), bool('readOnly'), bool('aria-invalid')],
+    defaults: {
+      variant: 'outlined',
+      rows: 4,
+      disabled: false,
+      readOnly: false,
+      'aria-invalid': false,
+    },
+    controls: [
+      options('variant', ['outlined', 'filled', 'ghost']),
+      number('rows', 2, 8),
+      bool('disabled'),
+      bool('readOnly'),
+      bool('aria-invalid'),
+    ],
     render: (s) =>
       field(
         <UI.Textarea
+          variant={choice(s, 'variant', ['outlined', 'filled', 'ghost'])}
           {...native(s)}
           rows={Number(s.rows)}
           placeholder="A few notes for your team"
@@ -561,10 +586,27 @@ export const propPreviews: Record<string, PropPreview> = {
       `<RadioGroup aria-label="Billing" defaultValue="monthly" ${attr(s)}><Label><RadioGroupItem value="monthly" /> Monthly</Label><Label><RadioGroupItem value="annual" /> Annual</Label></RadioGroup>`,
   },
   'scroll-area': {
-    defaults: { type: 'hover', height: 160 },
-    controls: [options('type', ['hover', 'always', 'auto', 'scroll']), number('height', 96, 240)],
+    defaults: {
+      type: 'hover',
+      height: 160,
+      scrollbarVisibility: 'hover',
+      elastic: false,
+      refreshable: false,
+    },
+    controls: [
+      options('type', ['hover', 'always', 'auto', 'scroll']),
+      options('scrollbarVisibility', ['hover', 'always', 'hidden']),
+      bool('elastic'),
+      bool('refreshable'),
+      number('height', 96, 240),
+    ],
     render: (s) => (
       <UI.ScrollArea
+        elastic={!!s.elastic}
+        scrollbarVisibility={choice(s, 'scrollbarVisibility', ['hover', 'always', 'hidden'])}
+        onRefresh={
+          s.refreshable ? () => new Promise<void>((resolve) => setTimeout(resolve, 400)) : undefined
+        }
         type={choice(s, 'type', ['hover', 'always', 'auto', 'scroll'])}
         style={{ height: Number(s.height), width: '100%' }}
         aria-label="Project list"
@@ -577,7 +619,7 @@ export const propPreviews: Record<string, PropPreview> = {
       </UI.ScrollArea>
     ),
     code: (s) =>
-      `<ScrollArea type="${s.type}" style={{ height: ${s.height} }} aria-label="Project list">{Array.from({ length: 20 }, (_, index) => <p key={index}>Project {index + 1}</p>)}</ScrollArea>`,
+      `<ScrollArea scrollbarVisibility="${s.scrollbarVisibility}" elastic={${s.elastic}} ${s.refreshable ? 'onRefresh={async () => {}}' : ''} type="${s.type}" style={{ height: ${s.height} }} aria-label="Project list">{Array.from({ length: 20 }, (_, index) => <p key={index}>Project {index + 1}</p>)}</ScrollArea>`,
   },
   'dropdown-menu': {
     defaults: { side: 'bottom', align: 'start', sideOffset: 6 },
@@ -861,10 +903,25 @@ for (const slug of ['sheet', 'drawer'] as const) {
   const Close = slug === 'sheet' ? UI.SheetClose : UI.DrawerClose;
   const name = slug === 'sheet' ? 'Sheet' : 'Drawer';
   propPreviews[slug] = {
-    defaults: { side: slug === 'sheet' ? 'end' : 'bottom', dismissible: true },
-    controls: [options('side', ['start', 'end', 'top', 'bottom']), bool('dismissible')],
+    defaults: {
+      side: slug === 'sheet' ? 'end' : 'bottom',
+      dismissible: true,
+      variant: 'attached',
+      size: 'md',
+      gap: 12,
+    },
+    controls: [
+      options('side', ['start', 'end', 'top', 'bottom']),
+      bool('dismissible'),
+      options('variant', ['attached', 'detached', 'floating']),
+      options('size', ['sm', 'md', 'lg', 'xl', 'full']),
+      number('gap', 0, 24),
+    ],
     render: (s) => (
       <Root
+        variant={choice(s, 'variant', ['attached', 'detached', 'floating'])}
+        size={choice(s, 'size', ['sm', 'md', 'lg', 'xl', 'full'])}
+        gap={Number(s.gap)}
         side={choice(s, 'side', ['start', 'end', 'top', 'bottom'])}
         dismissible={!!s.dismissible}
       >
@@ -968,19 +1025,266 @@ for (const slug of [
   };
 }
 
+function ResizablePreview({ state }: { state: State }) {
+  const [open, setOpen] = React.useState(true);
+  const [text, setText] = React.useState(
+    "import { Button } from '@plain/ui';\n\nexport function Save() {\n  return <Button>Save changes</Button>;\n}",
+  );
+  return (
+    <UI.Stack style={{ width: '100%' }} gap={1}>
+      <UI.Inline>
+        <UI.Button variant="ghost" size="sm" onClick={() => setOpen(!open)}>
+          {open ? 'Close explorer' : 'Open explorer'}
+        </UI.Button>
+      </UI.Inline>
+      <UI.Resizable
+        style={{ height: 340 }}
+        orientation={choice(state, 'orientation', ['horizontal', 'vertical'])}
+        mobileOrientation={false}
+        storageKey={state.persist ? 'pui-docs-resizable' : undefined}
+      >
+        <UI.ResizablePanel
+          id="files"
+          minSize="20%"
+          defaultSize="30%"
+          collapsible
+          collapsedSize="0%"
+          open={open}
+          onOpenChange={setOpen}
+          collapseAt={state.responsive ? 480 : undefined}
+          adaptTo={choice(state, 'adaptTo', ['floating', 'docked', 'hidden'])}
+          overlayTitle="Explorer"
+        >
+          <UI.Stack padding={2}>
+            <UI.Strong>Explorer</UI.Strong>
+            {['button.tsx', 'theme.css', 'index.ts'].map((name) => (
+              <UI.Button key={name} variant="ghost" style={{ justifyContent: 'start' }}>
+                {name}
+              </UI.Button>
+            ))}
+          </UI.Stack>
+        </UI.ResizablePanel>
+        <UI.ResizableHandle aria-label="Resize explorer" />
+        <UI.ResizablePanel id="editor" minSize="30%">
+          <UI.Stack padding={2} style={{ height: '100%' }}>
+            <UI.Strong>button.tsx</UI.Strong>
+            <UI.Textarea
+              variant="ghost"
+              aria-label="Edit source"
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              spellCheck={false}
+              dir="ltr"
+              style={{ flex: 1, resize: 'none', fontFamily: 'monospace' }}
+            />
+          </UI.Stack>
+        </UI.ResizablePanel>
+      </UI.Resizable>
+    </UI.Stack>
+  );
+}
+
+propPreviews['resizable'] = {
+  defaults: { orientation: 'horizontal', adaptTo: 'floating', responsive: true, persist: false },
+  controls: [
+    options('orientation', ['horizontal', 'vertical']),
+    options('adaptTo', ['floating', 'docked', 'hidden']),
+    bool('responsive'),
+    bool('persist'),
+  ],
+  render: (s) => <ResizablePreview state={s} />,
+  code: (s) => `const [open, setOpen] = React.useState(true);
+
+<Stack gap={1} style={{ width: '100%' }}>
+  <Button variant="ghost" onClick={() => setOpen(!open)}>{open ? 'Close explorer' : 'Open explorer'}</Button>
+  <Resizable orientation="${s.orientation}" mobileOrientation={false} storageKey={${s.persist ? '"my-editor"' : 'undefined'}} style={{ height: 340 }}>
+    <ResizablePanel id="files" defaultSize="30%" minSize="20%" collapsible collapsedSize="0%" open={open} onOpenChange={setOpen} collapseAt={${s.responsive ? 480 : 'undefined'}} adaptTo="${s.adaptTo}" overlayTitle="Explorer">
+      <Stack padding={2}><Strong>Explorer</Strong><Button variant="ghost">button.tsx</Button></Stack>
+    </ResizablePanel>
+    <ResizableHandle aria-label="Resize explorer" />
+    <ResizablePanel id="editor" minSize="30%"><Stack padding={2}><Strong>button.tsx</Strong><Textarea variant="ghost" aria-label="Edit source" defaultValue="export function Save() {}" dir="ltr" /></Stack></ResizablePanel>
+  </Resizable>
+</Stack>`,
+};
+
+function remoteTableSource(state: State) {
+  return `type Project = { id: string; name: string; status: string; amount: number };
+const columns = React.useMemo<DataTableColumn<Project>[]>(() => [
+  { accessorKey: 'name', header: 'Project' },
+  { accessorKey: 'status', header: 'Status' },
+  { accessorKey: 'amount', header: 'Amount' },
+], []);
+const filterFields = React.useMemo<DataTableFilterField<Project>[]>(() => [
+  { id: 'status', label: 'Status', type: 'enum', options: [{ value: 'Active', label: 'Active' }, { value: 'Review', label: 'Review' }] },
+  { id: 'amount', label: 'Amount', type: 'number' },
+], []);
+const remote = useRemoteDataTable<Project>({
+  columns, filterFields, getRowId: row => row.id,
+  load: async (request, signal) => {
+    const response = await fetch('/api/projects', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request), signal,
+    });
+    if (!response.ok) throw new Error('Unable to load projects');
+    return await response.json() as DataTableResponse<Project>;
+  },
+});
+
+<DataTableView table={remote.table} loading={remote.loading} filterMode="${state.filterMode}" filterFields={remote.filterFields} stickyHeader={${state.stickyHeader}} stickyFooter={${state.stickyFooter}} stickyScrollbar={${state.stickyScrollbar}} scrollHeight={${state.contained ? 340 : 'undefined'}} selectable />
+{!!remote.error && <Button onClick={remote.refresh}>Retry</Button>}`;
+}
+
+propPreviews['data-table'] = {
+  defaults: {
+    filterMode: 'advanced',
+    remote: false,
+    stickyHeader: false,
+    stickyFooter: false,
+    stickyScrollbar: false,
+    contained: false,
+  },
+  controls: [
+    options('filterMode', ['advanced', 'simple']),
+    bool('remote'),
+    bool('stickyHeader'),
+    bool('stickyFooter'),
+    bool('stickyScrollbar'),
+    bool('contained'),
+  ],
+  render: (s) => (
+    <React.Suspense fallback={<UI.Spinner />}>
+      <TablePreview state={s} />
+    </React.Suspense>
+  ),
+  code: (s) =>
+    s.remote
+      ? remoteTableSource(s)
+      : `const data = [{ id: 'a', name: 'Website redesign', status: 'Active', amount: 120 }, { id: 'b', name: 'Mobile experience', status: 'Review', amount: 90 }];
+const columns = [{ accessorKey: 'name', header: 'Project' }, { accessorKey: 'status', header: 'Status' }, { accessorKey: 'amount', header: 'Amount' }];
+
+<DataTable data={data} columns={columns} filterMode="${s.filterMode}" filterFields={[{ id: 'status', label: 'Status', type: 'enum', options: [{ value: 'Active', label: 'Active' }, { value: 'Review', label: 'Review' }] }, { id: 'amount', label: 'Amount', type: 'number' }]} stickyHeader={${s.stickyHeader}} stickyFooter={${s.stickyFooter}} stickyScrollbar={${s.stickyScrollbar}} scrollHeight={${s.contained ? 340 : 'undefined'}} getRowId={row => row.id} selectable />`,
+};
+for (const slug of [
+  'chips',
+  'search-view',
+  'kanban',
+  'pie-chart',
+  'radar-chart',
+  'scatter-chart',
+  'composed-chart',
+  'gantt-chart',
+  'heatmap-chart',
+] as const) {
+  const definition = workspaceDefinitions.find((component) => component.slug === slug)!;
+  const defaults: State =
+    slug === 'chips'
+      ? { type: 'multiple', variant: 'outlined', size: 'md', disabled: false }
+      : slug === 'search-view'
+        ? { variant: 'modal', loading: false }
+        : slug === 'kanban'
+          ? { disabled: false, columnWidth: 252 }
+          : slug === 'gantt-chart'
+            ? { scale: 'day', dataTable: 'sr-only', loading: false }
+            : slug === 'heatmap-chart'
+              ? { cellSize: 40, showValues: true, dataTable: 'sr-only', loading: false }
+              : { dataTable: 'sr-only', loading: false };
+  const controls = Object.keys(defaults).map((key) =>
+    key === 'type'
+      ? options(key, ['single', 'multiple'])
+      : key === 'variant'
+        ? options(
+            key,
+            slug === 'chips' ? ['outlined', 'filled'] : ['modal', 'docked', 'fullscreen'],
+          )
+        : key === 'size'
+          ? options(key, ['sm', 'md'])
+          : key === 'scale'
+            ? options(key, ['day', 'week', 'month'])
+            : key === 'dataTable'
+              ? options(key, ['sr-only', 'visible', 'false'])
+              : key === 'columnWidth'
+                ? number(key, 200, 360)
+                : key === 'cellSize'
+                  ? number(key, 24, 64)
+                  : bool(key),
+  );
+  propPreviews[slug] = {
+    defaults,
+    controls,
+    render: (s) => (
+      <React.Suspense fallback={<UI.Spinner />}>
+        <WorkspacePreview slug={slug} state={s} />
+      </React.Suspense>
+    ),
+    code: (s) => {
+      let markup = definition.code;
+      if (slug === 'chips')
+        markup = markup
+          .replace('<ChipGroup', '<ChipGroup ' + attr({ type: s.type, disabled: s.disabled }))
+          .replaceAll(
+            '<Chip value',
+            '<Chip ' + attr({ variant: s.variant, size: s.size }) + ' value',
+          );
+      else if (slug === 'search-view')
+        markup = markup.replace(
+          'variant="modal"',
+          attr({ variant: s.variant, loading: s.loading }),
+        );
+      else if (slug === 'kanban')
+        markup = markup.replace('<KanbanBoard', '<KanbanBoard ' + attr(s));
+      else {
+        markup = markup.replace(
+          'dataTable="visible"',
+          s.dataTable === 'false' ? 'dataTable={false}' : 'dataTable="' + s.dataTable + '"',
+        );
+        markup = markup.replace(' />', ' loading={' + s.loading + '} />');
+        if (slug === 'gantt-chart')
+          markup = markup.replace('scale="day"', 'scale="' + s.scale + '"');
+        if (slug === 'heatmap-chart')
+          markup = markup
+            .replace('cellSize={40}', 'cellSize={' + s.cellSize + '}')
+            .replace(' showValues ', ' showValues={' + s.showValues + '} ');
+      }
+      return (
+        [definition.setup, definition.functionSetup].filter(Boolean).join('\n') + '\n\n' + markup
+      );
+    },
+  };
+}
+
 export function previewSource(preview: PropPreview, state: State) {
   const code = preview.code(state);
   const names = [
     ...new Set([...code.matchAll(/(?<![\w.])<\/?([A-Z][\w]*)\b/g)].map((match) => match[1])),
   ];
+  if (code.includes('useRemoteDataTable'))
+    names.push(
+      'useRemoteDataTable',
+      'type DataTableColumn',
+      'type DataTableFilterField',
+      'type DataTableResponse',
+    );
+  if (code.includes('KanbanColumn')) names.push('type KanbanColumn');
   if (code.includes('DateRange')) names.push('type DateRange');
   const split = code.startsWith('<') ? 0 : code.indexOf('\n\n<') + 2;
   const setup = code.slice(0, split);
   const markup = code.slice(split);
+  const entry = names.includes('KanbanBoard') ? '@plain/ui/kanban' : '@plain/ui';
   const chart = names.some((name) =>
-    ['AreaChart', 'BarChart', 'LineChart', 'DonutChart'].includes(name),
+    [
+      'AreaChart',
+      'BarChart',
+      'LineChart',
+      'DonutChart',
+      'PieChart',
+      'RadarChart',
+      'ScatterChart',
+      'ComposedChart',
+      'GanttChart',
+      'HeatmapChart',
+    ].includes(name),
   );
-  return `${code.includes('React.') ? "import * as React from 'react';\n" : ''}import { ${names.join(', ')} } from '${chart ? '@plain/ui/charts' : '@plain/ui'}';\nimport '@plain/ui/styles.css';${chart ? "\nimport '@plain/ui/charts.css';" : ''}\n\nexport function Example() {\n${setup}  return (\n    <>\n${markup}\n    </>\n  );\n}`;
+  return `${code.includes('React.') ? "import * as React from 'react';\n" : ''}import { ${names.join(', ')} } from '${chart ? '@plain/ui/charts' : entry}';\nimport '@plain/ui/styles.css';${chart ? "\nimport '@plain/ui/charts.css';" : ''}\n\nexport function Example() {\n${setup}  return (\n    <>\n${markup}\n    </>\n  );\n}`;
 }
 
 export function PropPlayground({

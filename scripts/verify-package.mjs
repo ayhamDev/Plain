@@ -129,6 +129,7 @@ for (const heavy of [
   'sonner',
   'recharts',
   '@fullcalendar',
+  '@dnd-kit',
   '/motion/',
   'material-color-utilities',
   'vaul',

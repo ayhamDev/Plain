@@ -1,7 +1,8 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-const slot = (component: string, part = 'root') => `[data-ui="${component}"][data-slot="${part}"]`;
+const slot = (component: string, part = 'root') =>
+  `[data-ui="${component === 'split-pane' ? 'resizable' : component}"][data-slot="${part}"]`;
 const profiles = [
   { name: 'desktop light', mode: 'light', dir: 'ltr', width: 1280, height: 960, mobile: false },
   { name: 'mobile dark RTL', mode: 'dark', dir: 'rtl', width: 390, height: 844, mobile: true },
@@ -350,6 +351,12 @@ for (const profile of profiles) {
 
     test('split panels resize with their accessible keyboard handle', async ({ page }) => {
       const preview = await component(page, 'split-pane');
+      if (profile.mobile) {
+        await page.getByRole('button', { name: 'Preview properties', exact: true }).click();
+        await page.getByRole('switch', { name: 'responsive', exact: true }).click();
+        await page.getByRole('combobox', { name: 'orientation', exact: true }).click();
+        await page.getByRole('option', { name: 'vertical', exact: true }).click();
+      }
       const handle = preview.getByRole('separator', { name: 'Resize explorer' });
       const firstPanel = preview.locator(slot('split-pane', 'panel')).first();
       await handle.focus();
@@ -442,16 +449,29 @@ test.describe('responsive sidebar navigation', () => {
         parseFloat(getComputedStyle(node).getPropertyValue('--ui-sidebar-collapsed-width')),
       );
       await expect.poll(async () => (await sidebar.boundingBox())!.width).toBe(expandedWidth);
+      const search = sidebar.getByRole('textbox', { name: 'Search workspace' });
+      await search.fill('in');
       await trigger.click();
       await expect(trigger).toHaveAccessibleName('Expand navigation');
       await expect(trigger).toHaveAttribute('aria-expanded', 'false');
       await expect.poll(async () => (await sidebar.boundingBox())!.width).toBe(collapsedWidth);
+      await expect(search).toBeHidden();
+      await expect(sidebar.locator(slot('sidebar', 'header'))).toHaveText('p.');
+      await expect(sidebar.locator(slot('sidebar', 'footer'))).toHaveText('AM');
+      expect((await sidebar.locator(slot('sidebar', 'header')).boundingBox())!.height).toBeLessThan(
+        80,
+      );
       await expect(sidebar.getByRole('button', { name: 'Projects', exact: true })).toBeVisible();
       await sidebar.getByRole('button', { name: 'Inbox', exact: true }).click();
       await expect(sidebar.getByRole('button', { name: 'Inbox', exact: true })).toHaveAttribute(
         'aria-current',
         'page',
       );
+      await trigger.click();
+      await expect(search).toBeVisible();
+      await expect(search).toHaveValue('in');
+      await expect(sidebar.locator(slot('sidebar', 'header'))).toContainText('Workspace');
+      await trigger.click();
       await page.setViewportSize({ width: 390, height: 844 });
       await expect(preview.locator('aside' + slot('sidebar'))).toHaveCount(0);
       await preview.getByRole('button', { name: 'Open navigation' }).click();

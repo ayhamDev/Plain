@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from './i18n';
 import {
   defaultRangeExtractor,
   useVirtualizer,
@@ -154,6 +155,7 @@ function VirtualListInner<T>(
   ref: React.ForwardedRef<HTMLDivElement>,
 ) {
   const styles = useStyles();
+  const { t } = useTranslation();
   const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
   const viewport = useViewport(ref, height, items, getItemKey);
   const virtualizer = useVirtualizer<HTMLDivElement, HTMLDivElement>({
@@ -179,7 +181,7 @@ function VirtualListInner<T>(
     <div
       ref={viewport.element}
       role="list"
-      aria-label="Items"
+      aria-label={t('virtual.items')}
       tabIndex={0}
       dir={direction}
       {...styles('virtual-list.root', 'ui-virtual-viewport', className, unstyled)}
@@ -275,6 +277,7 @@ function VirtualGridInner<T>(
   ref: React.ForwardedRef<HTMLDivElement>,
 ) {
   const styles = useStyles();
+  const { t } = useTranslation();
   const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
   const columnCount = useColumns(columns);
   const viewport = useViewport(ref, height, items, getItemKey, columnCount);
@@ -326,7 +329,7 @@ function VirtualGridInner<T>(
     <div
       ref={viewport.element}
       role="list"
-      aria-label="Items"
+      aria-label={t('virtual.items')}
       tabIndex={0}
       dir={direction}
       {...styles('virtual-grid.root', 'ui-virtual-viewport', className, unstyled)}
@@ -399,6 +402,7 @@ function VirtualMasonryInner<T>(
   ref: React.ForwardedRef<HTMLDivElement>,
 ) {
   const styles = useStyles();
+  const { t } = useTranslation();
   const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
   const laneCount = useColumns(lanes);
   const viewport = useViewport(ref, height, items, getItemKey);
@@ -428,7 +432,7 @@ function VirtualMasonryInner<T>(
     <div
       ref={viewport.element}
       role="list"
-      aria-label="Items"
+      aria-label={t('virtual.items')}
       tabIndex={0}
       dir={direction}
       {...styles('virtual-masonry.root', 'ui-virtual-viewport', className, unstyled)}

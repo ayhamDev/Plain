@@ -15,7 +15,9 @@ export type TextDirection = 'ltr' | 'rtl';
 export interface PlainStyleProps {
   unstyled?: boolean;
 }
-export type ComponentStyles = Partial<Record<StyleSlot, string>>;
+/** @deprecated Use the corresponding resizable.* styling slots. */
+export type SplitPaneStyleSlot = `split-pane.${'root' | 'panel' | 'handle' | 'icon'}`;
+export type ComponentStyles = Partial<Record<StyleSlot | SplitPaneStyleSlot, string>>;
 const TokenOverridesContext = /* @__PURE__ */ React.createContext<ThemeTokens>({});
 const aliasNames = /* @__PURE__ */ createAliasNames();
 function createAliasNames() {
@@ -68,14 +70,15 @@ export function useStyles() {
   const context = React.useContext(StyleContext);
   const styles = (slot: StyleSlot, defaults: string, className?: string, unstyled?: boolean) => {
     const index = slot.indexOf('.');
+    const override =
+      context.styles[slot] ??
+      (slot.startsWith('resizable.')
+        ? context.styles[`split-pane.${slot.slice(index + 1)}` as SplitPaneStyleSlot]
+        : undefined);
     return {
       'data-ui': slot.slice(0, index),
       'data-slot': slot.slice(index + 1),
-      className: cn(
-        (unstyled ?? context.unstyled) ? undefined : defaults,
-        context.styles[slot],
-        className,
-      ),
+      className: cn((unstyled ?? context.unstyled) ? undefined : defaults, override, className),
     };
   };
   return Object.assign(styles, { unstyled: context.unstyled });

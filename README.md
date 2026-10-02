@@ -110,17 +110,21 @@ Variants are inferred, consumed before reaching the DOM, and compose with native
 
 | Entry                     | Purpose                                                                                         | Extra CSS                     |
 | ------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------- |
-| `@plain/ui/layout`        | Box, Flex, Stack, Inline, Grid, Masonry, Container, Center, Spacer, SplitPane                   | Core styles                   |
+| `@plain/ui/layout`        | Box, Flex, Stack, Inline, Grid, Masonry, Container, Center, Spacer, Resizable                   | Core styles                   |
 | `@plain/ui/virtual`       | Standalone VirtualList, VirtualGrid, VirtualMasonry                                             | Core styles                   |
 | `@plain/ui/sidebar`       | AppShell, responsive Sidebar, bottom navigation, Stepper, TreeView                              | Core styles                   |
 | `@plain/ui/advanced`      | Numeric/search/password/PIN fields, file upload, tags, multiselect, menus, ratings and activity | Core styles                   |
 | `@plain/ui/date-time`     | Time, date-time and range controls                                                              | Core styles                   |
 | `@plain/ui/typography`    | H1-H6, P, Span, Small, Strong, Em, A, Code, Pre, Blockquote, Ul, Ol, Li, Mark                   | Core styles                   |
-| `@plain/ui/charts`        | Recharts area, bar, line, donut and composable parts                                            | `@plain/ui/charts.css`        |
-| `@plain/ui/full-calendar` | FullCalendar month/week/day/agenda scheduling                                                   | `@plain/ui/full-calendar.css` |
+| `@plain/ui/charts`        | Area, bar, line, donut, pie, radar, scatter, composed, heatmap and Gantt                        | `@plain/ui/charts.css`        |
+| `@plain/ui/full-calendar` | FullCalendar scheduling and an optional composable CalendarEventDialog                          | `@plain/ui/full-calendar.css` |
+| `@plain/ui/i18n`          | LanguageProvider, typed dictionaries and cached locale formatting                               | Core styles                   |
+| `@plain/ui/chips`         | Selectable, removable and action chips                                                          | Core styles                   |
+| `@plain/ui/search-view`   | Command-powered docked, modal and fullscreen search                                             | Core styles                   |
+| `@plain/ui/kanban`        | Controlled drag-and-drop lanes with keyboard and explicit move commands                         | Core styles                   |
 | `@plain/ui/motion`        | Lazy MotionProvider, Motion, Presence and presets                                               | No extra CSS                  |
 
-Charts, scheduling and Motion are not exported through the core barrel. Dependencies are externalized and modules are tree-shakeable; install size is not the same as browser bundle size. Core controls use Radix, command search uses cmdk, date selection uses DayPicker, sheets/drawers use Vaul and inverse notifications use Sonner. Font assets are documentation-only; the library uses a system sans-serif fallback.
+Charts, scheduling, Kanban and Motion are not exported through the core barrel. Dependencies are externalized and modules are tree-shakeable; install size is not the same as browser bundle size. Core controls use Radix, command search uses cmdk, date selection uses DayPicker, sheets/drawers use Vaul and inverse notifications use Sonner. Font assets are documentation-only; the library uses a system sans-serif fallback.
 
 Default light/dark colors are the original hand-authored 0.1 neutrals. Material-style palette generation is opt-in when a vibe color or colored preset is chosen. New semantic and component tokens inherit those defaults without changing their identity.
 
@@ -132,6 +136,32 @@ Date-time values are local wall-time strings. IANA timezone validation and Tempo
 
 `Field` takes a single control accepting `id` and ARIA attributes. Place `SelectTrigger` inside `Field`, not the non-DOM `Select` root. Give icon-only controls accessible names. Use logical spacing and `dir` for RTL rather than reversing the DOM order. Sheets support logical `start`/`end`, physical sides, swipe gestures and snap points.
 
+## Localized Workspaces
+
+Wrap application components in `LanguageProvider` (also exported as
+`TranslationProvider`) to set locale, optional timezone and direction. English
+and Arabic dictionaries are included. Typed `messages` overrides and inherited
+`translations` dictionaries support any locale, including functional messages.
+Set HTML `lang` and `dir` at the application boundary. Application data, event
+titles and column names stay application-owned.
+See the [localization guide](http://127.0.0.1:5173/docs/localization).
+
+DataTable supports simple per-column filter chips and advanced AND/OR rules with
+typed text, number, boolean, enum and date values. `useRemoteDataTable` supplies
+controlled pagination, sorting, abortable loading, total counts and dynamic
+remote filter fields. The application owns transport and authorization.
+`stickyHeader`, `stickyFooter`, `stickyScrollbar` and offsets support contained
+or page scrolling without duplicating interactive headers.
+See the [table guide](http://127.0.0.1:5173/docs/data-tables).
+
+`Resizable`, `ResizablePanel` and `ResizableHandle` replace the SplitPane names;
+the old exports remain compatibility aliases. Native panel configuration,
+persistent layouts and compact hidden/docked/floating panels are supported.
+Own editor state above the panels when switching between compact and desktop
+surfaces. Input and Textarea support outlined, filled and ghost variants.
+ScrollArea uses non-gutter overlay scrollbars and optional touch elasticity with
+an async, keyboard-accessible refresh action.
+
 ## Quality And Releases
 
 The documentation has complete version snapshots at `/v/0.1.0/` and `/v/0.2.0/`.
@@ -140,7 +170,7 @@ own implementations, dependencies, API tables, search, examples and downloads.
 Version switching keeps available deep links and intentionally falls back when a
 page did not exist yet. See [the archive workflow](docs/versions/README.md) and
 [docs/versions.json](docs/versions.json) for registering releases and hosting rules.
-Component pages include 54 typed prop playgrounds with matching copyable TSX.
+Component pages include typed prop workbenches with matching copyable TSX.
 
 Charts accept native axis/grid/legend/tooltip props as well as visibility booleans.
 Use `stacked`, area/line `curve`, or per-series `strokeDasharray` for different data
@@ -150,6 +180,10 @@ entry and 200ms exit; override `dialog.duration-enter` and `dialog.duration-exit
 without changing reduced/none motion behavior.
 
 Tests cover behavior, native forms, scoped portals, palettes, SSR, package-consumer examples and tree shaking. Browser QA covers responsive layouts, light/dark, RTL, keyboard behavior, motion policies, rendered assets and automated accessibility. See [QA.md](QA.md) for the actual verified results and limits. Automated checks are not a WCAG certification; final applications still need assistive-technology, device, security and backend testing.
+
+The latest [workspace integration record](docs/releases/workspace-upgrade.md)
+documents localization, remote tables, calendar performance, new workspace
+components and the exact validation run history.
 
 Agents follow [AGENTS.md](AGENTS.md) and the repository's P.UI design skill. Releases use Changesets; see [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md) and [docs/releases](docs/releases/README.md). `dist/` contains the library and `site-dist/` the website. Nothing is published or deployed automatically.
 

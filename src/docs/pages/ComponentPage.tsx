@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Code2, ExternalLink, ShieldCheck, Check } from 'lucide-react';
 import {
   Badge,
@@ -26,6 +26,7 @@ export default function ComponentPage() {
   React.useEffect(() => {
     document.title = `${component?.name ?? 'Not found'} - PlainUI`;
   }, [component]);
+  if (slug === 'split-pane') return <Navigate to="/components/resizable" replace />;
   if (!component)
     return (
       <div className="not-found">

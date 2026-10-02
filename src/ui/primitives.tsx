@@ -1,5 +1,6 @@
 import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './styling';
 import * as React from 'react';
+import { useTranslation } from './i18n';
 import {
   Slot,
   Avatar as AvatarPrimitive,
@@ -65,6 +66,7 @@ export const Button = /* @__PURE__ */ React.forwardRef<
     ref,
   ) => {
     const styles = useStyles();
+
     const Component = asChild ? Slot.Root : 'button';
     const isDisabled = disabled || loading;
     const slottedChild =
@@ -142,6 +144,7 @@ export interface BadgeProps
   extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
 export function Badge({ className, variant, unstyled, ...props }: BadgeProps & PlainStyleProps) {
   const styles = useStyles();
+
   return (
     <span
       data-variant={variant === null ? undefined : (variant ?? 'default')}
@@ -155,6 +158,7 @@ export const Card = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<'div'> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <div
       ref={ref}
@@ -175,6 +179,7 @@ export function CardHeader({
   ...props
 }: React.ComponentProps<'div'> & PlainStyleProps) {
   const styles = useStyles();
+
   return (
     <div {...styles('card.header', 'flex flex-col gap-1.5 p-6', className, unstyled)} {...props} />
   );
@@ -185,6 +190,7 @@ export function CardTitle({
   ...props
 }: React.ComponentProps<'h3'> & PlainStyleProps) {
   const styles = useStyles();
+
   return (
     <h3
       {...styles('card.title', 'text-base font-semibold leading-6', className, unstyled)}
@@ -198,6 +204,7 @@ export function CardDescription({
   ...props
 }: React.ComponentProps<'p'> & PlainStyleProps) {
   const styles = useStyles();
+
   return (
     <p
       {...styles(
@@ -216,6 +223,7 @@ export function CardContent({
   ...props
 }: React.ComponentProps<'div'> & PlainStyleProps) {
   const styles = useStyles();
+
   return <div {...styles('card.content', 'px-6 pb-6', className, unstyled)} {...props} />;
 }
 export function CardFooter({
@@ -224,6 +232,7 @@ export function CardFooter({
   ...props
 }: React.ComponentProps<'div'> & PlainStyleProps) {
   const styles = useStyles();
+
   return (
     <div
       {...styles('card.footer', 'flex items-center gap-2 px-6 pb-6', className, unstyled)}
@@ -239,6 +248,7 @@ export const Avatar = /* @__PURE__ */ React.forwardRef<
     PlainStyleProps
 >(({ className, size = 'md', unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <AvatarPrimitive.Root
       ref={ref}
@@ -261,6 +271,7 @@ export const AvatarImage = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <AvatarPrimitive.Image
       ref={ref}
@@ -275,6 +286,7 @@ export const AvatarFallback = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <AvatarPrimitive.Fallback
       ref={ref}
@@ -302,6 +314,7 @@ export function Alert({
   ...props
 }: AlertProps & PlainStyleProps) {
   const styles = useStyles();
+
   const Icon =
     variant === 'success'
       ? CircleCheck
@@ -337,6 +350,7 @@ export function AlertTitle({
   ...props
 }: React.ComponentProps<'h3'> & PlainStyleProps) {
   const styles = useStyles();
+
   return <h3 {...styles('alert.title', 'font-medium leading-6', className, unstyled)} {...props} />;
 }
 export function AlertDescription({
@@ -345,6 +359,7 @@ export function AlertDescription({
   ...props
 }: React.ComponentProps<'div'> & PlainStyleProps) {
   const styles = useStyles();
+
   return (
     <div
       {...styles('alert.description', 'text-sm leading-6 opacity-90', className, unstyled)}
@@ -357,6 +372,7 @@ export const Separator = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root> & PlainStyleProps
 >(({ className, orientation = 'horizontal', decorative = true, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <SeparatorPrimitive.Root
       ref={ref}
@@ -382,6 +398,7 @@ export const Progress = /* @__PURE__ */ React.forwardRef<
   ProgressProps
 >(({ className, value, max = 100, size = 'md', unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   const direction = useDirection(
     props.dir === 'rtl' || props.dir === 'ltr' ? props.dir : undefined,
   );
@@ -429,6 +446,7 @@ export const Skeleton = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<'div'> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <div
       ref={ref}
@@ -446,7 +464,7 @@ export const Skeleton = /* @__PURE__ */ React.forwardRef<
 Skeleton.displayName = 'Skeleton';
 export function Spinner({
   className,
-  label = 'Loading',
+  label: labelProp,
   unstyled,
   ...props
 }: (React.ComponentProps<'span'> & {
@@ -454,6 +472,8 @@ export function Spinner({
 }) &
   PlainStyleProps) {
   const styles = useStyles();
+  const { t } = useTranslation();
+  const label = labelProp ?? t('common.loading');
   return (
     <span
       role="status"
@@ -480,6 +500,7 @@ export function Kbd({
   ...props
 }: React.ComponentProps<'kbd'> & PlainStyleProps) {
   const styles = useStyles();
+
   return (
     <kbd
       {...styles(
@@ -519,6 +540,7 @@ export const EmptyState = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Empty
     ref,
   ) => {
     const styles = useStyles();
+
     return (
       <StyleProvider unstyled={unstyled}>
         <div
@@ -551,6 +573,7 @@ export const EmptyStateIcon = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <div
       ref={ref}
@@ -565,6 +588,7 @@ export const EmptyStateContent = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <div
       ref={ref}
@@ -579,6 +603,7 @@ export const EmptyStateTitle = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLHeadingElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <h3
       ref={ref}
@@ -593,6 +618,7 @@ export const EmptyStateDescription = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <p
       ref={ref}
@@ -607,6 +633,7 @@ export const EmptyStateActions = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <div
       ref={ref}

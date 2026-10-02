@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { dateFormatter, useTranslation } from './i18n';
 import { CalendarDays, Clock3, X } from 'lucide-react';
 import { Temporal } from 'temporal-polyfill';
 import {
@@ -186,7 +187,7 @@ function calendarDate(value: string | Date | undefined) {
 
 function formatDay(date: Date, locale?: string, options?: Intl.DateTimeFormatOptions) {
   try {
-    return new Intl.DateTimeFormat(
+    return dateFormatter(
       locale,
       options ?? {
         year: 'numeric',
@@ -195,7 +196,7 @@ function formatDay(date: Date, locale?: string, options?: Intl.DateTimeFormatOpt
       },
     ).format(date);
   } catch {
-    return new Intl.DateTimeFormat(
+    return dateFormatter(
       'en',
       options ?? {
         year: 'numeric',
@@ -210,6 +211,7 @@ function calendarDefaults(providedLocale: string | undefined, props?: PickerCale
   const locale = providedLocale ?? props?.locale?.code;
   return {
     ...props,
+    localeCode: locale,
     // Intl formats the displayed wall date; a supplied DayPicker locale also localizes navigation.
     formatters: {
       formatCaption: (date: Date) => formatDay(date, locale, { month: 'long', year: 'numeric' }),
@@ -275,6 +277,7 @@ function TimeChooser({
 }) {
   const id = React.useId();
   const styles = useStyles();
+  const { t } = useTranslation();
   const time = Temporal.PlainTime.from(value ?? '09:00');
   const twelve = hourCycle === 'h12';
   const step = Number.isFinite(minuteStep) ? Math.max(1, Math.min(60, Math.round(minuteStep))) : 5;
@@ -314,9 +317,13 @@ function TimeChooser({
       }),
     );
   return (
-    <div {...styles('temporal.time-choices', 'ui-time-choices')} role="group" aria-label="Time">
+    <div
+      {...styles('temporal.time-choices', 'ui-time-choices')}
+      role="group"
+      aria-label={t('picker.time')}
+    >
       {field(
-        'Hour',
+        t('picker.hour'),
         twelve ? time.hour % 12 || 12 : time.hour,
         Array.from({ length: twelve ? 12 : 24 }, (_, i) => (twelve ? i + 1 : i)),
         (value) =>
@@ -324,15 +331,17 @@ function TimeChooser({
             hour: twelve ? (Number(value) % 12) + (time.hour >= 12 ? 12 : 0) : Number(value),
           }),
       )}
-      {field('Minute', time.minute, minutes, (value) => update({ minute: Number(value) }))}
+      {field(t('picker.minute'), time.minute, minutes, (value) =>
+        update({ minute: Number(value) }),
+      )}
       {twelve &&
-        field('Period', time.hour >= 12 ? 'PM' : 'AM', ['AM', 'PM'], (value) =>
+        field(t('picker.period'), time.hour >= 12 ? 'PM' : 'AM', ['AM', 'PM'], (value) =>
           update({ hour: (time.hour % 12) + (value === 'PM' ? 12 : 0) }),
         )}
       {value &&
         value.length > 5 &&
         field(
-          'Second',
+          t('picker.second'),
           time.second,
           Array.from({ length: 60 }, (_, i) => i),
           (value) => update({ second: Number(value) }),
@@ -356,19 +365,19 @@ function TemporalInput({
     onValueChange,
     min,
     max,
-    locale,
+    locale: localeProp,
     clearable = true,
-    clearLabel = 'Clear value',
+    clearLabel: clearLabelProp,
     minuteStep = 5,
     hourCycle = 'h23',
-    timeLabel = 'Choose time',
-    timeZone,
+    timeLabel: timeLabelProp,
+    timeZone: zoneProp,
     disambiguation,
     disabledDates,
     calendarProps,
     showCalendar = true,
-    calendarLabel = 'Open calendar',
-    invalidDateLabel = 'Choose an available date and time',
+    calendarLabel: calendarLabelProp,
+    invalidDateLabel: invalidDateLabelProp,
     className,
     unstyled,
     dir,
@@ -380,6 +389,13 @@ function TemporalInput({
     ...props
   } = allProps;
   const styles = useStyles();
+  const language = useTranslation();
+  const locale = localeProp ?? language.locale,
+    timeZone = zoneProp ?? language.timeZone;
+  const clearLabel = clearLabelProp ?? language.t('picker.clearValue');
+  const timeLabel = timeLabelProp ?? language.t('picker.openTime'),
+    calendarLabel = calendarLabelProp ?? language.t('picker.openCalendar');
+  const invalidDateLabel = invalidDateLabelProp ?? language.t('picker.invalidDate');
   const direction = useDirection(dir === 'ltr' || dir === 'rtl' ? dir : undefined);
   const inputRef = React.useRef<HTMLInputElement>(null);
   React.useImperativeHandle(forwardedRef, () => inputRef.current!);
@@ -548,7 +564,7 @@ function TemporalInput({
               />
               <div {...styles('temporal.done', 'ui-temporal-done', undefined, unstyled)}>
                 <Button size="sm" onClick={() => setOpen(false)}>
-                  Done
+                  {language.t('common.done')}
                 </Button>
               </div>
             </PopoverContent>
@@ -595,8 +611,8 @@ function WallRange({
     value: suppliedValue,
     defaultValue,
     onValueChange,
-    fromLabel = 'Start',
-    toLabel = 'End',
+    fromLabel: fromLabelProp,
+    toLabel: toLabelProp,
     fromName,
     toName,
     name,
@@ -613,6 +629,9 @@ function WallRange({
   } = allProps;
   const styles = useStyles();
   const direction = useDirection(dir === 'ltr' || dir === 'rtl' ? dir : undefined);
+  const { t } = useTranslation();
+  const fromLabel = fromLabelProp ?? t('picker.from'),
+    toLabel = toLabelProp ?? t('picker.to');
   const generatedId = React.useId();
   const baseId = id ?? generatedId;
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -737,11 +756,11 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
     toName,
     required,
     readOnly,
-    locale,
-    placeholder = 'Pick a date range',
+    locale: localeProp,
+    placeholder: placeholderProp,
     clearable = true,
-    clearLabel = 'Clear date range',
-    invalidRangeLabel = 'Choose an available date range',
+    clearLabel: clearLabelProp,
+    invalidRangeLabel: invalidRangeLabelProp,
     calendarProps,
     className,
     unstyled,
@@ -752,6 +771,11 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
   } = allProps;
   const styles = useStyles();
   const direction = useDirection(dir === 'ltr' || dir === 'rtl' ? dir : undefined);
+  const language = useTranslation();
+  const locale = localeProp ?? language.locale;
+  const placeholder = placeholderProp ?? language.t('picker.selectRange'),
+    clearLabel = clearLabelProp ?? language.t('picker.clearRange'),
+    invalidRangeLabel = invalidRangeLabelProp ?? language.t('picker.invalidRange');
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const validationRefs = React.useRef<Partial<Record<'from' | 'to', HTMLInputElement | null>>>({});
   React.useImperativeHandle(forwardedRef, () => buttonRef.current!);

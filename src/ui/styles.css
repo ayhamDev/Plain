@@ -10,6 +10,7 @@
 @import './sidebar.css';
 @import './date-time.css';
 @import './typography.css';
+@import './workspace.css';
 @source './';
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
@@ -52,6 +53,9 @@
   * {
     border-color: var(--ui-border);
     letter-spacing: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ui-scrollbar-thumb, var(--ui-border))
+      var(--ui-scrollbar-track, transparent);
   }
   body {
     margin: 0;
@@ -77,6 +81,25 @@
   ::selection {
     background: var(--ui-accent-soft);
     color: var(--ui-accent-soft-foreground);
+  }
+  ::-webkit-scrollbar {
+    width: var(--ui-scrollbar-width, 8px);
+    height: var(--ui-scrollbar-width, 8px);
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--ui-scrollbar-track, transparent);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--ui-scrollbar-thumb, var(--ui-border));
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--ui-muted-foreground);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
   }
 }
 

@@ -2,14 +2,16 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { Temporal } from 'temporal-polyfill';
 import { ChevronLeft, ChevronRight, Printer, Plus } from 'lucide-react';
+import { dateFormatter, useTranslation } from './i18n';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './table';
 import { Button, EmptyState } from './primitives';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
 import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
+import { lightTokens, componentTokenAliases, tokensToStyle } from './token-contract';
 import {
   calendarDay,
   calendarZone,
   calendarRange,
-  dayEvents,
   eventSpan,
   eventsInRange,
   eventColumns,
@@ -106,6 +108,7 @@ export interface FullCalendarProps<T = Record<string, unknown>>
   printMode?: 'agenda' | 'calendar';
   printHeader?: React.ReactNode;
   printFooter?: React.ReactNode;
+  printProps?: React.HTMLAttributes<HTMLDivElement>;
   renderPrint?: (context: CalendarPrintContext<T>) => React.ReactNode;
   /** Replaces browser printing; use this for PDF/export/services. */
   onPrint?: (context: CalendarPrintContext<T>) => void | Promise<void>;
@@ -132,15 +135,25 @@ function dateLabel(
   locale: string | undefined,
   options: Intl.DateTimeFormatOptions,
 ) {
-  return date.toLocaleString(locale, options);
+  const value = new Date(0);
+  value.setUTCFullYear(date.year, date.month - 1, date.day);
+  return dateFormatter(locale, { ...options, timeZone: 'UTC' }).format(value);
 }
 function hourLabel(hour: number, locale?: string) {
-  return Temporal.PlainTime.from({ hour: hour % 24 }).toLocaleString(locale, {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  return dateFormatter(locale, { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }).format(
+    Date.UTC(2000, 0, 1, hour % 24),
+  );
 }
-const viewNames = { month: 'Month', week: 'Week', day: 'Day', agenda: 'Agenda' };
+function wallLabel(
+  value: { year: number; month: number; day: number; hour: number; minute: number },
+  locale: string | undefined,
+  options: Intl.DateTimeFormatOptions,
+) {
+  const date = new Date(0);
+  date.setUTCFullYear(value.year, value.month - 1, value.day);
+  date.setUTCHours(value.hour, value.minute);
+  return dateFormatter(locale, { ...options, timeZone: 'UTC' }).format(date);
+}
 
 function CalendarComponent<T = Record<string, unknown>>(
   allProps: FullCalendarProps<T>,
@@ -164,8 +177,8 @@ function CalendarComponent<T = Record<string, unknown>>(
     selectable = false,
     editable = false,
     disabled = false,
-    locale,
-    timeZone = 'local',
+    locale: localeProp,
+    timeZone: zoneProp,
     weekStartsOn = 0,
     mobileBreakpoint = 640,
     dayStart = 7,
@@ -182,6 +195,7 @@ function CalendarComponent<T = Record<string, unknown>>(
     printMode = 'agenda',
     printHeader,
     printFooter,
+    printProps,
     renderPrint,
     onPrint,
     labels = {},
@@ -192,6 +206,10 @@ function CalendarComponent<T = Record<string, unknown>>(
     dir,
     ...props
   } = allProps;
+  const language = useTranslation();
+  const { t } = language;
+  const locale = localeProp ?? language.locale;
+  const timeZone = zoneProp ?? language.timeZone ?? 'local';
   const styles = useStyles(),
     direction = useDirection(dir === 'rtl' || dir === 'ltr' ? dir : undefined);
   const root = React.useRef<HTMLDivElement>(null);
@@ -224,7 +242,7 @@ function CalendarComponent<T = Record<string, unknown>>(
         .filter((s): s is CalendarEventSpan<T> => !!s),
     [events, timeZone],
   );
-  const visible = eventsInRange(spans, range);
+  const visible = React.useMemo(() => eventsInRange(spans, range), [spans, range]);
   const today = Temporal.Now.plainDateISO(calendarZone(timeZone)).toString();
   const title =
     activeView === 'month'
@@ -341,7 +359,40 @@ function CalendarComponent<T = Record<string, unknown>>(
       : activeView === 'day'
         ? 1
         : 7;
-  const days = Array.from({ length: count }, (_, i) => first.add({ days: i }));
+  const firstDay = first.toString();
+  const days = React.useMemo(() => {
+    const first = Temporal.PlainDate.from(firstDay);
+    return Array.from({ length: count }, (_, i) => first.add({ days: i }));
+  }, [firstDay, count]);
+  const indexedEvents = React.useMemo(() => {
+    const index = new Map<string, CalendarEventSpan<T>[]>();
+    const lower = Temporal.PlainDate.from(firstDay),
+      upper = lower.add({ days: count });
+    for (const span of spans) {
+      let day = span.start.toPlainDate();
+      if (Temporal.PlainDate.compare(day, lower) < 0) day = lower;
+      const end = span.end.toPlainTime().equals('00:00')
+        ? span.end.toPlainDate().subtract({ days: 1 })
+        : span.end.toPlainDate();
+      while (
+        Temporal.PlainDate.compare(day, upper) < 0 &&
+        Temporal.PlainDate.compare(day, end) <= 0
+      ) {
+        const key = day.toString(),
+          items = index.get(key) ?? [];
+        items.push(span);
+        index.set(key, items);
+        day = day.add({ days: 1 });
+      }
+    }
+    for (const items of index.values())
+      items.sort(
+        (a, b) =>
+          Number(b.allDay) - Number(a.allDay) || Temporal.PlainDateTime.compare(a.start, b.start),
+      );
+    return index;
+  }, [spans, firstDay, count]);
+  const eventsForDay = (day: Temporal.PlainDate) => indexedEvents.get(day.toString()) ?? [];
   const dayRange = (day: Temporal.PlainDate) => ({
     start: day.toString(),
     end: day.add({ days: 1 }).toString(),
@@ -419,8 +470,8 @@ function CalendarComponent<T = Record<string, unknown>>(
     timed = false,
   ) => {
     const timeText = span.allDay
-      ? (labels.allDay ?? 'All day')
-      : span.start.toPlainTime().toLocaleString(locale, { hour: 'numeric', minute: '2-digit' });
+      ? (labels.allDay ?? t('calendar.allDay'))
+      : wallLabel(span.start, locale, { hour: 'numeric', minute: '2-digit' });
     const renderContext: CalendarRenderContext<T> = {
       event: span.event,
       date: day.toString(),
@@ -438,7 +489,7 @@ function CalendarComponent<T = Record<string, unknown>>(
         data-timed={timed || undefined}
         style={
           {
-            '--ui-calendar-event-color': span.event.color ?? 'var(--ui-chart-1)',
+            '--ui-calendar-event-color': span.event.color ?? 'var(--ui-accent)',
             ...extraStyle,
           } as React.CSSProperties
         }
@@ -516,7 +567,7 @@ function CalendarComponent<T = Record<string, unknown>>(
   };
   const agenda = (agendaDays: Temporal.PlainDate[]) => {
     const rows = agendaDays
-      .map((day) => ({ day, entries: dayEvents(spans, day) }))
+      .map((day) => ({ day, entries: eventsForDay(day) }))
       .filter((row) => row.entries.length);
     return rows.length ? (
       <div {...styles('full-calendar.agenda', 'ui-calendar-agenda', undefined, unstyled)}>
@@ -544,9 +595,7 @@ function CalendarComponent<T = Record<string, unknown>>(
                         unstyled,
                       )}
                     >
-                      {span.end
-                        .toPlainTime()
-                        .toLocaleString(locale, { hour: 'numeric', minute: '2-digit' })}
+                      {wallLabel(span.end, locale, { hour: 'numeric', minute: '2-digit' })}
                     </span>
                   )}
                 </li>
@@ -558,7 +607,7 @@ function CalendarComponent<T = Record<string, unknown>>(
     ) : (
       (renderEmpty ?? (
         <EmptyState
-          title={labels.noEvents ?? 'No events'}
+          title={labels.noEvents ?? t('calendar.noEvents')}
           description={dateLabel(agendaDays[0] ?? focused, locale, { dateStyle: 'long' })}
         />
       ))
@@ -587,14 +636,7 @@ function CalendarComponent<T = Record<string, unknown>>(
           key={week}
         >
           {days.slice(week * 7, week * 7 + 7).map((day) => {
-            const items = dayEvents(
-              printing && printSnapshot
-                ? printSnapshot.events
-                    .map((event) => eventSpan(event, timeZone))
-                    .filter((s): s is CalendarEventSpan<T> => !!s)
-                : spans,
-              day,
-            );
+            const items = eventsForDay(day);
             const iso = day.toString();
             return (
               <div
@@ -613,7 +655,7 @@ function CalendarComponent<T = Record<string, unknown>>(
                   data-calendar-date={iso}
                   disabled={disabled}
                   tabIndex={iso === chosen ? 0 : -1}
-                  aria-label={`${dateLabel(day, locale, { dateStyle: 'full' })}, ${items.length} events`}
+                  aria-label={`${dateLabel(day, locale, { dateStyle: 'full' })}, ${t('calendar.eventCount', { count: items.length })}`}
                   aria-current={iso === today ? 'date' : undefined}
                   aria-pressed={iso === chosen}
                   {...styles(
@@ -670,7 +712,8 @@ function CalendarComponent<T = Record<string, unknown>>(
                           setChosen(iso);
                         }}
                       >
-                        {labels.more ?? 'More'} +{items.length - Math.max(1, maxEventsPerDay)}
+                        {labels.more ?? t('calendar.more')} +
+                        {items.length - Math.max(1, maxEventsPerDay)}
                       </button>
                     )}
                   </div>
@@ -688,8 +731,32 @@ function CalendarComponent<T = Record<string, unknown>>(
       : Math.max(startHour + 1, 21);
   const totalMinutes = (endHour - startHour) * 60,
     slot = Number.isFinite(slotMinutes) ? Math.max(5, Math.min(60, Math.floor(slotMinutes))) : 30;
-  const scheduleDays = compact ? [Temporal.PlainDate.from(chosen)] : days;
+  const scheduleDays = React.useMemo(
+    () => (compact ? [Temporal.PlainDate.from(chosen)] : days),
+    [compact, chosen, days],
+  );
   const slotCount = Math.ceil(totalMinutes / slot);
+  const slotDescriptions = React.useMemo(() => {
+    const result = new Map<
+      string,
+      { minute: number; start: Temporal.PlainDateTime; label: string }[]
+    >();
+    if (activeView !== 'week' && activeView !== 'day') return result;
+    for (const day of scheduleDays)
+      result.set(
+        day.toString(),
+        Array.from({ length: slotCount }, (_, i) => {
+          const minute = startHour * 60 + i * slot;
+          const start = day.toPlainDateTime({ hour: Math.floor(minute / 60), minute: minute % 60 });
+          return {
+            minute,
+            start,
+            label: `${labels.addEvent ?? t('calendar.addEvent')}, ${wallLabel(start, locale, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`,
+          };
+        }),
+      );
+    return result;
+  }, [activeView, scheduleDays, slotCount, startHour, slot, labels.addEvent, t, locale]);
   const focusDay =
     slotFocus && scheduleDays.some((day) => day.toString() === slotFocus.day)
       ? slotFocus.day
@@ -734,7 +801,7 @@ function CalendarComponent<T = Record<string, unknown>>(
       ?.querySelector<HTMLButtonElement>(`[data-calendar-slot="${day}T${minute}"]`)
       ?.focus();
   };
-  const timeGrid = (
+  const timeGrid = () => (
     <div
       {...styles('full-calendar.time-scroll', 'ui-calendar-time-scroll', undefined, unstyled)}
       style={height ? { maxHeight: height } : undefined}
@@ -776,14 +843,14 @@ function CalendarComponent<T = Record<string, unknown>>(
             unstyled,
           )}
         >
-          {labels.allDay ?? 'All day'}
+          {labels.allDay ?? t('calendar.allDay')}
         </div>
         {scheduleDays.map((day) => (
           <div
             key={day.toString()}
             {...styles('full-calendar.all-day', 'ui-calendar-all-day', undefined, unstyled)}
           >
-            {dayEvents(spans, day)
+            {eventsForDay(day)
               .filter((s) => s.allDay)
               .map((span) => eventButton(span, day))}
           </div>
@@ -814,12 +881,7 @@ function CalendarComponent<T = Record<string, unknown>>(
             <div
               {...styles('full-calendar.time-slots', 'ui-calendar-time-slots', undefined, unstyled)}
             >
-              {Array.from({ length: slotCount }, (_, i) => {
-                const minute = startHour * 60 + i * slot;
-                const start = day.toPlainDateTime({
-                  hour: Math.floor(minute / 60),
-                  minute: minute % 60,
-                });
+              {(slotDescriptions.get(day.toString()) ?? []).map(({ minute, start, label }, i) => {
                 return (
                   <button
                     key={i}
@@ -829,7 +891,7 @@ function CalendarComponent<T = Record<string, unknown>>(
                     tabIndex={
                       selectable && day.toString() === focusDay && minute === focusMinute ? 0 : -1
                     }
-                    aria-label={`${labels.addEvent ?? 'Add event'}, ${start.toLocaleString(locale, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`}
+                    aria-label={label}
                     onFocus={() => setSlotFocus({ day: day.toString(), minute })}
                     onKeyDown={(event) => keyboardSlot(event, dayIndex, i)}
                     onClick={(event) => selectSlot(start, event.shiftKey)}
@@ -838,7 +900,7 @@ function CalendarComponent<T = Record<string, unknown>>(
               })}
             </div>
             {eventColumns(
-              dayEvents(spans, day).filter(
+              eventsForDay(day).filter(
                 (s) =>
                   !s.allDay &&
                   s.end.hour + (s.end.toPlainDate().equals(day) ? 0 : 24) > startHour &&
@@ -882,7 +944,7 @@ function CalendarComponent<T = Record<string, unknown>>(
         dir={direction}
         {...styles('full-calendar.root', 'ui-full-calendar', className, unstyled)}
         role="region"
-        aria-label="Calendar"
+        aria-label={t('calendar.label')}
         {...props}
         data-view={activeView}
         data-mobile={compact || undefined}
@@ -898,8 +960,8 @@ function CalendarComponent<T = Record<string, unknown>>(
                 variant="ghost"
                 size="icon"
                 disabled={disabled}
-                title={labels.previous ?? 'Previous period'}
-                aria-label={labels.previous ?? 'Previous period'}
+                title={labels.previous ?? t('calendar.previous')}
+                aria-label={labels.previous ?? t('calendar.previous')}
                 onClick={api.prev}
               >
                 {direction === 'rtl' ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
@@ -908,14 +970,14 @@ function CalendarComponent<T = Record<string, unknown>>(
                 variant="ghost"
                 size="icon"
                 disabled={disabled}
-                title={labels.next ?? 'Next period'}
-                aria-label={labels.next ?? 'Next period'}
+                title={labels.next ?? t('calendar.next')}
+                aria-label={labels.next ?? t('calendar.next')}
                 onClick={api.next}
               >
                 {direction === 'rtl' ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
               </Button>
               <Button variant="outline" size="sm" disabled={disabled} onClick={api.today}>
-                {labels.today ?? 'Today'}
+                {labels.today ?? t('calendar.today')}
               </Button>
             </div>
             <h2
@@ -930,13 +992,13 @@ function CalendarComponent<T = Record<string, unknown>>(
                 disabled={disabled}
                 onValueChange={(value) => changeView(value as FullCalendarView)}
               >
-                <SelectTrigger aria-label="Calendar view">
+                <SelectTrigger aria-label={t('calendar.view')}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {views.map((value) => (
                     <SelectItem key={value} value={value}>
-                      {labels[value] ?? viewNames[value]}
+                      {labels[value] ?? t(`calendar.${value}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -946,8 +1008,8 @@ function CalendarComponent<T = Record<string, unknown>>(
                   variant="ghost"
                   size="icon"
                   disabled={disabled}
-                  title={labels.print ?? 'Print calendar'}
-                  aria-label={labels.print ?? 'Print calendar'}
+                  title={labels.print ?? t('calendar.print')}
+                  aria-label={labels.print ?? t('calendar.print')}
                   onClick={print}
                 >
                   <Printer size={17} aria-hidden="true" />
@@ -965,7 +1027,7 @@ function CalendarComponent<T = Record<string, unknown>>(
           <div
             {...styles('full-calendar.day-strip', 'ui-calendar-day-strip', undefined, unstyled)}
             role="group"
-            aria-label="Choose day"
+            aria-label={t('picker.chooseDate')}
           >
             {days.map((day) => (
               <Button
@@ -985,7 +1047,7 @@ function CalendarComponent<T = Record<string, unknown>>(
           ? monthGrid()
           : activeView === 'agenda'
             ? agenda(compact ? [Temporal.PlainDate.from(chosen)] : days)
-            : timeGrid}
+            : timeGrid()}
         {activeView === 'month' && (compact || expandedDay) && (
           <div
             {...styles(
@@ -1014,14 +1076,23 @@ function CalendarComponent<T = Record<string, unknown>>(
               }
             >
               <Plus size={16} />
-              {labels.addEvent ?? 'Add event'}
+              {labels.addEvent ?? t('calendar.addEvent')}
             </Button>
           </div>
         )}
         {printSnapshot &&
           typeof document !== 'undefined' &&
           createPortal(
-            <div className="ui-calendar-print" dir={direction} aria-hidden="true">
+            <div
+              {...printProps}
+              className={['ui-calendar-print', printProps?.className].filter(Boolean).join(' ')}
+              dir={direction}
+              aria-hidden="true"
+              style={{
+                ...tokensToStyle({ ...lightTokens, ...componentTokenAliases }),
+                ...printProps?.style,
+              }}
+            >
               {renderPrint ? (
                 renderPrint(printSnapshot)
               ) : (
@@ -1032,38 +1103,34 @@ function CalendarComponent<T = Record<string, unknown>>(
                   {printMode === 'calendar' && activeView === 'month' ? (
                     monthGrid(true)
                   ) : (
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Event</th>
-                          <th>Start</th>
-                          <th>End</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {printSnapshot.events.map((event) => (
-                          <tr key={event.id}>
-                            <td>{event.title}</td>
-                            <td>
-                              {eventSpan(event, timeZone)?.start.toLocaleString(
-                                locale,
-                                eventSpan(event, timeZone)?.allDay
-                                  ? { dateStyle: 'medium' }
-                                  : { dateStyle: 'medium', timeStyle: 'short' },
-                              )}
-                            </td>
-                            <td>
-                              {eventSpan(event, timeZone)?.end.toLocaleString(
-                                locale,
-                                eventSpan(event, timeZone)?.allDay
-                                  ? { dateStyle: 'medium' }
-                                  : { dateStyle: 'medium', timeStyle: 'short' },
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t('calendar.event')}</TableHead>
+                          <TableHead>{t('calendar.start')}</TableHead>
+                          <TableHead>{t('calendar.end')}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {printSnapshot.events.map((event) => {
+                          const span = eventSpan(event, timeZone);
+                          const format = span?.allDay
+                            ? { dateStyle: 'medium' as const }
+                            : { dateStyle: 'medium' as const, timeStyle: 'short' as const };
+                          return (
+                            <TableRow key={event.id}>
+                              <TableCell>{event.title}</TableCell>
+                              <TableCell>
+                                {span ? wallLabel(span.start, locale, format) : ''}
+                              </TableCell>
+                              <TableCell>
+                                {span ? wallLabel(span.end, locale, format) : ''}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
                   )}
                   {printFooter}
                 </>
@@ -1080,3 +1147,5 @@ export const FullCalendar = /* @__PURE__ */ React.forwardRef(CalendarComponent) 
 >(
   props: FullCalendarProps<T> & React.RefAttributes<FullCalendarRef>,
 ) => React.ReactElement;
+export { CalendarEventDialog } from './calendar-event-dialog';
+export type { CalendarEventDialogProps, CalendarEventDraft } from './calendar-event-dialog';

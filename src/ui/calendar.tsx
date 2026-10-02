@@ -1,23 +1,71 @@
 import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './styling';
 import * as React from 'react';
+import { ar, enUS } from 'react-day-picker/locale';
+import { dateFormatter, useTranslation } from './i18n';
 import { DayPicker, type DayPickerProps } from 'react-day-picker';
 import { CalendarDays } from 'lucide-react';
 import { cn } from './utils';
 import { Button } from './primitives';
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from './overlays';
-export type CalendarProps = DayPickerProps;
+export type CalendarProps = DayPickerProps & { localeCode?: string };
 export function Calendar({
   className,
   showOutsideDays = true,
   unstyled,
+  localeCode,
+  labels,
+  formatters,
   ...props
 }: CalendarProps & PlainStyleProps) {
   const styles = useStyles();
+  const language = useTranslation();
+  const locale = localeCode ?? language.locale;
   const dir = useDirection(props.dir as 'ltr' | 'rtl' | undefined);
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       dir={dir}
+      locale={locale.startsWith('ar') ? ar : enUS}
+      lang={locale}
+      labels={{
+        labelPrevious: () => language.t('calendar.previous'),
+        labelNext: () => language.t('calendar.next'),
+        labelMonthDropdown: () => language.t('picker.monthDropdown'),
+        labelYearDropdown: () => language.t('picker.yearDropdown'),
+        labelNav: () => language.t('calendar.label'),
+        labelWeekNumberHeader: () => language.t('picker.weekHeader'),
+        labelWeekNumber: (number) => language.t('picker.weekNumber', { number }),
+        ...(!locale.startsWith('en')
+          ? {
+              labelDayButton: (date: Date, modifiers: { today?: boolean; selected?: boolean }) =>
+                [
+                  dateFormatter(locale, {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  }).format(date),
+                  modifiers.today ? language.t('picker.today') : '',
+                  modifiers.selected ? language.t('picker.selected') : '',
+                ]
+                  .filter(Boolean)
+                  .join(', '),
+            }
+          : {}),
+        labelGridcell: (date) => dateFormatter(locale, { dateStyle: 'full' }).format(date),
+        labelGrid: (date) => dateFormatter(locale, { month: 'long', year: 'numeric' }).format(date),
+        labelWeekday: (date) => dateFormatter(locale, { weekday: 'long' }).format(date),
+        ...labels,
+      }}
+      formatters={{
+        formatCaption: (date) =>
+          dateFormatter(locale, { month: 'long', year: 'numeric' }).format(date),
+        formatDay: (date) => dateFormatter(locale, { day: 'numeric' }).format(date),
+        formatWeekdayName: (date) => dateFormatter(locale, { weekday: 'short' }).format(date),
+        formatMonthDropdown: (date) => dateFormatter(locale, { month: 'long' }).format(date),
+        formatYearDropdown: (date) => dateFormatter(locale, { year: 'numeric' }).format(date),
+        ...formatters,
+      }}
       {...styles('calendar.root', 'ui-calendar', className, unstyled)}
       {...props}
     />
@@ -48,16 +96,20 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
     value,
     defaultValue,
     onValueChange,
-    placeholder = 'Pick a date',
+    placeholder: placeholderProp,
     name,
     clearable = true,
     calendarProps,
-    locale = 'en',
-    clearLabel = 'Clear date',
+    locale: localeProp,
+    clearLabel: clearLabelProp,
     className,
     unstyled,
     ...props
   } = allProps;
+  const language = useTranslation();
+  const locale = localeProp ?? language.locale;
+  const placeholder = placeholderProp ?? language.t('picker.chooseDate'),
+    clearLabel = clearLabelProp ?? language.t('picker.clearDate');
   const isControlled = Object.prototype.hasOwnProperty.call(allProps, 'value');
   const styles = useStyles();
   const [open, setOpen] = React.useState(false);
@@ -66,9 +118,7 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
   const current = candidate && Number.isFinite(candidate.getTime()) ? candidate : undefined;
   const valueId = React.useId();
   const formattedValue = current
-    ? new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' }).format(
-        current,
-      )
+    ? dateFormatter(locale, { day: 'numeric', month: 'short', year: 'numeric' }).format(current)
     : placeholder;
   const select = (date: Date | undefined) => {
     if (!isControlled) setInternalValue(date);
@@ -110,6 +160,7 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
           {...styles('date-picker.content', 'p-3', undefined, unstyled)}
         >
           <Calendar
+            localeCode={locale}
             mode="single"
             selected={current}
             onSelect={select}

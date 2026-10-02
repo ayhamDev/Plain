@@ -7,6 +7,7 @@ import {
   type TextDirection,
 } from './styling';
 import * as React from 'react';
+import { useTranslation } from './i18n';
 import {
   Dialog as DialogPrimitive,
   AlertDialog as AlertDialogPrimitive,
@@ -55,6 +56,7 @@ export const DialogContent = /* @__PURE__ */ React.forwardRef<
     PlainStyleProps
 >(({ className, children, showClose = true, unstyled, ...props }, ref) => {
   const styles = useStyles();
+  const { t } = useTranslation();
   return (
     <DialogPortal>
       <DialogOverlay unstyled={unstyled} />
@@ -80,7 +82,7 @@ export const DialogContent = /* @__PURE__ */ React.forwardRef<
               undefined,
               unstyled,
             )}
-            aria-label="Close dialog"
+            aria-label={t('dialog.close')}
           >
             <X {...styles('dialog.close-icon', 'size-4', undefined, unstyled)} aria-hidden="true" />
           </DialogClose>
@@ -159,12 +161,20 @@ export type SheetProps = React.ComponentProps<typeof Vaul.Root> & {
   /** Takes precedence over native direction and the legacy SheetContent side. */
   side?: SheetSide;
   dir?: TextDirection;
+  variant?: 'attached' | 'detached' | 'floating';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  gap?: number;
+  mobileSide?: SheetSide;
+  mobileBreakpoint?: number;
 };
 export type DrawerProps = SheetProps;
 type PanelConfiguration = { side?: SheetSide; dir?: TextDirection };
 const PanelContext = /* @__PURE__ */ React.createContext<{
   side: 'left' | 'right' | 'top' | 'bottom';
   hasSnapPoints: boolean;
+  variant: 'attached' | 'detached' | 'floating';
+  size: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  gap: number;
   configure: React.Dispatch<React.SetStateAction<PanelConfiguration>>;
 } | null>(null);
 const usePanelLayoutEffect =
@@ -177,11 +187,26 @@ function PanelRoot({
   children,
   autoFocus = true,
   defaultSide,
+  variant = 'attached',
+  size = 'md',
+  gap = 12,
+  mobileSide,
+  mobileBreakpoint = 640,
   ...props
 }: SheetProps & { defaultSide: SheetSide }) {
   const [configuration, configure] = React.useState<PanelConfiguration>({});
   const textDirection = useDirection(dir ?? configuration.dir);
-  const logicalSide = side ?? direction ?? configuration.side ?? defaultSide;
+  const [mobile, setMobile] = React.useState(false);
+  React.useEffect(() => {
+    if (!mobileSide) return;
+    const media = window.matchMedia(`(max-width: ${mobileBreakpoint}px)`);
+    const update = () => setMobile(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, [mobileSide, mobileBreakpoint]);
+  const logicalSide =
+    (mobile && mobileSide ? mobileSide : side) ?? direction ?? configuration.side ?? defaultSide;
   const resolvedSide =
     logicalSide === 'start'
       ? textDirection === 'rtl'
@@ -193,8 +218,15 @@ function PanelRoot({
           : 'right'
         : logicalSide;
   const context = React.useMemo(
-    () => ({ side: resolvedSide, hasSnapPoints: Boolean(props.snapPoints?.length), configure }),
-    [resolvedSide, props.snapPoints?.length],
+    () => ({
+      side: resolvedSide,
+      hasSnapPoints: Boolean(props.snapPoints?.length),
+      configure,
+      variant,
+      size,
+      gap,
+    }),
+    [resolvedSide, props.snapPoints?.length, variant, size, gap],
   );
   return (
     <DirectionProvider dir={textDirection}>
@@ -250,6 +282,7 @@ export const SheetHandle = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, preventCycle, onKeyDown, ...props }, ref) => {
   const styles = useStyles();
   const context = React.useContext(PanelContext);
+  const { t } = useTranslation();
   const keyboardInteractive = context?.hasSnapPoints && !preventCycle;
   return (
     <Vaul.Handle
@@ -258,7 +291,7 @@ export const SheetHandle = /* @__PURE__ */ React.forwardRef<
       role={keyboardInteractive ? 'button' : undefined}
       tabIndex={keyboardInteractive ? 0 : undefined}
       aria-hidden={keyboardInteractive ? false : true}
-      aria-label={keyboardInteractive ? 'Resize panel' : undefined}
+      aria-label={keyboardInteractive ? t('panel.resize') : undefined}
       onKeyDown={(event) => {
         onKeyDown?.(event);
         if (
@@ -281,72 +314,97 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
   (React.ComponentPropsWithoutRef<typeof Vaul.Content> & {
     side?: SheetSide;
     showClose?: boolean;
+    overlay?: boolean;
+    overlayProps?: React.ComponentProps<typeof SheetOverlay>;
   }) &
     PlainStyleProps
->(({ className, children, side, showClose = true, unstyled, dir, ...props }, ref) => {
-  const styles = useStyles();
-  const motion = useMotionSettings();
-  const context = React.useContext(PanelContext);
-  const localDirection = dir === 'ltr' || dir === 'rtl' ? dir : undefined;
-  const textDirection = useDirection(localDirection);
-  const configure = context?.configure;
-  // The wrapper stays mounted while its portal is closed, so Vaul knows the legacy content side before opening.
-  usePanelLayoutEffect(() => {
-    configure?.({ side, dir: localDirection });
-    return () => configure?.({});
-  }, [configure, side, localDirection]);
-  const resolvedSide = context?.side ?? 'right';
-  const vertical = resolvedSide === 'top' || resolvedSide === 'bottom';
-  return (
-    <SheetPortal>
-      <SheetOverlay unstyled={unstyled} />
-      <Vaul.Content
-        ref={ref}
-        {...styles(
-          'sheet.content',
-          cn(
-            'fixed z-[var(--ui-layer-dialog)] overflow-y-auto overscroll-contain border-[length:var(--ui-border-width,1px)] border-[var(--ui-sheet-border,var(--ui-border))] bg-[var(--ui-sheet-background,var(--ui-surface))] p-5 text-[var(--ui-sheet-foreground,var(--ui-foreground))] shadow-[var(--ui-sheet-shadow,var(--ui-shadow))] outline-none sm:p-6',
-            vertical
-              ? cn(
-                  'ui-drawer inset-x-0',
-                  context?.hasSnapPoints ? 'h-dvh max-h-none' : 'max-h-[90dvh]',
-                  resolvedSide === 'bottom'
-                    ? 'bottom-0 rounded-t-[var(--ui-sheet-radius,var(--ui-radius))] pb-[max(1.5rem,env(safe-area-inset-bottom))]'
-                    : 'top-0 rounded-b-[var(--ui-sheet-radius,var(--ui-radius))] pt-[max(1.5rem,env(safe-area-inset-top))]',
-                )
-              : cn(
-                  'ui-sheet inset-y-0 h-dvh',
-                  context?.hasSnapPoints ? 'w-screen' : 'w-[min(400px,calc(100%-24px))]',
-                  resolvedSide === 'left' ? 'left-0' : 'right-0',
-                ),
-            showClose && '[&_[data-slot=header]]:pe-8',
-          ),
-          className,
-          unstyled,
-        )}
-        dir={textDirection}
-        data-side={resolvedSide}
-        data-ui-motion={motion.reduced ? 'reduced' : undefined}
-        {...props}
-      >
-        {children}
-        {showClose && (
-          <SheetClose
-            {...styles(
-              'sheet.close',
-              'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
-              undefined,
-              unstyled,
-            )}
-            aria-label="Close panel"
-          >
-            <X {...styles('sheet.close-icon', 'size-4', undefined, unstyled)} aria-hidden="true" />
-          </SheetClose>
-        )}
-      </Vaul.Content>
-    </SheetPortal>
-  );
-});
+>(
+  (
+    {
+      className,
+      children,
+      side,
+      showClose = true,
+      overlay = true,
+      overlayProps,
+      unstyled,
+      dir,
+      style,
+      ...props
+    },
+    ref,
+  ) => {
+    const styles = useStyles();
+    const motion = useMotionSettings();
+    const context = React.useContext(PanelContext);
+    const { t } = useTranslation();
+    const localDirection = dir === 'ltr' || dir === 'rtl' ? dir : undefined;
+    const textDirection = useDirection(localDirection);
+    const configure = context?.configure;
+    // The wrapper stays mounted while its portal is closed, so Vaul knows the legacy content side before opening.
+    usePanelLayoutEffect(() => {
+      configure?.({ side, dir: localDirection });
+      return () => configure?.({});
+    }, [configure, side, localDirection]);
+    const resolvedSide = context?.side ?? 'right';
+    const vertical = resolvedSide === 'top' || resolvedSide === 'bottom';
+    return (
+      <SheetPortal>
+        {overlay && <SheetOverlay unstyled={unstyled} {...overlayProps} />}
+        <Vaul.Content
+          ref={ref}
+          {...styles(
+            'sheet.content',
+            cn(
+              'fixed z-[var(--ui-layer-dialog)] overflow-y-auto overscroll-contain border-[length:var(--ui-border-width,1px)] border-[var(--ui-sheet-border,var(--ui-border))] bg-[var(--ui-sheet-background,var(--ui-surface))] p-5 text-[var(--ui-sheet-foreground,var(--ui-foreground))] shadow-[var(--ui-sheet-shadow,var(--ui-shadow))] outline-none sm:p-6',
+              vertical
+                ? cn(
+                    'ui-drawer inset-x-0',
+                    context?.hasSnapPoints ? 'h-dvh max-h-none' : 'max-h-[90dvh]',
+                    resolvedSide === 'bottom'
+                      ? 'bottom-0 rounded-t-[var(--ui-sheet-radius,var(--ui-radius))] pb-[max(1.5rem,env(safe-area-inset-bottom))]'
+                      : 'top-0 rounded-b-[var(--ui-sheet-radius,var(--ui-radius))] pt-[max(1.5rem,env(safe-area-inset-top))]',
+                  )
+                : cn(
+                    'ui-sheet inset-y-0 h-dvh',
+                    context?.hasSnapPoints ? 'w-screen' : 'w-[min(400px,calc(100%-24px))]',
+                    resolvedSide === 'left' ? 'left-0' : 'right-0',
+                  ),
+              showClose && '[&_[data-slot=header]]:pe-8',
+            ),
+            className,
+            unstyled,
+          )}
+          dir={textDirection}
+          data-side={resolvedSide}
+          data-variant={context?.variant ?? 'attached'}
+          data-size={context?.size ?? 'md'}
+          style={{ '--ui-panel-gap': `${context?.gap ?? 12}px`, ...style } as React.CSSProperties}
+          data-ui-motion={motion.reduced ? 'reduced' : undefined}
+          {...props}
+        >
+          {children}
+          {showClose && (
+            <SheetClose
+              {...styles(
+                'sheet.close',
+                'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
+                undefined,
+                unstyled,
+              )}
+              aria-label={t('panel.close')}
+            >
+              <X
+                {...styles('sheet.close-icon', 'size-4', undefined, unstyled)}
+                aria-hidden="true"
+              />
+            </SheetClose>
+          )}
+        </Vaul.Content>
+      </SheetPortal>
+    );
+  },
+);
 SheetContent.displayName = 'SheetContent';
 export const DrawerTrigger = SheetTrigger;
 export const DrawerClose = SheetClose;

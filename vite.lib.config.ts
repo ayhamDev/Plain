@@ -40,6 +40,7 @@ export default defineConfig({
         'ui/index': resolve(import.meta.dirname, 'src/ui/index.ts'),
         'ui/stylesheet': resolve(import.meta.dirname, 'src/ui/stylesheet.ts'),
         'ui/motion': resolve(import.meta.dirname, 'src/ui/motion.tsx'),
+        'ui/kanban': resolve(import.meta.dirname, 'src/ui/kanban.tsx'),
         'ui/charts': resolve(import.meta.dirname, 'src/ui/charts.tsx'),
         'ui/full-calendar': resolve(import.meta.dirname, 'src/ui/full-calendar.tsx'),
         'charts-styles': resolve(import.meta.dirname, 'src/ui/charts.css'),

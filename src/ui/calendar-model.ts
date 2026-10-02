@@ -36,7 +36,7 @@ export function calendarDay(value: CalendarDate, timeZone = 'local') {
 export function calendarZone(timeZone: string) {
   return timeZone === 'local' ? Temporal.Now.timeZoneId() : timeZone;
 }
-function wall(value: CalendarDate, timeZone: string) {
+export function calendarWall(value: CalendarDate, timeZone: string) {
   if (value instanceof Date)
     return Temporal.Instant.fromEpochMilliseconds(value.getTime())
       .toZonedDateTimeISO(calendarZone(timeZone))
@@ -55,9 +55,9 @@ export function eventSpan<T>(
 ): CalendarEventSpan<T> | undefined {
   try {
     const allDay = event.allDay ?? (typeof event.start === 'string' && !event.start.includes('T'));
-    const start = wall(event.start, timeZone);
+    const start = calendarWall(event.start, timeZone);
     const end = event.end
-      ? wall(event.end, timeZone)
+      ? calendarWall(event.end, timeZone)
       : start.add(allDay ? { days: 1 } : { hours: 1 });
     if (Temporal.PlainDateTime.compare(start, end) >= 0) return undefined;
     return { event, start, end, allDay };

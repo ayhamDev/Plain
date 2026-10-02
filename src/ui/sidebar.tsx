@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from './i18n';
 import { RadioGroup, Slot } from 'radix-ui';
 import { Check, ChevronRight, PanelLeft, X } from 'lucide-react';
 import { Button } from './primitives';
@@ -74,6 +75,7 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
     ref,
   ) => {
     const styles = useStyles();
+
     const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
     const generatedId = React.useId();
     const [contentId, setContentId] = React.useState(sidebarId ?? `sidebar-${generatedId}`);
@@ -214,7 +216,7 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
   (
     {
       side = 'start',
-      label = 'Navigation',
+      label: labelProp,
       variant = 'sidebar',
       id,
       children,
@@ -226,6 +228,8 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
+    const label = labelProp ?? t('navigation.label');
     const context = React.useContext(SidebarContext);
     if (!context) throw new Error('Sidebar must be used inside SidebarProvider.');
     const { isMobile, collapsed, contentId, setContentId, variables, collapsible } = context;
@@ -270,8 +274,8 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
               {label}
             </SheetTitle>
             <SheetClose
-              aria-label="Close navigation"
-              title="Close navigation"
+              aria-label={t('navigation.close')}
+              title={t('navigation.close')}
               {...styles('sidebar.close', 'ui-sidebar-close', undefined, unstyled)}
             >
               <X
@@ -311,15 +315,18 @@ export const SidebarTrigger = /* @__PURE__ */ React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement> & PlainStyleProps
 >(({ className, unstyled, onClick, children, ...props }, ref) => {
   const styles = useStyles();
+  const { t } = useTranslation();
   const { isMobile, mobileOpen, collapsed, contentId, toggle, collapsible } = useSidebar();
   const trigger = (
     <button
       ref={ref}
       type="button"
       aria-label={
-        isMobile ? 'Open navigation' : collapsed ? 'Expand navigation' : 'Collapse navigation'
+        isMobile ? t('navigation.open') : t(collapsed ? 'navigation.expand' : 'navigation.collapse')
       }
-      title={isMobile ? 'Open navigation' : collapsed ? 'Expand navigation' : 'Collapse navigation'}
+      title={
+        isMobile ? t('navigation.open') : t(collapsed ? 'navigation.expand' : 'navigation.collapse')
+      }
       aria-expanded={isMobile ? mobileOpen : !collapsed}
       aria-controls={contentId}
       hidden={!isMobile && collapsible === 'none'}
@@ -342,43 +349,54 @@ export const SidebarTrigger = /* @__PURE__ */ React.forwardRef<
 });
 SidebarTrigger.displayName = 'SidebarTrigger';
 
-export const SidebarHeader = /* @__PURE__ */ React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
-  const styles = useStyles();
-  return (
-    <div
-      ref={ref}
-      {...styles('sidebar.header', 'ui-sidebar-header', className, unstyled)}
-      {...props}
-    />
-  );
-});
+export interface SidebarSectionProps extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps {
+  /** Alternate content for the desktop icon rail. Mobile retains children. */
+  collapsedContent?: React.ReactNode;
+}
+export const SidebarHeader = /* @__PURE__ */ React.forwardRef<HTMLDivElement, SidebarSectionProps>(
+  ({ className, unstyled, collapsedContent, children, ...props }, ref) => {
+    const styles = useStyles();
+    const context = React.useContext(SidebarContext);
+    const compact = context?.collapsed && !context.isMobile && context.collapsible === 'icon';
+    return (
+      <div
+        ref={ref}
+        {...styles('sidebar.header', 'ui-sidebar-header', className, unstyled)}
+        {...props}
+      >
+        {compact && collapsedContent !== undefined ? collapsedContent : children}
+      </div>
+    );
+  },
+);
 SidebarHeader.displayName = 'SidebarHeader';
-export const SidebarFooter = /* @__PURE__ */ React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
-  const styles = useStyles();
-  return (
-    <div
-      ref={ref}
-      {...styles('sidebar.footer', 'ui-sidebar-footer', className, unstyled)}
-      {...props}
-    />
-  );
-});
+export const SidebarFooter = /* @__PURE__ */ React.forwardRef<HTMLDivElement, SidebarSectionProps>(
+  ({ className, unstyled, collapsedContent, children, ...props }, ref) => {
+    const styles = useStyles();
+    const context = React.useContext(SidebarContext);
+    const compact = context?.collapsed && !context.isMobile && context.collapsible === 'icon';
+    return (
+      <div
+        ref={ref}
+        {...styles('sidebar.footer', 'ui-sidebar-footer', className, unstyled)}
+        {...props}
+      >
+        {compact && collapsedContent !== undefined ? collapsedContent : children}
+      </div>
+    );
+  },
+);
 SidebarFooter.displayName = 'SidebarFooter';
 export const SidebarContent = /* @__PURE__ */ React.forwardRef<
   HTMLElement,
   React.HTMLAttributes<HTMLElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+  const { t } = useTranslation();
   return (
     <nav
       ref={ref}
-      aria-label="Sidebar navigation"
+      aria-label={t('navigation.sidebar')}
       {...styles('sidebar.content', 'ui-sidebar-content', className, unstyled)}
       {...props}
     />
@@ -391,6 +409,7 @@ export interface SidebarGroupProps extends React.HTMLAttributes<HTMLElement>, Pl
 export const SidebarGroup = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarGroupProps>(
   ({ label, children, className, unstyled, ...props }, ref) => {
     const styles = useStyles();
+
     const id = React.useId();
     return (
       <section
@@ -418,6 +437,7 @@ export const SidebarMenu = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLUListElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <ul ref={ref} {...styles('sidebar.menu', 'ui-sidebar-menu', className, unstyled)} {...props} />
   );
@@ -428,6 +448,7 @@ export const SidebarMenuItem = /* @__PURE__ */ React.forwardRef<
   React.LiHTMLAttributes<HTMLLIElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <li
       ref={ref}
@@ -465,6 +486,7 @@ export const SidebarItem = /* @__PURE__ */ React.forwardRef<HTMLButtonElement, S
     ref,
   ) => {
     const styles = useStyles();
+
     const sidebar = React.useContext(SidebarContext);
     const Element = asChild ? Slot.Root : 'button';
     const accessibleLabel = label ?? (typeof children === 'string' ? children : undefined);
@@ -536,6 +558,7 @@ export const SidebarGroupLabel = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLHeadingElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <h2
       ref={ref}
@@ -550,6 +573,7 @@ export const SidebarGroupContent = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <div
       ref={ref}
@@ -564,6 +588,7 @@ export const SidebarGroupAction = /* @__PURE__ */ React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement> & PlainStyleProps & { asChild?: boolean }
 >(({ asChild, className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <Button
       ref={ref}
@@ -582,6 +607,7 @@ export const SidebarMenuAction = /* @__PURE__ */ React.forwardRef<
     PlainStyleProps & { asChild?: boolean; showOnHover?: boolean }
 >(({ asChild, showOnHover = false, className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <Button
       ref={ref}
@@ -600,6 +626,7 @@ export const SidebarMenuBadge = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLSpanElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <span
       ref={ref}
@@ -614,6 +641,7 @@ export const SidebarMenuSub = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLUListElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <ul
       ref={ref}
@@ -629,6 +657,7 @@ export const SidebarMenuSubButton = /* @__PURE__ */ React.forwardRef<
   SidebarItemProps
 >(({ className, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <SidebarItem
       ref={ref}
@@ -643,6 +672,7 @@ export const SidebarInput = /* @__PURE__ */ React.forwardRef<
   React.ComponentProps<typeof Input>
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <Input
       ref={ref}
@@ -658,6 +688,7 @@ export const SidebarSeparator = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLHRElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <hr
       ref={ref}
@@ -672,14 +703,15 @@ export const SidebarRail = /* @__PURE__ */ React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement> & PlainStyleProps
 >(({ className, unstyled, onClick, ...props }, ref) => {
   const styles = useStyles();
+  const { t } = useTranslation();
   const { toggle, collapsed, contentId, collapsible, isMobile } = useSidebar();
   return (
     <button
       ref={ref}
       type="button"
       hidden={isMobile || collapsible === 'none'}
-      aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
-      title={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+      aria-label={t(collapsed ? 'navigation.expand' : 'navigation.collapse')}
+      title={t(collapsed ? 'navigation.expand' : 'navigation.collapse')}
       aria-controls={contentId}
       aria-expanded={!collapsed}
       {...styles('sidebar.rail', 'ui-sidebar-rail', className, unstyled)}
@@ -697,6 +729,7 @@ export const SidebarInset = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLElement> & PlainStyleProps & { asChild?: boolean }
 >(({ className, unstyled, asChild, ...props }, ref) => {
   const styles = useStyles();
+
   const Element = asChild ? Slot.Root : 'main';
   return (
     <Element
@@ -724,7 +757,7 @@ export const AppShell = /* @__PURE__ */ React.forwardRef<HTMLDivElement, AppShel
       footer,
       bottomNavigation,
       contentId,
-      skipLinkLabel = 'Skip to content',
+      skipLinkLabel: skipLinkLabelProp,
       children,
       className,
       unstyled,
@@ -733,8 +766,11 @@ export const AppShell = /* @__PURE__ */ React.forwardRef<HTMLDivElement, AppShel
     ref,
   ) => {
     const styles = useStyles();
+
     const id = React.useId();
     const mainId = contentId ?? `main-${id}`;
+    const { t } = useTranslation();
+    const skipLinkLabel = skipLinkLabelProp ?? t('navigation.skip');
     return (
       <StyleProvider unstyled={unstyled}>
         <div
@@ -780,6 +816,8 @@ export interface BottomNavigationItem {
   value: string;
   label: string;
   icon?: React.ReactNode;
+  renderIcon?: (active: boolean) => React.ReactNode;
+  badge?: React.ReactNode;
   href?: string;
   disabled?: boolean;
 }
@@ -789,72 +827,112 @@ export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement>
   defaultValue?: string;
   onValueChange?: (value: string) => void;
   fixed?: boolean;
+  itemLayout?: 'stacked' | 'inline';
+  mode?: 'attached' | 'detached';
+  showLabels?: boolean;
+  indicator?: 'icon' | 'full';
+  size?: 'sm' | 'md' | 'lg';
 }
 export const BottomNavigation = /* @__PURE__ */ React.forwardRef<
   HTMLElement,
   BottomNavigationProps
->(({ items, value, defaultValue, onValueChange, fixed, className, unstyled, ...props }, ref) => {
-  const styles = useStyles();
-  const [local, setLocal] = React.useState(defaultValue ?? items[0]?.value ?? '');
-  const current = value ?? local;
-  return (
-    <nav
-      ref={ref}
-      aria-label="Primary navigation"
-      {...styles('bottom-navigation.root', 'ui-bottom-navigation', className, unstyled)}
-      data-fixed={fixed || undefined}
-      {...props}
-    >
-      {items.map((item) => {
-        const Element = item.href ? 'a' : 'button';
-        return (
-          <Element
-            key={item.value}
-            type={item.href ? undefined : 'button'}
-            href={item.disabled ? undefined : item.href}
-            disabled={item.href ? undefined : item.disabled}
-            aria-disabled={item.disabled || undefined}
-            tabIndex={item.disabled ? -1 : undefined}
-            aria-current={current === item.value ? 'page' : undefined}
-            {...styles('bottom-navigation.item', 'ui-bottom-navigation-item', undefined, unstyled)}
-            onClick={(event) => {
-              if (item.disabled) {
-                event.preventDefault();
-                return;
-              }
-              if (value === undefined) setLocal(item.value);
-              onValueChange?.(item.value);
-            }}
-          >
-            {item.icon && (
-              <span
-                {...styles(
-                  'bottom-navigation.icon',
-                  'ui-bottom-navigation-icon',
-                  undefined,
-                  unstyled,
-                )}
-                aria-hidden="true"
-              >
-                {item.icon}
-              </span>
-            )}
-            <span
+>(
+  (
+    {
+      items,
+      value,
+      defaultValue,
+      onValueChange,
+      fixed,
+      itemLayout = 'stacked',
+      mode = 'attached',
+      showLabels = true,
+      indicator = 'icon',
+      size = 'md',
+      className,
+      unstyled,
+      ...props
+    },
+    ref,
+  ) => {
+    const styles = useStyles();
+    const [local, setLocal] = React.useState(defaultValue ?? items[0]?.value ?? '');
+    const current = value ?? local;
+    const { t } = useTranslation();
+    return (
+      <nav
+        ref={ref}
+        aria-label={t('navigation.primary')}
+        {...styles('bottom-navigation.root', 'ui-bottom-navigation', className, unstyled)}
+        data-fixed={fixed || undefined}
+        data-layout={itemLayout}
+        data-mode={mode}
+        data-indicator={indicator}
+        data-size={size}
+        data-labels={showLabels}
+        {...props}
+      >
+        {items.map((item) => {
+          const Element = item.href ? 'a' : 'button';
+          return (
+            <Element
+              key={item.value}
+              type={item.href ? undefined : 'button'}
+              href={item.disabled ? undefined : item.href}
+              disabled={item.href ? undefined : item.disabled}
+              aria-disabled={item.disabled || undefined}
+              tabIndex={item.disabled ? -1 : undefined}
+              aria-current={current === item.value ? 'page' : undefined}
+              aria-label={!showLabels ? item.label : undefined}
+              title={!showLabels ? item.label : undefined}
               {...styles(
-                'bottom-navigation.label',
-                'ui-bottom-navigation-label',
+                'bottom-navigation.item',
+                'ui-bottom-navigation-item',
                 undefined,
                 unstyled,
               )}
+              onClick={(event) => {
+                if (item.disabled) {
+                  event.preventDefault();
+                  return;
+                }
+                if (value === undefined) setLocal(item.value);
+                onValueChange?.(item.value);
+              }}
             >
-              {item.label}
-            </span>
-          </Element>
-        );
-      })}
-    </nav>
-  );
-});
+              {(item.icon || item.renderIcon) && (
+                <span
+                  {...styles(
+                    'bottom-navigation.icon',
+                    'ui-bottom-navigation-icon',
+                    undefined,
+                    unstyled,
+                  )}
+                  aria-hidden="true"
+                >
+                  {item.renderIcon?.(current === item.value) ?? item.icon}
+                  {item.badge != null && (
+                    <span className="ui-bottom-navigation-badge">{item.badge}</span>
+                  )}
+                </span>
+              )}
+              <span
+                {...styles(
+                  'bottom-navigation.label',
+                  'ui-bottom-navigation-label',
+                  undefined,
+                  unstyled,
+                )}
+              >
+                {item.label}
+              </span>
+            </Element>
+          );
+        })}
+      </nav>
+    );
+  },
+);
 BottomNavigation.displayName = 'BottomNavigation';
 
 export interface StepperStep {
@@ -871,6 +949,7 @@ export interface StepperProps extends React.HTMLAttributes<HTMLElement>, PlainSt
   onValueChange?: (value: string) => void;
   orientation?: 'horizontal' | 'vertical';
   linear?: boolean;
+  renderContent?: (step: StepperStep, index: number) => React.ReactNode;
 }
 export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProps>(
   (
@@ -881,6 +960,7 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
       onValueChange,
       orientation = 'horizontal',
       linear = false,
+      renderContent,
       className,
       unstyled,
       dir,
@@ -890,6 +970,7 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
     const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
     const [local, setLocal] = React.useState(defaultValue ?? steps[0]?.value ?? '');
     const current = value ?? local;
@@ -901,7 +982,7 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
       <nav
         ref={ref}
         dir={direction}
-        aria-label="Progress steps"
+        aria-label={t('navigation.steps')}
         {...styles('stepper.root', 'ui-stepper', className, unstyled)}
         data-orientation={orientation}
         {...props}
@@ -922,7 +1003,9 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
                 : 'ArrowLeft';
           if (![next, previous, 'Home', 'End'].includes(event.key)) return;
           const buttons = Array.from(
-            event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'),
+            event.currentTarget.querySelectorAll<HTMLButtonElement>(
+              ':scope > [data-slot="list"] > [data-slot="item"] > [data-slot="trigger"]:not(:disabled)',
+            ),
           );
           const index = buttons.indexOf(event.target as HTMLButtonElement);
           if (index < 0) return;
@@ -980,6 +1063,14 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
             </li>
           ))}
         </ol>
+        {renderContent && steps[active] && (
+          <div
+            key={current}
+            {...styles('stepper.content', 'ui-stepper-content', undefined, unstyled)}
+          >
+            {renderContent(steps[active], active)}
+          </div>
+        )}
       </nav>
     );
   },
@@ -1002,13 +1093,14 @@ export const SegmentedControl = /* @__PURE__ */ React.forwardRef<
   SegmentedControlProps
 >(({ options, className, unstyled, dir, orientation = 'horizontal', ...props }, ref) => {
   const styles = useStyles();
+  const { t } = useTranslation();
   const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
   return (
     <RadioGroup.Root
       ref={ref}
       dir={direction}
       orientation={orientation}
-      aria-label="Options"
+      aria-label={t('common.options')}
       {...styles('segmented-control.root', 'ui-segmented-control', className, unstyled)}
       {...props}
     >
@@ -1057,6 +1149,7 @@ export interface TreeViewProps
   expandedIds?: readonly string[];
   defaultExpandedIds?: readonly string[];
   onExpandedChange?: (ids: string[]) => void;
+  expandOnClick?: boolean;
 }
 interface VisibleNode {
   node: TreeNode;
@@ -1072,6 +1165,7 @@ export const TreeView = /* @__PURE__ */ React.forwardRef<HTMLUListElement, TreeV
       expandedIds,
       defaultExpandedIds = [],
       onExpandedChange,
+      expandOnClick = true,
       className,
       unstyled,
       dir,
@@ -1081,6 +1175,7 @@ export const TreeView = /* @__PURE__ */ React.forwardRef<HTMLUListElement, TreeV
     ref,
   ) => {
     const styles = useStyles();
+    const { t } = useTranslation();
     const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
     const id = React.useId();
     const [localSelected, setSelected] = React.useState(defaultSelectedId);
@@ -1155,6 +1250,7 @@ export const TreeView = /* @__PURE__ */ React.forwardRef<HTMLUListElement, TreeV
                 if (!node.disabled) {
                   focus(node.id);
                   select(node);
+                  if (expandOnClick) toggle(node);
                 }
               }}
             >
@@ -1163,7 +1259,7 @@ export const TreeView = /* @__PURE__ */ React.forwardRef<HTMLUListElement, TreeV
                   type="button"
                   tabIndex={-1}
                   disabled={node.disabled}
-                  aria-label={`${open ? 'Collapse' : 'Expand'} ${node.label}`}
+                  aria-label={t(open ? 'common.collapse' : 'common.expand', { label: node.label })}
                   {...styles('tree-view.toggle', 'ui-tree-toggle', undefined, unstyled)}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -1207,7 +1303,7 @@ export const TreeView = /* @__PURE__ */ React.forwardRef<HTMLUListElement, TreeV
       <ul
         ref={ref}
         role="tree"
-        aria-label="Files"
+        aria-label={t('navigation.files')}
         dir={direction}
         {...styles('tree-view.root', 'ui-tree-view', className, unstyled)}
         {...props}
@@ -1257,7 +1353,10 @@ export const TreeView = /* @__PURE__ */ React.forwardRef<HTMLUListElement, TreeV
                 )
                 .forEach(({ node }) => next.add(node.id));
               changeExpanded(next);
-            } else select(node);
+            } else {
+              select(node);
+              if (expandOnClick) toggle(node);
+            }
           } else if (event.key.length === 1 && !event.nativeEvent.isComposing) {
             const now = Date.now();
             const text =

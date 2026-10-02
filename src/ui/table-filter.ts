@@ -16,18 +16,19 @@ export interface DataTableFilter {
   id: string;
   field: string;
   operator: DataTableFilterOperator;
-  value?: string | number | boolean | (string | number)[];
+  value?: string | number | boolean | Date | (string | number | boolean | Date)[];
 }
 export interface DataTableQuery {
   search: string;
   filters: DataTableFilter[];
   join: 'and' | 'or';
 }
-export interface DataTableFilterField {
+export interface DataTableFilterField<T = unknown> {
   id: string;
   label: string;
-  type?: 'text' | 'number' | 'date' | 'select' | 'boolean';
-  options?: readonly { value: string; label: string }[];
+  type?: 'text' | 'number' | 'date' | 'select' | 'enum' | 'boolean';
+  options?: readonly { value: string | number | boolean; label: string }[];
+  getValue?: (row: T) => unknown;
   operators?: readonly DataTableFilterOperator[];
   test?: (value: unknown, filter: DataTableFilter) => boolean;
 }
@@ -101,10 +102,12 @@ export function testTableFilter(
       );
   }
 }
-export function filterOperators(field: DataTableFilterField): readonly DataTableFilterOperator[] {
+export function filterOperators<T>(
+  field: DataTableFilterField<T>,
+): readonly DataTableFilterOperator[] {
   return (
     field.operators ??
-    (field.type === 'select'
+    (field.type === 'select' || field.type === 'enum'
       ? ['in', 'notIn', 'eq', 'neq', 'empty', 'notEmpty']
       : field.type === 'boolean'
         ? ['eq', 'neq']

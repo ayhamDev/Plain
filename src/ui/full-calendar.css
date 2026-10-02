@@ -136,7 +136,7 @@
   .ui-calendar-event-time {
     flex: none;
     font-size: 10px;
-    color: var(--ui-muted-foreground);
+    color: inherit;
     font-variant-numeric: tabular-nums;
   }
   .ui-calendar-month .ui-calendar-event {
@@ -386,19 +386,23 @@
     @page {
       margin: 16mm;
     }
+    html:has(> body > .ui-calendar-print) {
+      background: Canvas !important;
+      color-scheme: light !important;
+    }
+    body:has(> .ui-calendar-print) {
+      background: Canvas !important;
+      color: CanvasText !important;
+    }
     body:has(> .ui-calendar-print) > :not(.ui-calendar-print) {
       display: none !important;
     }
     .ui-calendar-print {
       display: block !important;
-      color: #111;
-      background: #fff;
+      color: var(--ui-foreground);
+      background: var(--ui-surface);
       font: 12pt system-ui;
-      --ui-surface: #fff;
-      --ui-foreground: #111;
-      --ui-border: #ccc;
-      --ui-muted: #f5f5f5;
-      --ui-muted-foreground: #444;
+      color-scheme: light;
     }
     .ui-calendar-print h1 {
       font-size: 20pt;
@@ -412,7 +416,7 @@
     .ui-calendar-print td {
       text-align: start;
       padding: 8pt;
-      border-block-end: 1px solid #ccc;
+      border-block-end: 1px solid var(--ui-border);
       overflow-wrap: anywhere;
     }
     .ui-calendar-print thead {
@@ -423,7 +427,7 @@
       break-inside: avoid;
     }
     .ui-calendar-print button {
-      color: #111 !important;
+      color: var(--ui-foreground) !important;
       background: transparent !important;
     }
     .ui-calendar-print .ui-calendar-cell {

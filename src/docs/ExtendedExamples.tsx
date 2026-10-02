@@ -15,6 +15,7 @@ import * as UI from '../ui';
 
 const ChartExample = React.lazy(() => import('./examples/ChartExample'));
 const ScheduleExample = React.lazy(() => import('./examples/ScheduleExample'));
+const WorkspaceExample = React.lazy(() => import('./examples/WorkspaceExample'));
 const MotionExample = React.lazy(() => import('./examples/MotionExample'));
 const records = Array.from({ length: 1000 }, (_, index) => ({
   id: String(index),
@@ -30,7 +31,7 @@ const layouts = new Set([
   'center',
   'spacer',
   'masonry',
-  'split-pane',
+  'resizable',
 ]);
 
 function LayoutExample({ slug }: { slug: string }) {
@@ -48,7 +49,7 @@ function LayoutExample({ slug }: { slug: string }) {
       {item}
     </UI.Box>
   );
-  if (slug === 'split-pane') return <SplitWorkspace />;
+  if (slug === 'resizable') return <SplitWorkspace />;
   if (slug === 'grid')
     return (
       <UI.Grid columns={{ base: 1, sm: 3 }} gap={2} style={{ width: '100%' }}>
@@ -116,8 +117,8 @@ function SplitWorkspace() {
   );
   return (
     <div className="split-workspace">
-      <UI.SplitPane groupRef={group} style={{ height: 400, width: '100%' }} mobileBreakpoint={520}>
-        <UI.SplitPanePanel
+      <UI.Resizable groupRef={group} style={{ height: 400, width: '100%' }} mobileBreakpoint={520}>
+        <UI.ResizablePanel
           id="files"
           defaultSize="30%"
           minSize="18%"
@@ -153,9 +154,9 @@ function SplitWorkspace() {
                 </UI.Button>
               ))}
           </div>
-        </UI.SplitPanePanel>
-        <UI.SplitPaneHandle aria-label="Resize explorer" />
-        <UI.SplitPanePanel id="editor" minSize="30%">
+        </UI.ResizablePanel>
+        <UI.ResizableHandle aria-label="Resize explorer" />
+        <UI.ResizablePanel id="editor" minSize="30%">
           <div className="workspace-heading">
             <span>
               <FileCode2 size={14} aria-hidden="true" />
@@ -192,8 +193,8 @@ function SplitWorkspace() {
             <UI.Small>TypeScript</UI.Small>
             <UI.Small>{code.split('\n').length} lines</UI.Small>
           </div>
-        </UI.SplitPanePanel>
-      </UI.SplitPane>
+        </UI.ResizablePanel>
+      </UI.Resizable>
     </div>
   );
 }
@@ -210,7 +211,14 @@ function SidebarWorkspace() {
         style={{ width: '100%', minHeight: 400 }}
       >
         <UI.Sidebar variant={variant} label="Workspace navigation">
-          <UI.SidebarHeader>
+          <UI.SidebarHeader
+            collapsedContent={
+              <span className="workspace-brand" aria-label="Workspace">
+                p.
+              </span>
+            }
+            style={{ minHeight: 64 }}
+          >
             <span className="workspace-brand">p.</span>
             <UI.Strong>Workspace</UI.Strong>
           </UI.SidebarHeader>
@@ -305,7 +313,14 @@ function SidebarWorkspace() {
               </UI.SidebarMenu>
             </UI.SidebarGroup>
           </UI.SidebarContent>
-          <UI.SidebarFooter>
+          <UI.SidebarFooter
+            collapsedContent={
+              <UI.Avatar className="size-7" aria-label="Alex Morgan">
+                <UI.AvatarFallback>AM</UI.AvatarFallback>
+              </UI.Avatar>
+            }
+            style={{ minHeight: 64 }}
+          >
             <UI.Avatar className="size-7">
               <UI.AvatarFallback>AM</UI.AvatarFallback>
             </UI.Avatar>
@@ -425,6 +440,26 @@ export default function ExtendedExamples({ slug }: { slug: string }) {
           <UI.Small tone="muted">React and TypeScript</UI.Small>
         </UI.P>
       </UI.Stack>
+    );
+  if (
+    [
+      'language-provider',
+      'chips',
+      'search-view',
+      'kanban',
+      'calendar-event-dialog',
+      'heatmap-chart',
+      'gantt-chart',
+      'radar-chart',
+      'scatter-chart',
+      'composed-chart',
+      'pie-chart',
+    ].includes(slug)
+  )
+    return (
+      <React.Suspense fallback={<UI.Spinner />}>
+        <WorkspaceExample slug={slug} />
+      </React.Suspense>
     );
   if (layouts.has(slug)) return <LayoutExample slug={slug} />;
   if (slug.endsWith('-chart'))

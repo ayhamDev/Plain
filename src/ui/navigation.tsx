@@ -10,12 +10,16 @@ import {
 import { ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import { cn } from './utils';
 import { Button } from './primitives';
+import { RefreshCw } from 'lucide-react';
+import { useTranslation } from './i18n';
+import { useElasticScroll, type ElasticScrollOptions, type RefreshState } from './elastic-scroll';
 export const Accordion = AccordionPrimitive.Root;
 export const AccordionItem = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <AccordionPrimitive.Item
       ref={ref}
@@ -30,6 +34,7 @@ export const AccordionTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> & PlainStyleProps
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <AccordionPrimitive.Header {...styles('accordion.header', 'flex', undefined, unstyled)}>
       <AccordionPrimitive.Trigger
@@ -62,6 +67,7 @@ export const AccordionContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content> & PlainStyleProps
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <AccordionPrimitive.Content
       ref={ref}
@@ -91,6 +97,7 @@ export const TabsList = /* @__PURE__ */ React.forwardRef<
     PlainStyleProps
 >(({ className, variant = 'segmented', unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <TabsPrimitive.List
       ref={ref}
@@ -116,6 +123,7 @@ export const TabsTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <TabsPrimitive.Trigger
       ref={ref}
@@ -135,6 +143,7 @@ export const TabsContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <TabsPrimitive.Content
       ref={ref}
@@ -149,6 +158,7 @@ export const Collapsible = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Root> & PlainStyleProps
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <StyleProvider unstyled={unstyled}>
       <CollapsiblePrimitive.Root
@@ -167,6 +177,7 @@ export const CollapsibleTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Trigger> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <CollapsiblePrimitive.Trigger
       ref={ref}
@@ -181,6 +192,7 @@ export const CollapsibleContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Content> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <CollapsiblePrimitive.Content
       ref={ref}
@@ -191,7 +203,12 @@ export const CollapsibleContent = /* @__PURE__ */ React.forwardRef<
 });
 CollapsibleContent.displayName = 'CollapsibleContent';
 export interface ScrollAreaProps
-  extends React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>, PlainStyleProps {
+  extends
+    React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>,
+    PlainStyleProps,
+    ElasticScrollOptions {
+  scrollbarVisibility?: 'hover' | 'always' | 'hidden';
+  renderRefresh?: (state: RefreshState, refresh: () => Promise<void>) => React.ReactNode;
   orientation?: 'vertical' | 'horizontal' | 'both';
   viewportProps?: React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Viewport> &
     PlainStyleProps;
@@ -209,6 +226,13 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
       orientation = 'vertical',
       viewportProps = {},
       viewportRef,
+      scrollbarVisibility = 'hover',
+      elastic,
+      onRefresh,
+      refreshThreshold,
+      onRefreshError,
+      renderRefresh,
+      type,
       onScroll,
       dir,
       ...props
@@ -217,6 +241,16 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
   ) => {
     const styles = useStyles();
     const direction = useDirection(dir);
+    const viewport = React.useRef<HTMLDivElement>(null);
+    const { t } = useTranslation();
+    const content = React.useRef<HTMLDivElement>(null);
+    React.useImperativeHandle(viewportRef, () => viewport.current!);
+    const refresh = useElasticScroll(viewport, content, {
+      elastic,
+      onRefresh,
+      refreshThreshold,
+      onRefreshError,
+    });
     const {
       className: viewportClassName,
       unstyled: viewportUnstyled,
@@ -227,16 +261,18 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
       <ScrollAreaPrimitive.Root
         ref={ref}
         dir={direction}
+        type={type ?? (scrollbarVisibility === 'always' ? 'always' : 'hover')}
+        aria-busy={refresh.state === 'refreshing' || undefined}
         {...styles(
           'scroll-area.root',
-          'relative min-h-0 min-w-0 overflow-hidden',
+          'ui-scroll-root relative min-h-0 min-w-0 overflow-hidden',
           className,
           unstyled,
         )}
         {...props}
       >
         <ScrollAreaPrimitive.Viewport
-          ref={viewportRef}
+          ref={viewport}
           tabIndex={0}
           role="region"
           aria-label={props['aria-label']}
@@ -254,11 +290,56 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
             onScroll?.(event);
           }}
         >
-          {children}
+          <div
+            ref={content}
+            {...styles('scroll-area.content', 'ui-scroll-content', undefined, unstyled)}
+          >
+            {children}
+          </div>
         </ScrollAreaPrimitive.Viewport>
-        {orientation !== 'horizontal' && <ScrollBar unstyled={unstyled} />}
-        {orientation !== 'vertical' && <ScrollBar orientation="horizontal" unstyled={unstyled} />}
-        <ScrollAreaPrimitive.Corner />
+        {orientation !== 'horizontal' && (
+          <ScrollBar
+            unstyled={unstyled}
+            forceMount={scrollbarVisibility === 'hidden' || undefined}
+            style={scrollbarVisibility === 'hidden' ? { display: 'none' } : undefined}
+          />
+        )}
+        {orientation !== 'vertical' && (
+          <ScrollBar
+            orientation="horizontal"
+            unstyled={unstyled}
+            forceMount={scrollbarVisibility === 'hidden' || undefined}
+            style={scrollbarVisibility === 'hidden' ? { display: 'none' } : undefined}
+          />
+        )}
+        {onRefresh && (
+          <div
+            {...styles('scroll-area.refresh', 'ui-scroll-refresh', undefined, unstyled)}
+            data-state={refresh.state}
+            aria-live="polite"
+          >
+            {renderRefresh ? (
+              renderRefresh(refresh.state, refresh.refresh)
+            ) : (
+              <button
+                type="button"
+                disabled={refresh.state === 'refreshing'}
+                onClick={() => void refresh.refresh()}
+              >
+                <RefreshCw aria-hidden="true" />
+                {t(
+                  refresh.state === 'ready'
+                    ? 'scroll.release'
+                    : refresh.state === 'refreshing'
+                      ? 'scroll.refreshing'
+                      : refresh.state === 'error'
+                        ? 'scroll.failed'
+                        : 'scroll.pull',
+                )}
+              </button>
+            )}
+          </div>
+        )}
       </ScrollAreaPrimitive.Root>
     );
   },
@@ -269,6 +350,7 @@ export const ScrollBar = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar> & PlainStyleProps
 >(({ className, orientation = 'vertical', unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <ScrollAreaPrimitive.ScrollAreaScrollbar
       ref={ref}
@@ -304,9 +386,10 @@ export function Breadcrumb({
   ...props
 }: React.ComponentProps<'nav'> & PlainStyleProps) {
   const styles = useStyles();
+  const { t } = useTranslation();
   return (
     <nav
-      aria-label="Breadcrumb"
+      aria-label={t('navigation.breadcrumb')}
       {...styles('breadcrumb.root', 'text-sm text-muted-foreground', className, unstyled)}
       {...props}
     />
@@ -318,6 +401,7 @@ export function BreadcrumbList({
   ...props
 }: React.ComponentProps<'ol'> & PlainStyleProps) {
   const styles = useStyles();
+
   return (
     <ol
       {...styles('breadcrumb.list', 'flex flex-wrap items-center gap-2', className, unstyled)}
@@ -331,6 +415,7 @@ export function BreadcrumbItem({
   ...props
 }: React.ComponentProps<'li'> & PlainStyleProps) {
   const styles = useStyles();
+
   return (
     <li
       {...styles('breadcrumb.item', 'inline-flex items-center gap-2', className, unstyled)}
@@ -343,6 +428,7 @@ export const BreadcrumbLink = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<'a'> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <a
       ref={ref}
@@ -363,6 +449,7 @@ export function BreadcrumbPage({
   ...props
 }: React.ComponentProps<'span'> & PlainStyleProps) {
   const styles = useStyles();
+
   return (
     <span
       aria-current="page"
@@ -379,8 +466,12 @@ export function BreadcrumbSeparator({ children, ...props }: React.ComponentProps
   );
 }
 export function BreadcrumbEllipsis() {
+  const { t } = useTranslation();
   return (
-    <span className="flex size-5 items-center justify-center" aria-label="More levels">
+    <span
+      className="flex size-5 items-center justify-center"
+      aria-label={t('navigation.moreLevels')}
+    >
       <MoreHorizontal className="size-4" aria-hidden="true" />
     </span>
   );
@@ -399,6 +490,7 @@ export function Pagination({
   ...props
 }: PaginationProps & PlainStyleProps) {
   const styles = useStyles();
+  const { t } = useTranslation();
   const count = Number.isFinite(pageCount) ? Math.max(1, Math.floor(pageCount)) : 1;
   const current = Number.isFinite(page) ? Math.max(1, Math.min(count, Math.floor(page))) : 1;
   const pages = new Set(
@@ -408,14 +500,14 @@ export function Pagination({
   return (
     <StyleProvider unstyled={unstyled}>
       <nav
-        aria-label="Pagination"
+        aria-label={t('navigation.pagination')}
         {...styles('pagination.root', 'flex flex-wrap items-center gap-1', className, unstyled)}
         {...props}
       >
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Previous page"
+          aria-label={t('table.previousPage')}
           disabled={current === 1}
           onClick={() => onPageChange(current - 1)}
         >
@@ -439,7 +531,7 @@ export function Pagination({
             <Button
               variant={p === current ? 'outline' : 'ghost'}
               size="icon"
-              aria-label={`Page ${p}`}
+              aria-label={`${t('table.page')} ${p}`}
               aria-current={p === current ? 'page' : undefined}
               onClick={() => onPageChange(p)}
             >
@@ -450,7 +542,7 @@ export function Pagination({
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Next page"
+          aria-label={t('table.nextPage')}
           disabled={current === count}
           onClick={() => onPageChange(current + 1)}
         >
@@ -465,6 +557,7 @@ export const NavigationMenu = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof NavigationPrimitive.Root> & PlainStyleProps
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <NavigationPrimitive.Root
       ref={ref}
@@ -503,6 +596,7 @@ export const NavigationMenuList = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof NavigationPrimitive.List> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <NavigationPrimitive.List
       ref={ref}
@@ -518,6 +612,7 @@ export const NavigationMenuLink = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof NavigationPrimitive.Link> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <NavigationPrimitive.Link
       ref={ref}
@@ -537,6 +632,7 @@ export const NavigationMenuTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof NavigationPrimitive.Trigger> & PlainStyleProps
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <NavigationPrimitive.Trigger
       ref={ref}
@@ -567,6 +663,7 @@ export const NavigationMenuContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof NavigationPrimitive.Content> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+
   return (
     <NavigationPrimitive.Content
       ref={ref}

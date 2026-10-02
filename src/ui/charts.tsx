@@ -6,6 +6,14 @@ import {
   BarChart as RechartsBarChart,
   LineChart as RechartsLineChart,
   PieChart as RechartsPieChart,
+  RadarChart as RechartsRadarChart,
+  ScatterChart as RechartsScatterChart,
+  ComposedChart as RechartsComposedChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Scatter,
   Area,
   Bar,
   Line,
@@ -35,6 +43,16 @@ import {
   useStyles,
   type PlainStyleProps,
 } from './styling';
+import { dateFormatter, numberFormatter, useTranslation } from './i18n';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+  TableCaption,
+} from './table';
 import { useMotionSettings } from './motion-policy';
 
 export type ChartDatum = Record<string, unknown>;
@@ -52,6 +70,10 @@ export interface ChartSeries {
   stackId?: string;
   yAxisId?: string | number;
   strokeDasharray?: string;
+  type?: 'area' | 'bar' | 'line';
+  lineProps?: Partial<LineProps>;
+  barProps?: Partial<BarProps>;
+  areaProps?: Partial<AreaProps<ChartDatum, number>>;
 }
 
 /** Each palette color can be independently overridden with a semantic theme token. */
@@ -117,17 +139,17 @@ function formatValue(value: unknown, locale?: string): React.ReactNode {
   if (typeof value === 'number') {
     if (!Number.isFinite(value)) return '-';
     try {
-      return new Intl.NumberFormat(locale).format(value);
+      return numberFormatter(locale).format(value);
     } catch {
-      return new Intl.NumberFormat('en').format(value);
+      return numberFormatter('en').format(value);
     }
   }
   if (value instanceof Date) {
     if (!Number.isFinite(value.getTime())) return '-';
     try {
-      return value.toLocaleString(locale);
+      return dateFormatter(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(value);
     } catch {
-      return value.toLocaleString('en');
+      return dateFormatter('en', { dateStyle: 'medium', timeStyle: 'short' }).format(value);
     }
   }
   if (typeof value === 'object') {
@@ -180,15 +202,15 @@ export const Chart = /* @__PURE__ */ React.forwardRef<HTMLElement, ChartProps>(
       data,
       columns,
       config = {},
-      label = 'Chart',
+      label: labelProp,
       caption,
       description,
-      locale,
+      locale: localeProp,
       height = 300,
       loading = false,
       empty = data?.length === 0,
-      loadingLabel = 'Loading chart',
-      emptyLabel = 'No data',
+      loadingLabel: loadingLabelProp,
+      emptyLabel: emptyLabelProp,
       tableLabel,
       dataTable = 'sr-only',
       animate = true,
@@ -203,6 +225,11 @@ export const Chart = /* @__PURE__ */ React.forwardRef<HTMLElement, ChartProps>(
     ref,
   ) => {
     const styles = useStyles();
+    const language = useTranslation();
+    const label = labelProp ?? language.t('chart.label');
+    const locale = localeProp ?? language.locale;
+    const loadingLabel = loadingLabelProp ?? language.t('chart.loading');
+    const emptyLabel = emptyLabelProp ?? language.t('chart.empty');
     const direction = useDirection(dir === 'ltr' || dir === 'rtl' ? dir : undefined);
     const motion = useMotionSettings();
     const descriptionId = React.useId();
@@ -211,7 +238,10 @@ export const Chart = /* @__PURE__ */ React.forwardRef<HTMLElement, ChartProps>(
       () => discoverSeries(children, config),
       [children, config],
     );
-    const tableColumns = columns ?? getColumns(data ?? [], config);
+    const tableColumns = React.useMemo(
+      () => columns ?? getColumns(data ?? [], config),
+      [columns, data, config],
+    );
     const hasTable =
       dataTable !== false && data !== undefined && tableColumns.length > 0 && !loading;
     const context = React.useMemo(
@@ -284,37 +314,37 @@ export const Chart = /* @__PURE__ */ React.forwardRef<HTMLElement, ChartProps>(
                   {...styles('chart.data', 'ui-chart-data', undefined, unstyled)}
                   style={dataTable === 'sr-only' ? hiddenStyle : undefined}
                 >
-                  <table
+                  <Table
                     id={tableId}
                     {...styles('chart.table', 'ui-chart-table', undefined, unstyled)}
                   >
-                    <caption>{tableLabel ?? `${label} data`}</caption>
-                    <thead>
-                      <tr>
+                    <TableCaption>{tableLabel ?? language.t('chart.data', { label })}</TableCaption>
+                    <TableHeader>
+                      <TableRow>
                         {tableColumns.map((column) => (
-                          <th key={column.key} scope="col">
+                          <TableHead key={column.key} scope="col">
                             {column.label ?? column.key}
-                          </th>
+                          </TableHead>
                         ))}
-                      </tr>
-                    </thead>
-                    <tbody>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {data!.map((row, index) => (
-                        <tr key={index}>
+                        <TableRow key={index}>
                           {tableColumns.map((column) => {
                             const value = column.accessor ? column.accessor(row) : row[column.key];
                             return (
-                              <td key={column.key}>
+                              <TableCell key={column.key}>
                                 {column.format
                                   ? column.format(value, row)
                                   : formatValue(value, locale)}
-                              </td>
+                              </TableCell>
                             );
                           })}
-                        </tr>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </figure>
@@ -620,7 +650,7 @@ function CartesianChart({
   forwardedRef,
   allProps,
 }: {
-  kind: 'area' | 'bar' | 'line';
+  kind: 'area' | 'bar' | 'line' | 'composed';
   forwardedRef: React.ForwardedRef<HTMLElement>;
   allProps: CartesianChartProps;
 }) {
@@ -656,7 +686,13 @@ function CartesianChart({
     };
   }
   const Engine =
-    kind === 'area' ? RechartsAreaChart : kind === 'bar' ? RechartsBarChart : RechartsLineChart;
+    kind === 'area'
+      ? RechartsAreaChart
+      : kind === 'bar'
+        ? RechartsBarChart
+        : kind === 'composed'
+          ? RechartsComposedChart
+          : RechartsLineChart;
   const vertical = chartProps?.layout === 'vertical';
   const tableColumns = columns ?? [
     { key: index, label: config?.[index]?.label ?? index },
@@ -672,6 +708,7 @@ function CartesianChart({
   return (
     <Chart {...props} ref={forwardedRef} data={data} config={mergedConfig} columns={tableColumns}>
       <Engine
+        accessibilityLayer
         data={data}
         margin={{ top: 12, right: 16, bottom: 4, left: 0 }}
         desc={props.description ?? props.label}
@@ -723,12 +760,13 @@ function CartesianChart({
             seriesIndex,
             strokeDasharray: item.strokeDasharray,
           };
-          return kind === 'bar' ? (
-            <ChartBar key={item.dataKey} {...seriesProps} />
-          ) : kind === 'area' ? (
-            <ChartArea key={item.dataKey} {...seriesProps} type={curve} />
+          const type = kind === 'composed' ? (item.type ?? 'line') : kind;
+          return type === 'bar' ? (
+            <ChartBar key={item.dataKey} {...seriesProps} {...item.barProps} />
+          ) : type === 'area' ? (
+            <ChartArea key={item.dataKey} {...seriesProps} type={curve} {...item.areaProps} />
           ) : (
-            <ChartLine key={item.dataKey} {...seriesProps} type={curve} />
+            <ChartLine key={item.dataKey} {...seriesProps} type={curve} {...item.lineProps} />
           );
         })}
         {children}
@@ -854,3 +892,136 @@ export const DonutChart = /* @__PURE__ */ React.forwardRef<HTMLElement, DonutCha
   },
 );
 DonutChart.displayName = 'DonutChart';
+export const ComposedChart = React.forwardRef<HTMLElement, CartesianChartProps>((props, ref) => (
+  <CartesianChart kind="composed" allProps={props} forwardedRef={ref} />
+));
+ComposedChart.displayName = 'ComposedChart';
+export const PieChart = React.forwardRef<HTMLElement, DonutChartProps>((props, ref) => (
+  <DonutChart innerRadius={0} ref={ref} {...props} />
+));
+PieChart.displayName = 'PieChart';
+export interface RadarChartProps extends Omit<ChartProps, 'children' | 'data'> {
+  data: readonly ChartDatum[];
+  index?: string;
+  series: readonly ChartSeries[];
+  grid?: boolean | React.ComponentProps<typeof PolarGrid>;
+  angleAxis?: React.ComponentProps<typeof PolarAngleAxis>;
+  radiusAxis?: boolean | React.ComponentProps<typeof PolarRadiusAxis>;
+  legend?: boolean | LegendProps;
+  tooltip?: boolean | ChartTooltipProps;
+  chartProps?: React.ComponentProps<typeof RechartsRadarChart>;
+  radarProps?: Partial<React.ComponentProps<typeof Radar>>;
+}
+export const RadarChart = React.forwardRef<HTMLElement, RadarChartProps>(
+  (
+    {
+      data,
+      index = 'name',
+      series,
+      grid = true,
+      angleAxis,
+      radiusAxis = true,
+      legend = true,
+      tooltip = true,
+      chartProps,
+      radarProps,
+      config = {},
+      ...props
+    },
+    ref,
+  ) => {
+    const motion = useMotionSettings();
+    const merged = { ...config };
+    for (const s of series)
+      merged[s.dataKey] = {
+        ...config[s.dataKey],
+        label: s.label ?? config[s.dataKey]?.label ?? s.dataKey,
+        ...(s.color ? { color: s.color } : {}),
+      };
+    return (
+      <Chart {...props} ref={ref} data={data} config={merged}>
+        <RechartsRadarChart accessibilityLayer data={data} {...chartProps}>
+          {grid && <PolarGrid stroke={chartGrid} {...(typeof grid === 'object' ? grid : {})} />}
+          <PolarAngleAxis
+            dataKey={index}
+            tick={{ fill: chartLabel, fontSize: 12 }}
+            {...angleAxis}
+          />
+          {radiusAxis && (
+            <PolarRadiusAxis
+              tick={{ fill: chartLabel, fontSize: 11 }}
+              axisLine={false}
+              {...(typeof radiusAxis === 'object' ? radiusAxis : {})}
+            />
+          )}
+          {series.map((s, i) => (
+            <Radar
+              key={s.dataKey}
+              dataKey={s.dataKey}
+              name={s.label ?? s.dataKey}
+              stroke={seriesColor(merged, s.dataKey, i)}
+              fill={seriesColor(merged, s.dataKey, i)}
+              fillOpacity={0.15}
+              {...radarProps}
+              isAnimationActive={motion.enabled && props.animate !== false}
+            />
+          ))}
+          {tooltip && <ChartTooltip {...(typeof tooltip === 'object' ? tooltip : {})} />}
+          {legend && <ChartLegend {...(typeof legend === 'object' ? legend : {})} />}
+        </RechartsRadarChart>
+      </Chart>
+    );
+  },
+);
+RadarChart.displayName = 'RadarChart';
+export interface ScatterChartProps extends Omit<ChartProps, 'children' | 'data'> {
+  data: readonly ChartDatum[];
+  xKey: string;
+  yKey: string;
+  xAxis?: XAxisProps;
+  yAxis?: YAxisProps;
+  grid?: boolean | CartesianGridProps;
+  tooltip?: boolean | ChartTooltipProps;
+  scatterProps?: Partial<React.ComponentProps<typeof Scatter>>;
+  chartProps?: React.ComponentProps<typeof RechartsScatterChart>;
+}
+export const ScatterChart = React.forwardRef<HTMLElement, ScatterChartProps>(
+  (
+    {
+      data,
+      xKey,
+      yKey,
+      xAxis,
+      yAxis,
+      grid = true,
+      tooltip = true,
+      scatterProps,
+      chartProps,
+      ...props
+    },
+    ref,
+  ) => {
+    const motion = useMotionSettings();
+    return (
+      <Chart {...props} ref={ref} data={data}>
+        <RechartsScatterChart accessibilityLayer {...chartProps}>
+          {grid && <ChartGrid {...(typeof grid === 'object' ? grid : {})} />}
+          <ChartXAxis type="number" dataKey={xKey} {...xAxis} />
+          <ChartYAxis type="number" dataKey={yKey} {...yAxis} />
+          <Scatter
+            data={data}
+            fill={chartPalette[0]}
+            {...scatterProps}
+            isAnimationActive={motion.enabled && props.animate !== false}
+          />
+          {tooltip && <ChartTooltip {...(typeof tooltip === 'object' ? tooltip : {})} />}
+        </RechartsScatterChart>
+      </Chart>
+    );
+  },
+);
+ScatterChart.displayName = 'ScatterChart';
+export { HeatmapChart } from './heatmap';
+export type { HeatmapChartProps, HeatmapDatum } from './heatmap';
+export { GanttChart } from './gantt';
+export type { GanttChartProps, GanttTask } from './gantt';

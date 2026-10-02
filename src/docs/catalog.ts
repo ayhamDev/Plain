@@ -1,3 +1,4 @@
+import { workspaceComponents } from './workspace-catalog.ts';
 import { extendedComponents } from './extended-catalog.ts';
 
 export type Category =
@@ -141,7 +142,7 @@ export const components: ComponentDefinition[] = [
     'input',
     'Input',
     'Forms',
-    'A familiar input with crisp borders and a purposeful focus state.',
+    'Token-based outlined, filled and ghost inputs with a clear focus state.',
     ['Field', 'Input'],
     '<Field label="Email address" required>\n  <Input type="email" placeholder="you@example.com" required />\n</Field>',
     [
@@ -150,6 +151,12 @@ export const components: ComponentDefinition[] = [
         'HTML input type',
         'Supports email, password, number, date, file, and standard HTML input types.',
         'text',
+      ),
+      prop(
+        'variant',
+        'outlined | filled | ghost',
+        'Shared border tokens and native form behavior in every variant.',
+        'outlined',
       ),
       prop('aria-invalid', 'boolean', 'Displays the invalid state.'),
       prop('disabled', 'boolean', 'Prevents interaction.', 'false'),
@@ -429,6 +436,24 @@ export const components: ComponentDefinition[] = [
         'Controlled snap point; pair with setActiveSnapPoint.',
       ),
       prop('dismissible', 'boolean', 'Allow drag, Escape, and outside dismissal.', 'true'),
+      prop(
+        'variant / size / gap',
+        'attached | detached | floating / sm | md | lg | xl | full / number',
+        'Surface treatment, width and detached viewport spacing.',
+        'attached / md / 12',
+      ),
+      prop(
+        'mobileSide / mobileBreakpoint',
+        'panel edge / number',
+        'Optional mobile edge adaptation.',
+        '640',
+      ),
+      prop(
+        'overlay / overlayProps',
+        'boolean / native div props',
+        'SheetContent backdrop visibility and configuration.',
+        'true',
+      ),
       prop('showClose', 'boolean', 'Display the SheetContent close control.', 'true'),
     ],
     'Vaul provides focus trapping, touch dragging, and snap points. Include SheetTitle and SheetDescription. SheetHandle can cycle snap points with Enter or Space; Escape restores focus to the trigger.',
@@ -649,6 +674,33 @@ export const components: ComponentDefinition[] = [
     [
       prop('data', 'T[]', 'Stable array of records.'),
       prop('columns', 'DataTableColumn<T>[]', 'Typed TanStack Table v9 column definitions.'),
+      prop(
+        'filterMode',
+        'advanced | simple',
+        'Rule editor or configured field chips with active values.',
+        'advanced',
+      ),
+      prop(
+        'serverSide / useRemoteDataTable',
+        'boolean / hook',
+        'Manual server operations or an abortable transport hook. See the Data tables guide.',
+      ),
+      prop(
+        'stickyHeader / stickyFooter / stickyScrollbar',
+        'boolean',
+        'Actual header, pagination and synchronized horizontal control.',
+      ),
+      prop(
+        'stickyHeaderOffset / stickyFooterOffset / stickyScrollbarOffset',
+        'number',
+        'Offsets for application bars, in pixels.',
+        '0',
+      ),
+      prop(
+        'scrollHeight',
+        'number | string',
+        'Optional contained scroll viewport. Omission preserves page/outer scrolling.',
+      ),
       prop('pageSize', 'number', 'Initial records per page.', '10'),
       prop('searchable', 'boolean', 'Show global search.', 'true'),
       prop('loading', 'boolean', 'Display an accessible loading state.'),
@@ -793,7 +845,32 @@ export const components: ComponentDefinition[] = [
     'Contained scrolling with a subtle, consistent scrollbar.',
     ['ScrollArea'],
     '<ScrollArea className="h-48">\n  <div className="space-y-4 p-4">\n    {Array.from({ length: 20 }, (_, i) => <p key={i}>Record {i + 1}</p>)}\n  </div>\n</ScrollArea>',
-    [prop('type', 'auto | always | scroll | hover', 'Scrollbar visibility.', 'hover')],
+    [
+      prop('orientation', 'vertical | horizontal | both', 'Enabled scrolling axes.', 'vertical'),
+      prop(
+        'scrollbarVisibility',
+        'hover | always | hidden',
+        'Overlay visibility without changing viewport space.',
+        'hover',
+      ),
+      prop(
+        'elastic',
+        'boolean',
+        'Touch-only edge resistance; leaves normal native scrolling and nested scroll areas alone.',
+        'false',
+      ),
+      prop(
+        'onRefresh / refreshThreshold / onRefreshError',
+        'async callback / number / callback',
+        'Optional edge pull-to-refresh with a keyboard-accessible refresh command.',
+      ),
+      prop(
+        'viewportRef / viewportProps',
+        'ref / native div props',
+        'Access the actual scroll viewport and compose native events.',
+      ),
+      prop('type', 'auto | always | scroll | hover', 'Native Radix visibility override.', 'hover'),
+    ],
     'Radix preserves native scrolling and keyboard navigation. Provide a constrained height. ScrollBar is exported for horizontal scrollbars.',
   ),
   definition(
@@ -853,6 +930,7 @@ export const components: ComponentDefinition[] = [
     'EmptyState is a layout primitive, not a required application schema. Supply children for arbitrary content, illustrations and actions. EmptyStateTitle is an h3; use a different semantic heading inside Content when the page hierarchy requires it. Native props and refs apply to every part.',
   ),
   ...extendedComponents,
+  ...workspaceComponents,
 ];
 
 export const categories: Category[] = [
@@ -869,7 +947,7 @@ export const categories: Category[] = [
   'Motion',
 ];
 export const getComponent = (slug: string) =>
-  components.find((component) => component.slug === slug);
+  components.find((component) => component.slug === (slug === 'split-pane' ? 'resizable' : slug));
 export function componentCode(component: ComponentDefinition) {
   const imports = `import { ${component.imports.join(', ')} } from '${component.entry ?? '@plain/ui'}';${component.stylesheet ? `\nimport '${component.stylesheet}';` : ''}`;
   const split = component.slug === 'data-table' ? component.code.indexOf('\n\n<DataTable') : -1;
@@ -879,7 +957,7 @@ export function componentCode(component: ComponentDefinition) {
       ? `${component.code.slice(0, split)}\n\n`
       : '';
   const jsx = split >= 0 ? component.code.slice(split + 2) : component.code;
-  return `${imports}\n\n${prefix}export function Example() {\n${
+  return `${(component.code + (component.functionSetup ?? '')).includes('React.') && !/import\s+\*\s+as\s+React\s+from/.test(component.setup ?? '') ? "import * as React from 'react';\n" : ''}${imports}\n\n${prefix}export function Example() {\n${
     component.functionSetup
       ? component.functionSetup
           .split('\n')
@@ -895,6 +973,8 @@ export const guideLinks = [
   { slug: 'introduction', title: 'Introduction' },
   { slug: 'installation', title: 'Installation' },
   { slug: 'versions', title: 'Documentation versions' },
+  { slug: 'localization', title: 'Localization' },
+  { slug: 'data-tables', title: 'Data tables' },
   { slug: 'theming', title: 'Theming' },
   { slug: 'tokens', title: 'Design tokens' },
   { slug: 'accessibility', title: 'Accessibility' },
