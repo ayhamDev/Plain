@@ -6,14 +6,15 @@ import globals from 'globals';
 export default tseslint.config(
   {
     ignores: [
-      'dist/**',
+      '**/dist/**',
       'site-dist/**',
-      'node_modules/**',
+      '**/.turbo/**',
+      '**/node_modules/**',
       '.npm-cache/**',
-      'test-results/**',
-      'playwright-report/**',
+      '**/test-results/**',
+      '**/playwright-report/**',
       '.preview/**',
-      'public/v/**',
+      'apps/docs/public/v/**',
     ],
   },
   js.configs.recommended,

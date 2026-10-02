@@ -7,10 +7,12 @@ test-results/
 coverage/
 .preview/
 *.tsbuildinfo
-public/compositions/
-public/v/
-public/docs-versions.json
-public/_redirects
+apps/docs/public/compositions/
+apps/docs/public/v/
+apps/docs/public/docs-versions.json
+apps/docs/public/_redirects
 .env
 .env.*
 !.env.example
+
+.turbo/

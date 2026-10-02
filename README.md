@@ -6,10 +6,12 @@ Version 0.2.0 is a **local release**, not an npm publication. The workspace incl
 
 ## Develop
 
-Node 22.12+ and npm are required. Use `npm.cmd` on Windows if PowerShell blocks `npm.ps1`.
+Use Node 24.13.0 (`.node-version` / `.nvmrc`) and npm 11.6.2. The minimum Node
+engine is 22.12. Install dependencies once at the repository root; all workspaces
+share `package-lock.json`. Use `npm.cmd` on Windows if PowerShell blocks `npm.ps1`.
 
 ```sh
-npm install
+npm ci
 npm run dev
 npm run typecheck
 npm run lint
@@ -21,12 +23,36 @@ npm run verify:package
 
 Preview: [localhost:5173](http://127.0.0.1:5173). Routes: `/components`, `/docs/theming`, `/docs/customization`, `/blocks`, `/templates`, `/examples` and `/changelog`.
 
+## Workspace Structure
+
+- `packages/ui`: independently versioned and publishable `@plain/ui`.
+- `apps/docs`: private documentation application consuming public package exports.
+- `tooling`: shared TypeScript, test and library-build infrastructure.
+- `scripts`: boundary validation, package scaffolding, archives and consumer verification.
+
+npm workspaces link local packages; Turborepo orders dependency builds and caches
+library builds and tests. Each package owns its dependencies, tests, exports and
+changelog. The private root cannot be packed or published as the component library.
+See the [monorepo guide](docs/monorepo.md) for architecture, commands and release rules.
+
+To start a future `@plain/icon` React package:
+
+```sh
+npm run create:package -- icon --react
+npm install
+```
+
+The scaffold is **private by default**, with independent ESM/declaration builds
+and tests. It is not a ready-made icon implementation. Define its API and add
+tests before making it publishable. The existing UI API and neutral styles are
+unchanged by the workspace relocation.
+
 ## Install
 
 ```sh
-npm pack
+npm run pack:ui
 # In a consuming React application:
-npm install /path/to/plain-ui-0.2.0.tgz
+npm install /path/to/PlainUI/apps/docs/public/plain-ui-0.2.0.tgz
 ```
 
 React and React DOM 18.3 or 19 are peers. ESM modules and TypeScript declarations are provided; CSS is opt-in. Consumers do not need Tailwind to use the compiled defaults. Tailwind CSS 4.3.3 builds the included stylesheet, and native classes/styles can override it.
@@ -185,7 +211,11 @@ The latest [workspace integration record](docs/releases/workspace-upgrade.md)
 documents localization, remote tables, calendar performance, new workspace
 components and the exact validation run history.
 
-Agents follow [AGENTS.md](AGENTS.md) and the repository's P.UI design skill. Releases use Changesets; see [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md) and [docs/releases](docs/releases/README.md). `dist/` contains the library and `site-dist/` the website. Nothing is published or deployed automatically.
+Agents follow [AGENTS.md](AGENTS.md) and the repository's P.UI design skill.
+Releases use independent Changesets; see [CONTRIBUTING.md](CONTRIBUTING.md),
+[the UI changelog](packages/ui/CHANGELOG.md) and [docs/releases](docs/releases/README.md).
+`packages/ui/dist/` contains the library and `apps/docs/dist/` the website.
+Nothing is published or deployed automatically.
 
 ## License
 

@@ -1,23 +1,5 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "useDefineForClassFields": true,
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "Bundler",
-    "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "types": ["vite/client", "node"]
-  },
-  "include": ["src", "tests", "*.config.ts"],
-  "exclude": ["tests/fixtures"]
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": { "types": ["node", "vite/client"] },
+  "include": ["tooling/config", "tooling/library", "scripts/docs-version-middleware.ts"]
 }

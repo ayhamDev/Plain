@@ -1,27 +1,71 @@
-name: Validate PlainUI
+name: Validate P.UI Workspaces
+
 on:
   push:
   pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    name: Packages (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: '24'
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
           cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm install --global npm@11.6.2 --ignore-scripts
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
       - run: npm test
-      - run: npm run build
       - run: npm run verify:package
-      - run: npx playwright install --with-deps chromium
+
+  browser:
+    name: Documentation And Browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm install --global npm@11.6.2 --ignore-scripts
+      - run: npm ci
+      - run: npm run build
+      - run: npm exec --workspace=@plain/docs -- playwright install --with-deps chromium
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - name: Validate Compiled Documentation
+        run: npm run test:e2e -- tests/e2e/docs-versioning.spec.ts tests/e2e/release-workflows.spec.ts tests/e2e/empty-collections.spec.ts --output=test-results/production
+        env:
+          PLAYWRIGHT_SERVER: preview
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
-          name: browser-report
-          path: playwright-report/
+          name: documentation-browser-report
+          path: |
+            apps/docs/playwright-report/
+            apps/docs/test-results/
+          retention-days: 7

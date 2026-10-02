@@ -14,6 +14,14 @@ is needed.
 - Read current exports, types, and relevant component implementations before using
   an API. Skill references describe the foundation contract; current types
   determine what can compile as integration continues.
+- Source ownership is `packages/ui` for the library and `apps/docs` for documentation.
+  Shared build/test configuration lives in `tooling`. Install at the private root
+  using the single npm lockfile. Import workspace APIs through their public package
+  exports and declare dependencies in the owning manifest. Skill references using
+  the old `src/ui` path refer to `packages/ui/src/ui` in this workspace layout.
+- Scaffold new packages with `npm run create:package -- <name>` (add `--react` for
+  React packages). Leave unfinished packages private; version public packages
+  independently with Changesets. Run `npm run check:workspaces` after boundary changes.
 - Honor the current task's file ownership and existing work. When the user has
   authorized delegation, give parallel agents disjoint scopes and review their
   integration and QA. Delegation remains within that task's permissions.

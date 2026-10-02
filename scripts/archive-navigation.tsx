@@ -1,5 +1,9 @@
 import { Combobox } from '@archive/ui';
-import { documentationVersion, useDocsVersions, versionDestination } from '../src/docs/versioning';
+import {
+  documentationVersion,
+  useDocsVersions,
+  versionDestination,
+} from '../apps/docs/src/docs/versioning';
 
 export function ArchiveNavigation() {
   const { manifest, loading, error } = useDocsVersions();

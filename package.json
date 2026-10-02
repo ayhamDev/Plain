@@ -1,229 +1,63 @@
 {
-  "name": "@plain/ui",
-  "version": "0.2.0",
-  "description": "A minimal, accessible React design system for prototypes and production web apps.",
+  "name": "plain-workspace",
+  "private": true,
   "type": "module",
   "license": "MIT",
-  "sideEffects": [
-    "**/*.css"
-  ],
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
-  "main": "./dist/ui/index.js",
-  "module": "./dist/ui/index.js",
-  "types": "./dist/ui/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/ui/index.d.ts",
-      "import": "./dist/ui/index.js"
-    },
-    "./styles.css": {
-      "types": "./dist/styles.css.d.ts",
-      "default": "./dist/ui/styles.css"
-    },
-    "./tokens.css": {
-      "types": "./dist/tokens.css.d.ts",
-      "default": "./dist/tokens.css"
-    },
-    "./primitives": {
-      "types": "./dist/ui/primitives.d.ts",
-      "import": "./dist/ui/primitives.js"
-    },
-    "./forms": {
-      "types": "./dist/ui/forms.d.ts",
-      "import": "./dist/ui/forms.js"
-    },
-    "./overlays": {
-      "types": "./dist/ui/overlays.d.ts",
-      "import": "./dist/ui/overlays.js"
-    },
-    "./navigation": {
-      "types": "./dist/ui/navigation.d.ts",
-      "import": "./dist/ui/navigation.js"
-    },
-    "./calendar": {
-      "types": "./dist/ui/calendar.d.ts",
-      "import": "./dist/ui/calendar.js"
-    },
-    "./command": {
-      "types": "./dist/ui/command.d.ts",
-      "import": "./dist/ui/command.js"
-    },
-    "./table": {
-      "types": "./dist/ui/table.d.ts",
-      "import": "./dist/ui/table.js"
-    },
-    "./data-table": {
-      "types": "./dist/ui/data-table.d.ts",
-      "import": "./dist/ui/data-table.js"
-    },
-    "./theme": {
-      "types": "./dist/ui/theme.d.ts",
-      "import": "./dist/ui/theme.js"
-    },
-    "./styling": {
-      "types": "./dist/ui/styling.d.ts",
-      "import": "./dist/ui/styling.js"
-    },
-    "./tokens": {
-      "types": "./dist/ui/token-contract.d.ts",
-      "import": "./dist/ui/token-contract.js"
-    },
-    "./color-theme": {
-      "types": "./dist/ui/color-theme.d.ts",
-      "import": "./dist/ui/color-theme.js"
-    },
-    "./extend": {
-      "types": "./dist/ui/extend.d.ts",
-      "import": "./dist/ui/extend.js"
-    },
-    "./motion": {
-      "types": "./dist/ui/motion.d.ts",
-      "import": "./dist/ui/motion.js"
-    },
-    "./layout": {
-      "types": "./dist/ui/layout.d.ts",
-      "import": "./dist/ui/layout.js"
-    },
-    "./virtual": {
-      "types": "./dist/ui/virtual.d.ts",
-      "import": "./dist/ui/virtual.js"
-    },
-    "./sidebar": {
-      "types": "./dist/ui/sidebar.d.ts",
-      "import": "./dist/ui/sidebar.js"
-    },
-    "./advanced": {
-      "types": "./dist/ui/advanced.d.ts",
-      "import": "./dist/ui/advanced.js"
-    },
-    "./date-time": {
-      "types": "./dist/ui/date-time.d.ts",
-      "import": "./dist/ui/date-time.js"
-    },
-    "./charts": {
-      "types": "./dist/ui/charts.d.ts",
-      "import": "./dist/ui/charts.js"
-    },
-    "./full-calendar": {
-      "types": "./dist/ui/full-calendar.d.ts",
-      "import": "./dist/ui/full-calendar.js"
-    },
-    "./typography": {
-      "types": "./dist/ui/typography.d.ts",
-      "import": "./dist/ui/typography.js"
-    },
-    "./charts.css": {
-      "types": "./dist/charts.css.d.ts",
-      "default": "./dist/charts-styles.css"
-    },
-    "./full-calendar.css": {
-      "types": "./dist/full-calendar.css.d.ts",
-      "default": "./dist/full-calendar-styles.css"
-    },
-    "./kanban": {
-      "types": "./dist/ui/kanban.d.ts",
-      "import": "./dist/ui/kanban.js"
-    },
-    "./i18n": {
-      "types": "./dist/ui/i18n.d.ts",
-      "import": "./dist/ui/i18n.js"
-    },
-    "./chips": {
-      "types": "./dist/ui/chips.d.ts",
-      "import": "./dist/ui/chips.js"
-    },
-    "./search-view": {
-      "types": "./dist/ui/search-view.d.ts",
-      "import": "./dist/ui/search-view.js"
-    }
+  "packageManager": "npm@11.6.2",
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0 || >=26.0.0",
+    "npm": ">=11 <12"
   },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "generate:slots": "node scripts/generate-slots.mjs",
-    "generate:tokens": "node --experimental-strip-types scripts/generate-tokens.mjs",
-    "build": "npm run typecheck && npm run build:lib && npm run build:docs",
-    "build:lib": "npm run generate:tokens && npm run generate:slots && vite build --config vite.lib.config.ts && tsc -p tsconfig.lib.json",
-    "build:docs": "npm run generate:compositions && npm run docs:versions && vite build",
-    "docs:versions": "node scripts/build-docs-versions.mjs",
-    "generate:compositions": "node --experimental-strip-types scripts/generate-compositions.mjs",
-    "predev": "npm run generate:compositions && npm run docs:versions",
-    "pretest": "npm run generate:compositions",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
+    "dev": "turbo run dev --filter=@plain/docs --",
+    "build": "turbo run build",
+    "build:lib": "turbo run build --filter=@plain/ui",
+    "build:docs": "turbo run build --filter=@plain/docs",
+    "typecheck": "tsc --noEmit && turbo run typecheck",
+    "lint": "eslint . && npm run check:workspaces",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check:workspaces": "node scripts/check-workspaces.mjs",
+    "test": "node --test scripts/tests/*.test.mjs && turbo run test",
+    "test:watch": "npm run test:watch --workspace=@plain/ui",
+    "test:e2e": "npm run test:e2e --workspace=@plain/docs --",
     "verify:package": "npm run build:lib && npm run generate:compositions && node --experimental-strip-types scripts/verify-package.mjs",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "pretest:e2e": "npm run build:lib && npm run generate:compositions",
-    "test:e2e": "playwright test",
-    "preview": "vite preview --host 127.0.0.1",
-    "prepack": "npm run build:lib",
-    "changeset": "node node_modules/@changesets/cli/bin.js",
-    "version:packages": "node node_modules/@changesets/cli/bin.js version",
-    "release:status": "node node_modules/@changesets/cli/bin.js status"
-  },
-  "peerDependencies": {
-    "react": "^18.3.0 || ^19.0.0",
-    "react-dom": "^18.3.0 || ^19.0.0"
-  },
-  "engines": {
-    "node": ">=22.12.0"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
-    "@material/material-color-utilities": "^0.3.0",
-    "@tanstack/react-table": "^9.2.4",
-    "@tanstack/react-virtual": "^3.14.13",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "cmdk": "^1.1.1",
-    "lucide-react": "^1.49.0",
-    "motion": "^13.5.0",
-    "radix-ui": "^1.6.7",
-    "react-day-picker": "^10.0.2",
-    "react-resizable-panels": "^4.14.1",
-    "recharts": "^3.10.1",
-    "sonner": "^2.0.8",
-    "tailwind-merge": "^3.7.0",
-    "temporal-polyfill": "^1.0.5",
-    "vaul": "^1.1.2"
+    "pack:ui": "npm run build:lib && node scripts/pack-ui.mjs",
+    "prepack": "node scripts/deny-root-pack.mjs",
+    "docs:versions": "node scripts/build-docs-versions.mjs",
+    "generate:compositions": "node scripts/generate-compositions.mjs",
+    "generate:tokens": "npm run generate:tokens --workspace=@plain/ui",
+    "generate:slots": "npm run generate:slots --workspace=@plain/ui",
+    "preview": "npm run preview --workspace=@plain/docs --",
+    "create:package": "node scripts/create-package.mjs",
+    "changeset": "changeset",
+    "version:packages": "changeset version",
+    "release:status": "changeset status",
+    "release:publish": "npm run build && npm run check:workspaces && changeset publish"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@changesets/cli": "^3.0.3",
     "@eslint/js": "^10.0.1",
-    "@fontsource-variable/inter": "^5.3.0",
     "@playwright/test": "^1.63.0",
-    "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
-    "@testing-library/user-event": "^14.6.7",
     "@types/node": "^26.6.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
-    "jsdom": "^26.1.0",
     "postcss": "^8.5.28",
     "prettier": "^3.9.9",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "react-router-dom": "^7.18.4",
-    "tailwindcss": "^4.3.3",
+    "turbo": "2.11.7",
     "typescript": "~6.0.0",
     "typescript-eslint": "^8.71.0",
     "vite": "^8.3.1",

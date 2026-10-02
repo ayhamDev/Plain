@@ -1,12 +1,13 @@
 # P.UI Release Workflow
 
-This repository releases one package, `@plain/ui`. The docs site, blocks, and
-templates belong to that product; they are not additional workspace packages.
-The package rename and local Changesets CLI/scripts are integrated. Use
+This repository independently releases public packages under `packages/*`.
+`@plain/ui` is the existing library; future packages such as `@plain/icon` own their
+versions and changelogs. The docs site is the private `@plain/docs` application.
+Blocks and templates remain application-owned source, not library exports. Use
 `npm.cmd` on Windows when PowerShell blocks `npm.ps1`.
 
 Keep three records with distinct purposes: Changesets describe releasable
-consumer changes, root [CHANGELOG.md](../../CHANGELOG.md) records version history,
+consumer changes, package changelogs (currently [UI](../../packages/ui/CHANGELOG.md)) record version history,
 and `docs/releases/<version>.md` records migrations and validation evidence.
 Start each release note from [TEMPLATE.md](TEMPLATE.md). Keep the prior release
 history, including the 0.1 local-release status and its original QA limitations.
@@ -17,9 +18,9 @@ history, including the 0.1 local-release status and its original QA limitations.
    Remove unimplemented claims and deduplicate overlapping Changesets.
    During 0.x, breaking migrations use the agreed next minor version and must be
    explicitly described; choosing `major` advances to 1.0.
-2. Confirm every Changeset names the root package and `baseBranch` names the
-   branch used for integration (currently `codex/next`). No monorepo groups are
-   required. Read the plan:
+2. Confirm every Changeset names the affected public package(s) and `baseBranch`
+   names the integration branch (currently `codex/next`). There are no fixed or
+   linked release groups; private workspaces are excluded. Read the plan:
 
    ```sh
    npm run release:status
@@ -37,7 +38,7 @@ history, including the 0.1 local-release status and its original QA limitations.
    ```
 
    Review the resulting version, lockfile, consumed Changesets, and generated
-   changelog. Replace a matching root `Unreleased` draft with the release entry
+   package changelogs. Replace a matching `Unreleased` draft with the release entry
    and reconcile its prose. When finalizing the already assigned 0.2 version,
    promote its existing draft without another version bump. Preserve 0.1 history.
 
@@ -57,12 +58,14 @@ history, including the 0.1 local-release status and its original QA limitations.
    npm run build
    npm run verify:package
    npm run test:e2e
-   npm pack --dry-run
+   npm pack --workspace=@plain/ui --dry-run --ignore-scripts
    ```
 
    The build/package commands may regenerate artifacts. Review only intentional
    tracked changes. Verify an installed package consumer, CSS/subpath exports,
    declarations, SSR, and compilable public examples, especially newly added APIs.
+   For an additional package, validate its own packed consumer and export map too;
+   the UI-specific verifier does not imply that unrelated packages were checked.
 
 5. Perform the [design skill's browser QA](../../.agents/skills/p-ui-design/references/qa.md)
    on the changed workflows. Record command outcomes, browsers/versions, viewports,

@@ -6,9 +6,11 @@ import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { gzipSync } from 'node:zlib';
 import { build } from 'vite';
-import { components, componentCode } from '../src/docs/catalog.ts';
+import { components, componentCode } from '../apps/docs/src/docs/catalog.ts';
 
 const root = resolve('.');
+const packageRoot = resolve(root, 'packages/ui');
+const publicRoot = resolve(root, 'apps/docs/public');
 const consumer = resolve('.preview/package-consumer');
 const npmCli = process.env.npm_execpath;
 assert(npmCli, 'Run this check with npm run verify:package.');
@@ -18,19 +20,26 @@ function run(binary, args, cwd = root) {
   return result.stdout;
 }
 
-await mkdir(resolve('public'), { recursive: true });
+await mkdir(publicRoot, { recursive: true });
 const [packed] = JSON.parse(
-  run(process.execPath, [
-    npmCli,
-    'pack',
-    '--ignore-scripts',
-    '--json',
-    '--pack-destination',
-    'public',
-  ]),
+  run(
+    process.execPath,
+    [
+      npmCli,
+      'pack',
+      '--ignore-scripts',
+      '--json',
+      '--pack-destination',
+      publicRoot,
+      '--workspaces=false',
+    ],
+    packageRoot,
+  ),
 );
 const packageFiles = new Set(packed.files.map((file) => file.path));
-const compositions = JSON.parse(await readFile('public/compositions/manifest.json', 'utf8'));
+const compositions = JSON.parse(
+  await readFile(join(publicRoot, 'compositions/manifest.json'), 'utf8'),
+);
 const compositionExamples = [...compositions.blocks, ...compositions.templates];
 assert.equal(compositions.blocks.length, 0);
 assert.equal(compositions.templates.length, 0);
@@ -60,7 +69,7 @@ await writeFile(
   join(consumer, 'package.json'),
   JSON.stringify({ name: 'plainui-package-check', private: true, type: 'module' }),
 );
-await copyFile(resolve('tests/fixtures/consumer.tsx'), join(consumer, 'consumer.tsx'));
+await copyFile(resolve('apps/docs/tests/fixtures/consumer.tsx'), join(consumer, 'consumer.tsx'));
 await writeFile(join(consumer, 'button-only.ts'), "export { Button } from '@plain/ui';\n");
 await writeFile(
   join(consumer, 'tsconfig.json'),
@@ -81,7 +90,7 @@ for (const component of components)
   await writeFile(join(consumer, 'examples', `${component.slug}.tsx`), componentCode(component));
 for (const item of compositionExamples) {
   assert(/^(blocks|templates)\/[a-z0-9-]+\.tsx$/.test(item.path));
-  const source = await readFile(resolve('public/compositions', item.path), 'utf8');
+  const source = await readFile(resolve(publicRoot, 'compositions', item.path), 'utf8');
   assert(!source.includes('@plain/ui/blocks'), 'Examples must contain their own implementation.');
   await writeFile(join(consumer, 'examples', `${item.id}.tsx`), source);
 }
@@ -93,9 +102,10 @@ run(process.execPath, [
   '--ignore-scripts',
   '--no-audit',
   '--no-fund',
+  '--prefer-offline',
   '--cache',
   resolve('.npm-cache'),
-  resolve('public', packed.filename),
+  join(publicRoot, packed.filename),
   'react@19.3.0',
   'react-dom@19.3.0',
 ]);
@@ -169,9 +179,10 @@ run(process.execPath, [
   '--ignore-scripts',
   '--no-audit',
   '--no-fund',
+  '--prefer-offline',
   '--cache',
   resolve('.npm-cache'),
-  resolve('public', packed.filename),
+  join(publicRoot, packed.filename),
   'react@18.3.1',
   'react-dom@18.3.1',
 ]);

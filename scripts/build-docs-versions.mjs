@@ -10,7 +10,8 @@ import { build } from 'vite';
 
 const root = resolve(fileURLToPath(new URL('../', import.meta.url)));
 const config = JSON.parse(await readFile(resolve(root, 'docs/versions.json'), 'utf8'));
-const pkg = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
+const pkg = JSON.parse(await readFile(resolve(root, 'packages/ui/package.json'), 'utf8'));
+const publicPath = 'apps/docs/public';
 assert.equal(config.current, pkg.version, 'Current docs must match the package version.');
 assert.equal(config.versions.filter((entry) => entry.status === 'current').length, 1);
 assert.equal(new Set(config.versions.map((entry) => entry.version)).size, config.versions.length);
@@ -38,11 +39,14 @@ async function exists(path) {
 }
 
 async function routesFor(sourceRoot) {
+  const docsRoot = (await exists(resolve(sourceRoot, 'apps/docs/package.json')))
+    ? resolve(sourceRoot, 'apps/docs')
+    : sourceRoot;
   const virtual = '\0docs-route-manifest';
-  const entry = resolve(sourceRoot, '__docs_route_manifest.js');
+  const entry = resolve(docsRoot, '__docs_route_manifest.js');
   const results = await build({
     configFile: false,
-    root: sourceRoot,
+    root: docsRoot,
     logLevel: 'silent',
     plugins: [
       {
@@ -50,7 +54,7 @@ async function routesFor(sourceRoot) {
         resolveId: (id) => (id === entry ? virtual : undefined),
         load: (id) =>
           id === virtual
-            ? `import { components, guideLinks } from ${JSON.stringify(resolve(sourceRoot, 'src/docs/catalog.ts').replaceAll('\\', '/'))};
+            ? `import { components, guideLinks } from ${JSON.stringify(resolve(docsRoot, 'src/docs/catalog.ts').replaceAll('\\', '/'))};
         export const routes = ['/', '/components', '/examples', '/changelog', '/docs/customization', '/docs/rtl', ...components.map(c => '/components/' + c.slug), ...guideLinks.map(g => '/docs/' + g.slug)];`
             : undefined,
       },
@@ -62,9 +66,9 @@ async function routesFor(sourceRoot) {
   const { routes } = await import(
     `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`
   );
-  if (await exists(resolve(sourceRoot, 'src/docs/pages/BlocksPage.tsx'))) {
+  if (await exists(resolve(docsRoot, 'src/docs/pages/BlocksPage.tsx'))) {
     routes.push('/blocks', '/templates');
-    const manifestPath = resolve(sourceRoot, 'public/compositions/manifest.json');
+    const manifestPath = resolve(docsRoot, 'public/compositions/manifest.json');
     if (await exists(manifestPath)) {
       const compositions = JSON.parse(await readFile(manifestPath, 'utf8'));
       for (const kind of ['blocks', 'templates'])
@@ -154,18 +158,22 @@ for (const entry of config.versions) {
     'Archives require a pinned commit, not a moving branch.',
   );
   const ref = git('rev-parse', `${entry.ref}^{commit}`).toString().trim();
-  const originalPackage = JSON.parse(git('show', `${ref}:package.json`).toString());
+  const tracked = git('ls-tree', '--name-only', ref).toString().trim().split('\n');
+  const monorepo = tracked.includes('packages') && tracked.includes('apps');
+  const originalPackage = JSON.parse(
+    git('show', `${ref}:${monorepo ? 'packages/ui/package.json' : 'package.json'}`).toString(),
+  );
   assert.equal(
     originalPackage.version,
     entry.version,
     'Archive revision does not match its version.',
   );
-  const output = contained(`public/v/${entry.version}`);
+  const output = contained(`${publicPath}/v/${entry.version}`);
   const signature = createHash('sha256')
     .update(ref)
     .update(await readFile(resolve(root, 'scripts/build-docs-versions.mjs')))
     .update(await readFile(resolve(root, 'scripts/archive-navigation.tsx')))
-    .update(await readFile(resolve(root, 'src/docs/versioning.ts')))
+    .update(await readFile(resolve(root, 'apps/docs/src/docs/versioning.ts')))
     .digest('hex');
   const stamp = resolve(output, '.snapshot.json');
   if ((await exists(stamp)) && (await exists(resolve(output, 'index.html')))) {
@@ -179,12 +187,14 @@ for (const entry of config.versions) {
   const stage = contained(`.preview/docs-versions/${entry.version}/${ref}/source`);
   await mkdir(stage, { recursive: true });
   // Extract tracked source only. No checkout, recursive deletion, or user files are altered.
-  const tracked = git('ls-tree', '--name-only', ref).toString().trim().split('\n');
   const archive = git(
     'archive',
     ref,
     ...[
       'src',
+      'apps',
+      'packages',
+      'tooling',
       'scripts',
       'public',
       'docs',
@@ -192,6 +202,9 @@ for (const entry of config.versions) {
       'package.json',
       'package-lock.json',
       'LICENSE',
+      'tsconfig.base.json',
+      'tsconfig.json',
+      '.npmrc',
     ].filter((path) => tracked.includes(path)),
   );
   const extracted = spawnSync('tar', ['-xf', '-'], {
@@ -242,18 +255,36 @@ for (const entry of config.versions) {
     );
     assert.equal(generated.status, 0, generated.stderr);
   }
-  const snapshotRequire = createRequire(resolve(stage, 'package.json'));
+  if (monorepo) {
+    const built = spawnSync(
+      process.execPath,
+      [process.env.npm_execpath, 'run', 'build', '--workspace=@plain/ui'],
+      {
+        cwd: stage,
+        encoding: 'utf8',
+        maxBuffer: 8 * 1024 * 1024,
+      },
+    );
+    assert.equal(built.status, 0, built.stderr);
+  }
+  const snapshotRoot = monorepo ? resolve(stage, 'apps/docs') : stage;
+  const snapshotRequire = createRequire(resolve(snapshotRoot, 'package.json'));
   const snapshotModule = (name) => import(pathToFileURL(snapshotRequire.resolve(name)).href);
   const { build: snapshotBuild } = await snapshotModule('vite');
   const { default: snapshotReact } = await snapshotModule('@vitejs/plugin-react');
   const { default: snapshotTailwind } = await snapshotModule('@tailwindcss/vite');
   await snapshotBuild({
     configFile: false,
-    root: stage,
+    root: snapshotRoot,
     base,
     logLevel: 'warn',
     resolve: {
-      alias: { '@archive/ui': resolve(stage, 'src/ui/command.tsx') },
+      alias: {
+        '@archive/ui': resolve(
+          stage,
+          monorepo ? 'packages/ui/src/ui/command.tsx' : 'src/ui/command.tsx',
+        ),
+      },
       dedupe: ['react', 'react-dom'],
     },
     plugins: [
@@ -299,13 +330,13 @@ for (const entry of config.versions) {
     `Built full ${entry.version} documentation (${manifest.routes.length} routes) from ${ref.slice(0, 7)}.`,
   );
 }
-await mkdir(resolve(root, 'public'), { recursive: true });
+await mkdir(resolve(root, publicPath), { recursive: true });
 await writeFile(
-  resolve(root, 'public/docs-versions.json'),
+  resolve(root, publicPath, 'docs-versions.json'),
   JSON.stringify({ current: config.current, versions }, null, 2),
 );
 await writeFile(
-  resolve(root, 'public/_redirects'),
+  resolve(root, publicPath, '_redirects'),
   [
     ...versions
       .filter((entry) => entry.status === 'archived')

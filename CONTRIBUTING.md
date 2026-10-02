@@ -9,6 +9,14 @@ Use the Node version supported by `package.json`, npm, and the existing lockfile
 See [README.md](README.md) for setup and package consumption. On Windows,
 `npm.cmd` works when execution policy blocks `npm.ps1`.
 
+Install once at the private root with `npm ci`. Package source and unit tests live
+in `packages/<name>`; the private documentation app and browser tests live in
+`apps/docs`. Read [docs/monorepo.md](docs/monorepo.md) before adding a workspace.
+Declare every dependency in its owning manifest, even when npm hoists it. Use
+public package imports between workspaces, not sibling source paths. The docs'
+development aliases allow UI HMR only for actual public exports; production
+builds use the compiled package. `npm run lint` checks these boundaries.
+
 Keep documented engine compatibility pins when changing dependencies. Choose
 versions supported by the package and lockfile, and verify Node/SSR imports as
 well as browser builds after an engine upgrade. See the
@@ -27,8 +35,10 @@ remains unverified; scope browser QA to affected workflows.
 
 ## Changesets
 
-Add `.changeset/<unique-name>.md` for a releasable consumer change. Name the single
-package `@plain/ui` in frontmatter and explain the resulting behavior and migration.
+Add `.changeset/<unique-name>.md` for a releasable consumer change. Name each affected
+publishable package in frontmatter and explain the resulting behavior and migration.
+Packages are independently versioned; do not bump an unrelated package. Private
+apps and unfinished private package scaffolds are excluded from versioning and tags.
 Use `patch` for compatible fixes and `minor` for compatible additions. During 0.x,
 breaking changes may use an agreed minor release, with explicit migration notes;
 `major` advances the package to 1.0 and needs a deliberate version decision.

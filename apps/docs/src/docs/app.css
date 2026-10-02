@@ -1,0 +1,42 @@
+@import 'tailwindcss' source(none);
+@import '@plain/ui/styles.css';
+@import './site.css';
+@import './brand.css';
+@source './';
+@source '../App.tsx';
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme inline {
+  --color-background: var(--ui-background);
+  --color-foreground: var(--ui-foreground);
+  --color-surface: var(--ui-surface);
+  --color-muted: var(--ui-muted);
+  --color-muted-foreground: var(--ui-muted-foreground);
+  --color-border: var(--ui-border);
+  --color-input-border: var(--ui-input-border);
+  --color-accent: var(--ui-accent);
+  --color-accent-foreground: var(--ui-accent-foreground);
+  --color-accent-soft: var(--ui-accent-soft);
+  --color-danger: var(--ui-danger);
+  --color-danger-soft: var(--ui-danger-soft);
+  --color-primary: var(--ui-primary);
+  --color-primary-foreground: var(--ui-primary-foreground);
+  --color-primary-container: var(--ui-primary-container);
+  --color-primary-container-foreground: var(--ui-primary-container-foreground);
+  --color-secondary: var(--ui-secondary);
+  --color-secondary-foreground: var(--ui-secondary-foreground);
+  --color-secondary-container: var(--ui-secondary-container);
+  --color-secondary-container-foreground: var(--ui-secondary-container-foreground);
+  --color-tertiary: var(--ui-tertiary);
+  --color-tertiary-foreground: var(--ui-tertiary-foreground);
+  --color-tertiary-container: var(--ui-tertiary-container);
+  --color-tertiary-container-foreground: var(--ui-tertiary-container-foreground);
+  --color-accent-soft-foreground: var(--ui-accent-soft-foreground);
+  --color-inverse: var(--ui-inverse);
+  --color-inverse-foreground: var(--ui-inverse-foreground);
+  --color-surface-low: var(--ui-surface-low);
+  --color-surface-high: var(--ui-surface-high);
+  --font-sans: var(--ui-font);
+  --radius-ui: var(--ui-radius);
+  --shadow-popover: var(--ui-shadow);
+}
