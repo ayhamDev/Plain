@@ -54,14 +54,6 @@ function roles(scheme: DynamicScheme): ThemeTokens {
       Hct.from(scheme.neutralPalette.hue, Math.min(4, scheme.neutralPalette.chroma), tone).toInt(),
     );
   const dark = scheme.isDark;
-  const controlOutline = hex(
-    Hct.from(
-      scheme.neutralPalette.hue,
-      Math.min(4, scheme.neutralPalette.chroma),
-      (dark ? 48 : 54) +
-        (Hct.fromInt(scheme.outline).tone - (dark ? 48 : 54)) * scheme.contrastLevel,
-    ).toInt(),
-  );
   const tokens: ThemeTokens = {
     background: surface(dark ? 8 : 98),
     foreground: hex(scheme.onSurface),
@@ -76,8 +68,8 @@ function roles(scheme: DynamicScheme): ThemeTokens {
     'muted-foreground': hex(scheme.onSurfaceVariant),
     outline: hex(scheme.outline),
     border: surface(dark ? 23 : 89),
-    'control-border': controlOutline,
-    'input-border': controlOutline,
+    'control-border': 'var(--ui-border)',
+    'input-border': 'var(--ui-control-border)',
     primary: hex(scheme.primary),
     'primary-foreground': hex(scheme.onPrimary),
     'primary-container': hex(scheme.primaryContainer),

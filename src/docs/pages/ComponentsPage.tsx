@@ -50,9 +50,14 @@ export default function ComponentsPage() {
             onChange={(e) => setQuery(e.target.value)}
           />
           {query && (
-            <button onClick={() => setQuery('')} aria-label="Clear component search">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setQuery('')}
+              aria-label="Clear component search"
+            >
               <X size={14} aria-hidden="true" />
-            </button>
+            </Button>
           )}
         </div>
       </div>

@@ -96,10 +96,10 @@ export default function Overview() {
             <span className="showcase-status" />
             <h2>Small pieces. Endless possibilities.</h2>
           </div>
-          <button className="customize-link" onClick={customize}>
+          <Button variant="ghost" size="sm" className="customize-link" onClick={customize}>
             <SlidersHorizontal size={14} aria-hidden="true" />
             Customize
-          </button>
+          </Button>
         </div>
         <div className="showcase-grid">
           <div className="showcase-column">

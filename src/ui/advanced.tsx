@@ -9,8 +9,6 @@ import {
 } from 'radix-ui';
 import {
   AlertCircle,
-  ArrowDown,
-  ArrowUp,
   Check,
   ChevronDown,
   ChevronRight,
@@ -33,7 +31,7 @@ import {
   useStyles,
   type PlainStyleProps,
 } from './styling';
-import { inertAttribute } from './utils';
+import { changeInput, inertAttribute } from './utils';
 
 function useValue<T>(
   controlled: T | undefined,
@@ -73,14 +71,6 @@ function useFormReset<T extends HTMLElement>(
     form.addEventListener('reset', onReset);
     return () => form.removeEventListener('reset', onReset);
   }, [element, reset, formId]);
-}
-
-// Native input events keep onChange, onValueChange, and controlled React fields in agreement.
-function changeInput(input: HTMLInputElement | null, next: string) {
-  if (!input) return;
-  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
-  setter?.call(input, next);
-  input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 export interface NumberInputProps
@@ -704,90 +694,7 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
 );
 FileUpload.displayName = 'FileUpload';
 
-export interface ColorPickerProps
-  extends
-    Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'defaultValue'>,
-    PlainStyleProps {
-  value?: string;
-  defaultValue?: string;
-  onValueChange?: (value: string) => void;
-  swatches?: readonly string[];
-}
-export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, ColorPickerProps>(
-  (
-    {
-      value: controlled,
-      defaultValue = '#000000',
-      onValueChange,
-      swatches = [],
-      className,
-      unstyled,
-      onChange,
-      disabled,
-      readOnly,
-      name,
-      form,
-      ...props
-    },
-    ref,
-  ) => {
-    const styles = useStyles();
-    const input = React.useRef<HTMLInputElement>(null);
-    React.useImperativeHandle(ref, () => input.current!, []);
-    const [raw, setValue, reset] = useValue(controlled, defaultValue, onValueChange);
-    const value = /^#[\da-f]{6}$/i.test(raw) ? raw.toLowerCase() : '#000000';
-    useFormReset(input, reset);
-    return (
-      <div {...styles('color-picker.root', 'ui-color-picker', undefined, unstyled)}>
-        <input
-          ref={input}
-          type="color"
-          aria-label="Color"
-          value={value}
-          name={readOnly ? undefined : name}
-          form={form}
-          disabled={disabled || readOnly}
-          {...styles('color-picker.input', 'ui-color-picker-input', className, unstyled)}
-          {...props}
-          onChange={(event) => {
-            setValue(event.currentTarget.value);
-            onChange?.(event);
-          }}
-        />
-        {readOnly && name && (
-          <input type="hidden" name={name} form={form} value={value} disabled={disabled} />
-        )}
-        <output {...styles('color-picker.value', 'ui-color-picker-value', undefined, unstyled)}>
-          {value}
-        </output>
-        {!!swatches.length && (
-          <div
-            role="group"
-            aria-label="Color swatches"
-            {...styles('color-picker.swatches', 'ui-color-swatches', undefined, unstyled)}
-          >
-            {swatches
-              .filter((swatch) => /^#[\da-f]{6}$/i.test(swatch))
-              .map((swatch) => (
-                <button
-                  key={swatch}
-                  type="button"
-                  disabled={disabled || readOnly}
-                  aria-label={`Set color ${swatch}`}
-                  title={swatch}
-                  aria-pressed={value === swatch.toLowerCase()}
-                  {...styles('color-picker.swatch', 'ui-color-swatch', undefined, unstyled)}
-                  style={{ backgroundColor: swatch }}
-                  onClick={() => changeInput(input.current, swatch.toLowerCase())}
-                />
-              ))}
-          </div>
-        )}
-      </div>
-    );
-  },
-);
-ColorPicker.displayName = 'ColorPicker';
+export { ColorPicker, type ColorPickerProps } from './color-picker';
 
 export interface RatingProps
   extends
@@ -1759,49 +1666,6 @@ export const HoverCardContent = /* @__PURE__ */ React.forwardRef<
   );
 });
 HoverCardContent.displayName = 'HoverCardContent';
-
-export interface StatProps
-  extends Omit<React.HTMLAttributes<HTMLDListElement>, 'children'>, PlainStyleProps {
-  label: React.ReactNode;
-  value: React.ReactNode;
-  description?: React.ReactNode;
-  change?: React.ReactNode;
-  trend?: 'up' | 'down' | 'neutral';
-}
-export const Stat = /* @__PURE__ */ React.forwardRef<HTMLDListElement, StatProps>(
-  (
-    { label, value, description, change, trend = 'neutral', className, unstyled, ...props },
-    ref,
-  ) => {
-    const styles = useStyles();
-    return (
-      <dl ref={ref} {...styles('stat.root', 'ui-stat', className, unstyled)} {...props}>
-        <dt {...styles('stat.label', 'ui-stat-label', undefined, unstyled)}>{label}</dt>
-        <dd {...styles('stat.value', 'ui-stat-value', undefined, unstyled)}>{value}</dd>
-        {(change != null || description != null) && (
-          <dd {...styles('stat.detail', 'ui-stat-detail', undefined, unstyled)}>
-            {change != null && (
-              <span
-                data-trend={trend}
-                {...styles('stat.change', 'ui-stat-change', undefined, unstyled)}
-              >
-                {trend === 'up' && <ArrowUp size={14} aria-label="Increase" />}
-                {trend === 'down' && <ArrowDown size={14} aria-label="Decrease" />}
-                {change}
-              </span>
-            )}
-            {description != null && (
-              <span {...styles('stat.description', 'ui-stat-description', undefined, unstyled)}>
-                {description}
-              </span>
-            )}
-          </dd>
-        )}
-      </dl>
-    );
-  },
-);
-Stat.displayName = 'Stat';
 
 export interface TimelineEvent {
   id: string;

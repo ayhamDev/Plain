@@ -85,10 +85,6 @@ const guideInfo: Record<string, { title: string; description: string }> = {
     title: 'Virtualization',
     description: 'Window large collections without confusing it with data loading or pagination.',
   },
-  'blocks-templates': {
-    title: 'Blocks and templates',
-    description: 'Start from a working composition, then adapt its data, navigation, and actions.',
-  },
   charts: {
     title: 'Charts',
     description: 'Use Recharts-backed views with meaningful labels and readable data alternatives.',
@@ -409,24 +405,26 @@ export function SavedNotice() {
     </PlainProvider>
   );
 }`,
-  motionPolicy: `import { Button, useMotionSettings, useTheme } from '@plain/ui';
+  motionPolicy: `import { Button, Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem, useMotionSettings, useTheme } from '@plain/ui';
 
 export function MotionPreferences() {
   const { setTheme, motion } = useTheme();
   const { enabled } = useMotionSettings();
   return (
     <>
-      <label htmlFor="motion-policy">Motion</label>
-      <select id="motion-policy" value={motion} onChange={(event) => {
-        const policy = event.currentTarget.value;
+      <Label htmlFor="motion-policy">Motion</Label>
+      <Select value={motion} onValueChange={(policy) => {
         if (policy === 'system' || policy === 'reduced' || policy === 'none') {
           setTheme({ motion: policy });
         }
       }}>
-        <option value="system">Follow device preference</option>
-        <option value="reduced">Reduced</option>
-        <option value="none">None</option>
-      </select>
+        <SelectTrigger id="motion-policy"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="system">Follow device preference</SelectItem>
+          <SelectItem value="reduced">Reduced</SelectItem>
+          <SelectItem value="none">None</SelectItem>
+        </SelectContent>
+      </Select>
       <Button type="button" style={{ transitionDuration: enabled ? '120ms' : '0ms' }}>
         Apply changes
       </Button>
@@ -554,66 +552,6 @@ export function AssetMasonry() {
     renderItem={(item) => <article><h2>{item.name}</h2><p>Asset details</p></article>}
   />;
 }`,
-  blocks: `// These are files downloaded from the documentation, owned by your app.
-import AuthPassword from './examples/auth-password';
-import StudioBooking from './examples/web-apps-studio-booking';
-
-export function SignInPrototype() {
-  return <AuthPassword />;
-}
-
-export function BookingPrototype() {
-  return <StudioBooking />;
-}`,
-  blockConfig: `import { useState } from 'react';
-import { Button, Field, Input, Textarea, P } from '@plain/ui';
-import { Stack } from '@plain/ui/layout';
-import '@plain/ui/styles.css';
-
-export function ProjectIntake() {
-  const [submitted, setSubmitted] = useState(false);
-  return <form onSubmit={(event) => {
-    event.preventDefault();
-    // Replace this local feedback with your application's submission.
-    setSubmitted(true);
-  }}>
-    <Stack gap={2}>
-      <Field label="Project name"><Input name="name" required /></Field>
-      <Field label="Details"><Textarea name="details" required /></Field>
-      <Button type="submit">Create request</Button>
-      {submitted && <P role="status">Request recorded locally.</P>}
-    </Stack>
-  </form>;
-}`,
-  templateConfig: `import { useState } from 'react';
-import { H1, P } from '@plain/ui/typography';
-import {
-  AppShell, SidebarProvider, Sidebar, SidebarContent,
-  SidebarItem, SidebarTrigger,
-} from '@plain/ui/sidebar';
-import { Agenda } from './screens/Agenda';
-import { Requests } from './screens/Requests';
-import '@plain/ui/styles.css';
-
-export function StudioPrototype() {
-  const [screen, setScreen] = useState<'agenda' | 'requests'>('agenda');
-  return <SidebarProvider>
-    <AppShell
-      header={<><SidebarTrigger /><P>Studio</P></>}
-      sidebar={<Sidebar label="Studio navigation"><SidebarContent>
-        <SidebarItem active={screen === 'agenda'} onClick={() => setScreen('agenda')}>
-          Agenda
-        </SidebarItem>
-        <SidebarItem active={screen === 'requests'} onClick={() => setScreen('requests')}>
-          Requests
-        </SidebarItem>
-      </SidebarContent></Sidebar>}
-    >
-      <H1>{screen === 'agenda' ? 'Studio schedule' : 'Incoming work'}</H1>
-      {screen === 'agenda' ? <Agenda /> : <Requests />}
-    </AppShell>
-  </SidebarProvider>;
-}`,
   chart: `import { BarChart } from '@plain/ui/charts';
 import '@plain/ui/styles.css';
 import '@plain/ui/charts.css';
@@ -740,19 +678,18 @@ export function TeamSchedule() {
       <FullCalendar
         ref={ref}
         aria-label="Team schedule"
-        defaultView="timeGridWeek"
-        initialDate="2026-10-05"
+        defaultView="week"
+        defaultDate="2026-10-05"
         timeZone="local"
         height={560}
-        mobileView="listWeek"
         mobileBreakpoint={640}
         selectable
         events={[{
           id: 'kickoff', title: 'Project kickoff',
           start: '2026-10-05T09:00:00', end: '2026-10-05T10:00:00',
         }]}
-        select={({ startStr, endStr }) => setSelection(startStr + ' to ' + endStr)}
-        eventClick={({ event }) => setSelection(event.title)}
+        onSlotSelect={({ start, end }) => setSelection(start + ' to ' + end)}
+        onEventClick={(event) => setSelection(event.title)}
       />
       <p role="status">{selection}</p>
     </>
@@ -1447,7 +1384,7 @@ function AccessibilityGuide() {
         <p>
           Native elements provide button, form, and table semantics. Radix and Vaul provide
           interaction patterns for overlays and composite controls; DayPicker, cmdk, Sonner,
-          Recharts, and FullCalendar handle their respective domains. Names, descriptions, content
+          Recharts, and Temporal handle their respective domains. Names, descriptions, content
           order, navigation, and application state still belong to you.
         </p>
       </GuideSection>
@@ -1651,68 +1588,6 @@ function VirtualizationGuide() {
   );
 }
 
-function BlocksTemplatesGuide() {
-  return (
-    <>
-      <GuideSection title="Copy application source">
-        <p>
-          The 0.2 collection contains 120 blocks in 12 workflow categories and 60 templates in five
-          platform categories: web apps, mobile apps, desktop apps, dashboards, and websites.
-          Platform categories describe React DOM layouts, not native runtimes. The examples use
-          local state and sample data; signing in, payments, invitations, and scheduling are not
-          connected services.
-        </p>
-        <CodeBlock code={examples.blocks} />
-        <p>
-          Preview an example, then use its Code, Copy, or Download action. Each TSX file includes
-          its own React implementation, data, helpers, and styles. Place it in your application,
-          rename it, and edit it directly. It imports public P.UI primitives and, where needed,
-          established engines; no block renderer or template registry is bundled in @plain/ui.
-        </p>
-        <p>
-          <Link className="text-link" to="/blocks">
-            Browse blocks
-            <ArrowRight size={14} aria-hidden="true" />
-          </Link>
-          {' / '}
-          <Link className="text-link" to="/templates">
-            Browse templates
-            <ArrowRight size={14} aria-hidden="true" />
-          </Link>
-        </p>
-      </GuideSection>
-      <GuideSection title="Own the markup and behavior">
-        <CodeBlock code={examples.blockConfig} />
-        <p>
-          The downloaded file is ordinary TypeScript and React, not a configuration-only API. Change
-          its structure, fields, data, actions, and styling as freely as native HTML. Local types
-          and sample configurations are editable conveniences, not a runtime contract with the
-          library. Keep only the pieces your workflow needs.
-        </p>
-      </GuideSection>
-      <GuideSection title="Connect screens around the workflow">
-        <CodeBlock code={examples.templateConfig} />
-        <p>
-          Templates include their screens, navigation, local state, and styles in the copied file.
-          You can split those into your own modules, as in this shell example. The Agenda and
-          Requests imports represent application-owned screens. Local navigation and created records
-          are not browser routing or durable storage; add URLs, Back behavior, authorization, remote
-          data, and persistence according to your application.
-        </p>
-        <Checklist
-          items={[
-            'Keep the product-specific task, useful fields, and navigation model; remove sample branding.',
-            'Connect actions to real services with loading, error, validation, and permission states.',
-            'Review nested landmarks and headings when inserting a full template in another shell.',
-            'Test list/detail return paths and mobile navigation, not just the first screen.',
-            'Reuse theme tokens and slots so an adapted composition still follows light/dark, RTL, and motion policy.',
-          ]}
-        />
-      </GuideSection>
-    </>
-  );
-}
-
 function VersionsGuide() {
   const { manifest, error } = useDocsVersions();
   return (
@@ -1857,84 +1732,89 @@ function ChartsGuide() {
 function SchedulingGuide() {
   return (
     <>
-      <GuideSection title="Pick the value model first">
+      <GuideSection title="Dates, wall times, and instants">
         <p>
-          Calendar and DateRangePicker use DayPicker for date selection. TimePicker, DateTimePicker,
-          TimeRangePicker, and DateTimeRangePicker use native time/datetime-local controls with
-          Temporal-backed validation. FullCalendar is the separate event scheduling engine. Do not
-          recreate their navigation, date arithmetic, parsing, or range logic.
+          Calendar and DateRangePicker use DayPicker for date selection. TimePicker and
+          DateTimePicker retain native keyboard editing, refs, validation and form submission, with
+          P.UI popovers and labeled hour/minute controls. Calendar, clock and clear actions share
+          the input boundary. Use minuteStep and hourCycle to configure the popup.
         </p>
         <CodeBlock code={examples.pickers} />
         <p>
-          A DateRangePicker range is inclusive and uses local calendar dates. Do not serialize those
-          dates with <code>toISOString()</code> to obtain a date-only value; conversion to UTC can
-          shift the day. Its minNights/maxNights constrain day differences. Range form names default
-          to <code>name[from]</code> and <code>name[to]</code>, with explicit fromName/toName
-          overrides. Partial and cleared ranges are possible; clearing returns undefined.
-        </p>
-      </GuideSection>
-      <GuideSection title="Native inputs remain wall-clock inputs">
-        <p>
-          Time values are <code>HH:mm</code> with optional seconds/milliseconds. Date-time values
-          are <code>YYYY-MM-DDTHH:mm</code> with optional seconds/milliseconds, without an offset or
-          Z. DateTimePicker's <code>timeZone</code> validates/formats the wall time in that zone; it
-          does not convert the returned string to UTC. Use disambiguation to decide how repeated or
-          nonexistent daylight-saving times are handled; reject makes that ambiguity a validation
-          error.
+          DateRangePicker endpoints are inclusive local dates. Do not use toISOString to produce
+          date-only values: UTC conversion may shift the day. Time values are HH:mm with optional
+          seconds/milliseconds. Date-time picker values are YYYY-MM-DDTHH:mm wall times, without an
+          offset. Native step is in seconds; minuteStep controls popup choices.
         </p>
         <p>
-          Browser and operating system determine the native editor, keyboard, and popup appearance.
-          Locale affects formatting, but does not guarantee an identical localized native picker on
-          every device. Native step is in seconds. allowOvernight on TimeRangePicker permits an end
-          time before the start, but supplies no dates or duration. Store the intended zone and date
-          alongside wall times; validate them again on the server.
+          DateTimePicker timeZone validates and formats the wall time, not a UTC conversion. Use
+          disambiguation="reject" to reject repeated or nonexistent daylight-saving times.
+          TimeRangePicker allowOvernight permits an end before the start but supplies no date or
+          duration. Store the intended date and zone, and validate again on the server.
         </p>
         <CodeBlock code={examples.temporal} title="Explicit wall time conversion" />
-        <p>
-          If your application imports temporal-polyfill directly, declare it as an application
-          dependency. Catch rejected/invalid conversions and present a useful field error. Preserve
-          recurring schedules as wall time plus zone when that is the product model, rather than
-          assuming every date-time field is an instant.
-        </p>
       </GuideSection>
-      <GuideSection title="Opt into the event calendar and its stylesheet">
+      <GuideSection title="Compose the event scheduler">
         <CodeBlock code={examples.fullCalendar} />
         <p>
-          <code>@plain/ui/full-calendar</code> wraps the installed FullCalendar v7 React engine.
-          Import <code>@plain/ui/full-calendar.css</code> for its skeleton and neutral classic
-          styling, plus base styles. Defaults include day-grid, time-grid, list, and interaction
-          plugins. Supplying plugins replaces that set; use the installed v7 plugin exports rather
-          than copying older plugin-package examples.
+          FullCalendar is a P.UI-owned React scheduler, not a FullCalendar.js wrapper. It uses
+          Temporal calendar arithmetic and has no plugin packages. Import the optional
+          @plain/ui/full-calendar entry and its stylesheet alongside the base stylesheet. Views are
+          month, week, day and agenda; use defaultDate/defaultView for initial state or date/view
+          with their callbacks for controlled state.
         </p>
         <p>
-          The forwarded ref is FullCalendarRef, exposing <code>getApi()</code>, not the outer div.
-          Use <code>containerRef</code> for that DOM element. Native region props and rootProps
-          apply to the container. Engine options may be passed directly or via <code>options</code>;
-          direct props take precedence. Editing, eventDrop, selection, and eventClick still need
-          application persistence and permission checks.
+          Events require stable id, title and start. End is exclusive, including all-day events; an
+          omitted end means one day or one hour. Date-only strings infer all-day events. Date
+          objects and offset strings represent instants converted into timeZone; strings without an
+          offset represent wall times in that zone. Invalid or reversed events are omitted. A named
+          IANA zone is supported without a calendar plugin.
+        </p>
+        <p>
+          events is application-owned. onEventsChange receives proposed edits; onEventChange
+          includes the previous event and move/resize reason. editable enables desktop drag and
+          keyboard edits only when an edit callback is supplied. Alt+arrows move events;
+          Shift+Alt+up/down resize their ends. Provide an onEventClick form for touch and precise
+          edits. onSlotSelect receives an exclusive range; Shift-click extends a selection. Persist
+          and authorize changes in your application.
         </p>
       </GuideSection>
-      <GuideSection title="Controlled views, exclusive ends, and time zones">
+      <GuideSection title="Responsive layouts and extension points">
         <p>
-          Use defaultView/initialDate for initial engine state, or view/onViewChange and
-          date/onDateChange for controlled state. Update the controlled value when its callback
-          fires. The default narrow-screen view is listWeek at 640px; automatic mobile switching
-          applies only to an uncontrolled view. Set <code>mobileView={'{false}'}</code> to disable
-          it.
+          Compact layouts follow the calendar container width, not the document viewport. A month
+          shows reachable dates with a selected-day agenda; a week shows a day strip and one-day
+          timeline. Controlled view values remain unchanged. Set mobileBreakpoint, dayStart, dayEnd,
+          slotMinutes and maxEventsPerDay for the available space and workflow.
         </p>
         <p>
-          FullCalendar event and selection ends are exclusive, unlike the inclusive date picker
-          range. Use calendar-day arithmetic for all-day range conversion, not a fixed 24-hour
-          millisecond addition. The default event timeZone is local; strings without an offset are
-          interpreted in the configured calendar zone. If the product needs a named zone, verify the
-          installed engine's required time-zone implementation and input/output semantics.
+          renderEvent customizes event content inside the accessible event button; do not nest
+          interactive controls in it. renderDay adds day content, renderEmpty replaces an empty
+          agenda, toolbar replaces the whole toolbar, and toolbarActions adds application commands.
+          Labels, locale, logical direction, typed slots and semantic tokens remain customizable.
+        </p>
+        <p>
+          The FullCalendarRef exposes getApi(): getDate, getView, getRange, gotoDate, changeView,
+          prev, next, today and print. Use containerRef for the DOM element. onRangeChange reports
+          the visible exclusive range for loading events. This is a rendering/interaction component,
+          not a recurrence or persistence backend.
+        </p>
+      </GuideSection>
+      <GuideSection title="Print the schedule">
+        <p>
+          The default print button isolates the schedule from the surrounding application and prints
+          every event in the visible range. printMode="calendar" prints a complete month grid,
+          including events hidden behind More. The default agenda mode prints an event table.
+          printHeader and printFooter add application content; renderPrint replaces the layout.
+          onPrint replaces browser printing entirely and receives visible events, allEvents, range,
+          title, view, date and timeZone for a PDF or export service. printable=false hides the
+          built-in command; ref.getApi().print remains available.
         </p>
         <Checklist
           items={[
-            'Offer a form-based editing path alongside event dragging, resizing, or selecting.',
-            'Test locale, RTL, clearing, min/max, unavailable dates, and range endpoints.',
-            'Test month/year boundaries, leap days, and daylight-saving cases relevant to the chosen zone.',
-            'Check focus, keyboard use, event names, and the mobile agenda view with realistic content.',
+            'Offer form-based editing alongside drag and keyboard changes.',
+            'Check localized labels, RTL, min/max, clearing and disabled states.',
+            'Use calendar-day arithmetic for all-day endpoints, not fixed 24-hour additions.',
+            'Validate event permissions, daylight-saving policy and persistence on the server.',
           ]}
         />
       </GuideSection>
@@ -1948,7 +1828,7 @@ function Performance() {
       <GuideSection title="Keep optional engines out of unrelated routes">
         <p>
           The package uses ESM modules and CSS side effects so bundlers can remove unused exports.
-          Use root imports for ordinary controls and the optional motion/charts/full-calendar/blocks
+          Use root imports for ordinary controls and the optional motion/charts/full-calendar
           entries for the workflows that need them. Lazy-load reports, schedules, and secondary
           application views; measure the production bundle rather than assuming an import style
           alone proves tree-shaking.
@@ -2008,7 +1888,6 @@ export default function GuidePage() {
     motion: <MotionGuide />,
     layouts: <LayoutsGuide />,
     virtualization: <VirtualizationGuide />,
-    'blocks-templates': <BlocksTemplatesGuide />,
     charts: <ChartsGuide />,
     scheduling: <SchedulingGuide />,
     performance: <Performance />,

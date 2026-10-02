@@ -86,32 +86,42 @@ export default function ComponentPage() {
           </Link>
         </div>
         <section id="preview">
-          <Tabs defaultValue="preview">
-            <div className="example-toolbar">
-              <TabsList variant="underline" aria-label="Example view">
-                <TabsTrigger value="preview">Preview</TabsTrigger>
-                <TabsTrigger value="code">
-                  <Code2 aria-hidden="true" />
-                  Code
-                </TabsTrigger>
-              </TabsList>
-              <Link to="/docs/customization" className="quiet-link">
-                Customize
-                <ExternalLink size={13} aria-hidden="true" />
-              </Link>
-            </div>
-            <TabsContent value="preview" className="component-preview">
+          {propPreviews[slug] ? (
+            <PropPlayground
+              key={slug}
+              slug={slug}
+              code={componentCode(component)}
+              title={`${component.name.replaceAll(' ', '')}.tsx`}
+            >
               <ComponentExample slug={slug} />
-            </TabsContent>
-            <TabsContent value="code">
-              <CodeBlock
-                code={componentCode(component)}
-                title={`${component.name.replaceAll(' ', '')}.tsx`}
-              />
-            </TabsContent>
-          </Tabs>
+            </PropPlayground>
+          ) : (
+            <Tabs defaultValue="preview">
+              <div className="example-toolbar">
+                <TabsList variant="underline" aria-label="Example view">
+                  <TabsTrigger value="preview">Preview</TabsTrigger>
+                  <TabsTrigger value="code">
+                    <Code2 aria-hidden="true" />
+                    Code
+                  </TabsTrigger>
+                </TabsList>
+                <Link to="/docs/customization" className="quiet-link">
+                  Customize
+                  <ExternalLink size={13} aria-hidden="true" />
+                </Link>
+              </div>
+              <TabsContent value="preview" className="component-preview">
+                <ComponentExample slug={slug} />
+              </TabsContent>
+              <TabsContent value="code">
+                <CodeBlock
+                  code={componentCode(component)}
+                  title={`${component.name.replaceAll(' ', '')}.tsx`}
+                />
+              </TabsContent>
+            </Tabs>
+          )}
         </section>
-        {propPreviews[slug] && <PropPlayground key={slug} slug={slug} />}
         <section id="usage" className="doc-section">
           <h2>Usage</h2>
           <CodeBlock
@@ -229,7 +239,6 @@ export default function ComponentPage() {
         <span>On this page</span>
         {[
           ['preview', 'Preview'],
-          ...(propPreviews[slug] ? [['props-preview', 'Props playground']] : []),
           ['usage', 'Usage'],
           ['api', 'API reference'],
           ['styling', 'Customization'],

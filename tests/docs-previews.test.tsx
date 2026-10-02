@@ -115,6 +115,7 @@ describe('typed prop playgrounds', () => {
   it('shows both Select strategies, their applicability, matching source and reset', async () => {
     const user = userEvent.setup();
     render(<PropPlayground slug="select" />);
+    await user.click(screen.getByRole('button', { name: 'Preview properties' }));
     const position = screen.getByRole('combobox', { name: 'position' });
     await user.click(position);
     await user.click(screen.getByRole('option', { name: 'item-aligned' }));
@@ -123,13 +124,11 @@ describe('typed prop playgrounds', () => {
     expect(screen.getByRole('combobox', { name: 'align' })).toBeDisabled();
     expect(screen.getByRole('spinbutton', { name: 'sideOffset' })).toBeDisabled();
     await user.click(screen.getByRole('tab', { name: 'Code' }));
-    expect(screen.getByLabelText('select-props.tsx code')).toHaveTextContent(
-      'position="item-aligned"',
-    );
+    expect(screen.getByLabelText('select.tsx code')).toHaveTextContent('position="item-aligned"');
     await user.click(screen.getByRole('button', { name: 'Reset preview props' }));
     expect(position).toHaveTextContent('popper');
     expect(screen.getByRole('combobox', { name: 'side' })).not.toBeDisabled();
-    expect(screen.getByLabelText('select-props.tsx code')).toHaveTextContent('position="popper"');
+    expect(screen.getByLabelText('select.tsx code')).toHaveTextContent('position="popper"');
   });
 
   it('typechecks every default, enum option, boolean toggle and numeric boundary as complete copyable TSX', () => {

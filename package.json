@@ -163,7 +163,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@fullcalendar/react": "^7.1.0",
     "@material/material-color-utilities": "^0.3.0",
     "@tanstack/react-table": "^9.2.4",
     "@tanstack/react-virtual": "^3.14.13",

@@ -13,7 +13,6 @@ import {
   DateTimePicker,
   DateTimeRangePicker,
 } from '../src/ui/date-time';
-import { FullCalendar, type FullCalendarRef } from '../src/ui/full-calendar';
 import {
   AreaChart,
   BarChart,
@@ -30,6 +29,33 @@ import {
 import { LineChart as RechartsLineChart } from 'recharts';
 
 describe('native temporal controls', () => {
+  it('forwards native change events when clearing and honors cancellation', async () => {
+    const native = vi.fn();
+    const valueChange = vi.fn();
+    const { rerender } = render(
+      <TimePicker
+        aria-label="Time"
+        defaultValue="09:15"
+        onChange={(event) => native(event.currentTarget.value)}
+        onValueChange={valueChange}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Clear value' }));
+    expect(native).toHaveBeenCalledExactlyOnceWith('');
+    expect(valueChange).toHaveBeenCalledExactlyOnceWith(undefined);
+    rerender(
+      <TimePicker
+        aria-label="Time"
+        value="09:15"
+        onChange={(event) => event.preventDefault()}
+        onValueChange={valueChange}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Clear value' }));
+    expect(screen.getByLabelText('Time')).toHaveValue('09:15');
+    expect(valueChange).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps TimePicker controlled when an explicit undefined clears its value', () => {
     const change = vi.fn();
     const { rerender } = render(
@@ -351,147 +377,6 @@ describe('native temporal controls', () => {
       </StyleProvider>,
     );
     expect(screen.getByRole('button', { name: 'Travel' })).toHaveTextContent('Oct 1, 2026');
-  });
-});
-
-describe('FullCalendar v7 integration', () => {
-  it('renders actual events and exposes the full engine ref, callbacks, and content hooks', async () => {
-    const ref = React.createRef<FullCalendarRef>();
-    const click = vi.fn();
-    const select = vi.fn();
-    const dates = vi.fn();
-    render(
-      <FullCalendar
-        ref={ref}
-        initialDate="2026-10-01"
-        initialView="dayGridMonth"
-        selectable
-        events={[
-          {
-            id: 'planning',
-            title: 'Planning',
-            start: '2026-10-05T09:00',
-            end: '2026-10-05T10:00',
-            extendedProps: { team: 'Design' },
-          },
-        ]}
-        eventClick={click}
-        select={select}
-        datesSet={dates}
-        eventContent={(info) => (
-          <span>
-            {info.event.title}: {String(info.event.extendedProps.team)}
-          </span>
-        )}
-      />,
-    );
-    await screen.findByText('Planning: Design');
-    expect(screen.getByRole('tab', { name: 'Week view' })).toBeInTheDocument();
-    expect(ref.current?.getApi().view.type).toBe('dayGridMonth');
-    expect(ref.current?.getApi().getEventById('planning')?.extendedProps.team).toBe('Design');
-    await userEvent.click(screen.getByText('Planning: Design'));
-    expect(click).toHaveBeenCalledWith(
-      expect.objectContaining({ event: expect.objectContaining({ id: 'planning' }) }),
-    );
-    act(() =>
-      ref.current!.getApi().select({ start: '2026-10-06', end: '2026-10-08', allDay: true }),
-    );
-    expect(select).toHaveBeenCalledWith(
-      expect.objectContaining({ startStr: '2026-10-06', endStr: '2026-10-08' }),
-    );
-    expect(dates).toHaveBeenCalled();
-    act(() => ref.current!.getApi().changeView('timeGridDay', '2026-10-05'));
-    await waitFor(() => expect(ref.current!.getApi().view.type).toBe('timeGridDay'));
-  });
-
-  it('accepts engine options with direct overrides, locale, RTL, and controlled navigation', async () => {
-    const ref = React.createRef<FullCalendarRef>();
-    const optionsDates = vi.fn();
-    const directDates = vi.fn();
-    const { rerender } = render(
-      <FullCalendar
-        ref={ref}
-        date="2026-10-05"
-        view="listWeek"
-        dir="rtl"
-        locale="ar"
-        options={{ weekends: false, datesSet: optionsDates }}
-        datesSet={directDates}
-        aria-label="Schedule"
-      />,
-    );
-    expect(screen.getByRole('region', { name: 'Schedule' })).toHaveAttribute('dir', 'rtl');
-    expect(ref.current!.getApi().getOption('weekends')).toBe(false);
-    expect(ref.current!.getApi().getOption('locale')).toBe('ar');
-    expect(directDates).toHaveBeenCalled();
-    expect(optionsDates).not.toHaveBeenCalled();
-    rerender(<FullCalendar ref={ref} date="2026-11-12" view="timeGridWeek" />);
-    await waitFor(() => expect(ref.current!.getApi().view.type).toBe('timeGridWeek'));
-    expect(ref.current!.getApi().formatIso(ref.current!.getApi().getDate(), true)).toBe(
-      '2026-11-12',
-    );
-  });
-
-  it('restores the chosen desktop view across mobile resize transitions', async () => {
-    let narrow = false;
-    const listeners = new Set<() => void>();
-    vi.spyOn(window, 'matchMedia').mockImplementation((query) => ({
-      get matches() {
-        return query.includes('max-width') && narrow;
-      },
-      media: query,
-      onchange: null,
-      dispatchEvent: vi.fn(),
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: (_event: string, listener: EventListenerOrEventListenerObject) => {
-        listeners.add(listener as () => void);
-      },
-      removeEventListener: (_event: string, listener: EventListenerOrEventListenerObject) => {
-        listeners.delete(listener as () => void);
-      },
-    }));
-    const ref = React.createRef<FullCalendarRef>();
-    render(<FullCalendar ref={ref} initialDate="2026-10-05" defaultView="timeGridWeek" />);
-    act(() => {
-      narrow = true;
-      listeners.forEach((listener) => listener());
-    });
-    await waitFor(() => expect(ref.current!.getApi().view.type).toBe('listWeek'));
-    act(() => {
-      narrow = false;
-      listeners.forEach((listener) => listener());
-    });
-    await waitFor(() => expect(ref.current!.getApi().view.type).toBe('timeGridWeek'));
-  });
-
-  it('uses a real list view on mobile and blocks disabled event interactions', async () => {
-    vi.spyOn(window, 'matchMedia').mockImplementation((query) => ({
-      matches: query.includes('max-width'),
-      media: query,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-      onchange: null,
-    }));
-    const click = vi.fn();
-    const ref = React.createRef<FullCalendarRef>();
-    const { container } = render(
-      <FullCalendar
-        ref={ref}
-        disabled
-        initialDate="2026-10-05"
-        events={[{ title: 'Review', start: '2026-10-05' }]}
-        eventClick={click}
-      />,
-    );
-    expect(ref.current!.getApi().view.type).toBe('listWeek');
-    expect(container.querySelector('[data-ui="full-calendar"]')).toHaveAttribute('data-mobile');
-    fireEvent.click(await screen.findByText('Review'));
-    expect(click).not.toHaveBeenCalled();
-    expect(screen.getByRole('region')).toHaveAttribute('inert');
   });
 });
 

@@ -1111,8 +1111,8 @@ button {
 .prop-playground-controls {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(144px, 100%), 1fr));
-  gap: 16px;
-  margin-block: 16px 24px;
+  gap: 12px 20px;
+  margin: 0;
 }
 .prop-playground-toggle {
   display: flex;
@@ -1124,7 +1124,180 @@ button {
 .prop-playground-field {
   display: flex;
   flex-direction: column;
+  gap: 6px;
+}
+
+.preview-workbench-tools {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.preview-properties {
+  padding: 16px;
+  border-block-end: 1px solid var(--ui-border);
+  background: var(--ui-surface-low);
+}
+.preview-properties label {
+  font-size: 12px;
+  font-weight: 400;
+}
+.preview-properties input,
+.preview-properties [role='combobox'] {
+  min-height: 34px;
+  font-size: 12px;
+  padding-block: 4px;
+}
+.preview-workbench .component-preview {
+  margin-block-start: 16px;
+}
+.collection-page {
+  width: 100%;
+  max-width: none;
+}
+.collection-page > [data-ui='empty-state'] {
+  min-height: 320px;
+}
+.split-workspace,
+.sidebar-workspace {
+  width: 100%;
+  min-width: 0;
+}
+.split-workspace {
+  container-type: inline-size;
+}
+@container (max-width: 519px) {
+  .split-workspace .workspace-explorer-heading {
+    display: none;
+  }
+  .split-workspace .workspace-heading {
+    min-height: 40px;
+    padding: 4px 12px;
+  }
+  .split-workspace .workspace-files {
+    display: flex;
+    gap: 4px;
+    overflow: auto;
+  }
+  .split-workspace .workspace-file {
+    width: auto;
+    flex-shrink: 0;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+}
+.workspace-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  min-height: 48px;
+  padding: 8px 16px;
+  border-block-end: 1px solid var(--ui-border);
+  font-size: 12px;
+}
+.workspace-heading > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.workspace-heading > button:last-child,
+.workspace-heading > [data-ui='badge'] {
+  margin-inline-start: auto;
+}
+.workspace-search {
+  padding: 8px 12px;
+  min-width: 0;
+}
+.workspace-files {
+  padding: 4px 8px;
+}
+.workspace-file {
+  width: 100%;
+  justify-content: flex-start;
+  font-size: 12px;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.workspace-file[aria-pressed='true'] {
+  background: var(--ui-accent-soft);
+}
+.split-workspace .workspace-editor {
+  border: 0;
+  border-radius: 0;
+  resize: none;
+  height: calc(100% - 80px);
+  font-family: var(--ui-font-mono);
+  font-size: 12px;
+  line-height: 1.8;
+  padding: 16px;
+  min-height: 60px;
+  background: var(--ui-surface);
+}
+.workspace-status {
+  display: flex;
+  justify-content: space-between;
+  border-block-start: 1px solid var(--ui-border);
+  padding: 6px 16px;
+  color: var(--ui-muted-foreground);
+}
+.workspace-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ui-accent);
+}
+.workspace-sub-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.workspace-account {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.workspace-account small {
+  color: var(--ui-muted-foreground);
+  font-size: 10px;
+}
+.workspace-main {
+  min-width: 0;
+  flex: 1;
+}
+.workspace-page {
+  padding: 24px 20px;
+}
+.workspace-page h3 {
+  margin-bottom: 4px;
+}
+.workspace-project-list {
+  padding: 0;
+  list-style: none;
+  margin-top: 20px;
+}
+.workspace-project-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding-block: 12px;
+  border-block-end: 1px solid var(--ui-border);
+  font-size: 12px;
+}
+.workspace-project-list [data-ui='badge'] {
+  margin-inline-start: auto;
+  font-size: 10px;
 }
 .chart-doc-example {
   width: 100%;
@@ -1800,6 +1973,8 @@ button {
   top: 50%;
   transform: translateY(-50%);
   color: var(--ui-muted-foreground);
+  width: 28px;
+  height: 28px;
 }
 .catalog-result-label {
   font-size: 10px;

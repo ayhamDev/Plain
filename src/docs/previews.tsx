@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { RotateCcw, Code2 } from 'lucide-react';
+import { RotateCcw, Code2, SlidersHorizontal } from 'lucide-react';
 import * as UI from '../ui';
 import { CodeBlock } from './shared';
 import { chartSampleData, donutSampleData } from './chart-samples';
@@ -983,108 +983,152 @@ export function previewSource(preview: PropPreview, state: State) {
   return `${code.includes('React.') ? "import * as React from 'react';\n" : ''}import { ${names.join(', ')} } from '${chart ? '@plain/ui/charts' : '@plain/ui'}';\nimport '@plain/ui/styles.css';${chart ? "\nimport '@plain/ui/charts.css';" : ''}\n\nexport function Example() {\n${setup}  return (\n    <>\n${markup}\n    </>\n  );\n}`;
 }
 
-export function PropPlayground({ slug }: { slug: string }) {
+export function PropPlayground({
+  slug,
+  children,
+  code,
+  title,
+}: {
+  slug: string;
+  children?: React.ReactNode;
+  code?: string;
+  title?: string;
+}) {
   const preview = propPreviews[slug];
   const [state, setState] = React.useState<State>(() => ({ ...preview.defaults }));
   const [reset, setReset] = React.useState(0);
+  const [expanded, setExpanded] = React.useState(false);
+  const [configured, setConfigured] = React.useState(false);
   const id = React.useId();
+  const update = (name: string, value: string | number | boolean) => {
+    setConfigured(true);
+    setState((prev) => ({ ...prev, [name]: value }));
+  };
   return (
-    <section id="props-preview" className="doc-section prop-playground">
-      <div className="prop-playground-heading">
-        <h2>Props playground</h2>
-        <UI.Button
-          variant="ghost"
-          size="icon"
-          aria-label="Reset preview props"
-          onClick={() => {
-            setState({ ...preview.defaults });
-            setReset((value) => value + 1);
-          }}
-        >
-          <RotateCcw size={16} aria-hidden="true" />
-        </UI.Button>
-      </div>
-      <div className="prop-playground-controls">
-        {preview.controls.map((control) => {
-          const controlId = `${id}-${control.name}`;
-          const disabled = Object.entries(control.when ?? {}).some(
-            ([key, value]) => state[key] !== value,
-          );
-          if (control.options)
-            return (
-              <div className="prop-playground-field" key={control.name}>
-                <UI.Label htmlFor={controlId}>{control.name}</UI.Label>
-                <UI.Select
-                  disabled={disabled}
-                  value={String(state[control.name])}
-                  onValueChange={(value) =>
-                    setState((prev) => ({ ...prev, [control.name]: value }))
-                  }
-                >
-                  <UI.SelectTrigger id={controlId}>
-                    <UI.SelectValue />
-                  </UI.SelectTrigger>
-                  <UI.SelectContent>
-                    {control.options.map((option) => (
-                      <UI.SelectItem key={option} value={option}>
-                        {option}
-                      </UI.SelectItem>
-                    ))}
-                  </UI.SelectContent>
-                </UI.Select>
-              </div>
-            );
-          if (control.min !== undefined)
-            return (
-              <UI.Field key={control.name} label={control.name}>
-                <UI.Input
-                  disabled={disabled}
-                  id={controlId}
-                  type="number"
-                  value={Number(state[control.name])}
-                  min={control.min}
-                  max={control.max}
-                  onChange={(event) => {
-                    const value = event.target.valueAsNumber;
-                    if (Number.isFinite(value))
-                      setState((prev) => ({
-                        ...prev,
-                        [control.name]: Math.max(control.min!, Math.min(control.max!, value)),
-                      }));
-                  }}
-                />
-              </UI.Field>
-            );
-          return (
-            <UI.Label className="prop-playground-toggle" key={control.name} htmlFor={controlId}>
-              <span>{control.name}</span>
-              <UI.Switch
-                disabled={disabled}
-                id={controlId}
-                checked={!!state[control.name]}
-                onCheckedChange={(value) =>
-                  setState((prev) => ({ ...prev, [control.name]: value }))
-                }
-              />
-            </UI.Label>
-          );
-        })}
-      </div>
+    <div className="preview-workbench" id="props-preview">
       <UI.Tabs defaultValue="preview">
-        <UI.TabsList variant="underline" aria-label="Props playground view">
-          <UI.TabsTrigger value="preview">Preview</UI.TabsTrigger>
-          <UI.TabsTrigger value="code">
-            <Code2 size={14} aria-hidden="true" />
-            Code
-          </UI.TabsTrigger>
-        </UI.TabsList>
-        <UI.TabsContent value="preview" className="prop-playground-stage">
-          <React.Fragment key={reset}>{preview.render(state)}</React.Fragment>
+        <div className="example-toolbar">
+          <UI.TabsList variant="underline" aria-label="Example view">
+            <UI.TabsTrigger value="preview">Preview</UI.TabsTrigger>
+            <UI.TabsTrigger value="code">
+              <Code2 size={14} aria-hidden="true" />
+              Code
+            </UI.TabsTrigger>
+          </UI.TabsList>
+          <div className="preview-workbench-tools">
+            <UI.Button
+              variant="ghost"
+              size="icon"
+              aria-label="Reset preview props"
+              title="Reset preview props"
+              disabled={!configured}
+              onClick={() => {
+                setState({ ...preview.defaults });
+                setReset((v) => v + 1);
+                setConfigured(false);
+              }}
+            >
+              <RotateCcw size={16} />
+            </UI.Button>
+            <UI.Button
+              variant="ghost"
+              size="icon"
+              aria-label="Preview properties"
+              title="Preview properties"
+              aria-expanded={expanded}
+              aria-controls={id}
+              onClick={() => setExpanded(!expanded)}
+            >
+              <SlidersHorizontal size={16} />
+            </UI.Button>
+          </div>
+        </div>
+        <UI.Collapsible open={expanded}>
+          <UI.CollapsibleContent id={id} className="preview-properties">
+            <div className="prop-playground-controls">
+              {preview.controls.map((control) => {
+                const controlId = `${id}-${control.name}`;
+                const disabled = Object.entries(control.when ?? {}).some(
+                  ([key, value]) => state[key] !== value,
+                );
+                if (control.options)
+                  return (
+                    <div className="prop-playground-field" key={control.name}>
+                      <UI.Label htmlFor={controlId}>{control.name}</UI.Label>
+                      <UI.Select
+                        disabled={disabled}
+                        value={String(state[control.name])}
+                        onValueChange={(value) => update(control.name, value)}
+                      >
+                        <UI.SelectTrigger id={controlId}>
+                          <UI.SelectValue />
+                        </UI.SelectTrigger>
+                        <UI.SelectContent>
+                          {control.options.map((option) => (
+                            <UI.SelectItem key={option} value={option}>
+                              {option}
+                            </UI.SelectItem>
+                          ))}
+                        </UI.SelectContent>
+                      </UI.Select>
+                    </div>
+                  );
+                if (control.min !== undefined)
+                  return (
+                    <div className="prop-playground-field" key={control.name}>
+                      <UI.Label htmlFor={controlId}>{control.name}</UI.Label>
+                      <UI.NumberInput
+                        disabled={disabled}
+                        id={controlId}
+                        aria-label={control.name}
+                        value={Number(state[control.name])}
+                        min={control.min}
+                        max={control.max}
+                        onValueChange={(value) => {
+                          if (typeof value === 'number' && Number.isFinite(value))
+                            update(
+                              control.name,
+                              Math.max(control.min!, Math.min(control.max!, value)),
+                            );
+                        }}
+                      />
+                    </div>
+                  );
+                return (
+                  <UI.Label
+                    className="prop-playground-toggle"
+                    key={control.name}
+                    htmlFor={controlId}
+                  >
+                    <span>{control.name}</span>
+                    <UI.Switch
+                      disabled={disabled}
+                      id={controlId}
+                      checked={!!state[control.name]}
+                      onCheckedChange={(value) => update(control.name, value)}
+                    />
+                  </UI.Label>
+                );
+              })}
+            </div>
+          </UI.CollapsibleContent>
+        </UI.Collapsible>
+        <UI.TabsContent
+          value="preview"
+          className="component-preview"
+          data-configured={configured || undefined}
+        >
+          <React.Fragment key={reset}>
+            {configured || !children ? preview.render(state) : children}
+          </React.Fragment>
         </UI.TabsContent>
         <UI.TabsContent value="code">
-          <CodeBlock code={previewSource(preview, state)} title={`${slug}-props.tsx`} />
+          <CodeBlock
+            code={configured || !code ? previewSource(preview, state) : code}
+            title={title ?? `${slug}.tsx`}
+          />
         </UI.TabsContent>
       </UI.Tabs>
-    </section>
+    </div>
   );
 }

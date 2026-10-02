@@ -56,7 +56,6 @@ import {
   PinInput,
   Rating,
   SearchInput,
-  Stat,
   TagsInput,
   Timeline,
 } from '../src/ui/advanced';
@@ -566,20 +565,46 @@ describe('advanced form controls', () => {
   );
 
   it('selects a labelled color swatch and submits the native color value', async () => {
+    const nativeChange = vi.fn();
+    const valueChange = vi.fn();
+    const formChange = vi.fn();
     const { container } = render(
-      <form>
+      <form onChange={formChange}>
         <ColorPicker
           name="accent"
           defaultValue="#123456"
           swatches={['#654321', 'invalid']}
           aria-label="Accent"
+          onChange={(event) => nativeChange(event.currentTarget.value)}
+          onValueChange={valueChange}
         />
       </form>,
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Set color #654321' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Choose color' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Choose #654321' }));
     expect(screen.getByLabelText('Accent')).toHaveValue('#654321');
     expect(data(container).get('accent')).toBe('#654321');
-    expect(screen.queryByRole('button', { name: 'Set color invalid' })).not.toBeInTheDocument();
+    expect(nativeChange).toHaveBeenCalledExactlyOnceWith('#654321');
+    expect(valueChange).toHaveBeenCalledExactlyOnceWith('#654321');
+    expect(formChange).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: 'Choose invalid' })).not.toBeInTheDocument();
+  });
+
+  it('lets native handlers veto color changes from the popover', async () => {
+    const change = vi.fn();
+    render(
+      <ColorPicker
+        aria-label="Accent"
+        defaultValue="#123456"
+        swatches={['#654321']}
+        onChange={(event) => event.preventDefault()}
+        onValueChange={change}
+      />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Choose color' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Choose #654321' }));
+    expect(screen.getByLabelText('Accent')).toHaveValue('#123456');
+    expect(change).not.toHaveBeenCalled();
   });
 
   it('uses keyboard ratings and a single named form value', async () => {
@@ -862,10 +887,9 @@ describe('menus and feedback', () => {
     expect(container.querySelector('[data-ui="hover-card"]')).toBeTruthy();
   });
 
-  it('renders definition-list statistics and semantic timeline dates in source order', () => {
+  it('renders semantic timeline dates in source order', () => {
     render(
       <>
-        <Stat label="Requests" value={0} change="12%" trend="up" description="since yesterday" />
         <Timeline
           items={[
             { id: 'created', title: 'Created', time: '09:00', dateTime: '2026-10-01T09:00:00Z' },
@@ -874,8 +898,6 @@ describe('menus and feedback', () => {
         />
       </>,
     );
-    expect(screen.getByText('Requests').tagName).toBe('DT');
-    expect(screen.getByText('0').tagName).toBe('DD');
     expect(screen.getByText('09:00')).toHaveAttribute('datetime', '2026-10-01T09:00:00Z');
     expect(screen.getAllByRole('listitem').map((item) => item.textContent)).toEqual([
       'Created09:00',

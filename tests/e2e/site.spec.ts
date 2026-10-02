@@ -214,9 +214,9 @@ test('table filtering, sorting, pagination and CSV download are functional', asy
   await expect(page.getByRole('cell', { name: 'INV-001', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Next page' }).click();
   await expect(page.getByRole('cell', { name: 'INV-006', exact: true })).toBeVisible();
-  await page.getByRole('textbox', { name: 'Search records...' }).fill('Sophie');
+  await page.getByRole('searchbox', { name: 'Search records...' }).fill('Sophie');
   await expect(page.getByRole('cell', { name: 'INV-002', exact: true })).toBeVisible();
-  await page.getByRole('textbox', { name: 'Search records...' }).clear();
+  await page.getByRole('searchbox', { name: 'Search records...' }).clear();
   await page.getByRole('button', { name: 'Amount', exact: true }).click();
   await expect(page.getByRole('columnheader', { name: 'Amount' })).toHaveAttribute(
     'aria-sort',

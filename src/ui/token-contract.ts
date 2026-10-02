@@ -12,7 +12,7 @@ export const lightTokens = {
   'muted-foreground': '#666b68',
   outline: '#858e87',
   border: '#e5e7e6',
-  'control-border': 'var(--ui-outline)',
+  'control-border': 'var(--ui-border)',
   'input-border': 'var(--ui-control-border)',
   'border-width': '1px',
   primary: '#252826',

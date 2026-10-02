@@ -356,15 +356,47 @@ export const Masonry = /* @__PURE__ */ React.forwardRef<HTMLDivElement, MasonryP
 Masonry.displayName = 'Masonry';
 
 export type SplitPaneProps = Omit<React.ComponentProps<typeof Group>, 'elementRef'> &
-  PlainStyleProps;
+  PlainStyleProps & {
+    mobileOrientation?: 'horizontal' | 'vertical' | false;
+    mobileBreakpoint?: number;
+  };
+export { useGroupRef, usePanelRef, useDefaultLayout } from 'react-resizable-panels';
 export const SplitPane = /* @__PURE__ */ React.forwardRef<HTMLDivElement, SplitPaneProps>(
-  ({ className, unstyled, dir, children, ...props }, ref) => {
+  (
+    {
+      className,
+      unstyled,
+      dir,
+      children,
+      orientation = 'horizontal',
+      mobileOrientation = 'vertical',
+      mobileBreakpoint = 520,
+      ...props
+    },
+    ref,
+  ) => {
     const styles = useStyles();
     const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
+    const element = React.useRef<HTMLDivElement>(null);
+    React.useImperativeHandle(ref, () => element.current!);
+    const [narrow, setNarrow] = React.useState(false);
+    React.useEffect(() => {
+      if (!element.current || mobileOrientation === false) return;
+      const root = element.current;
+      const update = () => {
+        if (root.clientWidth > 0) setNarrow(root.clientWidth < mobileBreakpoint);
+      };
+      update();
+      const observer = new ResizeObserver(update);
+      observer.observe(root);
+      return () => observer.disconnect();
+    }, [mobileOrientation, mobileBreakpoint]);
     return (
       <StyleProvider unstyled={unstyled}>
         <Group
-          elementRef={ref}
+          elementRef={element}
+          orientation={narrow && mobileOrientation ? mobileOrientation : orientation}
+          resizeTargetMinimumSize={{ coarse: 32, fine: 12 }}
           dir={direction}
           {...styles('split-pane.root', 'ui-split-pane', className, unstyled)}
           {...props}

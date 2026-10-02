@@ -35,11 +35,11 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           </NavLink>
           <NavLink to="/blocks" onClick={onNavigate}>
             <Layers size={15} aria-hidden="true" />
-            Blocks<span className="sidebar-count">120</span>
+            Blocks
           </NavLink>
           <NavLink to="/templates" onClick={onNavigate}>
             <LayoutTemplate size={15} aria-hidden="true" />
-            Templates<span className="sidebar-count">60</span>
+            Templates
           </NavLink>
         </div>
         <div className="sidebar-group">

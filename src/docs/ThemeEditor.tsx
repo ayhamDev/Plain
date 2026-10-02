@@ -10,6 +10,7 @@ import {
   Label,
   Field,
   Input,
+  ColorPicker,
   Combobox,
   Select,
   SelectTrigger,
@@ -39,7 +40,6 @@ import {
   tokenNames,
   tokenVariable,
   themeCSS,
-  normalizeColor,
 } from '../ui';
 import { useAppPreferences } from './preferences';
 import { CodeBlock } from './shared';
@@ -61,7 +61,6 @@ export function ThemeEditor({
 }) {
   const theme = useTheme();
   const { direction, setDirection, tokens, setTokens } = useAppPreferences();
-  const [sourceDraft, setSourceDraft] = useState<string>();
   const [overrideToken, setOverrideToken] = useState<ThemeToken>('sidebar.background');
   const [overrideValue, setOverrideValue] = useState('');
   const validOverride =
@@ -147,47 +146,31 @@ export function ThemeEditor({
             {accents.map((accent) => (
               <Tooltip key={accent.value}>
                 <TooltipTrigger asChild>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     aria-label={accent.label}
                     aria-pressed={!theme.color && accent.value === theme.accent}
                     className="color-swatch"
                     style={{ background: accent.color }}
                     onClick={() => {
                       theme.setTheme({ accent: accent.value, color: null });
-                      setSourceDraft(undefined);
                     }}
                   >
                     {!theme.color && accent.value === theme.accent && (
                       <Check size={16} aria-hidden="true" />
                     )}
-                  </button>
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent>{accent.label}</TooltipContent>
               </Tooltip>
             ))}
           </div>
           <div className="theme-source-row">
-            <input
-              type="color"
-              className="theme-source-swatch"
-              aria-label="Choose source color"
-              value={theme.resolvedColor ?? '#252826'}
-              onChange={(event) => {
-                theme.setTheme({ color: event.target.value });
-                setSourceDraft(undefined);
-              }}
-            />
-            <Input
+            <ColorPicker
               aria-label="Source color"
-              placeholder={theme.resolvedColor ?? '#RRGGBB'}
-              value={sourceDraft ?? theme.resolvedColor ?? ''}
-              onChange={(event) => {
-                const next = event.target.value;
-                setSourceDraft(next);
-                const color = normalizeColor(next);
-                if (color) theme.setTheme({ color });
-              }}
-              aria-invalid={Boolean(sourceDraft && !normalizeColor(sourceDraft)) || undefined}
+              value={theme.resolvedColor ?? '#252826'}
+              onValueChange={(color) => theme.setTheme({ color })}
             />
           </div>
         </div>
@@ -379,7 +362,6 @@ export function ThemeEditor({
               theme.resetTheme();
               setDirection('ltr');
               setTokens({});
-              setSourceDraft(undefined);
               setOverrideValue('');
             }}
           >

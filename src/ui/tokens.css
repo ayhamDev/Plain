@@ -13,7 +13,7 @@
   --ui-muted-foreground: #666b68;
   --ui-outline: #858e87;
   --ui-border: #e5e7e6;
-  --ui-control-border: var(--ui-outline);
+  --ui-control-border: var(--ui-border);
   --ui-input-border: var(--ui-control-border);
   --ui-border-width: 1px;
   --ui-primary: #252826;
@@ -230,7 +230,7 @@
 }
 :root, :where([data-ui-theme-scope]) {
   --ui-surface-foreground: var(--ui-foreground);
-  --ui-control-border: var(--ui-outline);
+  --ui-control-border: var(--ui-border);
   --ui-input-border: var(--ui-control-border);
   --ui-accent: var(--ui-primary);
   --ui-accent-foreground: var(--ui-primary-foreground);
@@ -391,6 +391,7 @@
 }
 [data-borders='strong'] {
   --ui-border: var(--ui-outline);
+  --ui-control-border: var(--ui-outline);
   --ui-border-width: 1px;
 }
 [data-motion='none'], [data-motion='reduced'] { --ui-motion-scale: 0; }

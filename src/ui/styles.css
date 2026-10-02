@@ -4,6 +4,10 @@
 @import './interaction.css';
 @import './layout.css';
 @import './advanced.css';
+@import './feedback.css';
+@import './color-picker.css';
+@import './data-table.css';
+@import './sidebar.css';
 @import './date-time.css';
 @import './typography.css';
 @source './';

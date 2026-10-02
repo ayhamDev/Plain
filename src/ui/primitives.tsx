@@ -1,4 +1,4 @@
-import { useStyles, useDirection, type PlainStyleProps } from './styling';
+import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './styling';
 import * as React from 'react';
 import {
   Slot,
@@ -373,10 +373,14 @@ export const Separator = /* @__PURE__ */ React.forwardRef<
   );
 });
 Separator.displayName = 'Separator';
+export interface ProgressProps
+  extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>, PlainStyleProps {
+  size?: 'sm' | 'md' | 'lg';
+}
 export const Progress = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> & PlainStyleProps
->(({ className, value, max = 100, unstyled, ...props }, ref) => {
+  ProgressProps
+>(({ className, value, max = 100, size = 'md', unstyled, ...props }, ref) => {
   const styles = useStyles();
   const direction = useDirection(
     props.dir === 'rtl' || props.dir === 'ltr' ? props.dir : undefined,
@@ -387,11 +391,15 @@ export const Progress = /* @__PURE__ */ React.forwardRef<
   return (
     <ProgressPrimitive.Root
       ref={ref}
+      dir={direction}
       value={safeValue}
       max={safeMax}
       {...styles(
         'progress.root',
-        'relative h-1.5 w-full overflow-hidden rounded-full bg-muted',
+        cn(
+          'ui-progress relative w-full overflow-hidden rounded-full bg-muted',
+          { sm: 'h-1', md: 'h-2', lg: 'h-3' }[size],
+        ),
         className,
         unstyled,
       )}
@@ -400,12 +408,16 @@ export const Progress = /* @__PURE__ */ React.forwardRef<
       <ProgressPrimitive.Indicator
         {...styles(
           'progress.indicator',
-          cn('ui-motion-transform h-full w-full bg-accent', safeValue === null && 'animate-pulse'),
+          cn(
+            'ui-progress-indicator h-full rounded-full bg-accent',
+            safeValue === null && 'ui-progress-indeterminate',
+          ),
           undefined,
           unstyled,
         )}
         style={{
-          transform: `translateX(${direction === 'rtl' ? '' : '-'}${safeValue === null ? 50 : 100 - (safeValue / safeMax) * 100}%)`,
+          width: safeValue === null ? '40%' : `${(safeValue / safeMax) * 100}%`,
+          marginInlineStart: 0,
         }}
       />
     </ProgressPrimitive.Root>
@@ -480,63 +492,127 @@ export function Kbd({
     />
   );
 }
-export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
-  title: string;
-  description?: string;
+
+export interface EmptyStateProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'>, PlainStyleProps {
+  title?: React.ReactNode;
+  description?: React.ReactNode;
   icon?: React.ReactNode;
   action?: React.ReactNode;
+  align?: 'center' | 'start';
+  orientation?: 'vertical' | 'horizontal';
 }
-export function EmptyState({
-  title,
-  description,
-  icon,
-  action,
-  className,
-  unstyled,
-  ...props
-}: EmptyStateProps & PlainStyleProps) {
+export const EmptyState = /* @__PURE__ */ React.forwardRef<HTMLDivElement, EmptyStateProps>(
+  (
+    {
+      title,
+      description,
+      icon,
+      action,
+      children,
+      align = 'center',
+      orientation = 'vertical',
+      className,
+      unstyled,
+      ...props
+    },
+    ref,
+  ) => {
+    const styles = useStyles();
+    return (
+      <StyleProvider unstyled={unstyled}>
+        <div
+          ref={ref}
+          {...styles('empty-state.root', 'ui-empty-state', className, unstyled)}
+          data-align={align}
+          data-orientation={orientation}
+          {...props}
+        >
+          {children ?? (
+            <>
+              <EmptyStateIcon>{icon ?? <Inbox size={22} aria-hidden="true" />}</EmptyStateIcon>
+              <EmptyStateContent>
+                {title != null && <EmptyStateTitle>{title}</EmptyStateTitle>}
+                {description != null && (
+                  <EmptyStateDescription>{description}</EmptyStateDescription>
+                )}
+                {action != null && <EmptyStateActions>{action}</EmptyStateActions>}
+              </EmptyStateContent>
+            </>
+          )}
+        </div>
+      </StyleProvider>
+    );
+  },
+);
+EmptyState.displayName = 'EmptyState';
+export const EmptyStateIcon = /* @__PURE__ */ React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
   return (
     <div
-      {...styles(
-        'empty-state.root',
-        'flex flex-col items-center justify-center gap-3 px-6 py-12 text-center',
-        className,
-        unstyled,
-      )}
+      ref={ref}
+      {...styles('empty-state.icon-wrapper', 'ui-empty-state-icon', className, unstyled)}
       {...props}
-    >
-      <span
-        {...styles(
-          'empty-state.icon-wrapper',
-          'flex size-12 items-center justify-center rounded-ui border bg-muted text-muted-foreground',
-          undefined,
-          unstyled,
-        )}
-      >
-        {icon ?? (
-          <Inbox
-            {...styles('empty-state.icon', 'size-5', undefined, unstyled)}
-            aria-hidden="true"
-          />
-        )}
-      </span>
-      <h3 {...styles('empty-state.title', 'text-base font-medium', undefined, unstyled)}>
-        {title}
-      </h3>
-      {description && (
-        <p
-          {...styles(
-            'empty-state.description',
-            'max-w-sm text-sm leading-6 text-muted-foreground',
-            undefined,
-            unstyled,
-          )}
-        >
-          {description}
-        </p>
-      )}
-      {action && <div {...styles('empty-state.action', 'mt-2', undefined, unstyled)}>{action}</div>}
-    </div>
+    />
   );
-}
+});
+EmptyStateIcon.displayName = 'EmptyStateIcon';
+export const EmptyStateContent = /* @__PURE__ */ React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <div
+      ref={ref}
+      {...styles('empty-state.content', 'ui-empty-state-content', className, unstyled)}
+      {...props}
+    />
+  );
+});
+EmptyStateContent.displayName = 'EmptyStateContent';
+export const EmptyStateTitle = /* @__PURE__ */ React.forwardRef<
+  HTMLHeadingElement,
+  React.HTMLAttributes<HTMLHeadingElement> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <h3
+      ref={ref}
+      {...styles('empty-state.title', 'ui-empty-state-title', className, unstyled)}
+      {...props}
+    />
+  );
+});
+EmptyStateTitle.displayName = 'EmptyStateTitle';
+export const EmptyStateDescription = /* @__PURE__ */ React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <p
+      ref={ref}
+      {...styles('empty-state.description', 'ui-empty-state-description', className, unstyled)}
+      {...props}
+    />
+  );
+});
+EmptyStateDescription.displayName = 'EmptyStateDescription';
+export const EmptyStateActions = /* @__PURE__ */ React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <div
+      ref={ref}
+      {...styles('empty-state.action', 'ui-empty-state-actions', className, unstyled)}
+      {...props}
+    />
+  );
+});
+EmptyStateActions.displayName = 'EmptyStateActions';

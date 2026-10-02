@@ -686,6 +686,26 @@ export function ComponentExample({ slug }: { slug: string }) {
             columns={invoiceColumns}
             caption="Customer invoices"
             getRowId={(invoice) => invoice.id}
+            pageSize={5}
+            selectable
+            filterFields={[
+              {
+                id: 'status',
+                label: 'Status',
+                type: 'select',
+                options: [
+                  { value: 'Paid', label: 'Paid' },
+                  { value: 'Pending', label: 'Pending' },
+                ],
+              },
+              { id: 'amount', label: 'Amount', type: 'number' },
+              { id: 'customer', label: 'Customer', type: 'text' },
+            ]}
+            selectionActions={(table) => (
+              <UI.Button size="sm" variant="outline" onClick={() => table.resetRowSelection(true)}>
+                Clear selected invoices
+              </UI.Button>
+            )}
           />
         </div>
       );

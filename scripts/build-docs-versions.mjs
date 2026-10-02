@@ -62,7 +62,7 @@ async function routesFor(sourceRoot) {
   const { routes } = await import(
     `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`
   );
-  if (await exists(resolve(sourceRoot, 'src/docs/compositions/catalog/blocks.ts'))) {
+  if (await exists(resolve(sourceRoot, 'src/docs/pages/BlocksPage.tsx'))) {
     routes.push('/blocks', '/templates');
     const manifestPath = resolve(sourceRoot, 'public/compositions/manifest.json');
     if (await exists(manifestPath)) {

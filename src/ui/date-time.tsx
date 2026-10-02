@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CalendarDays, X } from 'lucide-react';
+import { CalendarDays, Clock3, X } from 'lucide-react';
 import { Temporal } from 'temporal-polyfill';
 import {
   dateMatchModifiers,
@@ -8,8 +8,11 @@ import {
   type Matcher,
 } from 'react-day-picker';
 import { Calendar, type CalendarProps } from './calendar';
+import { Button } from './primitives';
+import { Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
 import { Popover, PopoverContent, PopoverTrigger } from './overlays';
 import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
+import { changeInput } from './utils';
 
 export type { DateRange } from 'react-day-picker';
 
@@ -41,6 +44,9 @@ export interface TimePickerProps extends WallInputProps {
   locale?: string;
   clearable?: boolean;
   clearLabel?: string;
+  minuteStep?: number;
+  hourCycle?: 'h12' | 'h23';
+  timeLabel?: string;
 }
 
 type PickerCalendarProps = Omit<
@@ -256,6 +262,85 @@ function formattedWall(
   }
 }
 
+function TimeChooser({
+  value,
+  onValueChange,
+  minuteStep,
+  hourCycle,
+}: {
+  value?: string;
+  onValueChange: (time: string) => void;
+  minuteStep: number;
+  hourCycle: 'h12' | 'h23';
+}) {
+  const id = React.useId();
+  const styles = useStyles();
+  const time = Temporal.PlainTime.from(value ?? '09:00');
+  const twelve = hourCycle === 'h12';
+  const step = Number.isFinite(minuteStep) ? Math.max(1, Math.min(60, Math.round(minuteStep))) : 5;
+  const minutes = [
+    ...new Set([...Array.from({ length: Math.ceil(60 / step) }, (_, i) => i * step), time.minute]),
+  ].sort((a, b) => a - b);
+  const field = (
+    label: string,
+    current: number | string,
+    items: (number | string)[],
+    change: (value: string) => void,
+  ) => (
+    <div {...styles('temporal.time-choice', 'ui-time-choice')}>
+      <Label htmlFor={`${id}-${label}`}>{label}</Label>
+      <Select value={String(current)} onValueChange={change}>
+        <SelectTrigger id={`${id}-${label}`}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {items.map((item) => (
+            <SelectItem key={item} value={String(item)}>
+              {typeof item === 'number' ? String(item).padStart(2, '0') : item}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+  const update = (part: Partial<{ hour: number; minute: number; second: number }>) =>
+    onValueChange(
+      time.with(part).toString({
+        smallestUnit: value?.includes('.')
+          ? 'millisecond'
+          : value && value.length > 5
+            ? 'second'
+            : 'minute',
+      }),
+    );
+  return (
+    <div {...styles('temporal.time-choices', 'ui-time-choices')} role="group" aria-label="Time">
+      {field(
+        'Hour',
+        twelve ? time.hour % 12 || 12 : time.hour,
+        Array.from({ length: twelve ? 12 : 24 }, (_, i) => (twelve ? i + 1 : i)),
+        (value) =>
+          update({
+            hour: twelve ? (Number(value) % 12) + (time.hour >= 12 ? 12 : 0) : Number(value),
+          }),
+      )}
+      {field('Minute', time.minute, minutes, (value) => update({ minute: Number(value) }))}
+      {twelve &&
+        field('Period', time.hour >= 12 ? 'PM' : 'AM', ['AM', 'PM'], (value) =>
+          update({ hour: (time.hour % 12) + (value === 'PM' ? 12 : 0) }),
+        )}
+      {value &&
+        value.length > 5 &&
+        field(
+          'Second',
+          time.second,
+          Array.from({ length: 60 }, (_, i) => i),
+          (value) => update({ second: Number(value) }),
+        )}
+    </div>
+  );
+}
+
 function TemporalInput({
   kind,
   allProps,
@@ -274,6 +359,9 @@ function TemporalInput({
     locale,
     clearable = true,
     clearLabel = 'Clear value',
+    minuteStep = 5,
+    hourCycle = 'h23',
+    timeLabel = 'Choose time',
     timeZone,
     disambiguation,
     disabledDates,
@@ -319,9 +407,12 @@ function TemporalInput({
   React.useEffect(() => {
     if (disabled || readOnly) setOpen(false);
   }, [disabled, readOnly]);
+  const selectValue = (next: string | undefined) => {
+    if (!disabled && !readOnly) changeInput(inputRef.current, next ?? '');
+  };
   const clear = () => {
     if (disabled || readOnly) return;
-    change(undefined);
+    selectValue(undefined);
     inputRef.current?.focus();
   };
   const pickDate = (date: Date | undefined) => {
@@ -332,8 +423,22 @@ function TemporalInput({
       next = min;
     if (next && max && wallValue(max, kind) && Temporal.PlainDateTime.compare(next, max) > 0)
       next = max;
-    change(next);
-    setOpen(false);
+    selectValue(next);
+  };
+  const pickTime = (next: string) => {
+    let candidate =
+      kind === 'time' ? next : `${localDate(selected ?? calendarDate(min) ?? new Date())}T${next}`;
+    const compare = kind === 'time' ? Temporal.PlainTime.compare : Temporal.PlainDateTime.compare;
+    const lower = wallValue(min, kind),
+      upper = wallValue(max, kind);
+    // Native time inputs also support a range crossing midnight.
+    if (kind === 'time' && lower && upper && compare(lower, upper) > 0) {
+      if (compare(candidate, lower) < 0 && compare(candidate, upper) > 0) candidate = lower;
+    } else {
+      if (lower && compare(candidate, lower) < 0) candidate = lower;
+      if (upper && compare(candidate, upper) > 0) candidate = upper;
+    }
+    selectValue(candidate);
   };
   return (
     <StyleProvider unstyled={unstyled}>
@@ -349,6 +454,7 @@ function TemporalInput({
           {...props}
           ref={inputRef}
           type={kind}
+          data-custom-picker=""
           data-calendar={kind === 'datetime-local' && showCalendar ? '' : undefined}
           value={current ?? ''}
           min={wallValue(min, kind)}
@@ -386,12 +492,7 @@ function TemporalInput({
               event.preventDefault();
               clear();
             }
-            if (
-              kind === 'datetime-local' &&
-              showCalendar &&
-              event.altKey &&
-              event.key === 'ArrowDown'
-            ) {
+            if ((kind === 'time' || showCalendar) && event.altKey && event.key === 'ArrowDown') {
               event.preventDefault();
               setOpen(true);
             }
@@ -400,39 +501,56 @@ function TemporalInput({
         <span id={formatId} style={visuallyHidden}>
           {formattedWall(current, allProps, kind)}
         </span>
-        {kind === 'datetime-local' && showCalendar && (
+        {(kind === 'time' || showCalendar) && (
           <Popover open={open} onOpenChange={(next) => !disabled && !readOnly && setOpen(next)}>
             <PopoverTrigger asChild>
               <button
                 type="button"
                 {...styles('temporal.calendar-trigger', 'ui-temporal-action', undefined, unstyled)}
                 disabled={disabled || readOnly}
-                aria-label={calendarLabel}
-                title={calendarLabel}
+                aria-label={kind === 'time' ? timeLabel : calendarLabel}
+                title={kind === 'time' ? timeLabel : calendarLabel}
               >
-                <CalendarDays size={16} aria-hidden="true" />
+                {kind === 'time' ? (
+                  <Clock3 size={16} aria-hidden="true" />
+                ) : (
+                  <CalendarDays size={16} aria-hidden="true" />
+                )}
               </button>
             </PopoverTrigger>
             <PopoverContent
               align="start"
               {...styles('temporal.content', 'ui-temporal-content', undefined, unstyled)}
               dir={direction}
-              aria-label={calendarLabel}
+              aria-label={kind === 'time' ? timeLabel : calendarLabel}
               onCloseAutoFocus={(event) => {
                 event.preventDefault();
                 inputRef.current?.focus();
               }}
             >
-              <Calendar
-                {...calendarDefaults(locale, calendarProps)}
-                mode="single"
-                selected={selected}
-                defaultMonth={calendarProps?.defaultMonth ?? selected ?? calendarDate(min)}
-                disabled={unavailable}
-                onSelect={pickDate}
-                autoFocus
-                dir={direction}
+              {kind === 'datetime-local' && (
+                <Calendar
+                  {...calendarDefaults(locale, calendarProps)}
+                  mode="single"
+                  selected={selected}
+                  defaultMonth={calendarProps?.defaultMonth ?? selected ?? calendarDate(min)}
+                  disabled={unavailable}
+                  onSelect={pickDate}
+                  autoFocus
+                  dir={direction}
+                />
+              )}
+              <TimeChooser
+                value={kind === 'time' ? current : current?.split('T')[1]}
+                onValueChange={pickTime}
+                minuteStep={minuteStep}
+                hourCycle={hourCycle}
               />
+              <div {...styles('temporal.done', 'ui-temporal-done', undefined, unstyled)}>
+                <Button size="sm" onClick={() => setOpen(false)}>
+                  Done
+                </Button>
+              </div>
             </PopoverContent>
           </Popover>
         )}

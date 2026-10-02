@@ -52,6 +52,7 @@ ${declarations(componentTokenAliases)}
 }
 [data-borders='strong'] {
   --ui-border: var(--ui-outline);
+  --ui-control-border: var(--ui-outline);
   --ui-border-width: 1px;
 }
 [data-motion='none'], [data-motion='reduced'] { --ui-motion-scale: 0; }

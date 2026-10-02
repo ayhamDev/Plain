@@ -1,8 +1,6 @@
 @import '../ui/styles.css';
 @import './site.css';
 @import './brand.css';
-@import './compositions.css';
-@import './compositions/styles.css';
 @source './';
 @source '../App.tsx';
 @source '../blocks';

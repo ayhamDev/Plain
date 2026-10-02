@@ -145,14 +145,16 @@ export function LoginDemo() {
             <Checkbox id={id} />
             <Label htmlFor={id}>Remember me</Label>
           </div>
-          <button
+          <Button
+            variant="link"
+            size="sm"
             type="button"
             onClick={() =>
               toast.info('Password reset', { description: 'This preview does not send email.' })
             }
           >
             Forgot password?
-          </button>
+          </Button>
         </div>
         <Button type="submit" className="demo-full-button" loading={busy}>
           Sign in

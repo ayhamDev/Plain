@@ -2,7 +2,7 @@
 
 Plain by default. Yours by design. `@plain/ui` is a React and TypeScript component library for prototypes, MVPs and the web applications they become.
 
-Version 0.2.0 is a **local release**, not an npm publication. The workspace includes the library, documentation, 120 copy/paste blocks and 60 multi-screen templates. Examples are documentation source, not library components or package exports. Mobile and desktop examples are responsive **React DOM applications and PWAs**, not React Native or packaged desktop binaries.
+Version 0.2.0 is a **local release**, not an npm publication. The workspace includes the library and versioned documentation. The retired blocks and templates collections are empty pending a new application-owned copy/paste collection. Current refinements are recorded in a pending minor Changeset. Examples are documentation source, not library components or package exports. Mobile and desktop examples are responsive **React DOM applications and PWAs**, not React Native or packaged desktop binaries.
 
 ## Develop
 
@@ -124,11 +124,11 @@ Charts, scheduling and Motion are not exported through the core barrel. Dependen
 
 Default light/dark colors are the original hand-authored 0.1 neutrals. Material-style palette generation is opt-in when a vibe color or colored preset is chosen. New semantic and component tokens inherit those defaults without changing their identity.
 
-Blocks and templates are available at `/blocks` and `/templates`. Copy or download a complete TSX file into your own application. It includes its local React implementation, sample data, helpers and editable CSS, and imports only UI primitives and the engines it uses. There is no `@plain/ui/blocks` runtime or registry to install. The source is yours to change; sample workflows still need real backend integration.
+`/blocks` and `/templates` are intentionally empty. The previous generated collection and the combined guide were removed. Future examples will be application-owned copy/paste source, never `@plain/ui/blocks` library exports.
 
 Layout spacing numbers are 8px units; strings accept CSS lengths. Responsive objects use `base`, `sm`, `md` and `lg`. Virtualization requires a constrained viewport and stable keys; it is optional because browser find and assistive technology cannot discover every unmounted record. Offer search or a nonvirtual view where needed.
 
-Date-time values are local wall-time strings. IANA timezone validation and Temporal disambiguation are available; storing an instant requires explicit conversion and a backend policy. FullCalendar and DataTable are UI engines, not scheduling or data backends. Blocks/templates implement local prototype workflows, not real authentication, payments, uploads or persistence. Native forms require server-side validation in production.
+Date-time values are local wall-time strings. IANA timezone validation and Temporal disambiguation are available; storing an instant requires explicit conversion and a backend policy. The P.UI-owned FullCalendar scheduler uses Temporal and supports custom rendering, container-based mobile layouts and isolated printing. DataTable exposes a TanStack v9 instance with advanced query filters, selection, column controls and client/server pagination. Neither component is a data or scheduling backend. Native forms require server-side validation in production.
 
 `Field` takes a single control accepting `id` and ARIA attributes. Place `SelectTrigger` inside `Field`, not the non-DOM `Select` root. Give icon-only controls accessible names. Use logical spacing and `dir` for RTL rather than reversing the DOM order. Sheets support logical `start`/`end`, physical sides, swipe gestures and snap points.
 

@@ -148,7 +148,7 @@ describe('styling and direction', () => {
   it('honors an explicit native direction on a progress element', () => {
     const { container } = render(<Progress dir="rtl" value={50} aria-label="Progress" />);
     expect(container.querySelector('[data-slot="indicator"]')).toHaveStyle({
-      transform: 'translateX(50%)',
+      width: '50%',
     });
   });
   it('removes default classes throughout composite controls', () => {
@@ -260,7 +260,7 @@ describe('styling and direction', () => {
     await userEvent.keyboard('{ArrowLeft}');
     expect(screen.getByRole('tab', { name: 'Two' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('progressbar').firstElementChild).toHaveStyle({
-      transform: 'translateX(75%)',
+      width: '25%',
     });
   });
 });
@@ -353,10 +353,10 @@ describe('interaction contracts', () => {
     expect(within(screen.getByRole('table')).getAllByRole('row')).toHaveLength(3);
     await userEvent.click(screen.getByRole('button', { name: 'Next page' }));
     expect(screen.getByRole('cell', { name: 'Birch' })).toBeVisible();
-    await userEvent.type(screen.getByRole('textbox', { name: 'Search records...' }), 'Atlas');
+    await userEvent.type(screen.getByRole('searchbox', { name: 'Search records...' }), 'Atlas');
     expect(screen.getByRole('cell', { name: 'Atlas' })).toBeVisible();
     expect(screen.queryByRole('cell', { name: 'Cedar' })).not.toBeInTheDocument();
-    await userEvent.clear(screen.getByRole('textbox', { name: 'Search records...' }));
+    await userEvent.clear(screen.getByRole('searchbox', { name: 'Search records...' }));
     await userEvent.click(screen.getByRole('button', { name: 'Name' }));
     const rows = within(screen.getByRole('table')).getAllByRole('row');
     expect(rows[1]).toHaveTextContent('Atlas');

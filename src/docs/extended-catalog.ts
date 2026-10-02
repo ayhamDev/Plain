@@ -237,7 +237,24 @@ export const extendedComponents: ComponentDefinition[] = [
     ['SplitPane', 'SplitPanePanel', 'SplitPaneHandle'],
     '<SplitPane style={{ height: 240 }}>\n  <SplitPanePanel defaultSize="35%" minSize="20%">Files</SplitPanePanel>\n  <SplitPaneHandle />\n  <SplitPanePanel minSize="30%">Editor</SplitPanePanel>\n</SplitPane>',
     [
-      p('orientation', 'horizontal | vertical', 'Resize axis.', 'horizontal'),
+      p('orientation', 'horizontal | vertical', 'Desktop resize axis.', 'horizontal'),
+      p(
+        'mobileOrientation / mobileBreakpoint',
+        'horizontal | vertical | false / number',
+        'Container-based compact arrangement; false disables adaptation.',
+        'vertical / 520',
+      ),
+      p(
+        'resizeTargetMinimumSize',
+        '{ coarse: number; fine: number }',
+        'Invisible pointer hit area around the hairline handle.',
+        '{ coarse: 32, fine: 12 }',
+      ),
+      p(
+        'groupRef / panelRef',
+        'engine refs',
+        'useGroupRef, usePanelRef and useDefaultLayout expose reset, collapse and layout persistence.',
+      ),
       p(
         'defaultSize / minSize / maxSize',
         'number | string',
@@ -305,6 +322,15 @@ export const extendedComponents: ComponentDefinition[] = [
       p('collapsed / defaultCollapsed', 'boolean', 'Desktop state on SidebarProvider.'),
       p('mobileOpen / defaultMobileOpen', 'boolean', 'Mobile overlay state on SidebarProvider.'),
       p('mobileBreakpoint', 'number', 'Mobile threshold in pixels.', '768'),
+      p('collapsible', 'icon | offcanvas | none', 'Provider collapse mode.', 'icon'),
+      p('variant', 'sidebar | inset | floating', 'Sidebar surface treatment.', 'sidebar'),
+      p('mobileWidth', 'string', 'Drawer width clamped to the small viewport.', '288px'),
+      p(
+        'shortcut',
+        'string | false',
+        'Provider-scoped Ctrl/Cmd shortcut; ignored during input editing.',
+        'b',
+      ),
       p('width / collapsedWidth', 'string', 'Provider widths or sidebar token overrides.'),
       p('side', 'start | end', 'Logical side of Sidebar.', 'start'),
       p(
@@ -313,7 +339,7 @@ export const extendedComponents: ComponentDefinition[] = [
         'SidebarItem composition, active state and mobile dismissal.',
       ),
     ],
-    'Desktop uses aside and navigation landmarks. On mobile Vaul handles focus trapping and restoration. SidebarItem supports asChild for native links; the current destination should also use aria-current.',
+    'Compose Header, Footer, Content, GroupLabel, GroupContent, GroupAction, Input, Separator, Rail, MenuButton, MenuAction, MenuBadge, MenuSub and MenuSubButton. Native links use asChild on menu buttons. Nested expansion uses P.UI Collapsible. Desktop collapse and mobile open state are separate and controllable; Vaul handles the mobile focus trap, swipe dismissal and restoration. Motion follows the theme and reduced-motion preference. Inset accepts asChild to preserve application landmarks.',
   ),
   define(
     'app-shell',
@@ -488,10 +514,14 @@ export const extendedComponents: ComponentDefinition[] = [
     'color-picker',
     'Color picker',
     'Forms',
-    'A native color well with editable hex values and swatches.',
+    'A themed color surface with editable hex, hue and RGB controls.',
     ['Field', 'ColorPicker'],
     '<Field label="Project color"><ColorPicker defaultValue="#087f5b" swatches={["#087f5b", "#2563eb", "#be185d"]} name="color" /></Field>',
-    [...value, p('swatches', 'readonly string[]', 'Preset hex colors.')],
+    [
+      ...value,
+      p('swatches', 'readonly string[]', 'Preset hex colors.'),
+      p('pickerLabel', 'string', 'Accessible name of the color popover.', 'Choose color'),
+    ],
     inputA11y,
   ),
   define(
@@ -591,19 +621,6 @@ export const extendedComponents: ComponentDefinition[] = [
     'Hover cards are supplementary, not an accessible replacement for a profile page or popover. Put essential information on the linked destination. Trigger links retain native keyboard behavior.',
   ),
   define(
-    'stat',
-    'Stat',
-    'Feedback',
-    'A readable metric, change and supporting context.',
-    ['Stat'],
-    '<Stat label="Monthly revenue" value="$24,680" change="+12.8%" trend="up" description="Compared with September" />',
-    [
-      p('label / value / change / description', 'ReactNode', 'Metric content.'),
-      p('trend', 'up | down | neutral', 'Visual change direction.'),
-    ],
-    'The metric label and value remain readable text. Always include a signed or written change; color alone must not communicate performance.',
-  ),
-  define(
     'timeline',
     'Timeline',
     'Feedback',
@@ -648,7 +665,7 @@ export const extendedComponents: ComponentDefinition[] = [
     'time-picker',
     'Time picker',
     'Scheduling',
-    'Native time entry with constraints, clearing and form participation.',
+    'Keyboard-editable time with a styled picker, constraints and form participation.',
     ['Field', 'TimePicker'],
     '<Field label="Start time"><TimePicker defaultValue="09:00" min="08:00" max="18:00" name="startTime" /></Field>',
     [
@@ -659,6 +676,12 @@ export const extendedComponents: ComponentDefinition[] = [
         'Native wall-time constraints; step is seconds.',
       ),
       p('clearable / clearLabel', 'boolean / string', 'Optional clear action.'),
+      p(
+        'minuteStep / hourCycle',
+        'number / 12 | 24',
+        'Picker interval and display format; native step remains in seconds.',
+        '15 / 24',
+      ),
     ],
     inputA11y,
     {
@@ -706,11 +729,17 @@ export const extendedComponents: ComponentDefinition[] = [
     'date-time-picker',
     'Date time picker',
     'Scheduling',
-    'Local date and time with an optional calendar and timezone validation.',
+    'Local date and time with a styled calendar, time controls and timezone validation.',
     ['Field', 'DateTimePicker'],
     '<Field label="Meeting"><DateTimePicker defaultValue="2026-10-05T09:30" name="meeting" timeZone="Africa/Cairo" /></Field>',
     [
       ...value,
+      p(
+        'minuteStep / hourCycle',
+        'number / 12 | 24',
+        'Time picker interval and display format.',
+        '15 / 24',
+      ),
       p('min / max', 'string', 'Wall-time bounds in YYYY-MM-DDTHH:mm format.'),
       p(
         'timeZone / disambiguation',
@@ -752,31 +781,65 @@ export const extendedComponents: ComponentDefinition[] = [
     'full-calendar',
     'Full calendar',
     'Scheduling',
-    'Month, week, day and agenda scheduling with an established calendar engine.',
-    ['FullCalendar'],
-    '<FullCalendar defaultView="dayGridMonth" initialDate="2026-10-01" height={480} events={[\n  { id: "kickoff", title: "Project kickoff", start: "2026-10-05T09:00", end: "2026-10-05T10:00" },\n]} />',
+    'A responsive scheduling workspace with month, week, day and agenda views.',
+    ['FullCalendar', 'type FullCalendarEvent'],
+    '<FullCalendar defaultView="month" defaultDate="2026-10-05" events={events} editable\n  onEventsChange={setEvents} printFooter={<p>Studio schedule</p>} />',
     [
       p(
-        'defaultView / view / onViewChange',
-        'string / string / callback',
-        'Initial or controlled view.',
+        'view / defaultView / onViewChange',
+        'month | week | day | agenda',
+        'Controlled or initial view.',
       ),
-      p('date / onDateChange', 'DateInput / callback', 'Controlled visible date.'),
-      p('events', 'FullCalendarEvent[] | source', 'Events or supported FullCalendar sources.'),
       p(
-        'selectable / editable / select / eventClick / eventDrop',
-        'FullCalendar options',
-        'Selection, drag/drop and application callbacks.',
+        'date / defaultDate / onDateChange',
+        'CalendarDate / callback',
+        'ISO date or instant; callback returns the focused ISO date.',
       ),
-      p('mobileView / mobileBreakpoint', 'string | false / number', 'Responsive agenda view.'),
-      p('options / plugins', 'CalendarOptions / plugins', 'FullCalendar advanced configuration.'),
+      p(
+        'events / onEventsChange',
+        'readonly FullCalendarEvent[] / callback',
+        'Application-owned events with stable IDs and exclusive ends.',
+      ),
+      p(
+        'onSlotSelect / onEventClick / onEventChange',
+        'callback',
+        'Create, inspect and accept move/resize requests.',
+      ),
+      p(
+        'selectable / editable',
+        'boolean',
+        'Enable slot selection and event editing; edit callbacks are required.',
+      ),
+      p(
+        'renderEvent / renderDay / toolbar / toolbarActions',
+        'render functions / ReactNode',
+        'Own content without replacing the scheduling model.',
+      ),
+      p(
+        'printable / printMode / renderPrint / onPrint',
+        'boolean / agenda | calendar / callbacks',
+        'Print the visible range, add content, or replace printing with a PDF workflow.',
+      ),
+      p(
+        'timeZone / locale / weekStartsOn',
+        'string / string / 0-6',
+        'Date interpretation, formatting and week convention.',
+      ),
+      p(
+        'dayStart / dayEnd / slotMinutes / mobileBreakpoint',
+        'number',
+        'Time grid and container-responsive layout.',
+      ),
     ],
-    'The wrapper enables engine accessibility features and motion policy. Add eventClick handlers and useful event titles. Dragging must have a keyboard-accessible editing alternative in your application.',
+    'Date grids support arrow, Home/End and Page keys with RTL handling. Events are keyboard-focusable; Alt plus arrows moves an editable event, and Shift+Alt up/down resizes it. Offer a visible event editor for touch and assistive-technology users. No scheduling backend or recurrence engine is implied.',
     {
       entry: '@plain/ui/full-calendar',
       stylesheet: '@plain/ui/full-calendar.css',
+      setup: 'import * as React from "react";',
+      functionSetup:
+        'const [events, setEvents] = React.useState<FullCalendarEvent[]>([\n  { id: "kickoff", title: "Project kickoff", start: "2026-10-05T09:00", end: "2026-10-05T10:00" },\n  { id: "review", title: "Design review", start: "2026-10-12T14:00", end: "2026-10-12T15:00" },\n]);',
       usage:
-        'Requires the opt-in scheduling stylesheet. The event array is a prototype data source, not a scheduling backend.',
+        'Import the optional stylesheet. Events belong to your application; wire callbacks to validation, permissions and persistence. The 0.2 engine options/plugins are replaced by this P.UI API.',
     },
   ),
   ...(['area', 'bar', 'line'] as const).map((kind) =>

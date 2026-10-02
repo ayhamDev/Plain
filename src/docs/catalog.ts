@@ -30,6 +30,7 @@ export interface ComponentDefinition {
   usage?: string;
   entry?: string;
   setup?: string;
+  functionSetup?: string;
   stylesheet?: string;
 }
 const prop = (
@@ -648,14 +649,56 @@ export const components: ComponentDefinition[] = [
     [
       prop('data', 'T[]', 'Stable array of records.'),
       prop('columns', 'DataTableColumn<T>[]', 'Typed TanStack Table v9 column definitions.'),
-      prop('pageSize', 'number', 'Initial records per page.', '5'),
+      prop('pageSize', 'number', 'Initial records per page.', '10'),
       prop('searchable', 'boolean', 'Show global search.', 'true'),
       prop('loading', 'boolean', 'Display an accessible loading state.'),
       prop('caption', 'string', 'Accessible table name.', 'Records'),
-      prop('getRowId', '(row: T) => string', 'Stable record identity.'),
+      prop('getRowId', '(row: T) => string', 'Stable record identity, essential for selection.'),
+      prop(
+        'table',
+        'DataTableInstance<T>',
+        'Externally owned table from useDataTable; data and columns are then unnecessary.',
+      ),
+      prop(
+        'tableOptions',
+        'UseDataTableOptions<T>',
+        'TanStack v9 state, per-slice callbacks, manual pagination/filtering/sorting, rowCount and column definitions.',
+      ),
+      prop(
+        'filterFields',
+        'DataTableFilterField[]',
+        'Column IDs, labels, text/number/date/select/boolean types, options, operators and custom tests.',
+      ),
+      prop(
+        'selectable / columnControls',
+        'boolean',
+        'Page/row selection and column visibility controls.',
+        'false / true',
+      ),
+      prop(
+        'selectionActions',
+        '(table) => ReactNode',
+        'Application commands for selected IDs, including IDs outside loaded server pages.',
+      ),
+      prop(
+        'pageSizes',
+        'number[]',
+        'Rows-per-page choices with first/last, range and page jump controls.',
+        '[10, 25, 50, 100]',
+      ),
+      prop(
+        'toolbar / footer',
+        'ReactNode | (table) => ReactNode',
+        'Replace standard controls; DataTableToolbar, DataTableFilters and DataTablePagination are separately exported.',
+      ),
+      prop(
+        'rowProps / renderDetail',
+        '(row) => props | ReactNode',
+        'Customize row interactions and application-owned detail content.',
+      ),
     ],
     'Sort headers are buttons with aria-sort on the column. Search is labeled; loading is announced. Use stable data and column definitions for efficient renders.',
-    'This component performs client-side operations. Compose Table with TanStack Table directly for server pagination, virtualization, or advanced selection.',
+    'Use useDataTable for application-owned state and DataTableView for rendering. Query filters combine with AND/OR and global search; incomplete rules do not filter rows. Date filters compare UTC calendar days, ignoring clock time; use a field test for another timezone or timestamp policy. Manual pagination, sorting and filtering pass requests to your callbacks; provide loaded data and rowCount/pageCount. URL state, persistence and virtualized rendering remain application-owned. Shift-click selects a range in the loaded row order. Use native table options for column pinning/order/visibility, custom accessors and cell renderers.',
   ),
   definition(
     'calendar',
@@ -791,12 +834,23 @@ export const components: ComponentDefinition[] = [
     ['EmptyState', 'Button'],
     '<EmptyState\n  title="No projects yet"\n  description="Your next idea starts here."\n  action={<Button>Create project</Button>}\n/>',
     [
-      prop('title', 'string', 'Clear statement of the empty state.'),
-      prop('description', 'string', 'Optional context or next step.'),
+      prop('title', 'ReactNode', 'Optional shorthand heading.'),
+      prop('description', 'ReactNode', 'Optional context or next step.'),
       prop('icon', 'ReactNode', 'A custom decorative icon.'),
       prop('action', 'ReactNode', 'An optional recovery or creation action.'),
+      prop(
+        'children',
+        'ReactNode',
+        'Compose EmptyStateIcon, Content, Title, Description and Actions instead of shorthand props.',
+      ),
+      prop(
+        'align / orientation',
+        'center | start / vertical | horizontal',
+        'Content alignment and arrangement.',
+        'center / vertical',
+      ),
     ],
-    'The title is a heading and the action remains keyboard accessible. Use a meaningful next step for filtered and empty collections.',
+    'EmptyState is a layout primitive, not a required application schema. Supply children for arbitrary content, illustrations and actions. EmptyStateTitle is an h3; use a different semantic heading inside Content when the page hierarchy requires it. Native props and refs apply to every part.',
   ),
   ...extendedComponents,
 ];
@@ -825,7 +879,14 @@ export function componentCode(component: ComponentDefinition) {
       ? `${component.code.slice(0, split)}\n\n`
       : '';
   const jsx = split >= 0 ? component.code.slice(split + 2) : component.code;
-  return `${imports}\n\n${prefix}export function Example() {\n  return (\n    <>\n${jsx
+  return `${imports}\n\n${prefix}export function Example() {\n${
+    component.functionSetup
+      ? component.functionSetup
+          .split('\n')
+          .map((line) => `  ${line}`)
+          .join('\n') + '\n'
+      : ''
+  }  return (\n    <>\n${jsx
     .split('\n')
     .map((line) => `      ${line}`)
     .join('\n')}\n    </>\n  );\n}`;
@@ -843,5 +904,4 @@ export const guideLinks = [
   { slug: 'virtualization', title: 'Virtualization' },
   { slug: 'charts', title: 'Charts' },
   { slug: 'scheduling', title: 'Scheduling' },
-  { slug: 'blocks-templates', title: 'Blocks & templates' },
 ];

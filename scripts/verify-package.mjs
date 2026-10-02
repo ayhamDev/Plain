@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { resolve, join, relative, isAbsolute } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
@@ -32,9 +32,8 @@ const [packed] = JSON.parse(
 const packageFiles = new Set(packed.files.map((file) => file.path));
 const compositions = JSON.parse(await readFile('public/compositions/manifest.json', 'utf8'));
 const compositionExamples = [...compositions.blocks, ...compositions.templates];
-assert.equal(compositions.blocks.length, 120);
-assert.equal(compositions.templates.length, 60);
-assert.equal(new Set(compositionExamples.map((item) => item.id)).size, 180);
+assert.equal(compositions.blocks.length, 0);
+assert.equal(compositions.templates.length, 0);
 assert(
   !packed.files.some((file) => /blocks|compositions|templates/.test(file.path)),
   'Copy/paste examples must not be embedded in the npm package.',
@@ -52,6 +51,10 @@ for (const expected of [
   'dist/tokens.css',
 ])
   assert(packageFiles.has(expected), `Missing ${expected}`);
+const exampleDirectory = resolve(consumer, 'examples');
+const relativeDirectory = relative(root, exampleDirectory);
+assert(!isAbsolute(relativeDirectory) && !relativeDirectory.startsWith('..'));
+await rm(exampleDirectory, { recursive: true, force: true });
 await mkdir(join(consumer, 'examples'), { recursive: true });
 await writeFile(
   join(consumer, 'package.json'),

@@ -146,6 +146,7 @@ function DashboardExample() {
         <DataTable
           data={invoices}
           columns={invoiceColumns}
+          pageSize={5}
           caption="Recent invoices"
           getRowId={(invoice) => invoice.id}
         />

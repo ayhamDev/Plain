@@ -117,7 +117,7 @@ export function ThemeProvider({
             'border-width': '0px',
           }
         : settings.borders === 'strong'
-          ? { border: 'var(--ui-outline)' }
+          ? { border: 'var(--ui-outline)', 'control-border': 'var(--ui-outline)' }
           : {}),
       ...tokens,
     }),

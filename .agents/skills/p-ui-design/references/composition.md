@@ -40,13 +40,14 @@ engine support is not evidence of physical-device verification.
 - Give responsive charts a nonzero height and a shrinking parent (`min-width: 0`
   where needed). Recheck a chart first mounted in a hidden tab or resized panel.
   Verify loading, empty, single-point, negative, and missing-data states.
-- Use DayPicker for date selection, Temporal-backed native date/time controls,
-  and the opt-in FullCalendar engine for event scheduling. Date-time picker values
+- Use DayPicker for date selection, Temporal-backed keyboard date/time fields with
+  P.UI picker popovers, and the opt-in P.UI-owned FullCalendar scheduler. Date-time picker values
   remain wall-time strings: a timeZone validates/formats them, not an implicit UTC
   conversion. Date picker ranges are inclusive; event-calendar ends are exclusive.
   Define timezone and daylight-saving policy before converting to an instant. Native
-  editor appearance varies by browser/device. Use `Intl` and the installed engines,
-  not a handmade calendar or parser.
+  editor appearance varies by browser/device. Use `Intl` and Temporal for arithmetic
+  and parsing. The scheduler has its own month/week/day/agenda views and printing
+  hooks; it does not forward FullCalendar.js options or plugins.
 - Virtual lists/grids need a bounded scroll container, stable item keys,
   measurement for changing row heights, deliberate focus retention, and absolute
   row positions/counts for accessible grids when supported. Do not promise browser
@@ -59,7 +60,7 @@ Motion uses its own entry and MotionProvider, with no extra stylesheet. VirtualG
 uses fixed rowHeight; the list and masonry measure items. These wrappers expose
 list semantics, not an ARIA grid. Inspect the current public props before composing.
 
-Blocks and templates live in the documentation gallery. Copy their complete TSX
-source into the application's own files and adapt it there. They are not package
+Blocks and templates are currently empty documentation collections. Future entries
+must provide complete TSX owned and adapted by the application. They are not package
 exports or runtime registry components. Preserve native control props, use semantic
 typography, and wire prototype actions to real services deliberately.

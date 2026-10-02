@@ -1,5 +1,16 @@
 import * as React from 'react';
-import { LayoutDashboard, Folder, Settings, Home, User, Plus } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Folder,
+  Settings,
+  Home,
+  User,
+  Plus,
+  FileCode2,
+  ChevronDown,
+  MoreHorizontal,
+  RotateCcw,
+} from 'lucide-react';
 import * as UI from '../ui';
 
 const ChartExample = React.lazy(() => import('./examples/ChartExample'));
@@ -37,18 +48,7 @@ function LayoutExample({ slug }: { slug: string }) {
       {item}
     </UI.Box>
   );
-  if (slug === 'split-pane')
-    return (
-      <UI.SplitPane style={{ height: 240, width: '100%' }}>
-        <UI.SplitPanePanel defaultSize="35%" minSize="20%">
-          <UI.Box padding={2}>Files</UI.Box>
-        </UI.SplitPanePanel>
-        <UI.SplitPaneHandle />
-        <UI.SplitPanePanel minSize="30%">
-          <UI.Box padding={2}>Editor</UI.Box>
-        </UI.SplitPanePanel>
-      </UI.SplitPane>
-    );
+  if (slug === 'split-pane') return <SplitWorkspace />;
   if (slug === 'grid')
     return (
       <UI.Grid columns={{ base: 1, sm: 3 }} gap={2} style={{ width: '100%' }}>
@@ -107,6 +107,260 @@ function LayoutExample({ slug }: { slug: string }) {
   );
 }
 
+function SplitWorkspace() {
+  const group = UI.useGroupRef();
+  const [file, setFile] = React.useState('button.tsx');
+  const [query, setQuery] = React.useState('');
+  const [code, setCode] = React.useState(
+    "import { Button } from '@plain/ui';\n\nexport function Save() {\n  return <Button>Save changes</Button>;\n}",
+  );
+  return (
+    <div className="split-workspace">
+      <UI.SplitPane groupRef={group} style={{ height: 400, width: '100%' }} mobileBreakpoint={520}>
+        <UI.SplitPanePanel
+          id="files"
+          defaultSize="30%"
+          minSize="18%"
+          collapsible
+          collapsedSize="0%"
+          style={{ overflow: 'auto' }}
+        >
+          <div className="workspace-heading workspace-explorer-heading">
+            <UI.Strong>Explorer</UI.Strong>
+            <UI.Badge variant="outline">3</UI.Badge>
+          </div>
+          <div className="workspace-search">
+            <UI.SearchInput
+              value={query}
+              onValueChange={setQuery}
+              aria-label="Find a file"
+              placeholder="Find a file"
+            />
+          </div>
+          <div className="workspace-files">
+            {['button.tsx', 'theme.css', 'index.ts']
+              .filter((name) => name.includes(query))
+              .map((name) => (
+                <UI.Button
+                  key={name}
+                  variant="ghost"
+                  aria-pressed={name === file}
+                  className="workspace-file"
+                  onClick={() => setFile(name)}
+                >
+                  <FileCode2 size={14} aria-hidden="true" />
+                  {name}
+                </UI.Button>
+              ))}
+          </div>
+        </UI.SplitPanePanel>
+        <UI.SplitPaneHandle aria-label="Resize explorer" />
+        <UI.SplitPanePanel id="editor" minSize="30%">
+          <div className="workspace-heading">
+            <span>
+              <FileCode2 size={14} aria-hidden="true" />
+              {file}
+            </span>
+            <UI.Button
+              size="icon"
+              variant="ghost"
+              title="Reset panel sizes"
+              aria-label="Reset panel sizes"
+              onClick={() => group.current?.setLayout({ files: 30, editor: 70 })}
+            >
+              <RotateCcw size={16} />
+            </UI.Button>
+          </div>
+          <UI.Textarea
+            className="workspace-editor"
+            dir="ltr"
+            aria-label={`Edit ${file}`}
+            spellCheck={false}
+            value={
+              file === 'button.tsx'
+                ? code
+                : file === 'theme.css'
+                  ? ':root {\n  --ui-radius: 6px;\n}'
+                  : "export { Save } from './button';"
+            }
+            onChange={(event) => {
+              if (file === 'button.tsx') setCode(event.target.value);
+            }}
+            readOnly={file !== 'button.tsx'}
+          />
+          <div className="workspace-status">
+            <UI.Small>TypeScript</UI.Small>
+            <UI.Small>{code.split('\n').length} lines</UI.Small>
+          </div>
+        </UI.SplitPanePanel>
+      </UI.SplitPane>
+    </div>
+  );
+}
+
+function SidebarWorkspace() {
+  const [destination, setDestination] = React.useState('Overview');
+  const [search, setSearch] = React.useState('');
+  const [variant, setVariant] = React.useState<'sidebar' | 'inset' | 'floating'>('sidebar');
+  return (
+    <div className="sidebar-workspace">
+      <UI.SidebarProvider
+        width="224px"
+        mobileWidth="288px"
+        style={{ width: '100%', minHeight: 400 }}
+      >
+        <UI.Sidebar variant={variant} label="Workspace navigation">
+          <UI.SidebarHeader>
+            <span className="workspace-brand">p.</span>
+            <UI.Strong>Workspace</UI.Strong>
+          </UI.SidebarHeader>
+          <div className="workspace-search">
+            <UI.SidebarInput
+              placeholder="Search workspace"
+              aria-label="Search workspace"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
+          <UI.SidebarContent>
+            <UI.SidebarGroup>
+              <UI.SidebarGroupLabel>Workspace</UI.SidebarGroupLabel>
+              <UI.SidebarGroupAction
+                aria-label="Create project"
+                title="Create project"
+                onClick={() => setDestination('New project')}
+              >
+                <Plus />
+              </UI.SidebarGroupAction>
+              <UI.SidebarMenu>
+                {['Overview', 'Inbox']
+                  .filter((name) => name.toLowerCase().includes(search.toLowerCase()))
+                  .map((name) => (
+                    <UI.SidebarMenuItem key={name}>
+                      <UI.SidebarMenuButton
+                        label={name}
+                        active={destination === name}
+                        icon={<LayoutDashboard />}
+                        onClick={() => setDestination(name)}
+                      >
+                        {name}
+                      </UI.SidebarMenuButton>
+                      {name === 'Inbox' && <UI.SidebarMenuBadge>8</UI.SidebarMenuBadge>}
+                    </UI.SidebarMenuItem>
+                  ))}
+                <UI.SidebarMenuItem>
+                  <UI.Collapsible defaultOpen>
+                    <UI.CollapsibleTrigger asChild>
+                      <UI.SidebarMenuButton
+                        label="Projects"
+                        icon={<Folder />}
+                        closeOnSelect={false}
+                      >
+                        <span className="workspace-sub-heading">
+                          Projects
+                          <ChevronDown size={14} />
+                        </span>
+                      </UI.SidebarMenuButton>
+                    </UI.CollapsibleTrigger>
+                    <UI.CollapsibleContent>
+                      <UI.SidebarMenuSub>
+                        {['Website', 'Design system', 'Mobile app']
+                          .filter((name) => name.toLowerCase().includes(search.toLowerCase()))
+                          .map((name) => (
+                            <UI.SidebarMenuSubItem key={name}>
+                              <UI.SidebarMenuSubButton
+                                active={destination === name}
+                                onClick={() => setDestination(name)}
+                              >
+                                {name}
+                              </UI.SidebarMenuSubButton>
+                            </UI.SidebarMenuSubItem>
+                          ))}
+                      </UI.SidebarMenuSub>
+                    </UI.CollapsibleContent>
+                  </UI.Collapsible>
+                </UI.SidebarMenuItem>
+              </UI.SidebarMenu>
+            </UI.SidebarGroup>
+            <UI.SidebarSeparator />
+            <UI.SidebarGroup label="Tools">
+              <UI.SidebarMenu>
+                <UI.SidebarMenuItem>
+                  <UI.SidebarMenuButton
+                    icon={<Settings />}
+                    active={destination === 'Settings'}
+                    onClick={() => setDestination('Settings')}
+                  >
+                    Settings
+                  </UI.SidebarMenuButton>
+                  <UI.SidebarMenuAction
+                    showOnHover
+                    title="Settings actions"
+                    aria-label="Settings actions"
+                    onClick={() => setDestination('Preferences')}
+                  >
+                    <MoreHorizontal />
+                  </UI.SidebarMenuAction>
+                </UI.SidebarMenuItem>
+              </UI.SidebarMenu>
+            </UI.SidebarGroup>
+          </UI.SidebarContent>
+          <UI.SidebarFooter>
+            <UI.Avatar className="size-7">
+              <UI.AvatarFallback>AM</UI.AvatarFallback>
+            </UI.Avatar>
+            <div className="workspace-account">
+              <UI.Strong>Alex Morgan</UI.Strong>
+              <UI.Small>Personal workspace</UI.Small>
+            </div>
+          </UI.SidebarFooter>
+          <UI.SidebarRail />
+        </UI.Sidebar>
+        <UI.SidebarInset asChild>
+          <div className="workspace-main">
+            <div className="workspace-heading">
+              <UI.SidebarTrigger />
+              <UI.Strong>{destination}</UI.Strong>
+              <UI.Select
+                value={variant}
+                onValueChange={(value) => setVariant(value as typeof variant)}
+              >
+                <UI.SelectTrigger
+                  aria-label="Sidebar appearance"
+                  style={{ width: 128, maxWidth: '100%', flexShrink: 0, marginInlineStart: 'auto' }}
+                >
+                  <UI.SelectValue />
+                </UI.SelectTrigger>
+                <UI.SelectContent>
+                  <UI.SelectItem value="sidebar">Sidebar</UI.SelectItem>
+                  <UI.SelectItem value="inset">Inset</UI.SelectItem>
+                  <UI.SelectItem value="floating">Floating</UI.SelectItem>
+                </UI.SelectContent>
+              </UI.Select>
+            </div>
+            <div className="workspace-page">
+              <UI.H3>{destination}</UI.H3>
+              <UI.P tone="muted" size="sm">
+                Your workspace, all in one place.
+              </UI.P>
+              <UI.SearchInput placeholder="Search projects" aria-label="Search projects" />
+              <UI.Ul className="workspace-project-list">
+                {['Website redesign', 'Component library', 'Mobile experience'].map((project) => (
+                  <UI.Li key={project}>
+                    <Folder size={16} />
+                    <span>{project}</span>
+                    <UI.Badge variant="outline">In progress</UI.Badge>
+                  </UI.Li>
+                ))}
+              </UI.Ul>
+            </div>
+          </div>
+        </UI.SidebarInset>
+      </UI.SidebarProvider>
+    </div>
+  );
+}
+
 export function AppShellPreview() {
   const [direction] = React.useState<UI.TextDirection>(() => {
     try {
@@ -130,7 +384,11 @@ export function AppShellPreview() {
       >
         <UI.Stack padding={3}>
           <h1 style={{ fontSize: 24 }}>Project overview</h1>
-          <UI.Stat label="Active projects" value="24" change="+3 this week" trend="up" />
+          <UI.Stack gap={1}>
+            <UI.Small>Active projects</UI.Small>
+            <UI.Strong>24</UI.Strong>
+            <UI.Small>3 added this week</UI.Small>
+          </UI.Stack>
           <p>Discovery, design and delivery.</p>
         </UI.Stack>
       </UI.AppShell>
@@ -243,44 +501,7 @@ export default function ExtendedExamples({ slug }: { slug: string }) {
         />
       );
     case 'sidebar':
-      return (
-        <UI.SidebarProvider style={{ width: '100%', minHeight: 280 }}>
-          <UI.Sidebar label="Preview navigation">
-            <UI.SidebarHeader>
-              <strong>Workspace</strong>
-            </UI.SidebarHeader>
-            <UI.SidebarContent>
-              <UI.SidebarGroup label="Projects">
-                <UI.SidebarMenu>
-                  {[
-                    { id: 'week', name: 'Overview', Icon: LayoutDashboard },
-                    { id: 'projects', name: 'Projects', Icon: Folder },
-                    { id: 'settings', name: 'Settings', Icon: Settings },
-                  ].map(({ id, name, Icon }) => (
-                    <UI.SidebarMenuItem key={id}>
-                      <UI.SidebarItem
-                        icon={<Icon />}
-                        active={metric === id}
-                        onClick={() => setMetric(id)}
-                      >
-                        {name}
-                      </UI.SidebarItem>
-                    </UI.SidebarMenuItem>
-                  ))}
-                </UI.SidebarMenu>
-              </UI.SidebarGroup>
-            </UI.SidebarContent>
-          </UI.Sidebar>
-          <UI.SidebarInset>
-            <UI.Inline padding={2}>
-              <UI.SidebarTrigger />
-              <span>
-                {metric === 'week' ? 'Overview' : metric === 'projects' ? 'Projects' : 'Settings'}
-              </span>
-            </UI.Inline>
-          </UI.SidebarInset>
-        </UI.SidebarProvider>
-      );
+      return <SidebarWorkspace />;
     case 'app-shell':
       return (
         <iframe
@@ -475,16 +696,6 @@ export default function ExtendedExamples({ slug }: { slug: string }) {
             </UI.Stack>
           </UI.HoverCardContent>
         </UI.HoverCard>
-      );
-    case 'stat':
-      return (
-        <UI.Stat
-          label="Monthly revenue"
-          value="$24,680"
-          change="+12.8%"
-          trend="up"
-          description="Compared with September"
-        />
       );
     case 'timeline':
       return (

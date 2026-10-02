@@ -179,10 +179,10 @@ for (const mode of ['light', 'dark'] as const) {
             } else if (slug === 'full-calendar') {
               await expect(preview.locator(slot('full-calendar'))).toHaveAttribute(
                 'data-view',
-                width < 640 ? 'listWeek' : 'dayGridMonth',
+                'month',
               );
               await expect(
-                preview.getByRole('tab', { name: 'Month view', exact: true }),
+                preview.getByRole('combobox', { name: 'Calendar view', exact: true }),
               ).toBeVisible();
             } else if (slug === 'date-range-picker') {
               await preview.getByRole('button', { name: 'Project dates', exact: true }).click();
@@ -566,48 +566,39 @@ test.describe('native wall-time forms across zones', () => {
   });
 });
 
-async function selectDays(page: Page, calendar: Locator, from: string, to: string) {
-  const first = calendar.locator(`[data-date="${from}"]`).first();
-  const last = calendar.locator(`[data-date="${to}"]`).first();
-  await first.scrollIntoViewIfNeeded();
-  const start = (await first.boundingBox())!;
-  const end = (await last.boundingBox())!;
-  await page.mouse.move(start.x + start.width / 2, start.y + start.height * 0.75);
-  await page.mouse.down();
-  await page.mouse.move(end.x + end.width / 2, end.y + end.height * 0.75, { steps: 12 });
-  await page.mouse.up();
-}
-
-test('FullCalendar docs use real v7 month/week/day/list views and preserve the desktop view on resize', async ({
+test('P.UI scheduler views, event editor and compact month retain the chosen view', async ({
   page,
 }, testInfo) => {
   await initialize(page, { mode: 'light', dir: 'ltr', seed: null });
   const preview = await component(page, 'full-calendar');
   const calendar = preview.locator(slot('full-calendar'));
-  await expect(calendar).toHaveAttribute('data-view', 'dayGridMonth');
+  await expect(calendar).toHaveAttribute('data-view', 'month');
   await expect(calendar.getByText('Project kickoff', { exact: true })).toBeVisible();
   await expect(calendar.getByText('Design review', { exact: true })).toBeVisible();
-  expect((await calendar.boundingBox())!.height).toBeCloseTo(480, 0);
-  await selectDays(page, calendar, '2026-10-19', '2026-10-21');
-  await expect(calendar.getByText('New meeting', { exact: true }).first()).toBeVisible();
+  await calendar.getByRole('button', { name: /^Monday, October 19, 2026/ }).click();
+  const editor = page.getByRole('dialog', { name: 'New event' });
+  await editor.getByRole('textbox', { name: 'Event title' }).fill('New meeting');
+  await editor.getByRole('button', { name: 'Save event' }).click();
+  await expect(calendar.getByText('New meeting', { exact: true })).toBeVisible();
   for (const [name, view] of [
-    ['week', 'timeGridWeek'],
-    ['day', 'timeGridDay'],
-    ['list', 'listWeek'],
-    ['month', 'dayGridMonth'],
+    ['week', 'week'],
+    ['day', 'day'],
+    ['agenda', 'agenda'],
+    ['month', 'month'],
   ]) {
-    await calendar
-      .getByRole('tab', { name: `${name[0].toUpperCase()}${name.slice(1)} view`, exact: true })
+    await calendar.getByRole('combobox', { name: 'Calendar view' }).click();
+    await page
+      .getByRole('option', { name: name[0].toUpperCase() + name.slice(1), exact: true })
       .click();
     await expect(calendar).toHaveAttribute('data-view', view);
     await calendar.screenshot({ path: testInfo.outputPath(`calendar-${name}.png`) });
   }
   for (const width of [320, 1440, 390, 1440]) {
     await page.setViewportSize({ width, height: width < 640 ? 844 : 1000 });
-    await expect(calendar).toHaveAttribute('data-view', width < 640 ? 'listWeek' : 'dayGridMonth');
+    await expect(calendar).toHaveAttribute('data-view', 'month');
   }
   await page.screenshot({ fullPage: true, path: testInfo.outputPath('calendar-full-page.png') });
-  await expect(calendar).toHaveAttribute('data-view', 'dayGridMonth');
+  await expect(calendar).toHaveAttribute('data-view', 'month');
   await page.getByRole('tab', { name: 'Code', exact: true }).click();
   const copy = await page
     .locator('[role="tabpanel"]')
@@ -615,13 +606,13 @@ test('FullCalendar docs use real v7 month/week/day/list views and preserve the d
     .innerText();
   expect(copy).toContain("from '@plain/ui/full-calendar'");
   expect(copy).toContain("import '@plain/ui/full-calendar.css'");
-  expect(copy).toContain('initialDate="2026-10-01"');
-  expect(copy).toContain('height={480}');
+  expect(copy).toContain('defaultDate="2026-10-05"');
+  expect(copy).toContain('onEventsChange');
   expect(copy).toContain('start: "2026-10-05T09:00"');
   expect(copy).not.toContain('@fullcalendar/core');
 });
 
-test('FullCalendar engine ref, events, exclusive-end selection and controlled focused date stay usable on the actual docs page', async ({
+test('scheduler ref, events and exclusive selections stay usable in controlled RTL layouts', async ({
   page,
 }) => {
   test.setTimeout(90000);
@@ -646,6 +637,7 @@ test('FullCalendar engine ref, events, exclusive-end selection and controlled fo
         h(FullCalendar, {
           ref,
           date,
+          onDateChange: setDate,
           dir: 'rtl',
           locale: 'ar',
           height: 480,
@@ -658,10 +650,10 @@ test('FullCalendar engine ref, events, exclusive-end selection and controlled fo
               end: '2026-10-05T10:00',
             },
           ],
-          eventContent: (info: { event: { title: string } }) => h('strong', null, info.event.title),
-          eventClick: (info: { event: { id: string } }) => setClicked(info.event.id),
-          select: (info: { startStr: string; endStr: string }) =>
-            setSelected(`${info.startStr}|${info.endStr}`),
+          renderEvent: (info: { event: { title: string } }) => h('strong', null, info.event.title),
+          onEventClick: (event: { id: string }) => setClicked(event.id),
+          onSlotSelect: (info: { start: string; end: string }) =>
+            setSelected(`${info.start}|${info.end}`),
         }),
         h('output', { 'aria-label': 'Clicked event' }, clicked),
         h('output', { 'aria-label': 'Selected interval' }, selected),
@@ -669,8 +661,8 @@ test('FullCalendar engine ref, events, exclusive-end selection and controlled fo
         h('button', { onClick: () => setDate('2026-10-05') }, 'Focus October'),
         h(
           'button',
-          { onClick: () => ref.current.getApi().select('2026-10-06', '2026-10-08') },
-          'Select from engine ref',
+          { onClick: () => ref.current.getApi().gotoDate('2026-10-06') },
+          'Focus from calendar ref',
         ),
       );
     }
@@ -681,16 +673,19 @@ test('FullCalendar engine ref, events, exclusive-end selection and controlled fo
   await expect(calendar).toHaveAttribute('dir', 'rtl');
   await calendar.getByText('Engine review', { exact: true }).click();
   await expect(fixture.getByLabel('Clicked event')).toHaveText('review');
-  await fixture.getByRole('button', { name: 'Select from engine ref' }).click();
+  await fixture.getByRole('button', { name: 'Focus from calendar ref' }).click();
+  await calendar.locator('[data-calendar-date="2026-10-06"]').click();
+  await calendar.locator('[data-calendar-date="2026-10-07"]').click({ modifiers: ['Shift'] });
   await expect(fixture.getByLabel('Selected interval')).toHaveText('2026-10-06|2026-10-08');
   await fixture.getByRole('button', { name: 'Focus November' }).click();
-  await expect(calendar.locator('[data-date="2026-11-15"]')).toHaveCount(1);
+  await expect(calendar.locator('[data-calendar-date="2026-11-15"]')).toHaveCount(1);
   await expect(calendar.getByText('Engine review', { exact: true })).toHaveCount(0);
   await fixture.getByRole('button', { name: 'Focus October' }).click();
   await expect(calendar.getByText('Engine review', { exact: true })).toBeVisible();
   await page.setViewportSize({ width: 320, height: 844 });
-  await expect(calendar).toHaveAttribute('data-view', 'listWeek');
+  await expect(calendar).toHaveAttribute('data-view', 'month');
+  await calendar.locator('[data-calendar-date="2026-10-05"]').click();
   await expect(calendar.getByText('Engine review', { exact: true })).toBeVisible();
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await expect(calendar).toHaveAttribute('data-view', 'dayGridMonth');
+  await expect(calendar).toHaveAttribute('data-view', 'month');
 });

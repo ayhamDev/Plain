@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { RadioGroup, Slot } from 'radix-ui';
 import { Check, ChevronRight, PanelLeft, X } from 'lucide-react';
+import { Button } from './primitives';
+import { Input } from './forms';
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from './overlays';
 import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
 
@@ -12,6 +14,7 @@ export interface SidebarContextValue {
   isMobile: boolean;
   contentId: string;
   toggle: () => void;
+  collapsible: 'icon' | 'offcanvas' | 'none';
 }
 const SidebarContext = /* @__PURE__ */ React.createContext<
   | (SidebarContextValue & { setContentId: (id: string) => void; variables: React.CSSProperties })
@@ -36,6 +39,10 @@ export interface SidebarProviderProps
   width?: string;
   collapsedWidth?: string;
   sidebarId?: string;
+  mobileWidth?: string;
+  collapsible?: 'icon' | 'offcanvas' | 'none';
+  /** Set false to disable the scoped Ctrl/Cmd shortcut. */
+  shortcut?: string | false;
 }
 
 export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
@@ -54,6 +61,9 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
       width,
       collapsedWidth,
       sidebarId,
+      mobileWidth,
+      collapsible = 'icon',
+      shortcut = 'b',
       className,
       style,
       unstyled,
@@ -70,7 +80,7 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
     const [localCollapsed, updateCollapsed] = React.useState(defaultCollapsed);
     const [localMobileOpen, updateMobileOpen] = React.useState(defaultMobileOpen);
     const [isMobile, setIsMobile] = React.useState(false);
-    const collapsed = controlledCollapsed ?? localCollapsed;
+    const collapsed = collapsible !== 'none' && (controlledCollapsed ?? localCollapsed);
     const mobileOpen = controlledMobileOpen ?? localMobileOpen;
     const setCollapsed = React.useCallback(
       (next: boolean) => {
@@ -96,8 +106,39 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
     }, [mobileBreakpoint]);
     const toggle = React.useCallback(() => {
       if (isMobile) setMobileOpen(!mobileOpen);
-      else setCollapsed(!collapsed);
-    }, [isMobile, setMobileOpen, mobileOpen, setCollapsed, collapsed]);
+      else if (collapsible !== 'none') setCollapsed(!collapsed);
+    }, [isMobile, setMobileOpen, mobileOpen, setCollapsed, collapsed, collapsible]);
+    const providerRef = React.useRef<HTMLDivElement>(null);
+    React.useImperativeHandle(ref, () => providerRef.current!);
+    React.useEffect(() => {
+      if (!shortcut) return;
+      const key = (event: KeyboardEvent) => {
+        const target = event.target as HTMLElement;
+        if (
+          !(event.ctrlKey || event.metaKey) ||
+          event.key.toLowerCase() !== shortcut.toLowerCase() ||
+          event.defaultPrevented ||
+          event.altKey ||
+          event.shiftKey
+        )
+          return;
+        if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+        if (
+          !providerRef.current?.contains(target) &&
+          !document.getElementById(contentId)?.contains(target) &&
+          !(
+            target === document.body &&
+            document.querySelectorAll('[data-ui="sidebar"][data-slot="provider"]').length === 1
+          )
+        )
+          return;
+        if (!isMobile && collapsible === 'none') return;
+        event.preventDefault();
+        toggle();
+      };
+      document.addEventListener('keydown', key);
+      return () => document.removeEventListener('keydown', key);
+    }, [shortcut, toggle, isMobile, collapsible, contentId]);
     const variables = React.useMemo(
       () =>
         ({
@@ -106,8 +147,9 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
           ),
           ...(width ? { '--ui-sidebar-width': width } : {}),
           ...(collapsedWidth ? { '--ui-sidebar-collapsed-width': collapsedWidth } : {}),
+          ...(mobileWidth ? { '--ui-sidebar-mobile-width': mobileWidth } : {}),
         }) as React.CSSProperties,
-      [style, width, collapsedWidth],
+      [style, width, collapsedWidth, mobileWidth],
     );
     const context = React.useMemo(
       () => ({
@@ -120,15 +162,26 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
         setContentId,
         toggle,
         variables,
+        collapsible,
       }),
-      [collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobile, contentId, toggle, variables],
+      [
+        collapsed,
+        setCollapsed,
+        mobileOpen,
+        setMobileOpen,
+        isMobile,
+        contentId,
+        toggle,
+        variables,
+        collapsible,
+      ],
     );
     return (
       <SidebarContext.Provider value={context}>
         <StyleProvider unstyled={unstyled}>
           <Sheet open={isMobile && mobileOpen} onOpenChange={setMobileOpen}>
             <div
-              ref={ref}
+              ref={providerRef}
               dir={direction}
               {...styles('sidebar.provider', 'ui-sidebar-provider', className, unstyled)}
               data-sidebar-state={collapsed ? 'collapsed' : 'expanded'}
@@ -155,16 +208,27 @@ SidebarProvider.displayName = 'SidebarProvider';
 export interface SidebarProps extends React.HTMLAttributes<HTMLElement>, PlainStyleProps {
   side?: 'start' | 'end';
   label?: string;
+  variant?: 'sidebar' | 'inset' | 'floating';
 }
 export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProps>(
   (
-    { side = 'start', label = 'Navigation', id, children, className, unstyled, dir, ...props },
+    {
+      side = 'start',
+      label = 'Navigation',
+      variant = 'sidebar',
+      id,
+      children,
+      className,
+      unstyled,
+      dir,
+      ...props
+    },
     ref,
   ) => {
     const styles = useStyles();
     const context = React.useContext(SidebarContext);
     if (!context) throw new Error('Sidebar must be used inside SidebarProvider.');
-    const { isMobile, collapsed, contentId, setContentId, variables } = context;
+    const { isMobile, collapsed, contentId, setContentId, variables, collapsible } = context;
     const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
     React.useEffect(() => {
       if (id) setContentId(id);
@@ -186,7 +250,7 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
               ...variables,
               ...(!(unstyled ?? styles.unstyled)
                 ? {
-                    width: 'var(--ui-sidebar-width, 256px)',
+                    width: 'var(--ui-sidebar-mobile-width, 288px)',
                     maxWidth: 'calc(100vw - 32px)',
                     borderWidth: 'var(--ui-sidebar-border-width, 0px)',
                     borderRadius: 'var(--ui-sidebar-radius, 0px)',
@@ -227,8 +291,11 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
           id={id ?? contentId}
           aria-label={label}
           {...styles('sidebar.root', 'ui-sidebar ui-sidebar-desktop', className, unstyled)}
-          data-state={collapsed ? 'collapsed' : 'expanded'}
+          data-state={collapsed && collapsible !== 'none' ? 'collapsed' : 'expanded'}
           data-side={side}
+          data-variant={variant}
+          data-collapsible={collapsible}
+          inert={collapsed && collapsible === 'offcanvas' ? true : undefined}
           {...props}
         >
           {children}
@@ -244,7 +311,7 @@ export const SidebarTrigger = /* @__PURE__ */ React.forwardRef<
   React.ButtonHTMLAttributes<HTMLButtonElement> & PlainStyleProps
 >(({ className, unstyled, onClick, children, ...props }, ref) => {
   const styles = useStyles();
-  const { isMobile, mobileOpen, collapsed, contentId, toggle } = useSidebar();
+  const { isMobile, mobileOpen, collapsed, contentId, toggle, collapsible } = useSidebar();
   const trigger = (
     <button
       ref={ref}
@@ -255,6 +322,7 @@ export const SidebarTrigger = /* @__PURE__ */ React.forwardRef<
       title={isMobile ? 'Open navigation' : collapsed ? 'Expand navigation' : 'Collapse navigation'}
       aria-expanded={isMobile ? mobileOpen : !collapsed}
       aria-controls={contentId}
+      hidden={!isMobile && collapsible === 'none'}
       {...styles('sidebar.trigger', 'ui-sidebar-trigger', className, unstyled)}
       {...props}
       onClick={(event) => {
@@ -462,13 +530,176 @@ export const SidebarItem = /* @__PURE__ */ React.forwardRef<HTMLButtonElement, S
   },
 );
 SidebarItem.displayName = 'SidebarItem';
-export const SidebarInset = /* @__PURE__ */ React.forwardRef<
-  HTMLElement,
-  React.HTMLAttributes<HTMLElement> & PlainStyleProps
+export const SidebarMenuButton = SidebarItem;
+export const SidebarGroupLabel = /* @__PURE__ */ React.forwardRef<
+  HTMLHeadingElement,
+  React.HTMLAttributes<HTMLHeadingElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
   return (
-    <main
+    <h2
+      ref={ref}
+      {...styles('sidebar.group-label', 'ui-sidebar-group-label', className, unstyled)}
+      {...props}
+    />
+  );
+});
+SidebarGroupLabel.displayName = 'SidebarGroupLabel';
+export const SidebarGroupContent = /* @__PURE__ */ React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <div
+      ref={ref}
+      {...styles('sidebar.group-content', 'ui-sidebar-group-content', className, unstyled)}
+      {...props}
+    />
+  );
+});
+SidebarGroupContent.displayName = 'SidebarGroupContent';
+export const SidebarGroupAction = /* @__PURE__ */ React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement> & PlainStyleProps & { asChild?: boolean }
+>(({ asChild, className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <Button
+      ref={ref}
+      asChild={asChild}
+      size="icon"
+      variant="ghost"
+      {...styles('sidebar.group-action', 'ui-sidebar-group-action', className, unstyled)}
+      {...props}
+    />
+  );
+});
+SidebarGroupAction.displayName = 'SidebarGroupAction';
+export const SidebarMenuAction = /* @__PURE__ */ React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement> &
+    PlainStyleProps & { asChild?: boolean; showOnHover?: boolean }
+>(({ asChild, showOnHover = false, className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <Button
+      ref={ref}
+      asChild={asChild}
+      size="icon"
+      variant="ghost"
+      data-hover-only={showOnHover || undefined}
+      {...styles('sidebar.menu-action', 'ui-sidebar-menu-action', className, unstyled)}
+      {...props}
+    />
+  );
+});
+SidebarMenuAction.displayName = 'SidebarMenuAction';
+export const SidebarMenuBadge = /* @__PURE__ */ React.forwardRef<
+  HTMLSpanElement,
+  React.HTMLAttributes<HTMLSpanElement> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <span
+      ref={ref}
+      {...styles('sidebar.menu-badge', 'ui-sidebar-menu-badge', className, unstyled)}
+      {...props}
+    />
+  );
+});
+SidebarMenuBadge.displayName = 'SidebarMenuBadge';
+export const SidebarMenuSub = /* @__PURE__ */ React.forwardRef<
+  HTMLUListElement,
+  React.HTMLAttributes<HTMLUListElement> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <ul
+      ref={ref}
+      {...styles('sidebar.menu-sub', 'ui-sidebar-menu-sub', className, unstyled)}
+      {...props}
+    />
+  );
+});
+SidebarMenuSub.displayName = 'SidebarMenuSub';
+export const SidebarMenuSubItem = SidebarMenuItem;
+export const SidebarMenuSubButton = /* @__PURE__ */ React.forwardRef<
+  HTMLButtonElement,
+  SidebarItemProps
+>(({ className, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <SidebarItem
+      ref={ref}
+      {...props}
+      {...styles('sidebar.sub-button', 'ui-sidebar-sub-button', className, props.unstyled)}
+    />
+  );
+});
+SidebarMenuSubButton.displayName = 'SidebarMenuSubButton';
+export const SidebarInput = /* @__PURE__ */ React.forwardRef<
+  HTMLInputElement,
+  React.ComponentProps<typeof Input>
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <Input
+      ref={ref}
+      {...styles('sidebar.input', 'ui-sidebar-input', className, unstyled)}
+      unstyled={unstyled}
+      {...props}
+    />
+  );
+});
+SidebarInput.displayName = 'SidebarInput';
+export const SidebarSeparator = /* @__PURE__ */ React.forwardRef<
+  HTMLHRElement,
+  React.HTMLAttributes<HTMLHRElement> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <hr
+      ref={ref}
+      {...styles('sidebar.separator', 'ui-sidebar-separator', className, unstyled)}
+      {...props}
+    />
+  );
+});
+SidebarSeparator.displayName = 'SidebarSeparator';
+export const SidebarRail = /* @__PURE__ */ React.forwardRef<
+  HTMLButtonElement,
+  React.ButtonHTMLAttributes<HTMLButtonElement> & PlainStyleProps
+>(({ className, unstyled, onClick, ...props }, ref) => {
+  const styles = useStyles();
+  const { toggle, collapsed, contentId, collapsible, isMobile } = useSidebar();
+  return (
+    <button
+      ref={ref}
+      type="button"
+      hidden={isMobile || collapsible === 'none'}
+      aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+      title={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+      aria-controls={contentId}
+      aria-expanded={!collapsed}
+      {...styles('sidebar.rail', 'ui-sidebar-rail', className, unstyled)}
+      {...props}
+      onClick={(event) => {
+        onClick?.(event);
+        if (!event.defaultPrevented) toggle();
+      }}
+    />
+  );
+});
+SidebarRail.displayName = 'SidebarRail';
+export const SidebarInset = /* @__PURE__ */ React.forwardRef<
+  HTMLElement,
+  React.HTMLAttributes<HTMLElement> & PlainStyleProps & { asChild?: boolean }
+>(({ className, unstyled, asChild, ...props }, ref) => {
+  const styles = useStyles();
+  const Element = asChild ? Slot.Root : 'main';
+  return (
+    <Element
       ref={ref}
       {...styles('sidebar.inset', 'ui-sidebar-inset', className, unstyled)}
       {...props}

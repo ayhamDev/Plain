@@ -1,0 +1,118 @@
+@layer components {
+  .ui-progress-indicator {
+    transition: width calc(240ms * var(--ui-motion-scale, 1)) var(--ui-ease-standard, ease);
+  }
+  .ui-progress-indeterminate {
+    animation: ui-progress-travel 1.6s ease-in-out infinite;
+  }
+  @keyframes ui-progress-travel {
+    0% {
+      margin-inline-start: -40%;
+    }
+    100% {
+      margin-inline-start: 100%;
+    }
+  }
+  .ui-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    min-inline-size: 0;
+    padding: 40px 24px;
+    text-align: center;
+  }
+  .ui-empty-state[data-align='start'] {
+    align-items: flex-start;
+    text-align: start;
+  }
+  .ui-empty-state[data-orientation='horizontal'] {
+    flex-direction: row;
+    align-items: flex-start;
+    text-align: start;
+    justify-content: flex-start;
+  }
+  .ui-empty-state-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-inline-size: 0;
+  }
+  .ui-empty-state-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 48px;
+    inline-size: 48px;
+    block-size: 48px;
+    border-radius: min(var(--ui-radius), 8px);
+    background: var(--ui-muted);
+    color: var(--ui-muted-foreground);
+  }
+  .ui-empty-state-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .ui-empty-state-description {
+    margin: 0;
+    max-inline-size: 40ch;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ui-muted-foreground);
+    overflow-wrap: anywhere;
+  }
+  .ui-empty-state-actions {
+    display: flex;
+    justify-content: inherit;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-block-start: 8px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ui-progress-indeterminate {
+      animation: none;
+      margin-inline-start: 30%;
+    }
+  }
+  [data-motion='none'] .ui-progress-indeterminate,
+  [data-motion='reduced'] .ui-progress-indeterminate {
+    animation: none;
+    margin-inline-start: 30%;
+  }
+  @media (forced-colors: active) {
+    .ui-progress {
+      background: Canvas;
+      border: 1px solid CanvasText;
+    }
+    .ui-progress-indicator {
+      background: Highlight;
+    }
+    input,
+    textarea,
+    .ui-temporal,
+    .ui-color-picker,
+    [role='combobox'],
+    [role='checkbox'],
+    [role='radio'],
+    [role='switch'],
+    [role='slider'] {
+      border: 1px solid ButtonText !important;
+    }
+  }
+  @media (prefers-contrast: more) {
+    input,
+    textarea,
+    .ui-temporal,
+    .ui-color-picker,
+    [role='combobox'],
+    [role='checkbox'],
+    [role='radio'],
+    [role='switch'],
+    [role='slider'] {
+      border-color: var(--ui-outline) !important;
+    }
+  }
+}

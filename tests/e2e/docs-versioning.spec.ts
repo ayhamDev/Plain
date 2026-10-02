@@ -164,7 +164,18 @@ for (const profile of [
     await appearance(page, profile.mode, profile.dir);
     await page.goto('/components/select');
     const playground = page.locator('#props-preview');
-    const team = playground.locator('.prop-playground-stage button[role="combobox"]');
+    await playground.getByRole('button', { name: 'Preview properties' }).click();
+    await choose(
+      page,
+      playground.getByRole('combobox', { name: 'position', exact: true }),
+      'item-aligned',
+    );
+    await choose(
+      page,
+      playground.getByRole('combobox', { name: 'position', exact: true }),
+      'popper',
+    );
+    const team = playground.locator('.component-preview button[role="combobox"]');
     await team.evaluate((node) => node.scrollIntoView({ block: 'center' }));
     await team.click();
     const popper = page.getByRole('listbox');
@@ -199,7 +210,7 @@ for (const profile of [
     await playground.getByRole('tab', { name: 'Code', exact: true }).click();
     await expect(playground.locator('pre')).toContainText('position="item-aligned"');
     await playground.getByRole('button', { name: 'Reset preview props' }).click();
-    await expect(playground.locator('pre')).toContainText('position="popper"');
+    await expect(playground.locator('pre')).toContainText('SelectContent');
     await noOverflow(page);
     const scan = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
@@ -265,6 +276,7 @@ for (const setting of [
     await chart.screenshot({ path: testInfo.outputPath(`bar-tooltip-${setting.width}.png`) });
     const playground = page.locator('#props-preview');
     const preview = playground.getByRole('figure');
+    await playground.getByRole('button', { name: 'Preview properties' }).click();
     await playground.getByRole('switch', { name: 'stacked', exact: true }).click();
     await playground.getByRole('switch', { name: 'yAxis', exact: true }).click();
     await expect(preview.locator('.recharts-yAxis')).toHaveCount(0);
@@ -281,7 +293,7 @@ for (const setting of [
     await playground.getByRole('button', { name: 'Reset preview props' }).click();
     await expect(preview.locator('.recharts-bar-rectangle')).toHaveCount(12);
     await playground.getByRole('tab', { name: 'Code', exact: true }).click();
-    await expect(playground.locator('pre')).toContainText('stacked={false}');
+    await expect(playground.locator('pre')).toContainText('<BarChart');
     await playground.getByRole('tab', { name: 'Preview', exact: true }).click();
     await noOverflow(page);
     const scan = await new AxeBuilder({ page })
@@ -301,6 +313,9 @@ for (const policy of ['system', 'reduced', 'none'] as const) {
     await page.emulateMedia({ reducedMotion: policy === 'reduced' ? 'reduce' : 'no-preference' });
     await appearance(page, 'dark', 'rtl', null, policy);
     await page.goto('/components/dialog');
+    await page.getByRole('button', { name: 'Preview properties' }).click();
+    await page.getByRole('switch', { name: 'showClose', exact: true }).click();
+    await page.getByRole('switch', { name: 'showClose', exact: true }).click();
     const trigger = page.getByRole('button', { name: 'Open preview dialog', exact: true });
     await trigger.click();
     const dialog = page.getByRole('dialog', { name: 'Project settings', exact: true });
@@ -406,7 +421,16 @@ for (const profile of [
       await page.goto(`/components/${slug}`);
       const playground = page.locator('#props-preview');
       await expect(playground, slug).toBeVisible();
-      await expect(playground.locator('.prop-playground-stage > *').first(), slug).toBeVisible();
+      await expect(playground.locator('.component-preview > *').first(), slug).toBeVisible();
+      await playground.getByRole('button', { name: 'Preview properties' }).click();
+      const controls = playground.locator('.preview-properties');
+      const options = controls.getByRole('combobox');
+      if (await options.count()) {
+        await options.first().click();
+        await page.getByRole('option').last().click();
+      } else if (await controls.getByRole('spinbutton').count()) {
+        await controls.getByRole('spinbutton').first().press('ArrowDown');
+      } else await controls.getByRole('switch').first().click();
       await playground.getByRole('tab', { name: 'Code', exact: true }).click();
       await expect(playground.locator('pre')).toContainText('export function Example()');
       await noOverflow(page);

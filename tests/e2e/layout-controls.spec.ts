@@ -37,7 +37,6 @@ const previews = [
   'menubar',
   'context-menu',
   'hover-card',
-  'stat',
   'timeline',
   'banner',
   'loading-overlay',
@@ -351,13 +350,15 @@ for (const profile of profiles) {
 
     test('split panels resize with their accessible keyboard handle', async ({ page }) => {
       const preview = await component(page, 'split-pane');
-      const handle = preview.getByRole('separator', { name: 'Resize panels' });
+      const handle = preview.getByRole('separator', { name: 'Resize explorer' });
       const firstPanel = preview.locator(slot('split-pane', 'panel')).first();
       await handle.focus();
-      const width = (await firstPanel.boundingBox())!.width;
-      await handle.press('ArrowRight');
+      const width = (await firstPanel.boundingBox())![profile.mobile ? 'height' : 'width'];
+      await handle.press(profile.mobile ? 'ArrowDown' : 'ArrowRight');
       await expect
-        .poll(async () => Math.abs((await firstPanel.boundingBox())!.width - width))
+        .poll(async () =>
+          Math.abs((await firstPanel.boundingBox())![profile.mobile ? 'height' : 'width'] - width),
+        )
         .toBeGreaterThan(1);
       await expect(handle).toBeFocused();
       await expect(handle).toHaveAttribute('aria-valuenow', /\d/);
@@ -446,15 +447,15 @@ test.describe('responsive sidebar navigation', () => {
       await expect(trigger).toHaveAttribute('aria-expanded', 'false');
       await expect.poll(async () => (await sidebar.boundingBox())!.width).toBe(collapsedWidth);
       await expect(sidebar.getByRole('button', { name: 'Projects', exact: true })).toBeVisible();
-      await sidebar.getByRole('button', { name: 'Projects', exact: true }).click();
-      await expect(sidebar.getByRole('button', { name: 'Projects', exact: true })).toHaveAttribute(
+      await sidebar.getByRole('button', { name: 'Inbox', exact: true }).click();
+      await expect(sidebar.getByRole('button', { name: 'Inbox', exact: true })).toHaveAttribute(
         'aria-current',
         'page',
       );
       await page.setViewportSize({ width: 390, height: 844 });
       await expect(preview.locator('aside' + slot('sidebar'))).toHaveCount(0);
       await preview.getByRole('button', { name: 'Open navigation' }).click();
-      const dialog = page.getByRole('dialog', { name: 'Preview navigation' });
+      const dialog = page.getByRole('dialog', { name: 'Workspace navigation' });
       await expect(dialog).toBeVisible();
       await page.keyboard.press('Escape');
       await expect(dialog).toHaveCount(0);
@@ -475,7 +476,7 @@ test.describe('responsive sidebar navigation', () => {
         const preview = await component(page, 'sidebar');
         const trigger = preview.getByRole('button', { name: 'Open navigation' });
         await trigger.click();
-        const dialog = page.getByRole('dialog', { name: 'Preview navigation' });
+        const dialog = page.getByRole('dialog', { name: 'Workspace navigation' });
         await expect(dialog).toHaveAttribute(
           'data-vaul-drawer-direction',
           dir === 'rtl' ? 'right' : 'left',
@@ -502,7 +503,7 @@ test.describe('responsive sidebar navigation', () => {
         await expect(dialog).toHaveCount(0);
         await expect(trigger).toBeFocused();
         await trigger.click();
-        await dialog.getByRole('button', { name: 'Projects', exact: true }).click();
+        await dialog.getByRole('button', { name: 'Inbox', exact: true }).click();
         await expect(dialog).toHaveCount(0);
         await expect(trigger).toBeFocused();
         await noOverflow(page, preview);

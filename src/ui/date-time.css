@@ -2,9 +2,13 @@
   display: flex;
   position: relative;
   align-items: center;
-  gap: 4px;
+  gap: 0;
   min-width: 0;
   width: 100%;
+  border: var(--ui-border-width, 1px) solid var(--ui-temporal-border, var(--ui-control-border));
+  border-radius: var(--ui-temporal-radius, var(--ui-radius));
+  background: var(--ui-temporal-background, var(--ui-surface));
+  padding-inline-end: 4px;
 }
 
 .ui-temporal-input,
@@ -47,6 +51,49 @@
 
 .ui-temporal-input[data-calendar]::-webkit-calendar-picker-indicator {
   display: none;
+}
+
+.ui-temporal-input[data-custom-picker]::-webkit-calendar-picker-indicator {
+  display: none;
+}
+.ui-temporal .ui-temporal-input {
+  border: 0;
+  background: transparent;
+  outline: none;
+}
+.ui-temporal:focus-within {
+  outline: 2px solid var(--ui-temporal-focus, var(--ui-focus-ring));
+  outline-offset: 2px;
+}
+.ui-temporal:has([aria-invalid='true']) {
+  border-color: var(--ui-danger);
+}
+.ui-temporal .ui-temporal-action {
+  flex-shrink: 0;
+}
+.ui-time-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-block: 12px;
+  border-block-start: 1px solid var(--ui-border);
+}
+.ui-time-choice {
+  flex: 1 1 72px;
+  min-inline-size: 0;
+}
+.ui-time-choice label {
+  display: block;
+  margin-block-end: 6px;
+  font-size: 12px;
+  color: var(--ui-muted-foreground);
+}
+.ui-time-choice [role='combobox'] {
+  padding-inline: 8px;
+}
+.ui-temporal-done {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .ui-temporal-action {

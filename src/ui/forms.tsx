@@ -287,7 +287,7 @@ export const Slider = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       {...styles(
         'slider.root',
-        'relative flex h-6 w-full touch-none select-none items-center data-[orientation=vertical]:h-40 data-[orientation=vertical]:w-6 data-[orientation=vertical]:flex-col disabled:opacity-45',
+        'ui-slider relative flex h-10 w-full touch-none select-none items-center data-[orientation=vertical]:h-40 data-[orientation=vertical]:w-10 data-[orientation=vertical]:flex-col data-[disabled]:opacity-45',
         className,
         unstyled,
       )}
@@ -296,7 +296,7 @@ export const Slider = /* @__PURE__ */ React.forwardRef<
       <SliderPrimitive.Track
         {...styles(
           'slider.track',
-          'relative h-1 w-full grow overflow-hidden rounded-full bg-[var(--ui-slider-track,var(--ui-border))] data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1',
+          'relative h-1.5 w-full grow overflow-hidden rounded-full bg-[var(--ui-slider-track,var(--ui-border))] data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5',
           undefined,
           unstyled,
         )}
@@ -304,7 +304,7 @@ export const Slider = /* @__PURE__ */ React.forwardRef<
         <SliderPrimitive.Range
           {...styles(
             'slider.range',
-            'absolute h-full bg-[var(--ui-slider-range,var(--ui-accent))] data-[orientation=vertical]:w-full',
+            'absolute h-full rounded-full bg-[var(--ui-slider-range,var(--ui-accent))] data-[orientation=vertical]:w-full',
             undefined,
             unstyled,
           )}
@@ -320,7 +320,7 @@ export const Slider = /* @__PURE__ */ React.forwardRef<
           }
           {...styles(
             'slider.thumb',
-            'ui-interactive block size-4 rounded-full border-2 border-accent bg-[var(--ui-slider-thumb,var(--ui-surface))] shadow-sm hover:shadow-[0_0_0_4px_var(--ui-accent-soft)] focus-visible:outline-2 focus-visible:outline-accent disabled:pointer-events-none',
+            'ui-interactive block size-5 rounded-full border border-border bg-[var(--ui-slider-thumb,var(--ui-surface))] shadow-sm hover:shadow-[0_0_0_5px_var(--ui-accent-soft)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent data-[disabled]:pointer-events-none',
             undefined,
             unstyled,
           )}
