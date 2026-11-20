@@ -5,6 +5,7 @@ import { CodeBlock } from './shared';
 import { workspaceComponents as workspaceDefinitions } from './workspace-catalog';
 import { chartSampleData, donutSampleData } from './chart-samples';
 import { refinementPreviews } from './refinement-previews';
+import { emptyStatePreview } from './empty-state-preview';
 const WorkspacePreview = React.lazy(() => import('./examples/WorkspaceExample'));
 const TablePreview = React.lazy(() => import('./examples/TableWorkspaceExample'));
 const ChartPreview = React.lazy(() => import('./examples/ChartExample'));
@@ -149,6 +150,7 @@ const popoverControls = [
 ];
 
 export const propPreviews: Record<string, PropPreview> = {
+  'empty-state': emptyStatePreview,
   button: {
     defaults: { variant: 'primary', size: 'md', loading: false, disabled: false },
     controls: [

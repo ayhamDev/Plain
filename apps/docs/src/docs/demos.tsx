@@ -14,6 +14,9 @@ import {
   Check,
   ChevronsUpDown,
   Layers,
+  Folder,
+  Upload,
+  ExternalLink,
 } from 'lucide-react';
 import * as UI from '@plain/ui';
 const ExtendedExamples = React.lazy(() => import('./ExtendedExamples'));
@@ -861,16 +864,39 @@ export function ComponentExample({ slug }: { slug: string }) {
       );
     case 'empty-state':
       return (
-        <UI.EmptyState
-          title="Room for your next idea"
-          description="No projects yet. Start with something small."
-          action={
-            <UI.Button onClick={() => UI.toast.success('Your first demo project is ready')}>
-              <Plus aria-hidden="true" />
-              Create project
-            </UI.Button>
-          }
-        />
+        <UI.EmptyState>
+          <UI.EmptyStateMedia variant="icon" shape="circle">
+            <Folder size={24} aria-hidden="true" />
+          </UI.EmptyStateMedia>
+          <UI.EmptyStateContent>
+            <UI.EmptyStateTitle>Room for your next idea</UI.EmptyStateTitle>
+            <UI.EmptyStateDescription>
+              No projects yet. Start fresh, or bring your existing work.
+            </UI.EmptyStateDescription>
+            <UI.EmptyStateActions>
+              <UI.Button onClick={() => UI.toast.success('Your first demo project is ready')}>
+                <Plus aria-hidden="true" />
+                Create project
+              </UI.Button>
+              <UI.Button
+                variant="secondary"
+                onClick={() => UI.toast.info('Connect your application import flow to this action')}
+              >
+                <Upload aria-hidden="true" />
+                Import projects
+              </UI.Button>
+              <UI.Button variant="outline" asChild>
+                <a href="/docs/introduction">
+                  <ExternalLink aria-hidden="true" />
+                  Documentation
+                </a>
+              </UI.Button>
+            </UI.EmptyStateActions>
+            <UI.EmptyStateFooter>
+              You can add forms, links, illustrations and any number of actions.
+            </UI.EmptyStateFooter>
+          </UI.EmptyStateContent>
+        </UI.EmptyState>
       );
     default:
       return (

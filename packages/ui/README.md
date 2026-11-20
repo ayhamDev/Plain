@@ -85,6 +85,47 @@ with `handleOnly={false}`. Use `maxWidth` with detached or floating bottom sheet
 for centered, bounded panels. Toasts now use the current surface and include a
 close button; `invert` and `closeButton={false}` retain the previous appearance.
 
+## Empty states
+
+Use any number of actions, custom media and supporting content with the shorthand:
+
+```tsx
+<EmptyState
+  title="No projects yet"
+  description="Start fresh, or bring your existing work."
+  actions={
+    <>
+      <Button onClick={createProject}>Create project</Button>
+      <Button variant="secondary" onClick={importProjects}>
+        Import projects
+      </Button>
+      <Button variant="outline" asChild>
+        <a href="/help">Documentation</a>
+      </Button>
+    </>
+  }
+  footer="You can invite your team later."
+/>
+```
+
+Import the parts from `@plain/ui` or `@plain/ui/primitives`. The callbacks above
+belong to your application. `actions` accepts arbitrary React content and takes
+precedence over the compatible `action` prop. `media` replaces the default icon;
+`icon={null}` or `media={null}` hides it. `variant` supports `default`, `muted` and
+`outlined`; `size` supports `sm`, `md` and `lg`.
+
+For complete control, supply children using `EmptyStateMedia`, `EmptyStateContent`,
+`EmptyStateTitle`, `EmptyStateDescription`, `EmptyStateActions` and `EmptyStateFooter`.
+Children replace the shorthand layout. Content accepts forms, lists and arbitrary
+markup. Actions wrap by default; `layout="column"` stacks them and `align` controls
+logical alignment. Media's `variant="icon"` adds a neutral container; `shape` accepts
+`rounded`, `circle` and `square`. Plain media has no fixed dimensions.
+
+Title defaults to `h3`; use `asChild` with your own heading when appropriate.
+Description defaults to `p`; use `asChild` with a `div` for rich block content.
+Every part forwards native props and refs and supports styling slots and `unstyled`.
+Use the same semantic tokens as the rest of P.UI when customizing these parts.
+
 ## Scroll areas
 
 ScrollArea widens its scrollbar on hover without changing viewport geometry.

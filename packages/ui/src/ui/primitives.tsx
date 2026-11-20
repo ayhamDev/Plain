@@ -659,9 +659,17 @@ export interface EmptyStateProps
   title?: React.ReactNode;
   description?: React.ReactNode;
   icon?: React.ReactNode;
+  /** Replaces the default icon with arbitrary media. Null hides the media. */
+  media?: React.ReactNode;
+  /** Any number of buttons, links or custom actions. Takes precedence over action. */
+  actions?: React.ReactNode;
+  /** @deprecated Prefer actions. Retained for backwards compatibility. */
   action?: React.ReactNode;
+  footer?: React.ReactNode;
   align?: 'center' | 'start';
   orientation?: 'vertical' | 'horizontal';
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'muted' | 'outlined';
 }
 export const EmptyState = /* @__PURE__ */ React.forwardRef<HTMLDivElement, EmptyStateProps>(
   (
@@ -669,10 +677,15 @@ export const EmptyState = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Empty
       title,
       description,
       icon,
+      media,
       action,
+      actions,
+      footer,
       children,
       align = 'center',
       orientation = 'vertical',
+      size = 'md',
+      variant = 'default',
       className,
       unstyled,
       ...props
@@ -680,6 +693,7 @@ export const EmptyState = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Empty
     ref,
   ) => {
     const styles = useStyles();
+    const resolvedActions = actions !== undefined ? actions : action;
 
     return (
       <StyleProvider unstyled={unstyled}>
@@ -688,17 +702,30 @@ export const EmptyState = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Empty
           {...styles('empty-state.root', 'ui-empty-state', className, unstyled)}
           data-align={align}
           data-orientation={orientation}
+          data-size={size}
+          data-variant={variant}
           {...props}
         >
           {children ?? (
             <>
-              <EmptyStateIcon>{icon ?? <Inbox size={22} aria-hidden="true" />}</EmptyStateIcon>
+              {media !== undefined ? (
+                media != null && media !== false ? (
+                  <EmptyStateMedia>{media}</EmptyStateMedia>
+                ) : null
+              ) : icon !== null && icon !== false ? (
+                <EmptyStateIcon>{icon ?? <Inbox size={22} aria-hidden="true" />}</EmptyStateIcon>
+              ) : null}
               <EmptyStateContent>
                 {title != null && <EmptyStateTitle>{title}</EmptyStateTitle>}
                 {description != null && (
                   <EmptyStateDescription>{description}</EmptyStateDescription>
                 )}
-                {action != null && <EmptyStateActions>{action}</EmptyStateActions>}
+                {resolvedActions != null && resolvedActions !== false && (
+                  <EmptyStateActions>{resolvedActions}</EmptyStateActions>
+                )}
+                {footer != null && footer !== false && (
+                  <EmptyStateFooter>{footer}</EmptyStateFooter>
+                )}
               </EmptyStateContent>
             </>
           )}
@@ -708,6 +735,28 @@ export const EmptyState = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Empty
   },
 );
 EmptyState.displayName = 'EmptyState';
+export interface EmptyStateMediaProps
+  extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps {
+  variant?: 'plain' | 'icon';
+  shape?: 'rounded' | 'circle' | 'square';
+}
+/** An unframed illustration by default; icon adds the standard neutral container. */
+export const EmptyStateMedia = /* @__PURE__ */ React.forwardRef<
+  HTMLDivElement,
+  EmptyStateMediaProps
+>(({ className, unstyled, variant = 'plain', shape = 'rounded', ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <div
+      ref={ref}
+      {...styles('empty-state.media', 'ui-empty-state-media', className, unstyled)}
+      data-variant={variant}
+      data-shape={shape}
+      {...props}
+    />
+  );
+});
+EmptyStateMedia.displayName = 'EmptyStateMedia';
 export const EmptyStateIcon = /* @__PURE__ */ React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
@@ -740,12 +789,13 @@ export const EmptyStateContent = /* @__PURE__ */ React.forwardRef<
 EmptyStateContent.displayName = 'EmptyStateContent';
 export const EmptyStateTitle = /* @__PURE__ */ React.forwardRef<
   HTMLHeadingElement,
-  React.HTMLAttributes<HTMLHeadingElement> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
+  React.HTMLAttributes<HTMLHeadingElement> & PlainStyleProps & { asChild?: boolean }
+>(({ className, unstyled, asChild, ...props }, ref) => {
   const styles = useStyles();
+  const Element = asChild ? Slot.Root : 'h3';
 
   return (
-    <h3
+    <Element
       ref={ref}
       {...styles('empty-state.title', 'ui-empty-state-title', className, unstyled)}
       {...props}
@@ -755,12 +805,13 @@ export const EmptyStateTitle = /* @__PURE__ */ React.forwardRef<
 EmptyStateTitle.displayName = 'EmptyStateTitle';
 export const EmptyStateDescription = /* @__PURE__ */ React.forwardRef<
   HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
+  React.HTMLAttributes<HTMLParagraphElement> & PlainStyleProps & { asChild?: boolean }
+>(({ className, unstyled, asChild, ...props }, ref) => {
   const styles = useStyles();
+  const Element = asChild ? Slot.Root : 'p';
 
   return (
-    <p
+    <Element
       ref={ref}
       {...styles('empty-state.description', 'ui-empty-state-description', className, unstyled)}
       {...props}
@@ -768,18 +819,44 @@ export const EmptyStateDescription = /* @__PURE__ */ React.forwardRef<
   );
 });
 EmptyStateDescription.displayName = 'EmptyStateDescription';
+export interface EmptyStateActionsProps
+  extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps {
+  layout?: 'row' | 'column';
+  align?: 'inherit' | 'start' | 'center' | 'end';
+}
 export const EmptyStateActions = /* @__PURE__ */ React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
+  EmptyStateActionsProps
+>(({ className, unstyled, layout = 'row', align = 'inherit', ...props }, ref) => {
   const styles = useStyles();
 
   return (
     <div
       ref={ref}
-      {...styles('empty-state.action', 'ui-empty-state-actions', className, unstyled)}
+      {...styles(
+        'empty-state.action',
+        'ui-empty-state-actions [&_button]:whitespace-normal [&_a]:whitespace-normal',
+        className,
+        unstyled,
+      )}
+      data-layout={layout}
+      data-align={align}
       {...props}
     />
   );
 });
 EmptyStateActions.displayName = 'EmptyStateActions';
+export const EmptyStateFooter = /* @__PURE__ */ React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
+>(({ className, unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return (
+    <div
+      ref={ref}
+      {...styles('empty-state.footer', 'ui-empty-state-footer', className, unstyled)}
+      {...props}
+    />
+  );
+});
+EmptyStateFooter.displayName = 'EmptyStateFooter';

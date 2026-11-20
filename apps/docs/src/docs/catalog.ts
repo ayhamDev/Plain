@@ -946,17 +946,62 @@ export const components: ComponentDefinition[] = [
     'Empty state',
     'Feedback',
     'A useful starting point when there is nothing here yet.',
-    ['EmptyState', 'Button'],
-    '<EmptyState\n  title="No projects yet"\n  description="Your next idea starts here."\n  action={<Button>Create project</Button>}\n/>',
+    [
+      'EmptyState',
+      'EmptyStateMedia',
+      'EmptyStateContent',
+      'EmptyStateTitle',
+      'EmptyStateDescription',
+      'EmptyStateActions',
+      'EmptyStateFooter',
+      'Button',
+    ],
+    '<EmptyState variant="outlined">\n  <EmptyStateMedia variant="icon" shape="circle"><span aria-hidden="true">P</span></EmptyStateMedia>\n  <EmptyStateContent>\n    <EmptyStateTitle asChild><h2>No projects yet</h2></EmptyStateTitle>\n    <EmptyStateDescription>Start fresh, or bring your existing work.</EmptyStateDescription>\n    <EmptyStateActions>\n      <Button onClick={() => setMessage("Create selected")}>Create project</Button>\n      <Button variant="secondary" onClick={() => setMessage("Import selected")}>Import projects</Button>\n      <Button variant="outline" asChild><a href="/docs/introduction">Documentation</a></Button>\n    </EmptyStateActions>\n    <EmptyStateFooter><span role="status">{message}</span></EmptyStateFooter>\n  </EmptyStateContent>\n</EmptyState>',
     [
       prop('title', 'ReactNode', 'Optional shorthand heading.'),
       prop('description', 'ReactNode', 'Optional context or next step.'),
-      prop('icon', 'ReactNode', 'A custom decorative icon.'),
-      prop('action', 'ReactNode', 'An optional recovery or creation action.'),
+      prop('icon', 'ReactNode', 'A custom icon; null or false hides the default icon.'),
+      prop(
+        'media',
+        'ReactNode',
+        'Arbitrary illustration, avatar, image or media. Overrides icon; null or false hides it.',
+      ),
+      prop(
+        'actions',
+        'ReactNode',
+        'Any number of buttons, links or custom controls. Overrides the legacy action prop, including when null.',
+      ),
+      prop('action', 'ReactNode', 'Legacy shorthand retained for compatibility. Prefer actions.'),
+      prop('footer', 'ReactNode', 'Optional supporting content after the actions.'),
+      prop(
+        'variant',
+        'default | muted | outlined',
+        'Unframed, muted surface or outlined container.',
+        'default',
+      ),
+      prop('size', 'sm | md | lg', 'Compact, standard or spacious padding and gaps.', 'md'),
       prop(
         'children',
         'ReactNode',
-        'Compose EmptyStateIcon, Content, Title, Description and Actions instead of shorthand props.',
+        'Fully replace the shorthand layout. Compose EmptyStateMedia (or Icon), Content, Title, Description, Actions and Footer with forms or arbitrary application content.',
+      ),
+      prop(
+        'EmptyStateMedia.variant / shape',
+        'plain | icon / rounded | circle | square',
+        'Unframed media or a neutral icon container, with customizable shape. Native style/props allow any dimensions.',
+        'plain / rounded',
+      ),
+      prop(
+        'EmptyStateActions.layout / align',
+        'row | column / inherit | start | center | end',
+        'Wrapping or stacked actions, with inherited logical alignment by default.',
+        'row / inherit',
+      ),
+      prop(
+        'EmptyStateTitle / Description.asChild',
+        'boolean',
+        'Use your own semantic heading or rich description element while retaining styling and refs.',
+        'false',
       ),
       prop(
         'align / orientation',
@@ -965,12 +1010,18 @@ export const components: ComponentDefinition[] = [
         'center / vertical',
       ),
     ],
-    'EmptyState is a layout primitive, not a required application schema. Supply children for arbitrary content, illustrations and actions. EmptyStateTitle is an h3; use a different semantic heading inside Content when the page hierarchy requires it. Native props and refs apply to every part.',
+    'EmptyState is a layout primitive without forced live-region or interaction roles. Use any number of actions and put forms, lists and custom content in Content. Title defaults to h3; asChild supports the heading level required by your page. Description defaults to p; use asChild with a div for block content. Label meaningful images and controls; hide decorative media from assistive technology. Use a small dedicated status region for dynamic feedback, rather than announcing every action. Every part preserves native props and refs, typed styling slots and unstyled inheritance.',
   ),
   ...extendedComponents,
   ...workspaceComponents,
   ...refinementComponents,
 ];
+
+const emptyStateDefinition = components.find((component) => component.slug === 'empty-state')!;
+emptyStateDefinition.functionSetup =
+  'const [message, setMessage] = React.useState("Choose how to get started.");';
+emptyStateDefinition.usage =
+  'Use the compound parts for arbitrary content and action layouts. For a quick state, title, description, media, actions and footer also accept React nodes. Existing action remains supported. Children replace the shorthand layout; they are never limited to a particular schema or action count.';
 
 for (const component of components) {
   const additions = refinementProps[component.slug];
