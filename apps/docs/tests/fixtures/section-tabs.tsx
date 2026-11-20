@@ -1,6 +1,14 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
-import { PlainProvider, Tabs, TabsList, TabsTrigger, TabsContent, Button } from '@plain/ui';
+import {
+  PlainProvider,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+  Button,
+  tokensToStyle,
+} from '@plain/ui';
 import '@plain/ui/styles.css';
 
 const sections = [
@@ -50,7 +58,16 @@ function Fixture() {
               animated={params.get('animated') !== 'off'}
               indicatorThickness={1}
               size={params.get('size') === 'sm' ? 'sm' : params.get('size') === 'lg' ? 'lg' : 'md'}
-              style={vertical ? { height: 180 } : undefined}
+              style={{
+                ...(vertical ? { height: 180 } : {}),
+                ...(params.has('barSize')
+                  ? tokensToStyle({
+                      'tabs.scrollbar-size': `${Number(params.get('barSize'))}px`,
+                      'tabs.scrollbar-thumb': '#315e9e',
+                      'tabs.scrollbar-track': '#edf3fb',
+                    })
+                  : {}),
+              }}
             >
               {sections.map((section) => (
                 <TabsTrigger key={section} value={section} disabled={section === 'Tax'}>

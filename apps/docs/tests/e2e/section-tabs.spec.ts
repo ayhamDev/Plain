@@ -1,6 +1,9 @@
 import { test, expect, type Locator } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
+// The runner otherwise hides native scrollbars, masking real drag/paint regressions.
+test.use({ launchOptions: { ignoreDefaultArgs: ['--hide-scrollbars'] } });
+
 async function revealed(list: Locator, selected: Locator) {
   await expect
     .poll(async () => {
@@ -117,6 +120,163 @@ test('manual activation and vertical overflow retain keyboard focus visibility',
   await expect(details).toHaveAttribute('aria-selected', 'true');
   await revealed(list, details);
   await expect(details).toHaveCSS('outline-offset', '-3px');
+  await expect(details).toHaveCSS('outline-style', 'solid');
+  await expect(details).toHaveCSS('outline-width', '2px');
+});
+
+for (const animated of [true, false]) {
+  test(`mouse selection paints only a thin underline with animation ${animated ? 'on' : 'off'}`, async ({
+    page,
+  }, info) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await page.goto(`/tests/fixtures/section-tabs.html?animated=${animated ? 'on' : 'off'}`);
+    const list = page.getByRole('tablist', { name: 'Record sections' });
+    const tab = list.getByRole('tab', { name: 'UOM', exact: true });
+    await tab.click();
+    await expect(tab).toHaveAttribute('aria-selected', 'true');
+    await expect(tab).toHaveCSS('outline-style', 'none');
+    if (animated) {
+      const indicator = list.locator('.ui-selection-indicator');
+      await expect(indicator).toHaveCSS('height', '1px');
+      await expect(indicator).toHaveCSS('box-shadow', 'none');
+    } else {
+      const height = await tab.evaluate((node) => getComputedStyle(node, '::after').height);
+      expect(height).toBe('1px');
+      await expect(tab).toHaveCSS('box-shadow', 'none');
+    }
+    const png = (await list.screenshot({ animations: 'disabled' })).toString('base64');
+    const range = await page.evaluate(async (png) => {
+      const bitmap = await createImageBitmap(
+        await (await fetch(`data:image/png;base64,${png}`)).blob(),
+      );
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const context = canvas.getContext('2d')!;
+      context.drawImage(bitmap, 0, 0);
+      bitmap.close();
+      const pixels = context.getImageData(1, 2, canvas.width - 2, 4).data;
+      const min = [255, 255, 255],
+        max = [0, 0, 0];
+      for (let i = 0; i < pixels.length; i += 4)
+        for (let channel = 0; channel < 3; channel++) {
+          min[channel] = Math.min(min[channel], pixels[i + channel]);
+          max[channel] = Math.max(max[channel], pixels[i + channel]);
+        }
+      return Math.max(...max.map((value, index) => value - min[index]));
+    }, png);
+    expect(
+      range,
+      'Space above the tab labels must stay clear of vertical side strokes',
+    ).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: info.outputPath(`clean-underline-${animated}.png`) });
+  });
+}
+
+for (const dir of ['ltr', 'rtl']) {
+  test(`overflowing tabs have a visible draggable scrollbar in ${dir}`, async ({ page }, info) => {
+    await page.setViewportSize({ width: 390, height: 800 });
+    await page.goto(
+      `/tests/fixtures/section-tabs.html?dir=${dir}&theme=${dir === 'rtl' ? 'dark' : 'light'}`,
+    );
+    const list = page.getByRole('tablist', { name: 'Record sections' });
+    const bar = await list.evaluate((node) => {
+      const css = getComputedStyle(node),
+        rect = node.getBoundingClientRect();
+      const size =
+        rect.height -
+        node.clientHeight -
+        parseFloat(css.borderTopWidth) -
+        parseFloat(css.borderBottomWidth);
+      const thumb = (node.clientWidth * node.clientWidth) / node.scrollWidth;
+      return {
+        size,
+        thumb,
+        x: rect.x + node.clientLeft,
+        y: rect.y + parseFloat(css.borderTopWidth) + node.clientHeight + size / 2,
+        width: node.clientWidth,
+      };
+    });
+    expect(bar.size).toBe(12);
+    const x = bar.x + (dir === 'rtl' ? bar.width - bar.thumb / 2 : bar.thumb / 2);
+    await page.mouse.move(x, bar.y);
+    await page.mouse.down();
+    await page.mouse.move(x + (dir === 'rtl' ? -100 : 100), bar.y, { steps: 12 });
+    await page.mouse.up();
+    await expect.poll(() => list.evaluate((node) => Math.abs(node.scrollLeft))).toBeGreaterThan(80);
+    await expect(list.getByRole('tab', { name: 'Details', exact: true })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    await page.mouse.move(1, 1);
+    const contrast = await list.evaluate((node) => {
+      const rgb = (value: string) =>
+        value
+          .match(/[\d.]+/g)!
+          .slice(0, 3)
+          .map(Number);
+      const luminance = (color: number[]) =>
+        color
+          .map((value) => {
+            const s = value / 255;
+            return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+          })
+          .reduce((sum, value, i) => sum + value * [0.2126, 0.7152, 0.0722][i], 0);
+      const thumb = luminance(
+        rgb(getComputedStyle(node, '::-webkit-scrollbar-thumb').backgroundColor),
+      );
+      const track = luminance(
+        rgb(getComputedStyle(node, '::-webkit-scrollbar-track').backgroundColor),
+      );
+      return (Math.max(thumb, track) + 0.05) / (Math.min(thumb, track) + 0.05);
+    });
+    expect(contrast).toBeGreaterThanOrEqual(3);
+    await list.evaluate((node) => {
+      node.scrollLeft = 0;
+    });
+    await list.hover();
+    await page.mouse.wheel(dir === 'rtl' ? -100 : 100, 0);
+    await expect.poll(() => list.evaluate((node) => Math.abs(node.scrollLeft))).toBeGreaterThan(20);
+    await list.evaluate((node) => {
+      node.scrollLeft = 0;
+    });
+    await page.keyboard.down('Shift');
+    await page.mouse.wheel(0, dir === 'rtl' ? -100 : 100);
+    await page.keyboard.up('Shift');
+    await expect.poll(() => list.evaluate((node) => Math.abs(node.scrollLeft))).toBeGreaterThan(20);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth - innerWidth),
+    ).toBeLessThanOrEqual(1);
+    await page.screenshot({ path: info.outputPath(`visible-scrollbar-${dir}.png`) });
+  });
+}
+
+test('scrollbar token overrides and forced colors retain visible feedback', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto('/tests/fixtures/section-tabs.html?barSize=20&motion=none');
+  const list = page.getByRole('tablist');
+  const size = await list.evaluate(
+    (node) =>
+      node.getBoundingClientRect().height -
+      node.clientHeight -
+      parseFloat(getComputedStyle(node).borderBottomWidth),
+  );
+  expect(size).toBe(20);
+  expect(
+    await list.evaluate(
+      (node) => getComputedStyle(node, '::-webkit-scrollbar-thumb').backgroundColor,
+    ),
+  ).toBe('rgb(49, 94, 158)');
+  await page.emulateMedia({ forcedColors: 'active' });
+  const indicator = list.locator('.ui-selection-indicator');
+  await expect(indicator).toHaveCSS('height', '1px');
+  await expect(indicator).toHaveCSS('background-color', 'rgb(0, 0, 0)');
+  await list.getByRole('tab', { name: 'Details', exact: true }).focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(list.getByRole('tab', { name: 'Accounting', exact: true })).toHaveCSS(
+    'outline-style',
+    'solid',
+  );
 });
 
 test('docs expose the reference section bar and matching configuration source', async ({

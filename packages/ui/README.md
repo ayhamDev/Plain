@@ -276,8 +276,17 @@ tabs, including controlled selection, without moving the surrounding page. Bound
 the parent width, or the list height for a vertical layout. It preserves native
 refs, tab keyboard behavior, disabled items, RTL and reduced motion.
 
+Scrollable tabs show a native draggable scrollbar whenever content overflows.
+Its default track is 12px with a contrasting thumb, and it works with pointer
+dragging, horizontal trackpad input and Shift-wheel. Keyboard focus keeps its
+visible inset outline. The active underline is a thin painted bar, without a
+full-height inset shadow or side lines, including when animation is disabled.
+
 Theme aliases `tabs.border`, `tabs.indicator-color` and `tabs.indicator-thickness`
-customize the baseline and underline. Styling slots and `unstyled` remain available.
+customize the baseline and underline. `tabs.scrollbar-size`, `tabs.scrollbar-thumb`
+and `tabs.scrollbar-track` customize the native scrollbar; browsers and platform
+settings govern native scrollbar rendering. Styling slots and `unstyled` remain
+available.
 
 ## Empty states
 

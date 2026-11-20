@@ -241,11 +241,37 @@
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-inline: contain;
-    scrollbar-width: none;
+    scrollbar-width: auto;
+    scrollbar-color: var(--ui-tabs-scrollbar-thumb, var(--ui-muted-foreground))
+      var(--ui-tabs-scrollbar-track, var(--ui-muted));
     scroll-padding: 4px;
   }
   .ui-tabs-list[data-scrollable]::-webkit-scrollbar {
+    display: block;
+    width: var(--ui-tabs-scrollbar-size, 12px);
+    height: var(--ui-tabs-scrollbar-size, 12px);
+  }
+  .ui-tabs-list[data-scrollable]::-webkit-scrollbar-track {
+    background: var(--ui-tabs-scrollbar-track, var(--ui-muted));
+    border-radius: 999px;
+  }
+  .ui-tabs-list[data-scrollable]::-webkit-scrollbar-thumb {
+    background: var(--ui-tabs-scrollbar-thumb, var(--ui-muted-foreground));
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 999px;
+  }
+  .ui-tabs-list[data-scrollable]::-webkit-scrollbar-thumb:hover {
+    background-color: var(--ui-foreground);
+  }
+  .ui-tabs-list[data-scrollable]::-webkit-scrollbar-button {
     display: none;
+  }
+  @supports selector(::-webkit-scrollbar) {
+    .ui-tabs-list[data-scrollable] {
+      /* Standard colors would suppress the explicit native track size here. */
+      scrollbar-color: auto;
+    }
   }
   .ui-tabs-list[data-scrollable] .ui-tabs-trigger:focus-visible {
     outline-offset: -3px;
@@ -280,15 +306,28 @@
     background: var(--ui-tabs-active, var(--ui-surface));
   }
   .ui-tabs-list[data-variant='underline'] > .ui-selection-indicator {
-    background: transparent;
+    block-size: var(--ui-tabs-indicator-thickness, 2px);
+    background: var(--ui-tabs-indicator-color, var(--ui-accent));
     border-radius: 0;
-    box-shadow: inset 0 calc(-1 * var(--ui-tabs-indicator-thickness, 2px))
-      var(--ui-tabs-indicator-color, var(--ui-accent));
+    box-shadow: none;
+    transform: translate3d(
+      var(--ui-selection-x, 0px),
+      calc(
+        var(--ui-selection-y, 0px) + var(--ui-selection-height, 0px) -
+          var(--ui-tabs-indicator-thickness, 2px)
+      ),
+      0
+    );
   }
   .ui-tabs-list[data-variant='underline']:not([data-has-indicator])
-    .ui-tabs-trigger[data-state='active'] {
-    box-shadow: inset 0 calc(-1 * var(--ui-tabs-indicator-thickness, 2px))
-      var(--ui-tabs-indicator-color, var(--ui-accent));
+    .ui-tabs-trigger[data-state='active']::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    block-size: var(--ui-tabs-indicator-thickness, 2px);
+    background: var(--ui-tabs-indicator-color, var(--ui-accent));
+    pointer-events: none;
   }
   .ui-tabs-list[data-orientation='vertical'] {
     flex-direction: column;
@@ -298,6 +337,26 @@
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior-block: contain;
+  }
+  @media (forced-colors: active) {
+    .ui-tabs-list[data-scrollable] {
+      scrollbar-color: auto;
+    }
+    .ui-tabs-list[data-scrollable]::-webkit-scrollbar-track {
+      background: Canvas;
+      forced-color-adjust: none;
+    }
+    .ui-tabs-list[data-scrollable]::-webkit-scrollbar-thumb,
+    .ui-tabs-list[data-scrollable]::-webkit-scrollbar-thumb:hover {
+      background-color: CanvasText;
+      forced-color-adjust: none;
+    }
+    .ui-tabs-list[data-variant='underline'] > .ui-selection-indicator,
+    .ui-tabs-list[data-variant='underline']:not([data-has-indicator])
+      .ui-tabs-trigger[data-state='active']::after {
+      background: CanvasText;
+      forced-color-adjust: none;
+    }
   }
   .ui-segmented-control > .ui-selection-indicator {
     background: var(--ui-segmented-control-active-background, var(--ui-background));

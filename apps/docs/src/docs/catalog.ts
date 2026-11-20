@@ -359,7 +359,7 @@ export const components: ComponentDefinition[] = [
       prop(
         'scrollable',
         'boolean',
-        'Keep a single scrolling row (or bounded vertical list), reveal selected tabs and contain overflow. Constrain the parent width or vertical height.',
+        'Keep a single scrolling row (or bounded vertical list), reveal selected tabs and show a contrasting native draggable scrollbar on overflow. Constrain the parent width or vertical height. tabs.scrollbar-size, tabs.scrollbar-thumb and tabs.scrollbar-track customize its appearance.',
         'false',
       ),
       prop('size', 'sm | md | lg', 'TabsList label size, height and spacing.', 'md'),

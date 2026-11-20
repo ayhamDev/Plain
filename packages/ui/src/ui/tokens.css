@@ -289,6 +289,9 @@
   --ui-tabs-border: var(--ui-border);
   --ui-tabs-indicator-color: var(--ui-accent);
   --ui-tabs-indicator-thickness: 2px;
+  --ui-tabs-scrollbar-size: 12px;
+  --ui-tabs-scrollbar-thumb: var(--ui-muted-foreground);
+  --ui-tabs-scrollbar-track: var(--ui-muted);
   --ui-edge-handle-color: var(--ui-accent);
   --ui-gantt-weekend: var(--ui-muted);
   --ui-gantt-bar-background: var(--ui-surface);
