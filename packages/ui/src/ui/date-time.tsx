@@ -536,7 +536,12 @@ function TemporalInput({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              {...styles('temporal.content', 'ui-temporal-content', undefined, unstyled)}
+              {...styles(
+                'temporal.content',
+                kind === 'time' ? 'ui-temporal-content ui-time-content' : 'ui-temporal-content',
+                undefined,
+                unstyled,
+              )}
               dir={direction}
               aria-label={kind === 'time' ? timeLabel : calendarLabel}
               onCloseAutoFocus={(event) => {

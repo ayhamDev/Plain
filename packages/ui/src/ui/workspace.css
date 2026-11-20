@@ -369,10 +369,6 @@
 .ui-drawer[data-variant='floating'] {
   box-shadow: var(--ui-shadow);
 }
-.ui-time-choices {
-  padding: 16px 0;
-  gap: 12px;
-}
 .ui-time-choice [role='combobox'] {
   background: var(--ui-muted);
   border-color: var(--ui-border);

@@ -91,6 +91,12 @@ with `handleOnly={false}`. Use `maxWidth` with detached or floating bottom sheet
 for centered, bounded panels. Toasts now use the current surface and include a
 close button; `invert` and `closeButton={false}` retain the previous appearance.
 
+Time picker fields stay side by side, including optional period and seconds.
+Styled popovers use Radix's available width and height to stay within their
+collision boundary, scrolling tall content internally. `PopoverContent` defaults
+to `collisionPadding={8}` and `sticky="always"`; native placement/collision props
+and consumer class/style overrides remain available. Unstyled consumers own sizing.
+
 ## Edge handles
 
 ResizableHandle now defaults to a clean edge line, matching SidebarRail. Both

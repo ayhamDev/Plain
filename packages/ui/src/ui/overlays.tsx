@@ -551,25 +551,40 @@ export const PopoverClose = PopoverPrimitive.Close;
 export const PopoverContent = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & PlainStyleProps
->(({ className, align = 'center', sideOffset = 8, unstyled, ...props }, ref) => {
-  const styles = useStyles();
-  return (
-    <PopoverPrimitive.Portal container={usePortalContainer()}>
-      <PopoverPrimitive.Content
-        ref={ref}
-        align={align}
-        sideOffset={sideOffset}
-        {...styles(
-          'popover.content',
-          'ui-popup z-[var(--ui-layer-dropdown)] max-w-[calc(100vw-32px)] rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] p-4 text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))] outline-none',
-          className,
-          unstyled,
-        )}
-        {...props}
-      />
-    </PopoverPrimitive.Portal>
-  );
-});
+>(
+  (
+    {
+      className,
+      align = 'center',
+      sideOffset = 8,
+      collisionPadding = 8,
+      sticky = 'always',
+      unstyled,
+      ...props
+    },
+    ref,
+  ) => {
+    const styles = useStyles();
+    return (
+      <PopoverPrimitive.Portal container={usePortalContainer()}>
+        <PopoverPrimitive.Content
+          ref={ref}
+          align={align}
+          sideOffset={sideOffset}
+          collisionPadding={collisionPadding}
+          sticky={sticky}
+          {...styles(
+            'popover.content',
+            'ui-popup z-[var(--ui-layer-dropdown)] max-w-[min(calc(100vw-32px),var(--radix-popover-content-available-width))] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto overscroll-contain rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] p-4 text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))] outline-none',
+            className,
+            unstyled,
+          )}
+          {...props}
+        />
+      </PopoverPrimitive.Portal>
+    );
+  },
+);
 PopoverContent.displayName = 'PopoverContent';
 export const TooltipProvider = TooltipPrimitive.Provider;
 export const Tooltip = TooltipPrimitive.Root;

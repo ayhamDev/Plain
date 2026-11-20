@@ -549,8 +549,25 @@ export const components: ComponentDefinition[] = [
       prop('side', 'top | right | bottom | left', 'Preferred placement.', 'bottom'),
       prop('align', 'start | center | end', 'Alignment to the trigger.', 'center'),
       prop('sideOffset', 'number', 'Distance from the trigger in pixels.', '8'),
+      prop(
+        'collisionPadding',
+        'number | side offsets',
+        'Clearance from collision boundaries.',
+        '8',
+      ),
+      prop(
+        'sticky',
+        'partial | always',
+        'Allow shifting fully inside the visible boundary.',
+        'always',
+      ),
+      prop(
+        'collisionBoundary / avoidCollisions',
+        'Element | Element[] / boolean',
+        'Native Radix collision configuration. The viewport is the default boundary.',
+      ),
     ],
-    'Focus moves into interactive content and returns on dismissal. Escape closes the popover. Use a dialog for larger or blocking tasks.',
+    'Focus moves into interactive content and returns on dismissal. Escape closes the popover. Styled content is bounded by the available width and height, with internal scrolling for tall content. Native placement props and class/style sizing overrides remain available. Use a dialog for larger or blocking tasks.',
   ),
   definition(
     'tooltip',

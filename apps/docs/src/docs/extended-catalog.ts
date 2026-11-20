@@ -730,15 +730,15 @@ export const extendedComponents: ComponentDefinition[] = [
       p('clearable / clearLabel', 'boolean / string', 'Optional clear action.'),
       p(
         'minuteStep / hourCycle',
-        'number / 12 | 24',
+        'number / h12 | h23',
         'Picker interval and display format; native step remains in seconds.',
-        '15 / 24',
+        '5 / h23',
       ),
     ],
     inputA11y,
     {
       usage:
-        'Values are local wall-time strings, not UTC instants. Overnight ranges require an explicit application policy.',
+        'Values are local wall-time strings, not UTC instants. Hour, Minute and optional time fields stay side by side in the viewport-bounded popup. Overnight ranges require an explicit application policy.',
     },
   ),
   define(
@@ -788,9 +788,9 @@ export const extendedComponents: ComponentDefinition[] = [
       ...value,
       p(
         'minuteStep / hourCycle',
-        'number / 12 | 24',
+        'number / h12 | h23',
         'Time picker interval and display format.',
-        '15 / 24',
+        '5 / h23',
       ),
       p('min / max', 'string', 'Wall-time bounds in YYYY-MM-DDTHH:mm format.'),
       p(
@@ -807,7 +807,7 @@ export const extendedComponents: ComponentDefinition[] = [
     inputA11y,
     {
       usage:
-        'The value remains a wall-time string. Convert it deliberately using your IANA timezone and disambiguation policy when storing an instant.',
+        'The value remains a wall-time string. Convert it deliberately using your IANA timezone and disambiguation policy when storing an instant. The calendar popup scrolls within available screen space, including when used inside a dialog.',
     },
   ),
   define(
