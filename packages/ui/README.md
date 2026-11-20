@@ -245,6 +245,12 @@ controls, consumer handlers and the sidebar's collapse action remain supported.
 Theme aliases `edge-handle.color`, `edge-handle.thickness`, `edge-handle.duration`
 and `edge-handle.ease` customize the shared treatment using P.UI's semantic tokens.
 
+SidebarContent and NavigationRail lists scroll vertically. Group labels and menu
+items stay within the available width, and collapsed items release space reserved
+for hidden badges/actions. Compact icon padding adapts to narrower rails. Headers
+and footers remain available while long menus scroll; desktop collapse retains
+mounted content and input state.
+
 ## Section tabs
 
 Use the underline presentation for a record's sections, with a full-width baseline

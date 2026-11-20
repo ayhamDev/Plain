@@ -23,9 +23,14 @@
   }
   .ui-sidebar-group {
     position: relative;
+    min-inline-size: 0;
+    max-inline-size: 100%;
   }
   .ui-sidebar-group-label {
     min-block-size: 28px;
+    min-inline-size: 0;
+    overflow: hidden;
+    white-space: nowrap;
     display: flex;
     align-items: center;
   }
@@ -35,11 +40,14 @@
   .ui-sidebar-item {
     position: relative;
     flex-wrap: nowrap;
+    min-inline-size: 0;
+    max-inline-size: 100%;
     overflow: hidden;
     transition:
       background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1))
         var(--ui-ease-standard),
-      color calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1)) var(--ui-ease-standard);
+      color calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1)) var(--ui-ease-standard),
+      column-gap calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1)) var(--ui-ease-standard);
   }
   .ui-sidebar-item-icon,
   .ui-sidebar-item > svg {
@@ -222,6 +230,21 @@
     opacity: 0;
     pointer-events: none;
   }
+  .ui-sidebar[data-state='collapsed'] .ui-sidebar-item {
+    --_ui-sidebar-icon-inset: clamp(0px, calc((100% - 24px) / 2), 12px);
+    /* Hidden actions/badges no longer reserve their expanded 44px trailing space. */
+    padding-inline: var(--_ui-sidebar-icon-inset);
+    column-gap: 0;
+  }
+  .ui-sidebar[data-state='collapsed'] .ui-sidebar-item-icon[data-fallback] {
+    inset-inline-start: var(--_ui-sidebar-icon-inset, 12px);
+  }
+  .ui-sidebar[data-state='collapsed'] .ui-sidebar-item > :not(svg):not(.ui-sidebar-item-icon) {
+    min-inline-size: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+    white-space: nowrap;
+  }
   .ui-bottom-navigation {
     position: relative;
     isolation: isolate;
@@ -371,7 +394,9 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    overflow-x: hidden;
     overflow-y: auto;
+    min-inline-size: 0;
     min-block-size: 0;
   }
   .ui-navigation-rail-item {
@@ -382,8 +407,10 @@
     justify-content: center;
     flex: 0 0 40px;
     inline-size: 40px;
+    max-inline-size: 100%;
     block-size: 40px;
     padding: 8px;
+    padding-inline: clamp(0px, calc((100% - 24px) / 2), 8px);
     border: 0;
     border-radius: var(--ui-radius);
     background: transparent;
