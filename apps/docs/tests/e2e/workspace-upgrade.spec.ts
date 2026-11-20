@@ -312,10 +312,11 @@ test('Gantt virtualizes a large timeline while keeping later tasks interactive',
   const scroll = page.locator('.ui-gantt-scroll');
   await expect(page.getByRole('button', { name: /Task 0,/ })).toBeVisible();
   expect(await page.locator('.ui-gantt-row').count()).toBeLessThan(30);
-  await scroll.evaluate((node) => {
-    node.scrollTop = 40000;
-  });
-  await expect.poll(() => page.locator('.ui-gantt-row').first().textContent()).toContain('Task 9');
+  const rowHeight = (await page.locator('.ui-gantt-row').first().boundingBox())!.height;
+  await scroll.evaluate((node, offset) => {
+    node.scrollTop = offset;
+  }, 900 * rowHeight);
+  await expect(page.getByRole('button', { name: /^Task 900,/ })).toBeInViewport();
   await page.locator('.ui-gantt-task').nth(6).click();
   await expect(page.getByLabel('Result')).toContainText('task-');
   await page.screenshot({ path: info.outputPath('gantt-large.png') });

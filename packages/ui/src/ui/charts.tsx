@@ -1024,4 +1024,4 @@ ScatterChart.displayName = 'ScatterChart';
 export { HeatmapChart } from './heatmap';
 export type { HeatmapChartProps, HeatmapDatum } from './heatmap';
 export { GanttChart } from './gantt';
-export type { GanttChartProps, GanttTask } from './gantt';
+export type { GanttChartProps, GanttTask, GanttScale } from './gantt';

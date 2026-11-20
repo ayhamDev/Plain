@@ -1341,7 +1341,20 @@ for (const slug of [
         : slug === 'kanban'
           ? { disabled: false, columnWidth: 252 }
           : slug === 'gantt-chart'
-            ? { scale: 'day', dataTable: 'sr-only', loading: false }
+            ? {
+                scale: 'day',
+                showTaskList: false,
+                highlightWeekends: true,
+                showToday: true,
+                showDependencies: true,
+                showTaskDetails: true,
+                showToolbar: true,
+                draggable: true,
+                resizable: true,
+                labelPosition: 'auto',
+                dataTable: 'sr-only',
+                loading: false,
+              }
             : slug === 'heatmap-chart'
               ? { cellSize: 40, showValues: true, dataTable: 'sr-only', loading: false }
               : { dataTable: 'sr-only', loading: false };
@@ -1355,15 +1368,17 @@ for (const slug of [
           )
         : key === 'size'
           ? options(key, ['sm', 'md'])
-          : key === 'scale'
-            ? options(key, ['day', 'week', 'month'])
-            : key === 'dataTable'
-              ? options(key, ['sr-only', 'visible', 'false'])
-              : key === 'columnWidth'
-                ? number(key, 200, 360)
-                : key === 'cellSize'
-                  ? number(key, 24, 64)
-                  : bool(key),
+          : key === 'labelPosition'
+            ? options(key, ['auto', 'inside', 'outside', 'hidden'])
+            : key === 'scale'
+              ? options(key, ['day', 'week', 'month'])
+              : key === 'dataTable'
+                ? options(key, ['sr-only', 'visible', 'false'])
+                : key === 'columnWidth'
+                  ? number(key, 200, 360)
+                  : key === 'cellSize'
+                    ? number(key, 24, 64)
+                    : bool(key),
   );
   propPreviews[slug] = {
     defaults,
@@ -1396,7 +1411,24 @@ for (const slug of [
         );
         markup = markup.replace(' />', ' loading={' + s.loading + '} />');
         if (slug === 'gantt-chart')
-          markup = markup.replace('scale="day"', 'scale="' + s.scale + '"');
+          markup = markup
+            .replace('defaultScale="day"', 'defaultScale="' + s.scale + '"')
+            .replace(' showTaskList={false}', '')
+            .replace(
+              '<GanttChart',
+              '<GanttChart ' +
+                attr({
+                  showTaskList: s.showTaskList,
+                  highlightWeekends: s.highlightWeekends,
+                  showToday: s.showToday,
+                  showDependencies: s.showDependencies,
+                  showTaskDetails: s.showTaskDetails,
+                  showToolbar: s.showToolbar,
+                  draggable: s.draggable,
+                  resizable: s.resizable,
+                  labelPosition: s.labelPosition,
+                }),
+            );
         if (slug === 'heatmap-chart')
           markup = markup
             .replace('cellSize={40}', 'cellSize={' + s.cellSize + '}')

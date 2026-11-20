@@ -290,6 +290,10 @@
   --ui-tabs-indicator-color: var(--ui-accent);
   --ui-tabs-indicator-thickness: 2px;
   --ui-edge-handle-color: var(--ui-accent);
+  --ui-gantt-weekend: var(--ui-muted);
+  --ui-gantt-bar-background: var(--ui-surface);
+  --ui-gantt-today: var(--ui-accent);
+  --ui-gantt-dependency: var(--ui-muted-foreground);
   --ui-edge-handle-thickness: 2px;
   --ui-edge-handle-duration: var(--ui-duration-normal);
   --ui-edge-handle-ease: var(--ui-ease-out);

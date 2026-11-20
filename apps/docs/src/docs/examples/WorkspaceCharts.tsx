@@ -19,33 +19,65 @@ const initialTasks: GanttTask[] = [
   {
     id: 'research',
     label: 'Customer research',
-    start: '2026-10-01',
-    end: '2026-10-08',
+    start: '2026-11-12',
+    end: '2026-11-16',
     progress: 100,
   },
   {
-    id: 'design',
-    label: 'Design system',
-    start: '2026-10-07',
-    end: '2026-10-18',
-    progress: 65,
+    id: 'wireframes',
+    label: 'Develop wireframes',
+    start: '2026-11-16',
+    end: '2026-11-20',
+    progress: 80,
     dependencies: ['research'],
   },
   {
-    id: 'build',
-    label: 'Implementation',
-    start: '2026-10-15',
-    end: '2026-10-29',
+    id: 'review',
+    label: 'Client review',
+    start: '2026-11-18',
+    end: '2026-11-22',
+    progress: 30,
+    dependencies: ['wireframes'],
+  },
+  {
+    id: 'prototype',
+    label: 'Create prototype',
+    start: '2026-11-21',
+    end: '2026-11-28',
+    progress: 45,
+    dependencies: ['review'],
+  },
+  {
+    id: 'testing',
+    label: 'Test with customers',
+    start: '2026-11-24',
+    end: '2026-12-01',
     progress: 20,
-    dependencies: ['design'],
+    dependencies: ['prototype'],
+  },
+  {
+    id: 'docs',
+    label: 'Technical documentation',
+    start: '2026-11-26',
+    end: '2026-12-03',
+    progress: 15,
+    dependencies: ['review'],
+  },
+  {
+    id: 'prepare',
+    label: 'Prepare launch',
+    start: '2026-12-01',
+    end: '2026-12-05',
+    progress: 0,
+    dependencies: ['testing', 'docs'],
   },
   {
     id: 'launch',
-    label: 'Launch',
-    start: '2026-10-28',
-    end: '2026-11-02',
+    label: 'Release',
+    start: '2026-12-06',
+    end: '2026-12-08',
     progress: 0,
-    dependencies: ['build'],
+    dependencies: ['prepare'],
   },
 ];
 const radar = [
@@ -121,8 +153,26 @@ export default function WorkspaceCharts({
       ) : (
         <GanttChart
           {...common}
+          key={String(state.scale ?? 'day')}
           tasks={tasks}
-          scale={state.scale === 'week' || state.scale === 'month' ? state.scale : 'day'}
+          defaultScale={state.scale === 'week' || state.scale === 'month' ? state.scale : 'day'}
+          height={420}
+          today="2026-11-20"
+          showTaskList={!!state.showTaskList}
+          highlightWeekends={state.highlightWeekends !== false}
+          showToday={state.showToday !== false}
+          showDependencies={state.showDependencies !== false}
+          showTaskDetails={state.showTaskDetails !== false}
+          showToolbar={state.showToolbar !== false}
+          draggable={state.draggable !== false}
+          resizable={state.resizable !== false}
+          labelPosition={
+            state.labelPosition === 'inside' ||
+            state.labelPosition === 'outside' ||
+            state.labelPosition === 'hidden'
+              ? state.labelPosition
+              : 'auto'
+          }
           label="Project delivery"
           onTaskClick={(task) => setSelection(task.label)}
           onTaskChange={(task) =>

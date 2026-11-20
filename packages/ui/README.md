@@ -97,6 +97,61 @@ collision boundary, scrolling tall content internally. `PopoverContent` defaults
 to `collisionPadding={8}` and `sticky="always"`; native placement/collision props
 and consumer class/style overrides remain available. Unstyled consumers own sizing.
 
+## Gantt timelines
+
+`GanttChart` is available from `@plain/ui/charts`, with `@plain/ui/charts.css`.
+It provides grouped month/day headers, day/week/month zoom, weekend shading,
+Today navigation, progress, dependency arrows and task details. Dates remain ISO
+date-only strings with exclusive ends. Application state owns changes and any
+dependent-task scheduling rules.
+
+```tsx
+import * as React from 'react';
+import { GanttChart, type GanttTask } from '@plain/ui/charts';
+import '@plain/ui/styles.css';
+import '@plain/ui/charts.css';
+
+export function ProjectTimeline({ initialTasks }: { initialTasks: GanttTask[] }) {
+  const [tasks, setTasks] = React.useState(initialTasks);
+  return (
+    <GanttChart
+      label="Project delivery"
+      tasks={tasks}
+      defaultScale="day"
+      showTaskList={false}
+      onTaskChange={(next) =>
+        setTasks((values) => values.map((task) => (task.id === next.id ? next : task)))
+      }
+    />
+  );
+}
+```
+
+Pointer moves and edge resizes commit once on release; Escape cancels. Keyboard
+Alt+Arrow moves a task, Alt+Shift+Arrow changes its end, and arrow keys on a resize
+handle adjust that edge. Direction follows RTL. Small bars retain a 24px hit target
+without changing their drawn duration. Resize grips appear for bars at least 72px
+wide; use keyboard editing or zoom for smaller bars. `draggable`, `resizable` and
+`snapDays` configure pointer editing. Supply `scale` with `onScaleChange` for a
+controlled view, or `defaultScale` for the built-in view selector.
+When `dayWidth` is omitted, short timelines expand to fill the chart viewport.
+An explicit `dayWidth` retains fixed date sizing.
+
+Use `showToolbar`, `showTaskList`, `labelPosition`, `highlightWeekends`,
+`weekendDays`, `showToday`, `showTodayButton`, `toolbarActions` and
+`renderTaskDetails` to adapt the composition. Supply `today` for a business date
+or deterministic SSR. Today navigation is unavailable when the date is outside
+the current bounds. Set `showTaskDetails={false}` when your application owns details.
+Typed slots and `gantt.weekend`, `gantt.bar-background`, `gantt.today` and
+`gantt.dependency` theme aliases retain the P.UI styling contract.
+
+Rows and date ticks are virtualized. The default complete table alternative is
+memoized during scrolling; `dataTable="visible"` displays it. For very large sets,
+provide a paginated accessible alternative and use `dataTable={false}`. Styled
+defaults now use 48px rows, a grouped 72px header and three days around implicit
+date bounds. `rowHeight={44}` and `rangePadding={0}` retain the previous density
+and range; explicit start/end values are unchanged.
+
 ## Edge handles
 
 ResizableHandle now defaults to a clean edge line, matching SidebarRail. Both
