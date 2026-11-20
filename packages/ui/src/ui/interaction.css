@@ -315,29 +315,6 @@
   .ui-segmented-control-item:hover:not(:disabled) {
     color: var(--ui-foreground);
   }
-  [data-ui='button']:not(:disabled):not([aria-disabled='true']):active {
-    scale: 0.98;
-  }
-  @media (hover: hover) {
-    [data-ui='button']:not(:disabled):not([aria-disabled='true']):hover {
-      translate: 0 -1px;
-    }
-    [data-ui='button'][data-variant='link']:hover {
-      translate: none;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    [data-ui='button']:not(:disabled):active,
-    [data-ui='button']:not(:disabled):hover {
-      scale: none;
-      translate: none;
-    }
-  }
-  :where([data-motion='none'], [data-motion='reduced']) [data-ui='button']:is(:hover, :active) {
-    scale: none;
-    translate: none;
-  }
-
   .ui-navigation-content[data-motion='from-start'] {
     animation: ui-navigation-from-start
       max(1ms, calc(var(--ui-duration-normal, 200ms) * var(--ui-motion-scale, 1)))
