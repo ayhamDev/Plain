@@ -36,6 +36,12 @@ import {
 import { CodeBlock } from '../shared';
 import { useAppPreferences } from '../preferences';
 import { useDocsVersions, versionDestination } from '../versioning';
+import {
+  InstanceOverridesExample,
+  ScopedOverridesExample,
+  instanceOverridesCode,
+  scopedOverridesCode,
+} from '../examples/ComponentOverridesExample';
 
 const guideInfo: Record<string, { title: string; description: string }> = {
   introduction: {
@@ -1264,6 +1270,35 @@ function Customization() {
         <p role="status" style={{ fontSize: 14, minHeight: 24 }}>
           {feedback}
         </p>
+      </GuideSection>
+      <GuideSection title="Override one component" id="component-overrides">
+        <p>
+          Pass <code>tokensToStyle</code> to a component's native <code>style</code> prop to
+          override just that instance. The typed token map accepts CSS strings, including units and
+          references to other tokens. No extra wrapper is needed.
+        </p>
+        <InstanceOverridesExample />
+        <CodeBlock code={instanceOverridesCode} title="LocalOverrides.tsx" />
+        <p>
+          Use component tokens such as <code>switch.radius</code> or <code>input.height</code>
+          for an instance override. Setting only the root <code>radius</code> token on a control
+          does not recalculate component aliases inherited from an ancestor. Switch thumbs
+          automatically follow the local track radius; set <code>switch.thumb-radius</code>
+          independently when needed, or use <code>initial</code> to restore automatic rounding.
+          Colors, borders, shadows, sizes and motion values use the same token map where the
+          component exposes them. Browse the <Link to="/docs/tokens">token reference</Link> for
+          available names.
+        </p>
+      </GuideSection>
+      <GuideSection title="Scope a group or reuse an override" id="scoped-overrides">
+        <p>
+          Use <code>ThemeScope</code> for a group of components or a compound control whose content
+          opens in a portal. Its descendant popovers, menus and dialogs keep the local tokens. Use{' '}
+          <code>extendComponent</code> when the same instance defaults should be reusable throughout
+          your application. Keep custom colors readable in both themes.
+        </p>
+        <ScopedOverridesExample />
+        <CodeBlock code={scopedOverridesCode} title="LocalSettings.tsx" />
       </GuideSection>
       <GuideSection title="Extend a component without hiding its control">
         <CodeBlock code={examples.extension} title="BrandButton.tsx" />

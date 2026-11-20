@@ -240,7 +240,8 @@ export const componentTokenAliases = {
   'switch.thumb': 'var(--ui-primary-foreground)',
   'switch.thumb-unchecked': 'var(--ui-foreground)',
   'switch.radius': 'var(--ui-radius)',
-  'switch.thumb-radius': 'max(0px, calc(var(--ui-switch-radius) - 2px))',
+  // Resolve the automatic radius on the thumb, after instance overrides inherit.
+  'switch.thumb-radius': 'initial',
   'checkbox.background': 'var(--ui-surface)',
   'checkbox.border': 'var(--ui-control-border)',
   'checkbox.checked': 'var(--ui-primary)',
@@ -328,6 +329,7 @@ function buildTokenNames(): ThemeToken[] {
 export function tokenVariable(token: ThemeToken): `--ui-${string}` {
   return `--ui-${token.replaceAll('.', '-')}`;
 }
+/** Convert typed tokens to inline CSS variables. Prefer component aliases for one instance. */
 export function tokensToStyle(tokens: ThemeTokens = {}) {
   return Object.fromEntries(
     Object.entries(tokens)

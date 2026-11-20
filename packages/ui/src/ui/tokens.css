@@ -330,7 +330,7 @@
   --ui-switch-thumb: var(--ui-primary-foreground);
   --ui-switch-thumb-unchecked: var(--ui-foreground);
   --ui-switch-radius: var(--ui-radius);
-  --ui-switch-thumb-radius: max(0px, calc(var(--ui-switch-radius) - 2px));
+  --ui-switch-thumb-radius: initial;
   --ui-checkbox-background: var(--ui-surface);
   --ui-checkbox-border: var(--ui-control-border);
   --ui-checkbox-checked: var(--ui-primary);

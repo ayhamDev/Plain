@@ -238,7 +238,7 @@ export const Switch = /* @__PURE__ */ React.forwardRef<
       <SwitchPrimitive.Thumb
         {...styles(
           'switch.thumb',
-          'ui-switch-thumb absolute top-1/2 block size-4 -translate-y-1/2 rounded-[var(--ui-switch-thumb-radius,var(--ui-radius))] bg-[var(--ui-switch-thumb,white)] shadow-sm data-[state=unchecked]:bg-[var(--ui-switch-thumb-unchecked,var(--ui-foreground))]',
+          'ui-switch-thumb absolute top-1/2 block size-4 -translate-y-1/2 rounded-[var(--ui-switch-thumb-radius,max(0px,calc(var(--ui-switch-radius,var(--ui-radius))_-_2px)))] bg-[var(--ui-switch-thumb,white)] shadow-sm data-[state=unchecked]:bg-[var(--ui-switch-thumb-unchecked,var(--ui-foreground))]',
           undefined,
           unstyled,
         )}

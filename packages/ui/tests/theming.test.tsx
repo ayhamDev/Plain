@@ -9,6 +9,7 @@ import { PlainProvider, ThemeScope } from '../src/ui/styling';
 import { Button } from '../src/ui/primitives';
 import { Combobox } from '../src/ui/command';
 import { extend } from '../src/ui/extend';
+import { Switch } from '../src/ui/forms';
 import { useTheme, validateTheme, defaultTheme } from '../src/ui/theme';
 import { useMotionSettings } from '../src/ui/motion-policy';
 
@@ -148,6 +149,44 @@ describe('layered color themes', () => {
 });
 
 describe('component extensions', () => {
+  it('keeps instance tokens above reusable defaults while preserving Switch refs and forms', async () => {
+    const RoundSwitch = extend(Switch, {
+      tokens: { 'switch.radius': '999px' },
+      defaults: { defaultChecked: true },
+    });
+    const ref = React.createRef<HTMLButtonElement>();
+    const onCheckedChange = vi.fn();
+    render(
+      <form aria-label="Preferences">
+        <RoundSwitch
+          ref={ref}
+          name="alerts"
+          aria-label="Alerts"
+          style={tokensToStyle({ 'switch.radius': '0px', 'switch.thumb-radius': '2px' })}
+          onCheckedChange={onCheckedChange}
+        />
+        <RoundSwitch aria-label="Round default" />
+        <Switch aria-label="Theme default" />
+      </form>,
+    );
+    const control = screen.getByRole('switch', { name: 'Alerts' });
+    const form = screen.getByRole('form', { name: 'Preferences' }) as HTMLFormElement;
+    expect(ref.current).toBe(control);
+    expect(control.style.getPropertyValue('--ui-switch-radius')).toBe('0px');
+    expect(control.style.getPropertyValue('--ui-switch-thumb-radius')).toBe('2px');
+    expect(
+      screen
+        .getByRole('switch', { name: 'Round default' })
+        .style.getPropertyValue('--ui-switch-radius'),
+    ).toBe('999px');
+    expect(screen.getByRole('switch', { name: 'Theme default' })).not.toHaveAttribute('style');
+    expect(new FormData(form).get('alerts')).toBe('on');
+    ref.current?.focus();
+    await userEvent.keyboard(' ');
+    expect(control).not.toBeChecked();
+    expect(onCheckedChange).toHaveBeenCalledExactlyOnceWith(false);
+    expect(new FormData(form).has('alerts')).toBe(false);
+  });
   it('combines typed variants, compound rules, slots and tokens without hiding native props or refs', async () => {
     const AppButton = extend(Button, {
       defaults: { variant: 'accent', size: 'sm' },

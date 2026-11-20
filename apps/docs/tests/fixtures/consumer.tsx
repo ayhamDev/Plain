@@ -6,6 +6,9 @@ import {
   Button,
   Field,
   Input,
+  Switch,
+  tokensToStyle,
+  extendComponent,
   Dialog,
   DialogTrigger,
   DialogContent,
@@ -46,6 +49,7 @@ const styles: ComponentStyles = { 'button.root': 'rounded-full', 'data-table.roo
 const anchorRef = createRef<HTMLAnchorElement>();
 const quoteRef = createRef<HTMLQuoteElement>();
 const calendarRef = createRef<FullCalendarRef>();
+const RoundSwitch = extendComponent(Switch, { tokens: { 'switch.radius': '999px' } });
 
 export function ConsumerApp() {
   const [date, setDate] = useState<Date>();
@@ -63,6 +67,14 @@ export function ConsumerApp() {
         <P tone="muted" align="start">
           Your current projects.
         </P>
+        <RoundSwitch
+          aria-label="Local notifications"
+          style={tokensToStyle({ 'switch.radius': '0px', 'switch.thumb-radius': '2px' })}
+        />
+        <Input
+          aria-label="Local project name"
+          style={tokensToStyle({ 'input.radius': '12px', 'input.height': '48px' })}
+        />
         <A ref={anchorRef} href="/projects" download="projects.txt">
           Projects
         </A>

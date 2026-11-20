@@ -30,6 +30,44 @@ The original hand-authored neutral light/dark palette is the default. Brand
 generation is opt-in. Components support typed styles, tokens, unstyled behavior,
 native props/refs and direction-aware composition.
 
+## Override one component
+
+Use typed component tokens on the native `style` prop to override a single
+instance, independently of the global theme:
+
+```tsx
+import { Input, Switch, ThemeScope, extendComponent, tokensToStyle } from '@plain/ui';
+
+<Switch aria-label="Notifications" style={tokensToStyle({ 'switch.radius': '999px' })} />;
+
+<Input
+  aria-label="Project name"
+  style={tokensToStyle({
+    'input.radius': '12px',
+    'input.height': '48px',
+    'input.border': 'var(--ui-outline)',
+  })}
+/>;
+
+// Reuse the same defaults; caller style still wins.
+const RoundSwitch = extendComponent(Switch, {
+  tokens: { 'switch.radius': '999px' },
+});
+
+// A group, including descendant menus/dialogs/popovers opened through portals.
+<ThemeScope tokens={{ 'button.radius': '999px', 'popover.radius': '16px' }}>
+  <YourSettings />
+</ThemeScope>;
+```
+
+Token values are CSS strings. Choose component aliases such as `switch.radius`
+for one instance; a root `radius` override on a control does not recalculate
+aliases already inherited from an ancestor. Switch thumbs automatically derive
+their rounding from the local track radius. Set `switch.thumb-radius` separately
+when needed; `initial` restores automatic rounding. Other exposed tokens cover
+component colors, borders, shadows, sizes and motion. Keep color overrides readable
+in both modes. Native refs, handlers, disabled state and form behavior remain intact.
+
 ## Optional Entries
 
 - `@plain/ui/charts` with `@plain/ui/charts.css`: charts, heatmap and Gantt.
