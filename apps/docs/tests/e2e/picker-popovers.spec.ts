@@ -7,15 +7,16 @@ async function contained(page: Page, panel: Locator) {
     await Promise.all(node.getAnimations().map((animation) => animation.finished));
   });
   const viewport = page.viewportSize()!;
+  const edge = (await panel.getAttribute('data-side')) === 'bottom' ? 0 : 7;
   await expect
     .poll(async () => {
       const box = await panel.boundingBox();
       return (
         !!box &&
-        box.x >= 7 &&
-        box.y >= 7 &&
-        box.x + box.width <= viewport.width - 7 &&
-        box.y + box.height <= viewport.height - 7
+        box.x >= edge &&
+        box.y >= edge &&
+        box.x + box.width <= viewport.width - edge &&
+        box.y + box.height <= viewport.height - edge
       );
     })
     .toBe(true);
@@ -24,7 +25,9 @@ async function contained(page: Page, panel: Locator) {
   );
 }
 async function inlineTimes(panel: Locator, count: number) {
-  const controls = panel.locator('.ui-time-choice').getByRole('combobox');
+  const controls = panel.locator(
+    '.ui-time-choice [role="combobox"], .ui-time-choice [role="spinbutton"]',
+  );
   await expect(controls).toHaveCount(count);
   const boxes = await controls.evaluateAll((nodes) =>
     nodes.map((node) => ({
@@ -36,6 +39,17 @@ async function inlineTimes(panel: Locator, count: number) {
     expect(Math.abs(box.y - boxes[0].y)).toBeLessThanOrEqual(1);
     expect(box.width).toBeGreaterThanOrEqual(48);
   }
+}
+async function setMinute(page: Page, panel: Locator) {
+  const wheel = panel.getByRole('spinbutton', { name: 'Minute', exact: true });
+  if (await wheel.count()) {
+    await wheel.press('Home');
+    for (let index = 0; index < 6; index++) await wheel.press('ArrowUp');
+    return;
+  }
+  await panel.getByRole('combobox', { name: 'Minute', exact: true }).click();
+  await contained(page, page.getByRole('listbox'));
+  await page.getByRole('option', { name: '30', exact: true }).click();
 }
 for (const [width, dir, corner, extra] of [
   [1000, 'ltr', 'bottom-end', ''],
@@ -52,15 +66,12 @@ for (const [width, dir, corner, extra] of [
     const panel = page.getByRole('dialog', { name: 'Choose time', exact: true });
     await contained(page, panel);
     await inlineTimes(panel, extra.includes('seconds') ? 4 : extra.includes('twelve') ? 3 : 2);
-    await panel.getByRole('combobox', { name: 'Minute', exact: true }).click();
-    const options = page.getByRole('listbox');
-    await contained(page, options);
-    await page.getByRole('option', { name: '30', exact: true }).click();
+    await setMinute(page, panel);
     await expect(page.locator('input[type="time"]')).toHaveValue(
       extra.includes('seconds') ? '09:30:30' : '09:30',
     );
     const { violations } = await new AxeBuilder({ page })
-      .include('.ui-temporal-content')
+      .include('.ui-temporal-content, .ui-temporal-sheet')
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
       .analyze();
     expect(violations.map((v) => v.id)).toEqual([]);
@@ -136,19 +147,31 @@ for (const width of [1000, 390]) {
     await page.keyboard.press('Escape');
     await page.goto('/components/full-calendar');
     await preview.getByRole('button', { name: 'New event', exact: true }).first().click();
-    const editor = page.getByRole('dialog', { name: 'New event', exact: true });
+    const editor = page.getByRole('dialog', {
+      name: 'New event',
+      exact: true,
+      includeHidden: true,
+    });
     await editor.getByRole('button', { name: 'Open calendar', exact: true }).first().click();
     panel = page.getByRole('dialog', { name: 'Open calendar', exact: true });
     await contained(page, panel);
     await inlineTimes(panel, 2);
-    await panel.evaluate((node) => {
+    const scrollBody = panel.locator('.ui-temporal-sheet-body');
+    const scroller = (await scrollBody.count()) ? scrollBody : panel;
+    await scroller.evaluate((node) => {
       node.scrollTop = 0;
     });
     await expect(panel.locator('.rdp-month_caption')).toBeInViewport();
-    await panel.getByRole('combobox', { name: 'Hour', exact: true }).click();
-    await page.getByRole('option', { name: '11', exact: true }).click();
+    const hourWheel = panel.getByRole('spinbutton', { name: 'Hour', exact: true });
+    if (await hourWheel.count()) {
+      await hourWheel.press('Home');
+      for (let index = 0; index < 11; index++) await hourWheel.press('ArrowUp');
+    } else {
+      await panel.getByRole('combobox', { name: 'Hour', exact: true }).click();
+      await page.getByRole('option', { name: '11', exact: true }).click();
+    }
     await expect(editor.locator('input[type="datetime-local"]').first()).toHaveValue(/T11:/);
-    await panel.evaluate((node) => {
+    await scroller.evaluate((node) => {
       node.scrollTop = node.scrollHeight;
     });
     await expect(panel.getByRole('button', { name: 'Done', exact: true })).toBeInViewport();

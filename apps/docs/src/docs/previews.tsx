@@ -1240,10 +1240,30 @@ for (const slug of [
     } as const
   )[slug];
   const Component = UI[name];
+  const timeControl = slug !== 'date-range-picker';
   propPreviews[slug] = {
-    defaults: { disabled: false, readOnly: false, required: false },
-    controls: [bool('disabled'), bool('readOnly'), bool('required')],
-    render: (s) => field(<Component {...native(s)} />, 'Booking time'),
+    defaults: {
+      disabled: false,
+      readOnly: false,
+      required: false,
+      ...(timeControl ? { pickerMode: 'auto' } : {}),
+    },
+    controls: [
+      bool('disabled'),
+      bool('readOnly'),
+      bool('required'),
+      ...(timeControl ? [options('pickerMode', ['auto', 'select', 'wheel'])] : []),
+    ],
+    render: (s) =>
+      field(
+        <Component
+          {...native(s)}
+          {...(timeControl
+            ? { pickerMode: choice(s, 'pickerMode', ['auto', 'select', 'wheel']) }
+            : {})}
+        />,
+        'Booking time',
+      ),
     code: (s) => `<Field label="Booking time"><${name} ${attr(s)} /></Field>`,
   };
 }

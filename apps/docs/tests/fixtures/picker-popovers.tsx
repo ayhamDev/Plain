@@ -5,6 +5,7 @@ import {
   Button,
   Field,
   TimePicker,
+  type TimePickerMode,
   Popover,
   PopoverTrigger,
   PopoverContent,
@@ -62,7 +63,15 @@ function Fixture() {
     <PlainProvider
       persist={false}
       dir={params.get('dir') === 'rtl' ? 'rtl' : 'ltr'}
-      theme={{ mode: params.get('theme') === 'dark' ? 'dark' : 'light', motion: 'none' }}
+      theme={{
+        mode: params.get('theme') === 'dark' ? 'dark' : 'light',
+        motion: params.get('motion') === 'system' ? 'system' : 'none',
+      }}
+      tokens={
+        params.has('custom')
+          ? { 'temporal.wheel-row-height': '56px', 'temporal.wheel-selection': '#dbeafe' }
+          : undefined
+      }
     >
       <main>
         <h1 style={{ padding: 16, fontSize: 20 }}>Placement workspace</h1>
@@ -72,8 +81,13 @@ function Fixture() {
           <div style={{ ...position, width: 'min(280px, calc(100vw - 32px))' }}>
             <Field label="Start time">
               <TimePicker
-                defaultValue={params.has('seconds') ? '09:15:30' : '09:15'}
+                defaultValue={params.get('value') ?? (params.has('seconds') ? '09:15:30' : '09:15')}
                 hourCycle={params.has('twelve') ? 'h12' : 'h23'}
+                pickerMode={(params.get('mode') ?? 'auto') as TimePickerMode}
+                minuteStep={Number(params.get('minuteStep') ?? 5)}
+                name="start"
+                min={params.get('min') ?? undefined}
+                max={params.get('max') ?? undefined}
               />
             </Field>
           </div>

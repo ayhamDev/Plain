@@ -41,6 +41,7 @@ import {
 import { Button as ModularButton } from '@plain/ui/primitives';
 import { Dropzone as ModularDropzone } from '@plain/ui/advanced';
 import { QRCode as ModularQRCode } from '@plain/ui/qr-code';
+import { TimePicker as ModularTimePicker, type TimePickerMode } from '@plain/ui/date-time';
 import '@plain/ui/styles.css';
 import { FullCalendar, type FullCalendarRef } from '@plain/ui/full-calendar';
 import '@plain/ui/full-calendar.css';
@@ -72,6 +73,9 @@ export function ConsumerApp() {
           level="Q"
           style={tokensToStyle({ 'qr-code.foreground': '#123456' })}
         />
+        <Field label="Start time">
+          <ModularTimePicker defaultValue="09:15" pickerMode={'wheel' satisfies TimePickerMode} />
+        </Field>
         <P tone="muted" align="start">
           Your current projects.
         </P>

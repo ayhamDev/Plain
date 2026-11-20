@@ -89,6 +89,40 @@ Heavy chart, scheduling, Kanban and motion implementations stay outside the core
 barrel. Calendar editing, server filtering and persistence remain application
 responsibilities. Custom themes/renderers require application accessibility QA.
 
+## Mobile time pickers
+
+TimePicker, DateTimePicker and their range variants open a bottom sheet below
+768px. The default `pickerMode="auto"` uses iOS-style wheels on compact screens
+and select controls in a desktop popover. Set `pickerMode="select"` or `"wheel"`
+to choose the time controls explicitly; compact screens still use a sheet.
+An open surface stays stable across screen rotation; the next opening follows
+the new viewport size.
+
+```tsx
+import { Field, TimePicker } from '@plain/ui';
+
+<Field label="Start time">
+  <TimePicker defaultValue="09:15" hourCycle="h12" minuteStep={5} pickerMode="auto" />
+</Field>;
+```
+
+Touch scrolling, mouse wheels and trackpads use native scrolling and snap points.
+Each column also supports Arrow Up/Down, Page Up/Down and Home/End. AM/PM and
+seconds appear when requested by `hourCycle` and the value's precision. Values
+remain ISO wall-time strings in the actual native input: refs, change events,
+forms, bounds, controlled state and resets retain their existing behavior.
+Selections update immediately; Done dismisses the surface and restores input
+focus. Date-time sheets keep their calendar in a scrollable body, with Done
+outside that body. Wheel gestures do not drag the sheet.
+
+Use ThemeScope/PlainProvider tokens for scoped portal overrides:
+`temporal.wheel-row-height` (48px by default, minimum visual height 44px),
+`temporal.wheel-selection`, `temporal.wheel-foreground` and `temporal.wheel-muted`.
+Typed `temporal.wheel*`, `temporal.mobile-panel` and `temporal.mobile-body` slots
+support custom classes. Neutral light/dark styling, RTL, localized numerals,
+reduced motion and unstyled composition follow the existing library contract.
+Custom unstyled wheels need application CSS for their scrolling geometry.
+
 ## QR code
 
 ```tsx

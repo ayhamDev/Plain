@@ -835,6 +835,12 @@ export const extendedComponents: ComponentDefinition[] = [
       ),
       p('clearable / clearLabel', 'boolean / string', 'Optional clear action.'),
       p(
+        'pickerMode',
+        'auto | select | wheel',
+        'Auto uses time wheels in a bottom sheet below 768px and selects in a desktop popover. Explicit modes choose the time controls.',
+        'auto',
+      ),
+      p(
         'minuteStep / hourCycle',
         'number / h12 | h23',
         'Picker interval and display format; native step remains in seconds.',
@@ -844,7 +850,7 @@ export const extendedComponents: ComponentDefinition[] = [
     inputA11y,
     {
       usage:
-        'Values are local wall-time strings, not UTC instants. Hour, Minute and optional time fields stay side by side in the viewport-bounded popup. Overnight ranges require an explicit application policy.',
+        'Values are local wall-time strings, not UTC instants. Mobile opens a bottom sheet with independently scrollable time wheels, a centered selection band and a reachable Done action. Wheel controls support Arrow Up/Down, Page Up/Down and Home/End; the native field remains editable. Desktop uses side-by-side selects. pickerMode can force select or wheel controls; compact screens still use a sheet. Overnight ranges require an explicit application policy.',
     },
   ),
   define(
@@ -859,6 +865,12 @@ export const extendedComponents: ComponentDefinition[] = [
       p('fromLabel / toLabel', 'string', 'Localized field labels.'),
       p('fromName / toName', 'string', 'Independent submitted values.'),
       p('allowOvernight', 'boolean', 'Permit an end before start to mean the following day.'),
+      p(
+        'pickerMode',
+        'auto | select | wheel',
+        'Shared time control mode for both endpoints; compact screens open a bottom sheet.',
+        'auto',
+      ),
     ],
     'Each native control has a distinct visible label. Invalid ordering participates in native form validation and exposes an error message.',
   ),
@@ -900,6 +912,12 @@ export const extendedComponents: ComponentDefinition[] = [
       ),
       p('min / max', 'string', 'Wall-time bounds in YYYY-MM-DDTHH:mm format.'),
       p(
+        'pickerMode',
+        'auto | select | wheel',
+        'Auto uses mobile time wheels below the calendar and desktop select controls.',
+        'auto',
+      ),
+      p(
         'calendarProps',
         'PickerCalendarProps',
         'Configure month/year selectors, year bounds, descending years and displayed month. Navigation defaults to min/max months.',
@@ -918,7 +936,7 @@ export const extendedComponents: ComponentDefinition[] = [
     inputA11y,
     {
       usage:
-        'The value remains a wall-time string. Convert it deliberately using your IANA timezone and disambiguation policy when storing an instant. The calendar popup scrolls within available screen space, including when used inside a dialog.',
+        'The value remains a wall-time string. Convert it deliberately using your IANA timezone and disambiguation policy when storing an instant. Compact screens use a bottom sheet with a scrollable calendar/time body and an independently reachable Done action. Each wheel scrolls without dragging the panel. The desktop calendar popover remains bounded by the viewport, including when used inside a dialog.',
     },
   ),
   define(
@@ -937,6 +955,12 @@ export const extendedComponents: ComponentDefinition[] = [
         'Shared timezone validation, without implicit conversion.',
       ),
       p('min / max / disabledDates', 'native bounds / Matcher', 'Shared field constraints.'),
+      p(
+        'pickerMode',
+        'auto | select | wheel',
+        'Choose the time controls for both endpoint calendars.',
+        'auto',
+      ),
       p(
         'calendarProps',
         'PickerCalendarProps',

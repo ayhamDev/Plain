@@ -370,6 +370,10 @@
   --ui-temporal-radius: var(--ui-radius);
   --ui-temporal-control-height: var(--ui-control-height);
   --ui-temporal-focus: var(--ui-focus-ring);
+  --ui-temporal-wheel-row-height: 48px;
+  --ui-temporal-wheel-selection: var(--ui-muted);
+  --ui-temporal-wheel-foreground: var(--ui-foreground);
+  --ui-temporal-wheel-muted: var(--ui-muted-foreground);
   --ui-slider-track: var(--ui-muted);
   --ui-slider-range: var(--ui-primary);
   --ui-slider-thumb: var(--ui-surface);
