@@ -350,6 +350,42 @@
 .ui-panel {
   overflow-wrap: anywhere;
 }
+/* Vaul's child tail is clipped by the dialog's scrollport and creates phantom
+   scroll space. Its decorative sibling supplies the viewport-edge continuation. */
+.ui-panel[data-vaul-drawer]::after {
+  content: none;
+}
+.ui-panel-overflow-clip {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ui-panel-overflow-fill {
+  position: absolute;
+  pointer-events: none;
+}
+.ui-panel-overflow-fill::after {
+  content: '';
+  position: absolute;
+  background: inherit;
+}
+.ui-panel-overflow-fill[data-side='bottom']::after {
+  inset: 100% 0 auto;
+  height: 200%;
+}
+.ui-panel-overflow-fill[data-side='top']::after {
+  inset: auto 0 100%;
+  height: 200%;
+}
+.ui-panel-overflow-fill[data-side='right']::after {
+  inset: 0 auto 0 100%;
+  width: 200%;
+}
+.ui-panel-overflow-fill[data-side='left']::after {
+  inset: 0 100% 0 auto;
+  width: 200%;
+}
 .ui-panel > * {
   min-inline-size: 0;
   max-inline-size: 100%;

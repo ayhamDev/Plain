@@ -132,6 +132,13 @@ dark mode. Use `<Toaster invert={false} />` for the current surface, or
 `closeButton={false}` to hide dismissal. Theme tokens and caller inline styles
 continue to control colors and actions.
 
+Attached viewport sheets and drawers keep their background continuous when pulled
+past the resting edge. The extension follows the panel's computed background,
+including local tokens and inline colors, while native content scrolling, refs,
+snap points and controls remain on the original dialog element. Detached/floating
+gaps and unstyled/custom-container presentation are retained. The decorative
+extension uses the shared `sheet.overflow-fill` styling slot.
+
 Time picker fields stay side by side, including optional period and seconds.
 Styled popovers use Radix's available width and height to stay within their
 collision boundary, scrolling tall content internally. `PopoverContent` defaults

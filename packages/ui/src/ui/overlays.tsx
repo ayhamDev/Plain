@@ -7,6 +7,7 @@ import {
   type TextDirection,
 } from './styling';
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from './i18n';
 import {
   Dialog as DialogPrimitive,
@@ -14,6 +15,7 @@ import {
   Popover as PopoverPrimitive,
   Tooltip as TooltipPrimitive,
   DropdownMenu as DropdownPrimitive,
+  Slot,
 } from 'radix-ui';
 import { Check, ChevronRight, Circle, X } from 'lucide-react';
 import { Toaster as Sonner, toast, type ToasterProps as SonnerToasterProps } from 'sonner';
@@ -22,6 +24,7 @@ import { cn } from './utils';
 import { buttonVariants } from './primitives';
 import { useModalInert } from './modal-accessibility';
 import { useMotionSettings } from './motion-policy';
+import { PanelOverflowFill } from './panel-overflow';
 export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
@@ -352,6 +355,7 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
     const styles = useStyles();
     const motion = useMotionSettings();
     const context = React.useContext(PanelContext);
+    const [panel, setPanel] = React.useState<HTMLElement | null>(null);
     const { t } = useTranslation();
     const localDirection = dir === 'ltr' || dir === 'rtl' ? dir : undefined;
     const textDirection = useDirection(localDirection);
@@ -364,71 +368,83 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
     const resolvedSide = context?.side ?? 'right';
     const vertical = resolvedSide === 'top' || resolvedSide === 'bottom';
     return (
-      <SheetPortal>
-        {overlay && <SheetOverlay unstyled={unstyled} {...overlayProps} />}
-        <Vaul.Content
-          ref={ref}
-          {...styles(
-            'sheet.content',
-            cn(
-              'ui-panel fixed z-[var(--ui-layer-dialog)] min-w-0 overflow-x-hidden overflow-y-auto overscroll-contain border-[length:var(--ui-border-width,1px)] border-[var(--ui-sheet-border,var(--ui-border))] bg-[var(--ui-sheet-background,var(--ui-surface))] p-5 text-[var(--ui-sheet-foreground,var(--ui-foreground))] shadow-[var(--ui-sheet-shadow,var(--ui-shadow))] outline-none sm:p-6',
-              vertical
-                ? cn(
-                    'ui-drawer inset-x-0',
-                    context?.hasSnapPoints ? 'h-dvh max-h-none' : 'max-h-[90dvh]',
-                    resolvedSide === 'bottom'
-                      ? 'bottom-0 rounded-t-[var(--ui-sheet-radius,var(--ui-radius))] pb-[max(1.5rem,env(safe-area-inset-bottom))]'
-                      : 'top-0 rounded-b-[var(--ui-sheet-radius,var(--ui-radius))] pt-[max(1.5rem,env(safe-area-inset-top))]',
-                  )
-                : cn(
-                    'ui-sheet inset-y-0 h-dvh',
-                    context?.hasSnapPoints ? 'w-screen' : 'w-[min(400px,calc(100%-24px))]',
-                    resolvedSide === 'left' ? 'left-0' : 'right-0',
-                  ),
-              showClose && '[&_[data-slot=header]]:pe-8',
-            ),
-            className,
-            unstyled,
-          )}
-          dir={textDirection}
-          data-side={resolvedSide}
-          data-variant={context?.variant ?? 'attached'}
-          data-size={context?.size ?? 'md'}
-          style={
-            {
-              '--ui-panel-gap': `${context?.gap ?? 12}px`,
-              ...((maxWidth ?? context?.maxWidth) != null
-                ? { maxWidth: maxWidth ?? context?.maxWidth }
-                : {}),
-              ...style,
-            } as React.CSSProperties
-          }
-          data-ui-motion={motion.reduced ? 'reduced' : undefined}
-          {...props}
-        >
-          {(showHandle ?? vertical) &&
-            !React.Children.toArray(children).some(
-              (child) => React.isValidElement(child) && child.type === SheetHandle,
-            ) && <SheetHandle />}
-          {children}
-          {showClose && (
-            <SheetClose
+      <>
+        <SheetPortal>
+          {overlay && <SheetOverlay unstyled={unstyled} {...overlayProps} />}
+          <Slot.Root ref={setPanel}>
+            <Vaul.Content
+              ref={ref}
               {...styles(
-                'sheet.close',
-                'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
-                undefined,
+                'sheet.content',
+                cn(
+                  'ui-panel fixed z-[var(--ui-layer-dialog)] min-w-0 overflow-x-hidden overflow-y-auto overscroll-contain border-[length:var(--ui-border-width,1px)] border-[var(--ui-sheet-border,var(--ui-border))] bg-[var(--ui-sheet-background,var(--ui-surface))] p-5 text-[var(--ui-sheet-foreground,var(--ui-foreground))] shadow-[var(--ui-sheet-shadow,var(--ui-shadow))] outline-none sm:p-6',
+                  vertical
+                    ? cn(
+                        'ui-drawer inset-x-0',
+                        context?.hasSnapPoints ? 'h-dvh max-h-none' : 'max-h-[90dvh]',
+                        resolvedSide === 'bottom'
+                          ? 'bottom-0 rounded-t-[var(--ui-sheet-radius,var(--ui-radius))] pb-[max(1.5rem,env(safe-area-inset-bottom))]'
+                          : 'top-0 rounded-b-[var(--ui-sheet-radius,var(--ui-radius))] pt-[max(1.5rem,env(safe-area-inset-top))]',
+                      )
+                    : cn(
+                        'ui-sheet inset-y-0 h-dvh',
+                        context?.hasSnapPoints ? 'w-screen' : 'w-[min(400px,calc(100%-24px))]',
+                        resolvedSide === 'left' ? 'left-0' : 'right-0',
+                      ),
+                  showClose && '[&_[data-slot=header]]:pe-8',
+                ),
+                className,
                 unstyled,
               )}
-              aria-label={t('panel.close')}
+              dir={textDirection}
+              data-side={resolvedSide}
+              data-variant={context?.variant ?? 'attached'}
+              data-size={context?.size ?? 'md'}
+              style={
+                {
+                  '--ui-panel-gap': `${context?.gap ?? 12}px`,
+                  ...((maxWidth ?? context?.maxWidth) != null
+                    ? { maxWidth: maxWidth ?? context?.maxWidth }
+                    : {}),
+                  ...style,
+                } as React.CSSProperties
+              }
+              data-ui-motion={motion.reduced ? 'reduced' : undefined}
+              {...props}
             >
-              <X
-                {...styles('sheet.close-icon', 'size-4', undefined, unstyled)}
-                aria-hidden="true"
-              />
-            </SheetClose>
-          )}
-        </Vaul.Content>
-      </SheetPortal>
+              {(showHandle ?? vertical) &&
+                !React.Children.toArray(children).some(
+                  (child) => React.isValidElement(child) && child.type === SheetHandle,
+                ) && <SheetHandle />}
+              {children}
+              {showClose && (
+                <SheetClose
+                  {...styles(
+                    'sheet.close',
+                    'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
+                    undefined,
+                    unstyled,
+                  )}
+                  aria-label={t('panel.close')}
+                >
+                  <X
+                    {...styles('sheet.close-icon', 'size-4', undefined, unstyled)}
+                    aria-hidden="true"
+                  />
+                </SheetClose>
+              )}
+            </Vaul.Content>
+          </Slot.Root>
+        </SheetPortal>
+        {panel?.parentElement &&
+        !(unstyled ?? styles.unstyled) &&
+        (context?.variant ?? 'attached') === 'attached'
+          ? createPortal(
+              <PanelOverflowFill panel={panel} side={resolvedSide} />,
+              panel.parentElement,
+            )
+          : null}
+      </>
     );
   },
 );

@@ -405,6 +405,7 @@ export const styleSlots = [
   "sheet.close-icon",
   "sheet.content",
   "sheet.handle",
+  "sheet.overflow-fill",
   "sheet.overlay",
   "sidebar.close",
   "sidebar.close-icon",
