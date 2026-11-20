@@ -2,6 +2,17 @@ import * as React from 'react';
 import { TableMenu, type TableMenuPresentation } from './table-menu';
 import { useCollectionMode, type CollectionModeProps } from './collection-mode';
 import {
+  DataTableSearch,
+  DataTableSort,
+  DataTableColumns,
+  DataTableReset,
+  DataTableActiveFilters,
+  DataTableFieldFilter,
+  DataTableSelectionToggle,
+  DataTableSelectionActions,
+} from './data-table-controls';
+export * from './data-table-controls';
+import {
   tableFeatures,
   useTable,
   rowSortingFeature,
@@ -31,10 +42,8 @@ import {
   ChevronLast,
   ChevronLeft,
   ChevronRight,
-  SlidersHorizontal,
   Filter,
   Plus,
-  RotateCcw,
   X,
 } from 'lucide-react';
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from './table';
@@ -48,18 +57,7 @@ import {
   SelectItem,
 } from './forms';
 import { useTranslation } from './i18n';
-import {
-  DataTableFilterValue,
-  DataTableSimpleFilter,
-  filterSummary,
-} from './data-table-filter-value';
-import { SearchInput } from './advanced';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-} from './overlays';
+import { DataTableFilterValue } from './data-table-filter-value';
 import { Button, EmptyState, Spinner } from './primitives';
 import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
 import {
@@ -188,6 +186,8 @@ export interface DataTableViewProps<T extends RowData>
   showToolbar?: boolean;
   showReset?: boolean;
   pagination?: boolean;
+  /** Hide built-in pagination controls while retaining paginated rows. */
+  showPagination?: boolean;
   showPageSize?: boolean;
   showPageJump?: boolean;
   showSummary?: boolean;
@@ -276,9 +276,6 @@ function RowSelection<T extends RowData>({ row }: { row: DataTableRow<T> }) {
       }}
     />
   );
-}
-function columnLabel(column: { id: string; columnDef: { header?: unknown } }) {
-  return typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id;
 }
 export function DataTableFilters<T extends RowData>({
   table,
@@ -455,9 +452,7 @@ export function DataTableToolbar<T extends RowData>({
   | 'toolbarActions'
 >) {
   const styles = useStyles();
-  const { t } = useTranslation();
-  const query = tableQuery(table.state.globalFilter),
-    sorting = table.state.sorting;
+  const query = tableQuery(table.state.globalFilter);
   const hasReset =
     showReset &&
     (searchable || filterable) &&
@@ -473,190 +468,28 @@ export function DataTableToolbar<T extends RowData>({
     return null;
   return (
     <div {...styles('data-table.toolbar', 'ui-table-toolbar')}>
-      {searchable && (
-        <SearchInput
-          aria-label={searchPlaceholder ?? t('table.search')}
-          placeholder={searchPlaceholder ?? t('table.search')}
-          value={query.search}
-          onValueChange={(search) => {
-            table.setGlobalFilter({ ...query, search });
-            table.setPageIndex(0);
-          }}
-        />
-      )}
+      {searchable && <DataTableSearch table={table} placeholder={searchPlaceholder} />}
       {filterable &&
         filterFields.length > 0 &&
         (filterMode === 'advanced' ? (
           <DataTableFilters table={table} fields={filterFields} presentation={filterPresentation} />
         ) : (
           filterFields.map((field) => (
-            <DataTableSimpleFilter
+            <DataTableFieldFilter
               key={field.id}
+              table={table}
               field={field}
               presentation={filterPresentation}
-              rule={query.filters.find((r) => r.field === field.id)}
-              onChange={(rule) => {
-                table.setGlobalFilter({
-                  ...query,
-                  filters: [...query.filters.filter((r) => r.field !== field.id), rule],
-                });
-                table.setPageIndex(0);
-              }}
-              onRemove={() => {
-                table.setGlobalFilter({
-                  ...query,
-                  filters: query.filters.filter((r) => r.field !== field.id),
-                });
-                table.setPageIndex(0);
-              }}
             />
           ))
         ))}
-      {hasReset && (
-        <Button
-          variant="ghost"
-          onClick={() => {
-            table.setGlobalFilter(emptyTableQuery);
-            table.resetColumnFilters(true);
-            table.setPageIndex(0);
-          }}
-        >
-          <RotateCcw size={14} />
-          {t('common.reset')}
-        </Button>
-      )}
+      {hasReset && <DataTableReset table={table} />}
       <div {...styles('data-table.toolbar-end', 'ui-table-toolbar-end')}>
-        {sortable && (
-          <TableMenu
-            label={t('table.sortOrder')}
-            presentation={filterPresentation}
-            contentProps={{
-              ...styles('data-table.sort-panel', 'ui-table-sort-panel'),
-              align: 'end',
-            }}
-            trigger={
-              <Button variant="outline">
-                <ArrowUpDown size={14} />
-                {t('table.sort')}
-                {sorting.length > 0 && (
-                  <span {...styles('data-table.count', 'ui-table-count')}>{sorting.length}</span>
-                )}
-              </Button>
-            }
-          >
-            <strong>{t('table.sortOrder')}</strong>
-            {sorting.map((rule, i) => (
-              <div {...styles('data-table.sort-rule', 'ui-table-sort-rule')} key={rule.id}>
-                <span>{columnLabel(table.getColumn(rule.id)!)}</span>
-                <Select
-                  value={rule.desc ? 'desc' : 'asc'}
-                  onValueChange={(direction) =>
-                    table.setSorting(
-                      sorting.map((item, n) =>
-                        n === i ? { ...item, desc: direction === 'desc' } : item,
-                      ),
-                    )
-                  }
-                >
-                  <SelectTrigger aria-label={t('table.sortDirection', { label: rule.id })}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="asc">{t('table.ascending')}</SelectItem>
-                    <SelectItem value="desc">{t('table.descending')}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={t('table.removeSort', { label: rule.id })}
-                  onClick={() => table.setSorting(sorting.filter((_, n) => n !== i))}
-                >
-                  <X size={14} />
-                </Button>
-              </div>
-            ))}
-            <Select
-              value=""
-              onValueChange={(id) => table.setSorting([...sorting, { id, desc: false }])}
-            >
-              <SelectTrigger aria-label={t('table.addSort')}>
-                <SelectValue placeholder={t('table.addSort')} />
-              </SelectTrigger>
-              <SelectContent>
-                {table
-                  .getAllLeafColumns()
-                  .filter(
-                    (column) =>
-                      column.getCanSort() && !sorting.some((rule) => rule.id === column.id),
-                  )
-                  .map((column) => (
-                    <SelectItem key={column.id} value={column.id}>
-                      {columnLabel(column)}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </TableMenu>
-        )}
-        {columnControls && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <SlidersHorizontal size={14} />
-                {t('table.columns')}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllLeafColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    checked={column.getIsVisible()}
-                    disabled={column.getIsVisible() && table.getVisibleLeafColumns().length === 1}
-                    onSelect={(event) => event.preventDefault()}
-                    onCheckedChange={(checked) => column.toggleVisibility(checked)}
-                  >
-                    {columnLabel(column)}
-                  </DropdownMenuCheckboxItem>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        {sortable && <DataTableSort table={table} presentation={filterPresentation} />}
+        {columnControls && <DataTableColumns table={table} />}
         {toolbarActions}
       </div>
-      {filterable && query.filters.length > 0 && (
-        <div {...styles('data-table.active-filters', 'ui-table-active-filters')}>
-          {query.filters.filter(isActiveTableFilter).map((rule) => (
-            <Button
-              size="sm"
-              variant="ghost"
-              key={rule.id}
-              aria-label={t('table.removeFilter')}
-              onClick={() => {
-                table.setGlobalFilter({
-                  ...query,
-                  filters: query.filters.filter((item) => item.id !== rule.id),
-                });
-                table.setPageIndex(0);
-              }}
-            >
-              {filterFields.find((field) => field.id === rule.field)?.label ?? rule.field}{' '}
-              {t(`filter.${rule.operator}`)}{' '}
-              {filterSummary(
-                filterFields.find((field) => field.id === rule.field) ?? {
-                  id: rule.field,
-                  label: rule.field,
-                },
-                rule,
-              )}
-              <X size={12} />
-            </Button>
-          ))}
-        </div>
-      )}
+      {filterable && <DataTableActiveFilters table={table} fields={filterFields} />}
     </div>
   );
 }
@@ -804,6 +637,7 @@ export function DataTableView<T extends RowData>({
   showToolbar = true,
   showReset,
   pagination = true,
+  showPagination = true,
   showPageSize,
   showPageJump,
   showSummary,
@@ -847,16 +681,12 @@ export function DataTableView<T extends RowData>({
   const selected = selectable ? table.getSelectedRowIds().length : 0;
   const modeControl =
     selectionEnabled && showSelectionControls ? (
-      <Button
-        variant="outline"
-        aria-pressed={selectable}
-        onClick={() => {
-          if (selectable && clearSelectionOnExit) table.resetRowSelection(true);
-          changeMode(selectable ? 'browse' : 'selection');
-        }}
-      >
-        {t(selectable ? 'common.done' : 'collection.select')}
-      </Button>
+      <DataTableSelectionToggle
+        table={table}
+        mode={currentMode}
+        onModeChange={changeMode}
+        clearSelectionOnExit={clearSelectionOnExit}
+      />
     ) : null;
   const left = table.getStartVisibleLeafColumns(),
     right = table.getEndVisibleLeafColumns();
@@ -1086,44 +916,34 @@ export function DataTableView<T extends RowData>({
           </Table>
         </div>
         {!!selected && selectionActions && (
-          <div
-            {...styles('data-table.selection-actions', 'ui-table-selection-actions')}
-            role="region"
-            aria-label={t('table.selectedActions')}
-          >
-            <span>{selected} selected</span>
+          <DataTableSelectionActions table={table}>
             {selectionActions(table)}
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={t('table.clearSelection')}
-              onClick={() => table.resetRowSelection(true)}
-            >
-              <X size={14} />
-            </Button>
+          </DataTableSelectionActions>
+        )}
+        {(footer != null || (footer === undefined && pagination && showPagination)) && (
+          <div
+            {...styles('data-table.footer', 'ui-data-table-footer')}
+            data-sticky={stickyFooter || undefined}
+            style={{ bottom: stickyFooterOffset ?? 0 }}
+          >
+            {footer === undefined
+              ? pagination &&
+                showPagination && (
+                  <DataTablePagination
+                    table={table}
+                    pageSizes={pageSizes}
+                    selectable={selectable}
+                    loading={loading}
+                    showPageSize={showPageSize}
+                    showPageJump={showPageJump}
+                    showSummary={showSummary}
+                  />
+                )
+              : typeof footer === 'function'
+                ? footer(table)
+                : footer}
           </div>
         )}
-        <div
-          {...styles('data-table.footer', 'ui-data-table-footer')}
-          data-sticky={stickyFooter || undefined}
-          style={{ bottom: stickyFooterOffset ?? 0 }}
-        >
-          {footer === undefined
-            ? pagination && (
-                <DataTablePagination
-                  table={table}
-                  pageSizes={pageSizes}
-                  selectable={selectable}
-                  loading={loading}
-                  showPageSize={showPageSize}
-                  showPageJump={showPageJump}
-                  showSummary={showSummary}
-                />
-              )
-            : typeof footer === 'function'
-              ? footer(table)
-              : footer}
-        </div>
       </div>
     </StyleProvider>
   );

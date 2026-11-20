@@ -753,6 +753,12 @@ export const components: ComponentDefinition[] = [
       ),
       prop('pageSize', 'number', 'Initial records per page.', '10'),
       prop('searchable', 'boolean', 'Show global search.', 'true'),
+      prop(
+        'showToolbar / showPagination',
+        'boolean',
+        'Hide built-in controls for an external layout. showPagination hides only pagination UI, preserving paginated rows.',
+        'true',
+      ),
       prop('loading', 'boolean', 'Display an accessible loading state.'),
       prop('caption', 'string', 'Accessible table name.', 'Records'),
       prop('getRowId', '(row: T) => string', 'Stable record identity, essential for selection.'),
@@ -791,7 +797,7 @@ export const components: ComponentDefinition[] = [
       prop(
         'toolbar / footer',
         'ReactNode | (table) => ReactNode',
-        'Replace standard controls; DataTableToolbar, DataTableFilters and DataTablePagination are separately exported.',
+        'Replace standard controls. DataTableSearch, DataTableFilters, DataTableFieldFilter, DataTableSort, DataTableColumns, DataTableReset, DataTableActiveFilters, DataTableSelectionToggle, DataTableSelectionActions, DataTableToolbar and DataTablePagination can share one table instance outside the view. See Data table controls.',
       ),
       prop(
         'rowProps / renderDetail',

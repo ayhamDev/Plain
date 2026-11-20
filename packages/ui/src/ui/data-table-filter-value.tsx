@@ -2,6 +2,7 @@ import { MultiSelect } from './advanced';
 import { Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
 import { DatePicker } from './calendar';
 import { useTranslation } from './i18n';
+import { useStyles } from './styling';
 import { Chip } from './chips';
 import { TableMenu, type TableMenuPresentation } from './table-menu';
 import { filterOperators, type DataTableFilter, type DataTableFilterField } from './table-filter';
@@ -145,14 +146,17 @@ export function DataTableSimpleFilter<T>({
   onChange,
   onRemove,
   presentation,
+  className,
 }: {
   field: DataTableFilterField<T>;
   rule?: DataTableFilter;
   onChange: (rule: DataTableFilter) => void;
   onRemove: () => void;
   presentation?: TableMenuPresentation;
+  className?: string;
 }) {
   const { t } = useTranslation();
+  const styles = useStyles();
   const current = rule ?? {
     id: `simple-${field.id}`,
     field: field.id,
@@ -163,9 +167,10 @@ export function DataTableSimpleFilter<T>({
     <TableMenu
       label={field.label}
       presentation={presentation}
-      contentProps={{ className: 'ui-table-simple-filter' }}
+      contentProps={styles('data-table.simple-filter', 'ui-table-simple-filter')}
       trigger={
         <Chip
+          className={className}
           behavior="action"
           selected={!!summary || (!!rule && ['empty', 'notEmpty'].includes(rule.operator))}
           showCheck={false}

@@ -71,6 +71,93 @@ const chartData = `const data = ${JSON.stringify(chartSampleData, null, 2)};`;
 
 export const extendedComponents: ComponentDefinition[] = [
   define(
+    'data-table-controls',
+    'Data table controls',
+    'Layout',
+    'Place linked table controls anywhere in your page layout.',
+    [
+      'useDataTable',
+      'DataTableView',
+      'DataTableSearch',
+      'DataTableFilters',
+      'DataTableSort',
+      'DataTableColumns',
+      'DataTableReset',
+      'DataTableActiveFilters',
+      'DataTablePagination',
+      'type DataTableColumn',
+      'type DataTableFilterField',
+    ],
+    `<header style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+  <DataTableSearch table={table} placeholder="Search invoices" />
+  <DataTableFilters table={table} fields={fields} />
+  <DataTableSort table={table} />
+  <DataTableColumns table={table} />
+  <DataTableReset table={table} />
+</header>
+<DataTableActiveFilters table={table} fields={fields} />
+<DataTableView table={table} caption="Invoices" showToolbar={false} showPagination={false} />
+<footer><DataTablePagination table={table} pageSizes={[2, 4, 8]} /></footer>`,
+    [
+      p(
+        'table',
+        'DataTableInstance<T>',
+        'Pass the same instance from useDataTable or useRemoteDataTable().table to every control and table view.',
+      ),
+      p(
+        'fields / field',
+        'DataTableFilterField<T>[] / DataTableFilterField<T>',
+        'Advanced filters and active chips use fields. DataTableFieldFilter binds a single field. Configure the same fields on useDataTable for client filtering.',
+      ),
+      p(
+        'presentation',
+        'auto | popover | sheet',
+        'Filter and sort controls keep their responsive mobile bottom sheets.',
+        'auto',
+      ),
+      p(
+        'showToolbar / showPagination',
+        'boolean',
+        'Hide the built-in toolbar and pagination UI on DataTableView. Row pagination continues when only showPagination is false.',
+        'true',
+      ),
+      p(
+        'mode / onModeChange',
+        'browse | selection / callback',
+        'Share a controlled mode between DataTableSelectionToggle and the selectable table view.',
+      ),
+      p(
+        'native props / refs',
+        'input, button and div props',
+        'Standalone search, sorting, column, reset, selection and active-filter controls retain native props and refs on their actual elements.',
+      ),
+    ],
+    'Controls do not need a DataTable parent or a provider. Keep meaningful visible labels and logical page order. They share the controller while preserving native table semantics, keyboard navigation and responsive overlays.',
+    {
+      setup: `type Invoice = { id: string; customer: string; amount: number; status: string };
+const invoices: Invoice[] = [
+  { id: 'INV-001', customer: 'Alex Morgan', amount: 249, status: 'Paid' },
+  { id: 'INV-002', customer: 'Sophie Chen', amount: 149, status: 'Pending' },
+  { id: 'INV-003', customer: 'James Wilson', amount: 399, status: 'Paid' },
+  { id: 'INV-004', customer: 'Olivia Park', amount: 79, status: 'Paid' },
+];
+const columns: DataTableColumn<Invoice>[] = [
+  { accessorKey: 'id', header: 'Invoice' },
+  { accessorKey: 'customer', header: 'Customer' },
+  { accessorKey: 'amount', header: 'Amount' },
+  { accessorKey: 'status', header: 'Status' },
+];
+const fields: DataTableFilterField<Invoice>[] = [
+  { id: 'amount', label: 'Amount', type: 'number' },
+  { id: 'customer', label: 'Customer', type: 'text' },
+];`,
+      functionSetup:
+        'const table = useDataTable({ data: invoices, columns, filterFields: fields, getRowId: row => row.id, pageSize: 2 });',
+      usage:
+        'One controller is the connection; controls may live in separate React components, an app header, a side panel or a footer. Create it once in a common owner and pass table to every part. The live example includes a single-field filter and external selection mode/actions. DataTableReset clears search and filters while retaining sorting, columns and selection. When moving pagination out, hide it with showPagination={false}; pagination={false} instead renders all rows. Existing controlled callbacks and manual/server operations remain on the shared controller.',
+    },
+  ),
+  define(
     'qr-code',
     'QR code',
     'Feedback',

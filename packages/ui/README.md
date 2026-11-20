@@ -89,6 +89,87 @@ Heavy chart, scheduling, Kanban and motion implementations stay outside the core
 barrel. Calendar editing, server filtering and persistence remain application
 responsibilities. Custom themes/renderers require application accessibility QA.
 
+## Data table controls in your page layout
+
+Create one controller in a common owner and pass it to the table and controls.
+They can live in separate components, an app header, a side panel or a footer;
+they do not require a DataTable parent or a provider.
+
+```tsx
+import {
+  useDataTable,
+  DataTableView,
+  DataTableSearch,
+  DataTableFilters,
+  DataTableSort,
+  DataTableColumns,
+  DataTableReset,
+  DataTableActiveFilters,
+  DataTablePagination,
+  type DataTableColumn,
+  type DataTableFilterField,
+} from '@plain/ui'; // also @plain/ui/data-table
+
+type Invoice = { id: string; customer: string; amount: number };
+
+export function InvoicePage({
+  data,
+  columns,
+  fields,
+}: {
+  data: Invoice[];
+  columns: DataTableColumn<Invoice>[];
+  fields: DataTableFilterField<Invoice>[];
+}) {
+  const table = useDataTable({
+    data,
+    columns,
+    filterFields: fields,
+    getRowId: (row) => row.id,
+  });
+  return (
+    <>
+      <header>
+        <DataTableSearch table={table} placeholder="Search invoices" />
+        <DataTableFilters table={table} fields={fields} />
+        <DataTableSort table={table} />
+        <DataTableColumns table={table} />
+        <DataTableReset table={table} />
+      </header>
+      <DataTableActiveFilters table={table} fields={fields} />
+      <DataTableView table={table} showToolbar={false} showPagination={false} />
+      <footer>
+        <DataTablePagination table={table} />
+      </footer>
+    </>
+  );
+}
+```
+
+`showToolbar={false}` removes the built-in top controls. `showPagination={false}`
+hides only the built-in pagination UI, preserving paginated rows and external
+page controls. `pagination={false}` instead displays all rows. Existing
+`DataTableToolbar` can also be placed outside the view as one complete toolbar.
+`DataTableFieldFilter table={table} field={field}` binds a single simple filter.
+Configure the same filter fields on `useDataTable` and the filter controls for
+client filtering. For remote data, pass `useRemoteDataTable(...).table`; its
+controlled query, sorting, paging and transport remain the source of truth.
+
+To place selection controls elsewhere, keep `mode` (`browse` or `selection`) in
+the page owner and pass it with `onModeChange` to both `DataTableSelectionToggle`
+and the selectable table view. `DataTableSelectionActions table={table}` renders
+custom children and a clear action when IDs are selected, including selections
+on other pages. Exiting selection clears IDs by default; set
+`clearSelectionOnExit={false}` on the toggle to retain them.
+
+Search, sorting, column, reset, selection and active-filter controls forward
+native props and refs to their input/button/div. Labels and trigger children can
+be customized. Typed `data-table.*` slots and `unstyled` remain available. Filters
+and sorting keep responsive sheets on mobile. `DataTableReset` clears search and
+filters and returns to page one while preserving sorting, columns and selection;
+use controller methods in application actions for a different reset policy.
+The working docs example is `/components/data-table-controls`.
+
 ## Mobile time pickers
 
 TimePicker, DateTimePicker and their range variants open a bottom sheet below

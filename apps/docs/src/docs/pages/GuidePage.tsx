@@ -1968,6 +1968,32 @@ function DataTablesGuide() {
           days; event instants should be normalized to the business timezone before filtering.
         </p>
       </GuideSection>
+      <GuideSection title="Place controls anywhere in your page">
+        <p>
+          Create one useDataTable controller in a common page owner, then pass the same table to
+          DataTableSearch, DataTableFilters, DataTableFieldFilter, DataTableSort, DataTableColumns,
+          DataTableReset, DataTableActiveFilters and DataTablePagination. These controls can live
+          outside DataTableView, including in separate app header, side panel and footer components.
+          They do not need a DataTable parent or a provider. The complete DataTableToolbar is also
+          independently usable.
+        </p>
+        <p>
+          Set showToolbar=false and showPagination=false on the table view to hide its built-in
+          controls. showPagination affects only the UI; pagination=false instead displays all loaded
+          rows. Configure the same filterFields on the controller and the filter controls for local
+          filtering. Remote controls use useRemoteDataTable().table and keep the existing transport
+          and controlled state.
+        </p>
+        <p>
+          External selection uses DataTableSelectionToggle and DataTableSelectionActions. Keep mode
+          and onModeChange in the page owner and share them with the selectable table view. Reset
+          clears search and filters while preserving sorting, column visibility and selected IDs.
+          Use the controller methods for application-specific reset behavior.
+        </p>
+        <Link className="text-link" to="/components/data-table-controls">
+          Explore the working custom layout
+        </Link>
+      </GuideSection>
       <GuideSection title="Load remote results">
         <p>
           useRemoteDataTable handles debouncing, stale-request cancellation, server totals and

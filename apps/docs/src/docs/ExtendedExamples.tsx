@@ -18,6 +18,7 @@ const ScheduleExample = React.lazy(() => import('./examples/ScheduleExample'));
 const WorkspaceExample = React.lazy(() => import('./examples/WorkspaceExample'));
 const MotionExample = React.lazy(() => import('./examples/MotionExample'));
 const QRCodeExample = React.lazy(() => import('./examples/QRCodeExample'));
+const DataTableControlsExample = React.lazy(() => import('./examples/DataTableControlsExample'));
 const records = Array.from({ length: 1000 }, (_, index) => ({
   id: String(index),
   name: `Project ${index + 1}`,
@@ -467,6 +468,12 @@ export default function ExtendedExamples({ slug }: { slug: string }) {
     return (
       <React.Suspense fallback={<UI.Spinner />}>
         <QRCodeExample />
+      </React.Suspense>
+    );
+  if (slug === 'data-table-controls')
+    return (
+      <React.Suspense fallback={<UI.Spinner />}>
+        <DataTableControlsExample />
       </React.Suspense>
     );
   if (slug.endsWith('-chart'))

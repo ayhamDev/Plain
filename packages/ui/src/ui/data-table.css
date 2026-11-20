@@ -1,3 +1,7 @@
+.ui-chip.ui-table-field-filter[data-size] {
+  min-block-size: var(--ui-control-height, 40px);
+}
+
 @layer components {
   .ui-data-table {
     display: flex;

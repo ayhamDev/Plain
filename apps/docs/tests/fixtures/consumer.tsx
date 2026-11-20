@@ -42,6 +42,12 @@ import { Button as ModularButton } from '@plain/ui/primitives';
 import { Dropzone as ModularDropzone } from '@plain/ui/advanced';
 import { QRCode as ModularQRCode } from '@plain/ui/qr-code';
 import { TimePicker as ModularTimePicker, type TimePickerMode } from '@plain/ui/date-time';
+import {
+  DataTableSearch as ModularTableSearch,
+  DataTableSort as ModularTableSort,
+  DataTableColumns as ModularTableColumns,
+  DataTablePagination as ModularTablePagination,
+} from '@plain/ui/data-table';
 import '@plain/ui/styles.css';
 import { FullCalendar, type FullCalendarRef } from '@plain/ui/full-calendar';
 import '@plain/ui/full-calendar.css';
@@ -132,14 +138,20 @@ export function ConsumerApp() {
           columns={columns}
           getRowId={(row) => row.id}
         />
+        <ModularTableSearch table={table} />
+        <ModularTableSort table={table} />
+        <ModularTableColumns table={table} />
         <DataTableView
           table={table}
+          showToolbar={false}
+          showPagination={false}
           selectable
           filterFields={[{ id: 'name', label: 'Name', type: 'text' }]}
           selectionActions={(table) => (
             <Button onClick={() => table.resetRowSelection(true)}>Clear</Button>
           )}
         />
+        <ModularTablePagination table={table} />
         <SidebarProvider collapsible="offcanvas" shortcut={false}>
           <Sidebar variant="inset">
             <SidebarContent>
