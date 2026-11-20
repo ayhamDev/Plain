@@ -281,13 +281,16 @@ export function GanttChart<T>({
   const todayInRange = todayIndex >= 0 && todayIndex < days;
   const dateText = (date: Temporal.PlainDate) =>
     dateFormatter(locale, {
+      calendar: 'gregory',
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       timeZone: 'UTC',
     }).format(ganttDate(date));
   const shortDate = (date: Temporal.PlainDate, options: Intl.DateTimeFormatOptions) =>
-    dateFormatter(locale, { ...options, timeZone: 'UTC' }).format(ganttDate(date));
+    dateFormatter(locale, { calendar: 'gregory', ...options, timeZone: 'UTC' }).format(
+      ganttDate(date),
+    );
   const displayRow = (row: (typeof rows)[number]) => {
     if (drag.preview?.id !== row.task.id) return row;
     return { ...row, ...ganttRange(drag.preview.start, drag.preview.end)! };

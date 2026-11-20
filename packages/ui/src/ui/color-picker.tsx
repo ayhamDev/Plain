@@ -284,7 +284,7 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
               />
             </div>
             <span id={id} className="sr-only">
-              Left and right adjust saturation. Up and down adjust brightness. Shift changes by ten.
+              {t('color.keyboardHint')}
             </span>
             <div {...styles('color-picker.hue', 'ui-color-hue', undefined, unstyled)}>
               <Slider

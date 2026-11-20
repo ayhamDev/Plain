@@ -56,7 +56,7 @@ import {
   SelectContent,
   SelectItem,
 } from './forms';
-import { useTranslation } from './i18n';
+import { numberFormatter, useTranslation } from './i18n';
 import { DataTableFilterValue } from './data-table-filter-value';
 import { Button, EmptyState, Spinner } from './primitives';
 import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
@@ -287,7 +287,7 @@ export function DataTableFilters<T extends RowData>({
   presentation?: TableMenuPresentation;
 }) {
   const styles = useStyles();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const query = tableQuery(table.state.globalFilter);
   const id = React.useId();
   const update = (filters: DataTableFilter[]) => {
@@ -326,7 +326,7 @@ export function DataTableFilters<T extends RowData>({
           {t('table.filters')}
           {query.filters.filter(isActiveTableFilter).length > 0 && (
             <span {...styles('data-table.count', 'ui-table-count')}>
-              {query.filters.filter(isActiveTableFilter).length}
+              {numberFormatter(locale).format(query.filters.filter(isActiveTableFilter).length)}
             </span>
           )}
         </Button>
@@ -506,7 +506,7 @@ export function DataTablePagination<T extends RowData>({
   'table' | 'pageSizes' | 'selectable' | 'loading' | 'showPageSize' | 'showPageJump' | 'showSummary'
 >) {
   const styles = useStyles();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const direction = useDirection();
   const { pageIndex, pageSize } = table.state.pagination;
   const count = table.getRowCount(),
@@ -578,7 +578,7 @@ export function DataTablePagination<T extends RowData>({
             <SelectContent>
               {sizes.map((size) => (
                 <SelectItem key={size} value={String(size)}>
-                  {size}
+                  {numberFormatter(locale).format(size)}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -6,6 +6,8 @@ export const englishMessages = {
   'collection.select': 'Select',
   'collection.selected': '{count} selected',
   'input.number': 'Number',
+  'input.value': 'Value',
+  'input.indexedValue': 'Value {index}',
   'input.password': 'Password',
   'input.pin': 'Verification code',
   'input.tags': 'Tags',
@@ -18,6 +20,8 @@ export const englishMessages = {
   'select.empty': 'No options found.',
   'virtual.items': 'Items',
   'color.invalid': 'Enter a valid hexadecimal color.',
+  'color.keyboardHint':
+    'Left and right adjust saturation. Up and down adjust brightness. Shift changes by ten.',
   'picker.monthDropdown': 'Choose month',
   'picker.yearDropdown': 'Choose year',
   'picker.weekNumber': 'Week {number}',
@@ -94,6 +98,7 @@ export const englishMessages = {
   'file.selected': 'Selected files',
   'file.remove': 'Remove {label}',
   'file.upload': 'Upload files',
+  'file.size': '{count} KB',
   'qr.label': 'QR code',
   'qr.description': 'Scan this QR code with a compatible reader.',
   'qr.empty': 'No content',
@@ -146,6 +151,7 @@ export const englishMessages = {
   'table.selectPage': 'Select current page',
   'table.rowsPerPage': 'Rows per page',
   'table.page': 'Page',
+  'table.pageLabel': '{label} {page}',
   'table.of': 'of {count}',
   'table.firstPage': 'First page',
   'table.previousPage': 'Previous page',
@@ -242,6 +248,8 @@ export const arabicMessages: TranslationMessages = {
   'table.range': '{from}-{to} \u0645\u0646 {total}',
   'collection.selected': '\u062a\u0645 \u062a\u062d\u062f\u064a\u062f {count}',
   'input.number': 'رقم',
+  'input.value': 'القيمة',
+  'input.indexedValue': 'القيمة {index}',
   'input.password': 'كلمة المرور',
   'input.pin': 'رمز التحقق',
   'input.tags': 'الوسوم',
@@ -257,6 +265,8 @@ export const arabicMessages: TranslationMessages = {
   'select.required': 'اختر خياراً واحداً على الأقل.',
   'virtual.items': 'العناصر',
   'color.invalid': 'أدخل رمز لون صالحاً.',
+  'color.keyboardHint':
+    'استخدم السهمين الأيسر والأيمن لتعديل التشبع، والأعلى والأسفل لتعديل السطوع. اضغط Shift للتغيير بمقدار عشرة.',
   'picker.monthDropdown': 'اختر الشهر',
   'picker.yearDropdown': 'اختر السنة',
   'picker.weekNumber': 'الأسبوع {number}',
@@ -273,6 +283,7 @@ export const arabicMessages: TranslationMessages = {
   'file.selected': 'الملفات المحددة',
   'file.remove': 'إزالة {label}',
   'file.upload': 'رفع ملفات',
+  'file.size': '{count} ك.ب',
   'qr.label': 'رمز QR',
   'qr.description': 'امسح هذا الرمز باستخدام قارئ متوافق.',
   'qr.empty': 'لا يوجد محتوى',
@@ -391,6 +402,7 @@ export const arabicMessages: TranslationMessages = {
   'table.selectPage': 'اختيار كل صفوف الصفحة',
   'table.rowsPerPage': 'الصفوف لكل صفحة',
   'table.page': 'الصفحة',
+  'table.pageLabel': '{label} {page}',
   'table.of': 'من {count}',
   'table.firstPage': 'الصفحة الأولى',
   'table.previousPage': 'الصفحة السابقة',
@@ -499,8 +511,15 @@ export interface LanguageProviderProps {
   timeZone?: string;
   dir?: 'ltr' | 'rtl';
   messages?: TranslationMessages;
-  /** Dictionaries are selected by exact locale, then base language. */
+  /** Merge base language, script/region and exact locale dictionaries; missing keys fall back. */
   translations?: Readonly<Record<string, TranslationMessages>>;
+}
+function canonicalLocale(locale: string) {
+  try {
+    return Intl.getCanonicalLocales(locale)[0];
+  } catch {
+    return undefined;
+  }
 }
 export function LanguageProvider({
   children,
@@ -511,17 +530,25 @@ export function LanguageProvider({
   translations,
 }: LanguageProviderProps) {
   const parent = React.useContext(LanguageContext);
-  const locale = localLocale ?? parent.locale;
+  const locale = localLocale === undefined ? parent.locale : (canonicalLocale(localLocale) ?? 'en');
   const value = React.useMemo<LanguageValue>(() => {
-    const dictionaries = { ...parent.dictionaries, ...translations };
+    const dictionaries = { ...parent.dictionaries };
+    for (const [key, dictionary] of Object.entries(translations ?? {})) {
+      const tag = canonicalLocale(key);
+      if (tag) dictionaries[tag] = { ...dictionaries[tag], ...dictionary };
+    }
     const overrides = { ...parent.overrides, ...messages };
+    const parts = new Intl.Locale(locale).baseName.split('-');
+    const selected: TranslationMessages = {};
+    for (let length = 1; length <= parts.length; length++)
+      Object.assign(selected, dictionaries[parts.slice(0, length).join('-')]);
     return {
       locale,
       timeZone: timeZone ?? parent.timeZone,
       dir: dir ?? (localLocale ? languageDirection(locale) : parent.dir),
       dictionaries,
       overrides,
-      messages: { ...dictionaries[locale.split('-')[0]], ...dictionaries[locale], ...overrides },
+      messages: { ...selected, ...dictionaries[locale], ...overrides },
     };
   }, [locale, timeZone, dir, localLocale, parent, translations, messages]);
   return (
@@ -571,7 +598,11 @@ export function useTranslation() {
       return typeof message === 'function'
         ? message(values, language.locale)
         : message.replace(/\{(\w+)\}/g, (match, name: string) =>
-            values[name] === undefined ? match : String(values[name]),
+            values[name] === undefined
+              ? match
+              : typeof values[name] === 'number'
+                ? numberFormatter(language.locale).format(values[name])
+                : String(values[name]),
           );
     },
     [language],

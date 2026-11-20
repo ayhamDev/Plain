@@ -18,7 +18,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-r
 import { cn } from './utils';
 import { Button } from './primitives';
 import { RefreshCw } from 'lucide-react';
-import { useTranslation } from './i18n';
+import { numberFormatter, useTranslation } from './i18n';
 import { useElasticScroll, type ElasticScrollOptions, type RefreshState } from './elastic-scroll';
 import { useScrollAreaElastic } from './scroll-area-elastic';
 import { useSelectionIndicator } from './selection-indicator';
@@ -646,7 +646,7 @@ export function Pagination({
   ...props
 }: PaginationProps & PlainStyleProps) {
   const styles = useStyles();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const count = Number.isFinite(pageCount) ? Math.max(1, Math.floor(pageCount)) : 1;
   const current = Number.isFinite(page) ? Math.max(1, Math.min(count, Math.floor(page))) : 1;
   const pages = new Set(
@@ -687,11 +687,11 @@ export function Pagination({
             <Button
               variant={p === current ? 'outline' : 'ghost'}
               size="icon"
-              aria-label={`${t('table.page')} ${p}`}
+              aria-label={t('table.pageLabel', { label: t('table.page'), page: p })}
               aria-current={p === current ? 'page' : undefined}
               onClick={() => onPageChange(p)}
             >
-              {p}
+              {numberFormatter(locale).format(p)}
             </Button>
           </React.Fragment>
         ))}

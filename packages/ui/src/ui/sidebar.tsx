@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useTranslation } from './i18n';
+import { numberFormatter, useTranslation } from './i18n';
 import { RadioGroup, Slot } from 'radix-ui';
 import { Check, ChevronRight, PanelLeft, X } from 'lucide-react';
 import { Button } from './primitives';
@@ -1215,7 +1215,7 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
     ref,
   ) => {
     const styles = useStyles();
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
     const [local, setLocal] = React.useState(defaultValue ?? steps[0]?.value ?? '');
     const current = value ?? local;
@@ -1303,7 +1303,7 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
                         ) : state === 'error' ? (
                           '!'
                         ) : (
-                          index + 1
+                          numberFormatter(locale).format(index + 1)
                         )))}
                   </span>
                   <span {...styles('stepper.text', 'ui-stepper-text', undefined, unstyled)}>

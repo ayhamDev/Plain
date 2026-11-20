@@ -11,9 +11,11 @@ export const Command = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+  const { t } = useTranslation();
   return (
     <CommandPrimitive
       ref={ref}
+      label={props['aria-label'] ?? t('search.title')}
       {...styles(
         'command.root',
         'flex w-full flex-col overflow-hidden rounded-ui bg-surface text-foreground',
@@ -30,6 +32,7 @@ export const CommandInput = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+  const { t } = useTranslation();
   return (
     <div
       {...styles('command.wrapper', 'flex items-center gap-2 border-b px-3', undefined, unstyled)}
@@ -45,6 +48,7 @@ export const CommandInput = /* @__PURE__ */ React.forwardRef<
       />
       <CommandPrimitive.Input
         ref={ref}
+        placeholder={t('common.search')}
         {...styles(
           'command.input',
           'h-11 w-full min-w-0 bg-transparent text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:opacity-50',
@@ -62,9 +66,11 @@ export const CommandList = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.List> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+  const { t } = useTranslation();
   return (
     <CommandPrimitive.List
       ref={ref}
+      label={props['aria-label'] ?? t('search.results')}
       {...styles(
         'command.list',
         'max-h-72 overflow-x-hidden overflow-y-auto p-1',

@@ -710,7 +710,7 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
                     unstyled,
                   )}
                 >
-                  {Math.ceil(file.size / 1024)} KB
+                  {t('file.size', { count: Math.ceil(file.size / 1024) })}
                 </span>
                 <button
                   type="button"
@@ -971,7 +971,7 @@ export const Dropzone = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Dropz
                   dir="ltr"
                   {...styles('dropzone.file-size', 'ui-dropzone-file-size', undefined, unstyled)}
                 >
-                  {Math.ceil(file.size / 1024)} KB
+                  {t('file.size', { count: Math.ceil(file.size / 1024) })}
                 </span>
                 <button
                   type="button"
@@ -1200,7 +1200,7 @@ export const TagsInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Tags
                 type="button"
                 disabled={disabled}
                 aria-label={t('common.remove', { label: tag })}
-                title={`Remove ${tag}`}
+                title={t('common.remove', { label: tag })}
                 {...styles('tags-input.remove', 'ui-tag-remove', undefined, unstyled)}
                 onClick={() => {
                   setTags(tags.filter((_, i) => i !== index));
@@ -1310,7 +1310,7 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
     ref,
   ) => {
     const styles = useStyles();
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
     const portal = usePortalContainer();
     const input = React.useRef<HTMLInputElement>(null);
@@ -1340,7 +1340,7 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
       input.current?.setCustomValidity(required && !values.length ? t('select.required') : '');
     }, [required, values.length, t]);
     const filtered = options.filter((option) =>
-      option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
+      option.label.toLocaleLowerCase(locale).includes(query.toLocaleLowerCase(locale)),
     );
     const unavailable = (option: MultiSelectOption) =>
       !!option.disabled || (!values.includes(option.value) && values.length >= maxSelected);

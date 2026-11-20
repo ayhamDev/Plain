@@ -2,7 +2,7 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { Temporal } from 'temporal-polyfill';
 import { ChevronLeft, ChevronRight, Printer, Plus } from 'lucide-react';
-import { dateFormatter, useTranslation } from './i18n';
+import { dateFormatter, numberFormatter, useTranslation } from './i18n';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './table';
 import { Button, EmptyState } from './primitives';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
@@ -137,7 +137,7 @@ function dateLabel(
 ) {
   const value = new Date(0);
   value.setUTCFullYear(date.year, date.month - 1, date.day);
-  return dateFormatter(locale, { ...options, timeZone: 'UTC' }).format(value);
+  return dateFormatter(locale, { calendar: 'gregory', ...options, timeZone: 'UTC' }).format(value);
 }
 function hourLabel(hour: number, locale?: string) {
   return dateFormatter(locale, { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' }).format(
@@ -152,7 +152,7 @@ function wallLabel(
   const date = new Date(0);
   date.setUTCFullYear(value.year, value.month - 1, value.day);
   date.setUTCHours(value.hour, value.minute);
-  return dateFormatter(locale, { ...options, timeZone: 'UTC' }).format(date);
+  return dateFormatter(locale, { calendar: 'gregory', ...options, timeZone: 'UTC' }).format(date);
 }
 
 function CalendarComponent<T = Record<string, unknown>>(
@@ -713,7 +713,9 @@ function CalendarComponent<T = Record<string, unknown>>(
                         }}
                       >
                         {labels.more ?? t('calendar.more')} +
-                        {items.length - Math.max(1, maxEventsPerDay)}
+                        {numberFormatter(locale).format(
+                          items.length - Math.max(1, maxEventsPerDay),
+                        )}
                       </button>
                     )}
                   </div>

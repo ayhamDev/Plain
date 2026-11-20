@@ -1,8 +1,8 @@
 import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './styling';
 import * as React from 'react';
 import { ar, enUS } from 'react-day-picker/locale';
-import { dateFormatter, useTranslation } from './i18n';
-import { DayPicker, type DayPickerProps } from 'react-day-picker';
+import { dateFormatter, numberFormatter, useTranslation } from './i18n';
+import { DayPicker, labelDayButton, type DayPickerProps } from 'react-day-picker';
 import { CalendarDays } from 'lucide-react';
 import { cn } from './utils';
 import { Button } from './primitives';
@@ -27,8 +27,22 @@ export function Calendar({
 }: CalendarProps & PlainStyleProps) {
   const styles = useStyles();
   const language = useTranslation();
-  const locale = localeCode ?? language.locale;
+  const locale = localeCode ?? props.locale?.code ?? language.locale;
   const dir = useDirection(props.dir as 'ltr' | 'rtl' | undefined);
+  // The default engine lays out Gregorian months, including for Intl locales
+  // whose default display calendar is Persian, Buddhist or Islamic.
+  const formatDate = (date: Date, options: Intl.DateTimeFormatOptions) =>
+    dateFormatter(locale, { calendar: 'gregory', ...options }).format(date);
+  const dayLabel = (date: Date, modifiers: { today?: boolean; selected?: boolean }) =>
+    [
+      modifiers.today ? language.t('picker.today') : '',
+      locale === 'en' || locale === 'en-US'
+        ? labelDayButton(date, {})
+        : formatDate(date, { dateStyle: 'full' }),
+      modifiers.selected ? language.t('picker.selected') : '',
+    ]
+      .filter(Boolean)
+      .join(', ');
   const [referenceDate] = React.useState(() => new Date());
   const today = props.today ?? referenceDate;
   const displayedYear = (props.month ?? props.defaultMonth ?? today).getFullYear();
@@ -61,38 +75,20 @@ export function Calendar({
         labelNav: () => language.t('calendar.label'),
         labelWeekNumberHeader: () => language.t('picker.weekHeader'),
         labelWeekNumber: (number) => language.t('picker.weekNumber', { number }),
-        ...(!locale.startsWith('en')
-          ? {
-              labelDayButton: (date: Date, modifiers: { today?: boolean; selected?: boolean }) =>
-                [
-                  dateFormatter(locale, {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
-                  }).format(date),
-                  modifiers.today ? language.t('picker.today') : '',
-                  modifiers.selected ? language.t('picker.selected') : '',
-                ]
-                  .filter(Boolean)
-                  .join(', '),
-            }
-          : {}),
-        labelGridcell: (date) => dateFormatter(locale, { dateStyle: 'full' }).format(date),
-        labelGrid: (date) => dateFormatter(locale, { month: 'long', year: 'numeric' }).format(date),
-        labelWeekday: (date) => dateFormatter(locale, { weekday: 'long' }).format(date),
+        labelDayButton: dayLabel,
+        labelGridcell: (date, modifiers) => dayLabel(date, modifiers ?? {}),
+        labelGrid: (date) => formatDate(date, { month: 'long', year: 'numeric' }),
+        labelWeekday: (date) => formatDate(date, { weekday: 'long' }),
         ...labels,
       }}
       formatters={{
-        formatCaption: (date) =>
-          dateFormatter(locale, { month: 'long', year: 'numeric' }).format(date),
-        formatDay: (date) => dateFormatter(locale, { day: 'numeric' }).format(date),
+        formatCaption: (date) => formatDate(date, { month: 'long', year: 'numeric' }),
+        formatDay: (date) => formatDate(date, { day: 'numeric' }),
         formatWeekdayName: (date) =>
-          dateFormatter(locale, { weekday: locale.startsWith('ar') ? 'narrow' : 'short' }).format(
-            date,
-          ),
-        formatMonthDropdown: (date) => dateFormatter(locale, { month: 'long' }).format(date),
-        formatYearDropdown: (date) => dateFormatter(locale, { year: 'numeric' }).format(date),
+          formatDate(date, { weekday: locale.startsWith('ar') ? 'narrow' : 'short' }),
+        formatMonthDropdown: (date) => formatDate(date, { month: 'long' }),
+        formatYearDropdown: (date) => formatDate(date, { year: 'numeric' }),
+        formatWeekNumber: (number) => numberFormatter(locale).format(number),
         ...formatters,
       }}
       {...styles('calendar.root', 'ui-calendar', className, unstyled)}
@@ -149,7 +145,12 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
   const current = candidate && Number.isFinite(candidate.getTime()) ? candidate : undefined;
   const valueId = React.useId();
   const formattedValue = current
-    ? dateFormatter(locale, { day: 'numeric', month: 'short', year: 'numeric' }).format(current)
+    ? dateFormatter(locale, {
+        calendar: 'gregory',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }).format(current)
     : placeholder;
   const select = (date: Date | undefined) => {
     if (!isControlled) setInternalValue(date);

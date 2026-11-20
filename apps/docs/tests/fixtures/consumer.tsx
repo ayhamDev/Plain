@@ -70,8 +70,20 @@ export function ConsumerApp() {
     rowCount: 100,
   });
   return (
-    <PlainProvider dir="rtl" styles={styles} tokens={{ radius: '8px' }} persist={false}>
-      <ThemeScope tokens={{ accent: '#1d4ed8' }}>
+    <PlainProvider
+      locale="ar-EG"
+      timeZone="Africa/Cairo"
+      dir="rtl"
+      translations={{ ar: { 'table.search': 'بحث' } }}
+      styles={styles}
+      tokens={{ radius: '8px' }}
+      persist={false}
+    >
+      <ThemeScope
+        locale="fr-FR"
+        messages={{ 'common.done': 'Terminé' }}
+        tokens={{ accent: '#1d4ed8' }}
+      >
         <H1 size="2xl">Project workspace</H1>
         <ModularQRCode
           value="https://github.com/ayhamDev/Plain"

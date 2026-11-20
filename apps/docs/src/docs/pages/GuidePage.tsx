@@ -42,6 +42,7 @@ import {
   instanceOverridesCode,
   scopedOverridesCode,
 } from '../examples/ComponentOverridesExample';
+import { LocalizationExample } from '../examples/LocalizationExample';
 
 const guideInfo: Record<string, { title: string; description: string }> = {
   introduction: {
@@ -1886,42 +1887,96 @@ function SchedulingGuide() {
 function LocalizationGuide() {
   return (
     <>
-      <GuideSection title="Provide a language">
+      <GuideSection title="Set the global language">
         <p>
-          LanguageProvider (also exported as TranslationProvider) translates internal labels,
-          actions, validation, calendar tools and table controls. It does not translate application
-          data. English and Arabic are built in; supplied dictionaries work with any Intl locale.
-          Missing messages fall back to English. Set the DOM lang and dir separately so native
-          controls and browser tools share the language.
+          Set locale, timeZone, translations and messages on PlainProvider alongside your theme.
+          Every component uses the same language context for built-in text: calendars and time
+          controls, table tools and pagination, selection, search, inputs, upload feedback, dialogs,
+          notifications, navigation and chart labels. This includes accessible names, instructions,
+          validation and announcements. Portals retain the provider's language.
         </p>
         <CodeBlock
           title="AppLanguages.tsx"
-          code={
-            "import type { ReactNode } from 'react';\nimport { LanguageProvider, languageDirection, type TranslationMessages } from '@plain/ui';\n\nconst french: TranslationMessages = {\n  'common.loading': 'Chargement',\n  'table.rowsPerPage': 'Lignes par page',\n  'table.summary': ({ from, to, total }, locale) =>\n    new Intl.NumberFormat(locale).format(Number(from)) + '–' +\n    new Intl.NumberFormat(locale).format(Number(to)) + ' / ' + total,\n};\n\nexport function AppLanguages({ children, locale }: { children: ReactNode; locale: string }) {\n  return (\n    <LanguageProvider locale={locale} timeZone=\"Europe/Paris\" translations={{ fr: french }}>\n      <div lang={locale} dir={languageDirection(locale)}>{children}</div>\n    </LanguageProvider>\n  );\n}"
-          }
+          code={`import type { ReactNode } from 'react';
+import { PlainProvider, type TranslationMessages } from '@plain/ui';
+
+const french: TranslationMessages = {
+  'common.loading': 'Chargement',
+  'picker.chooseDate': 'Choisir une date',
+  'table.search': 'Rechercher…',
+  'table.rowsPerPage': 'Lignes par page',
+};
+
+export function AppLanguages({ children, locale }: { children: ReactNode; locale: string }) {
+  return (
+    <PlainProvider locale={locale} timeZone="Europe/Paris" translations={{ fr: french }}>
+      {children}
+    </PlainProvider>
+  );
+}`}
         />
+        <p>
+          English and Arabic are built in. Supply dictionaries for any other Intl locale; missing
+          keys fall back to the built-in language and then English. PlainProvider synchronizes the
+          document's lang and dir on the client. Direction follows the locale unless dir is
+          explicit. For SSR, set the server-rendered html language and direction to the same initial
+          values.
+        </p>
+      </GuideSection>
+      <GuideSection title="Try a language change">
+        <p>
+          Change the language, then open the date or time picker and table tools. The controls keep
+          their values, search and selected rows. The example supplies its own French dictionary and
+          column headings; task names remain application data. Its ThemeScope changes only this
+          example, including its popovers and mobile sheets.
+        </p>
+        <LocalizationExample />
       </GuideSection>
       <GuideSection title="Override or extend messages">
         <p>
           TranslationMessages is a partial, typed key dictionary. A value is a string with named
-          placeholders or a function of values and locale, so an application can implement plural
-          rules without adding another runtime. translations selects the base language and then the
-          exact locale. messages is an explicit override. Nested providers inherit dictionaries and
-          overrides, but changing locale selects the new language rather than retaining the old
-          dictionary.
+          placeholders or a function of raw values and locale. Numeric placeholders in strings use
+          Intl.NumberFormat automatically. Function messages let the application choose its plural
+          rules. Locale tags are canonicalized; translations merges base, script, region and exact
+          dictionaries in that order. Nested providers merge dictionary keys and inherit explicit
+          messages overrides. Changing locale selects the new dictionary rather than retaining the
+          previous language.
         </p>
         <CodeBlock
           title="ScopedOverrides.tsx"
-          code={
-            "import { LanguageProvider, Pagination, useTranslation } from '@plain/ui';\n\nexport function ResultsPager() {\n  const { t } = useTranslation();\n  return (\n    <LanguageProvider messages={{ 'table.nextPage': 'More results' }}>\n      <section aria-label={t('search.results')}>\n        <Pagination page={1} pageCount={4} onPageChange={page => console.log(page)} />\n      </section>\n    </LanguageProvider>\n  );\n}"
-          }
+          code={`import { DatePicker, ThemeScope } from '@plain/ui';
+
+export function ArabicBooking() {
+  return (
+    <ThemeScope locale="ar-EG" timeZone="Africa/Cairo"
+      messages={{ 'picker.chooseDate': 'اختر موعداً' }}>
+      <DatePicker />
+    </ThemeScope>
+  );
+}`}
         />
         <p>
-          useTranslation and useLanguage expose t, locale, timeZone and dir without creating a DOM
-          wrapper. Component-level label props remain authoritative. The date-picker engine accepts
-          a native locale through calendarProps.locale for additional grammatical rules, alongside
-          localeCode for Intl labels. Configure weekStartsOn and business-hour conventions
-          explicitly rather than inferring business policy from language.
+          ThemeScope sets lang and dir on its own element and keeps portals inside that scope.
+          LanguageProvider (also exported as TranslationProvider) remains available for context
+          without a DOM wrapper or document changes. useTranslation and useLanguage expose t,
+          locale, timeZone and dir. dateFormatter and numberFormatter provide cached Intl
+          formatting.
+        </p>
+      </GuideSection>
+      <GuideSection title="Dates, numbers and application content">
+        <p>
+          Calendar names and numeric UI use Intl. A region or numbering extension chooses numeral
+          conventions: ar-EG uses Arabic digits, while ar-u-nu-latn requests Latin digits. The
+          default calendar engine uses Gregorian geometry and labels it consistently, including in
+          locales whose default display calendar differs. Native calendar locale, label and
+          formatter props remain available through calendarProps. Week starts and business hours are
+          explicit policy.
+        </p>
+        <p>
+          Explicit component labels and native props win over defaults. Translate application
+          content, table column headings, option labels, event titles and toast messages in your
+          app; the library supplies its own tools and feedback. Native form values keep their API
+          types and ISO formats. Browser-owned validation and file chooser text follow the browser.
         </p>
       </GuideSection>
     </>

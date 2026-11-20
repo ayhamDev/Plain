@@ -672,6 +672,8 @@ function CartesianChart({
     columns,
     ...props
   } = allProps;
+  const language = useTranslation();
+  const locale = props.locale ?? language.locale;
   const entries: readonly ChartSeries[] =
     series ??
     [...new Set(data.flatMap((row) => Object.keys(row)))]
@@ -702,7 +704,7 @@ function CartesianChart({
       format: (value: unknown) =>
         typeof value === 'number' && valueFormatter
           ? valueFormatter(value)
-          : formatValue(value, props.locale),
+          : formatValue(value, locale),
     })),
   ];
   return (
@@ -828,6 +830,8 @@ export const DonutChart = /* @__PURE__ */ React.forwardRef<HTMLElement, DonutCha
     },
     ref,
   ) => {
+    const language = useTranslation();
+    const locale = props.locale ?? language.locale;
     const validData = data.filter(
       (row) =>
         typeof row[valueKey] === 'number' &&
@@ -842,7 +846,7 @@ export const DonutChart = /* @__PURE__ */ React.forwardRef<HTMLElement, DonutCha
         format: (value: unknown) =>
           typeof value === 'number' && valueFormatter
             ? valueFormatter(value)
-            : formatValue(value, props.locale),
+            : formatValue(value, locale),
       },
     ];
     return (

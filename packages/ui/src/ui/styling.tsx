@@ -2,6 +2,12 @@ import * as React from 'react';
 import { Direction } from 'radix-ui';
 import { ThemeProvider, type ThemeSettings } from './theme';
 import { cn } from './utils';
+import {
+  LanguageProvider,
+  languageDirection,
+  useTranslation,
+  type LanguageProviderProps,
+} from './i18n';
 import type { StyleSlot } from './slots';
 import {
   tokensToStyle,
@@ -101,9 +107,7 @@ const PortalContainerContext = /* @__PURE__ */ React.createContext<HTMLElement |
 export function usePortalContainer() {
   return React.useContext(PortalContainerContext);
 }
-export interface PlainProviderProps {
-  children: React.ReactNode;
-  dir?: TextDirection;
+export interface PlainProviderProps extends LanguageProviderProps {
   theme?: Partial<ThemeSettings>;
   tokens?: ThemeTokens;
   styles?: ComponentStyles;
@@ -112,24 +116,27 @@ export interface PlainProviderProps {
 }
 export function PlainProvider({
   children,
-  dir = 'ltr',
+  dir,
+  locale,
+  timeZone,
+  messages,
+  translations,
   theme,
   tokens,
   styles,
   unstyled,
   persist = true,
 }: PlainProviderProps) {
-  React.useEffect(() => {
-    const root = document.documentElement;
-    const previous = root.getAttribute('dir');
-    root.dir = dir;
-    return () => {
-      if (previous) root.dir = previous;
-      else root.removeAttribute('dir');
-    };
-  }, [dir]);
+  const inheritedDirection = useDirection();
   return (
-    <DirectionProvider dir={dir}>
+    <LanguageProvider
+      locale={locale}
+      timeZone={timeZone}
+      dir={dir ?? (locale ? languageDirection(locale) : inheritedDirection)}
+      messages={messages}
+      translations={translations}
+    >
+      <DocumentLanguage />
       <ThemeProvider defaultSettings={theme} persist={persist} tokens={tokens}>
         <TokenOverridesProvider tokens={tokens}>
           <StyleProvider styles={styles} unstyled={unstyled}>
@@ -137,53 +144,97 @@ export function PlainProvider({
           </StyleProvider>
         </TokenOverridesProvider>
       </ThemeProvider>
-    </DirectionProvider>
+    </LanguageProvider>
   );
 }
+function DocumentLanguage() {
+  const { locale, dir } = useTranslation();
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const previousDirection = root.getAttribute('dir');
+    const previousLanguage = root.getAttribute('lang');
+    root.dir = dir;
+    root.lang = locale;
+    return () => {
+      if (previousDirection !== null) root.setAttribute('dir', previousDirection);
+      else root.removeAttribute('dir');
+      if (previousLanguage !== null) root.setAttribute('lang', previousLanguage);
+      else root.removeAttribute('lang');
+    };
+  }, [locale, dir]);
+  return null;
+}
 
-export interface ThemeScopeProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface ThemeScopeProps
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
+    Pick<LanguageProviderProps, 'locale' | 'timeZone' | 'messages' | 'translations'> {
   tokens?: ThemeTokens;
   unstyled?: boolean;
   componentStyles?: ComponentStyles;
   mode?: 'light' | 'dark';
 }
+const ThemeScopeContent = /* @__PURE__ */ React.forwardRef<
+  HTMLDivElement,
+  Omit<ThemeScopeProps, 'locale' | 'timeZone' | 'messages' | 'translations'>
+>(({ children, tokens, componentStyles, unstyled, style, dir, mode, ...props }, ref) => {
+  const direction = useDirection(dir === 'rtl' || dir === 'ltr' ? dir : undefined);
+  const language = useTranslation();
+  const [container, setContainer] = React.useState<HTMLDivElement>();
+  const nodeRef = React.useRef<HTMLDivElement>(null);
+  const scopeRef = React.useCallback((node: HTMLDivElement | null) => {
+    nodeRef.current = node;
+    setContainer(node ?? undefined);
+  }, []);
+  React.useImperativeHandle(ref, () => nodeRef.current!, []);
+  const parentOverrides = React.useContext(TokenOverridesContext);
+  const inheritedAliases = Object.fromEntries(
+    Object.entries(parentOverrides).filter(([key]) => aliasNames.has(key)),
+  );
+  const variables = tokensToStyle({ ...inheritedAliases, ...tokens }) as React.CSSProperties;
+  return (
+    <DirectionProvider dir={direction}>
+      <TokenOverridesProvider tokens={tokens}>
+        <StyleProvider styles={componentStyles} unstyled={unstyled}>
+          <div
+            ref={scopeRef}
+            dir={direction}
+            lang={language.locale}
+            data-ui-theme-scope=""
+            data-theme={mode}
+            style={{ ...variables, ...style }}
+            {...props}
+          >
+            <PortalContainerContext.Provider value={container}>
+              {children}
+            </PortalContainerContext.Provider>
+          </div>
+        </StyleProvider>
+      </TokenOverridesProvider>
+    </DirectionProvider>
+  );
+});
 export const ThemeScope = /* @__PURE__ */ Object.assign(
-  React.forwardRef<HTMLDivElement, ThemeScopeProps>(
-    ({ children, tokens, componentStyles, unstyled, style, dir, mode, ...props }, ref) => {
-      const direction = useDirection(dir as TextDirection | undefined);
-      const [container, setContainer] = React.useState<HTMLDivElement>();
-      const nodeRef = React.useRef<HTMLDivElement>(null);
-      const scopeRef = React.useCallback((node: HTMLDivElement | null) => {
-        nodeRef.current = node;
-        setContainer(node ?? undefined);
-      }, []);
-      React.useImperativeHandle(ref, () => nodeRef.current!, []);
-      const parentOverrides = React.useContext(TokenOverridesContext);
-      const inheritedAliases = Object.fromEntries(
-        Object.entries(parentOverrides).filter(([key]) => aliasNames.has(key)),
-      );
-      const variables = tokensToStyle({ ...inheritedAliases, ...tokens }) as React.CSSProperties;
-      return (
-        <DirectionProvider dir={direction}>
-          <TokenOverridesProvider tokens={tokens}>
-            <StyleProvider styles={componentStyles} unstyled={unstyled}>
-              <div
-                ref={scopeRef}
-                dir={direction}
-                data-ui-theme-scope=""
-                data-theme={mode}
-                style={{ ...variables, ...style }}
-                {...props}
-              >
-                <PortalContainerContext.Provider value={container}>
-                  {children}
-                </PortalContainerContext.Provider>
-              </div>
-            </StyleProvider>
-          </TokenOverridesProvider>
-        </DirectionProvider>
-      );
-    },
-  ),
+  /* @__PURE__ */ React.forwardRef<HTMLDivElement, ThemeScopeProps>((props, ref) => {
+    const inheritedDirection = useDirection();
+    const { locale, timeZone, messages, translations, ...scopeProps } = props;
+    return (
+      <LanguageProvider
+        locale={locale}
+        timeZone={timeZone}
+        dir={
+          props.dir === 'rtl' || props.dir === 'ltr'
+            ? props.dir
+            : locale
+              ? languageDirection(locale)
+              : inheritedDirection
+        }
+        messages={messages}
+        translations={translations}
+      >
+        <ThemeScopeContent {...scopeProps} ref={ref} />
+      </LanguageProvider>
+    );
+  }),
   { displayName: 'ThemeScope' },
 );

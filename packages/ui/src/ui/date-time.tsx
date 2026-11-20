@@ -200,24 +200,14 @@ function calendarDate(value: string | Date | undefined) {
 }
 
 function formatDay(date: Date, locale?: string, options?: Intl.DateTimeFormatOptions) {
+  const format: Intl.DateTimeFormatOptions = {
+    calendar: 'gregory',
+    ...(options ?? { year: 'numeric', month: 'short', day: 'numeric' }),
+  };
   try {
-    return dateFormatter(
-      locale,
-      options ?? {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      },
-    ).format(date);
+    return dateFormatter(locale, format).format(date);
   } catch {
-    return dateFormatter(
-      'en',
-      options ?? {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      },
-    ).format(date);
+    return dateFormatter('en', format).format(date);
   }
 }
 
@@ -271,9 +261,17 @@ function formattedWall(
     if (props.timeZone) {
       return date
         .toZonedDateTime(props.timeZone, { disambiguation: props.disambiguation })
-        .toLocaleString(props.locale, { dateStyle: 'medium', timeStyle: 'short' });
+        .toLocaleString(props.locale, {
+          calendar: 'gregory',
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        });
     }
-    return date.toLocaleString(props.locale, { dateStyle: 'medium', timeStyle: 'short' });
+    return date.toLocaleString(props.locale, {
+      calendar: 'gregory',
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
   } catch {
     return value;
   }

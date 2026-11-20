@@ -1,14 +1,14 @@
 import { MultiSelect } from './advanced';
 import { Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
 import { DatePicker } from './calendar';
-import { useTranslation } from './i18n';
+import { dateFormatter, numberFormatter, useTranslation } from './i18n';
 import { useStyles } from './styling';
 import { Chip } from './chips';
 import { TableMenu, type TableMenuPresentation } from './table-menu';
 import { filterOperators, type DataTableFilter, type DataTableFilterField } from './table-filter';
 
 function toDate(value: unknown) {
-  if (value instanceof Date) return value;
+  if (value instanceof Date) return Number.isFinite(value.getTime()) ? value : undefined;
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value ?? ''));
   if (!match) return undefined;
   const year = Number(match[1]),
@@ -30,6 +30,7 @@ export function filterSummary<T>(
   field: DataTableFilterField<T>,
   rule: DataTableFilter,
   booleanLabels?: readonly [string, string],
+  locale?: string,
 ) {
   const values = Array.isArray(rule.value) ? rule.value : [rule.value];
   return values
@@ -39,9 +40,15 @@ export function filterSummary<T>(
         field.options?.find((o) => o.value === v)?.label ??
         (typeof v === 'boolean' && booleanLabels
           ? booleanLabels[v ? 1 : 0]
-          : v instanceof Date
-            ? fromDate(v)
-            : String(v)),
+          : locale && typeof v === 'number'
+            ? numberFormatter(locale).format(v)
+            : locale && field.type === 'date' && toDate(v)
+              ? dateFormatter(locale, { calendar: 'gregory', dateStyle: 'medium' }).format(
+                  toDate(v)!,
+                )
+              : v instanceof Date
+                ? fromDate(v)
+                : String(v)),
     )
     .join(', ');
 }
@@ -155,14 +162,14 @@ export function DataTableSimpleFilter<T>({
   presentation?: TableMenuPresentation;
   className?: string;
 }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const styles = useStyles();
   const current = rule ?? {
     id: `simple-${field.id}`,
     field: field.id,
     operator: filterOperators(field)[0],
   };
-  const summary = rule ? filterSummary(field, rule, [t('common.no'), t('common.yes')]) : '';
+  const summary = rule ? filterSummary(field, rule, [t('common.no'), t('common.yes')], locale) : '';
   return (
     <TableMenu
       label={field.label}

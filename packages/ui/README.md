@@ -35,6 +35,63 @@ focus outline remains visible and uses `input.focus` or `select.focus`; error
 styling and explicitly chosen contrast variants remain available. Filled, ghost
 and theme-borderless fields do not gain a border when focused.
 
+## Global localization
+
+Configure language once on `PlainProvider`. All built-in text uses the same
+context: calendar and time controls, table tools and pagination, search, inputs,
+file uploads, dialogs, notifications, navigation, charts and other internal
+labels, validation and announcements. Portals retain the provider's context.
+
+```tsx
+import { PlainProvider, ThemeScope, DatePicker, type TranslationMessages } from '@plain/ui';
+import type { ReactNode } from 'react';
+
+const french: TranslationMessages = {
+  'picker.chooseDate': 'Choisir une date',
+  'table.search': 'Rechercher…',
+  'table.rowsPerPage': 'Lignes par page',
+  'collection.selected': ({ count }, locale) =>
+    `${new Intl.NumberFormat(locale).format(Number(count))} sélectionné(s)`,
+};
+
+export function AppProviders({ children, locale }: { children: ReactNode; locale: string }) {
+  return (
+    <PlainProvider locale={locale} timeZone="Europe/Paris" translations={{ fr: french }}>
+      {children}
+      <ThemeScope locale="ar-EG" messages={{ 'picker.chooseDate': 'اختر موعداً' }}>
+        <DatePicker />
+      </ThemeScope>
+    </PlainProvider>
+  );
+}
+```
+
+English and Arabic dictionaries are built in. Supply typed `translations` for
+other languages; missing keys fall back to the built-in language, then English.
+Locale tags are canonicalized. Dictionaries merge from base language through
+script/region to the exact tag. Nested providers merge each dictionary's keys;
+`messages` supplies explicit inherited overrides. Changing locale updates mounted
+controls while retaining their values and table state. A function message receives
+raw placeholder values and the locale for application-owned plural rules. Numeric
+placeholders in string messages use `Intl.NumberFormat` automatically.
+
+`PlainProvider` synchronizes the document's `lang` and `dir` on the client and
+restores them when removed. Direction follows the locale unless `dir` is explicit.
+For SSR, set the server-rendered `<html lang dir>` to match your initial locale.
+`ThemeScope` applies language/direction to its own element and portaled descendants
+without changing the document. `LanguageProvider` / `TranslationProvider` remain
+available independently; they provide context without adding an element or changing
+document attributes. Use `useTranslation` / `useLanguage` for `t`, `locale`,
+`timeZone` and `dir`; `dateFormatter` and `numberFormatter` are cached Intl helpers.
+
+Calendar display names, weeks, dates and numeric summaries follow Intl. Choose a
+region or numbering extension when needed, such as `ar-EG` or `ar-u-nu-latn`.
+The default calendar engine lays out Gregorian months; its labels use that same
+calendar. Explicit component labels, native props and formatter overrides remain
+authoritative. Application content, data-column labels, options and toast messages
+are application-owned; browser-native validation and file chooser text follow the
+browser. Week starts, business hours and data/timezone policy remain explicit.
+
 ## Override one component
 
 Use typed component tokens on the native `style` prop to override a single

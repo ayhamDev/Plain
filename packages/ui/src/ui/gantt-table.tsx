@@ -16,6 +16,7 @@ function GanttDataTableImpl<T>({
 }) {
   const { t, locale } = useTranslation();
   const format = dateFormatter(locale, {
+    calendar: 'gregory',
     year: 'numeric',
     month: 'short',
     day: 'numeric',

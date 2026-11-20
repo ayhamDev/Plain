@@ -20,7 +20,7 @@ import {
   type DataTableFilterField,
 } from './table-filter';
 import { useStyles, StyleProvider, type PlainStyleProps } from './styling';
-import { useTranslation } from './i18n';
+import { numberFormatter, useTranslation } from './i18n';
 import { ArrowUpDown, SlidersHorizontal, RotateCcw, X } from 'lucide-react';
 
 function columnLabel(column: { id: string; columnDef: { header?: unknown } }) {
@@ -72,7 +72,7 @@ export const DataTableSort = /* @__PURE__ */ React.forwardRef(function DataTable
   ref: React.ForwardedRef<HTMLButtonElement>,
 ) {
   const styles = useStyles();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const sorting = table.state.sorting;
   return (
     <StyleProvider unstyled={unstyled}>
@@ -98,7 +98,7 @@ export const DataTableSort = /* @__PURE__ */ React.forwardRef(function DataTable
             )}
             {sorting.length > 0 && (
               <span {...styles('data-table.count', 'ui-table-count', undefined, unstyled)}>
-                {sorting.length}
+                {numberFormatter(locale).format(sorting.length)}
               </span>
             )}
           </Button>
@@ -281,7 +281,7 @@ export const DataTableActiveFilters = /* @__PURE__ */ React.forwardRef(
     ref: React.ForwardedRef<HTMLDivElement>,
   ) {
     const styles = useStyles();
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
     const query = tableQuery(table.state.globalFilter);
     const active = query.filters.filter(isActiveTableFilter);
     if (!active.length) return null;
@@ -314,6 +314,8 @@ export const DataTableActiveFilters = /* @__PURE__ */ React.forwardRef(
                   label: rule.field,
                 },
                 rule,
+                [t('common.no'), t('common.yes')],
+                locale,
               )}
               <X size={12} aria-hidden="true" />
             </Button>

@@ -27,7 +27,7 @@ import {
   DropdownMenuItem,
 } from './overlays';
 import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
-import { useTranslation } from './i18n';
+import { numberFormatter, useTranslation } from './i18n';
 import { useMotionSettings } from './motion-policy';
 
 export interface KanbanColumn<T> {
@@ -190,7 +190,7 @@ function KanbanLane<T>({
   move: (id: string, column: string, index: number) => void;
 }) {
   const styles = useStyles();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const drop = useDroppable({
     id: `column:${column.id}`,
     disabled: props.disabled || column.disabled,
@@ -207,7 +207,7 @@ function KanbanLane<T>({
         {props.renderColumnHeader?.(column) ?? (
           <>
             <strong>{column.title}</strong>
-            <span>{column.items.length}</span>
+            <span>{numberFormatter(locale).format(column.items.length)}</span>
           </>
         )}
       </header>
