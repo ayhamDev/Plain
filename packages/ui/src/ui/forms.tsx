@@ -15,7 +15,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from './utils';
 import { useModalInert } from './modal-accessibility';
 const inputClass =
-  'ui-interactive flex min-h-[var(--ui-input-height,var(--ui-control-height))] w-full min-w-0 rounded-[var(--ui-input-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-input-border bg-[var(--ui-input-background,var(--ui-surface))] px-3 py-2 text-sm text-[var(--ui-input-foreground,var(--ui-foreground))] placeholder:text-[var(--ui-input-placeholder,var(--ui-muted-foreground))] focus-visible:border-[var(--ui-input-focus,var(--ui-accent))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-input-focus,var(--ui-accent))] disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-55 aria-invalid:border-danger aria-invalid:focus-visible:outline-danger';
+  'ui-interactive flex min-h-[var(--ui-input-height,var(--ui-control-height))] w-full min-w-0 rounded-[var(--ui-input-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-input-border bg-[var(--ui-input-background,var(--ui-surface))] px-3 py-2 text-sm text-[var(--ui-input-foreground,var(--ui-foreground))] placeholder:text-[var(--ui-input-placeholder,var(--ui-muted-foreground))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-input-focus,var(--ui-accent))] disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-55 aria-invalid:border-danger aria-invalid:focus-visible:outline-danger';
 export type InputVariant = 'outlined' | 'filled' | 'ghost' | 'contrast';
 export type InputProps = React.InputHTMLAttributes<HTMLInputElement> &
   PlainStyleProps & { variant?: InputVariant };

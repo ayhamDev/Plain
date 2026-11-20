@@ -30,6 +30,11 @@ The original hand-authored neutral light/dark palette is the default. Brand
 generation is opt-in. Components support typed styles, tokens, unstyled behavior,
 native props/refs and direction-aware composition.
 
+Input, Textarea and SelectTrigger retain their resting border on focus. The outer
+focus outline remains visible and uses `input.focus` or `select.focus`; error
+styling and explicitly chosen contrast variants remain available. Filled, ghost
+and theme-borderless fields do not gain a border when focused.
+
 ## Override one component
 
 Use typed component tokens on the native `style` prop to override a single
