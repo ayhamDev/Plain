@@ -563,6 +563,63 @@ export const extendedComponents: ComponentDefinition[] = [
     `${inputA11y} Drag-and-drop has a native picker alternative. Client validation does not replace server validation.`,
   ),
   define(
+    'dropzone',
+    'Dropzone',
+    'Forms',
+    'A file drop surface with native browsing, validation and selected-file management.',
+    ['Dropzone'],
+    '<Dropzone aria-label="Upload project documents" name="documents" accept=".pdf,.txt" multiple maxFiles={5} maxSize={5000000} label="Add project documents" description="Drop PDF or text files here, or click to browse. Up to 5 files, 5 MB each." />',
+    [
+      ...value,
+      p(
+        'accept / multiple',
+        'string / boolean',
+        'Native accepted types and multiple-file selection.',
+      ),
+      p(
+        'maxFiles / maxSize',
+        'number',
+        'Maximum selection count and bytes per file. Invalid batches preserve the previous selection.',
+      ),
+      p(
+        'label / description / icon',
+        'ReactNode',
+        'Presentational content; null omits that part. Name the native input with Field or ARIA.',
+      ),
+      p(
+        'children',
+        'ReactNode | (state: DropzoneRenderState) => ReactNode',
+        'Replace the icon/heading with presentational content. State includes files, rejections, dragging and disabled.',
+      ),
+      p(
+        'showFileList',
+        'boolean',
+        'Show the built-in selected-file list and remove actions.',
+        'true',
+      ),
+      p(
+        'onFilesChange',
+        '(files: File[]) => void',
+        'Accepted selection after browsing, dropping or removal.',
+      ),
+      p(
+        'onReject',
+        '(rejections: FileUploadRejection[]) => void',
+        'Rejected files with type, size or count reasons. Built-in feedback is also announced.',
+      ),
+      p(
+        'ref / name / form / required / disabled',
+        'native file-input props',
+        'Attach refs, labels, values and events to the actual input. className/style also target the input; dropzone token variables inherit from the wrapper.',
+      ),
+    ],
+    'The entire drop area is a native file input with keyboard browsing and a visible outer focus ring. Selected-file removals restore focus to the input; rejection feedback is described and announced. Keep interactive actions outside the drop area. Uploading and server validation belong to the application.',
+    {
+      usage:
+        'Selections replace the previous batch, matching the native file picker. Any invalid file rejects the whole batch. onValueChange/onFilesChange report browsing, drop and remove changes; native onChange reports picker events. Native input handlers can preventDefault to cancel picker/drop commits. Use dropzone.* tokens or typed slots for local styling; showFileList={false} allows an application-owned file list.',
+    },
+  ),
+  define(
     'color-picker',
     'Color picker',
     'Forms',

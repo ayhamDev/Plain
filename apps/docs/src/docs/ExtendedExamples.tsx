@@ -629,6 +629,21 @@ export default function ExtendedExamples({ slug }: { slug: string }) {
           style={{ width: '100%', maxWidth: 400 }}
         />
       );
+    case 'dropzone':
+      return (
+        <div style={{ width: '100%', maxWidth: 520 }}>
+          <UI.Dropzone
+            aria-label="Upload project documents"
+            name="documents"
+            accept=".pdf,.txt"
+            multiple
+            maxFiles={5}
+            maxSize={5000000}
+            label="Add project documents"
+            description="Drop PDF or text files here, or click to browse. Up to 5 files, 5 MB each."
+          />
+        </div>
+      );
     case 'color-picker':
       return field(
         'Project color',

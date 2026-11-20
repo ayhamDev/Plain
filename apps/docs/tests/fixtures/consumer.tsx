@@ -39,6 +39,7 @@ import {
   type ComponentStyles,
 } from '@plain/ui';
 import { Button as ModularButton } from '@plain/ui/primitives';
+import { Dropzone as ModularDropzone } from '@plain/ui/advanced';
 import '@plain/ui/styles.css';
 import { FullCalendar, type FullCalendarRef } from '@plain/ui/full-calendar';
 import '@plain/ui/full-calendar.css';
@@ -67,6 +68,19 @@ export function ConsumerApp() {
         <P tone="muted" align="start">
           Your current projects.
         </P>
+        <ModularDropzone
+          name="attachments"
+          aria-label="Project attachments"
+          accept=".txt"
+          multiple
+          maxFiles={2}
+          maxSize={1000000}
+          style={tokensToStyle({ 'dropzone.radius': '12px' })}
+        >
+          {({ dragging, files }) => (
+            <P>{dragging ? 'Release files' : `${files.length} attachments`}</P>
+          )}
+        </ModularDropzone>
         <RoundSwitch
           aria-label="Local notifications"
           style={tokensToStyle({ 'switch.radius': '0px', 'switch.thumb-radius': '2px' })}

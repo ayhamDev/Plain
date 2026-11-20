@@ -88,6 +88,44 @@ Heavy chart, scheduling, Kanban and motion implementations stay outside the core
 barrel. Calendar editing, server filtering and persistence remain application
 responsibilities. Custom themes/renderers require application accessibility QA.
 
+## Dropzone
+
+`Dropzone` is available from `@plain/ui` and `@plain/ui/advanced`. Its entire drop
+surface is a native file input, so pointer browsing, keyboard selection, labels,
+required validation, refs and `FormData` work with the same control.
+
+```tsx
+import { Dropzone } from '@plain/ui';
+
+<Dropzone
+  name="documents"
+  aria-label="Project documents"
+  accept=".pdf,.txt"
+  multiple
+  maxFiles={5}
+  maxSize={5000000}
+  label="Add project documents"
+  description="PDF or text files, up to 5 files, 5 MB each."
+  onFilesChange={(files) => console.log(files)}
+/>;
+```
+
+Selections replace the previous batch. Invalid batches preserve it and show
+announced feedback for type, size or count rejections. `value`/`defaultValue`
+support controlled and uncontrolled files; `onValueChange` and `onFilesChange`
+report browsing, dropping and removal. Native `onChange` reports picker events.
+Prevent the native `onChange` or `onDrop` event to cancel the corresponding commit.
+Form reset restores the controlled/default files and clears rejection feedback.
+
+Customize `label`, `description`, `icon`, or `children` (a node or render function
+receiving `{ files, rejections, dragging, disabled }`). Put interactive actions
+outside the native drop area. `showFileList={false}` supports an application-owned
+file list. Typed `dropzone.*` slots and theme aliases customize the area, selected
+files, radius, colors, focus and minimum height. Token variables on the input's
+native `style` also inherit from the wrapper for local overrides. `unstyled`
+retains the native picker and selection behavior. Uploading and server validation
+remain application responsibilities.
+
 ## Composable collections and feedback
 
 `List` and `DataTable` support explicit `browse` and `selection` modes. Use

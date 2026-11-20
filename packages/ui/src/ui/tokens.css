@@ -258,6 +258,18 @@
   --ui-input-height: var(--ui-control-height);
   --ui-input-placeholder: var(--ui-muted-foreground);
   --ui-input-focus: var(--ui-focus-ring);
+  --ui-dropzone-background: var(--ui-surface);
+  --ui-dropzone-foreground: var(--ui-foreground);
+  --ui-dropzone-border: var(--ui-control-border);
+  --ui-dropzone-border-width: var(--ui-border-width);
+  --ui-dropzone-radius: var(--ui-radius);
+  --ui-dropzone-focus: var(--ui-focus-ring);
+  --ui-dropzone-muted: var(--ui-muted-foreground);
+  --ui-dropzone-icon-background: var(--ui-muted);
+  --ui-dropzone-hover-background: var(--ui-muted);
+  --ui-dropzone-active-background: var(--ui-accent-soft);
+  --ui-dropzone-active-border: var(--ui-accent);
+  --ui-dropzone-min-height: 192px;
   --ui-card-background: var(--ui-surface);
   --ui-card-foreground: var(--ui-foreground);
   --ui-card-border: var(--ui-border);

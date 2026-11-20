@@ -159,6 +159,27 @@ const popoverControls = [
 ];
 
 export const propPreviews: Record<string, PropPreview> = {
+  dropzone: {
+    defaults: { multiple: true, maxFiles: 5, showFileList: true, disabled: false },
+    controls: [bool('multiple'), number('maxFiles', 1, 10), bool('showFileList'), bool('disabled')],
+    render: (state) => (
+      <div style={{ width: '100%', maxWidth: 520 }}>
+        <UI.Dropzone
+          aria-label="Upload project documents"
+          accept=".pdf,.txt"
+          multiple={!!state.multiple}
+          maxFiles={Number(state.maxFiles)}
+          maxSize={5000000}
+          showFileList={!!state.showFileList}
+          disabled={!!state.disabled}
+          label="Add project documents"
+          description={`PDF or text files, up to ${state.multiple ? state.maxFiles : 1} files, 5 MB each.`}
+        />
+      </div>
+    ),
+    code: (state) =>
+      `<Dropzone ${attr(state)} aria-label="Upload project documents" accept=".pdf,.txt" maxSize={5000000} label="Add project documents" description="PDF or text files, up to ${state.multiple ? state.maxFiles : 1} files, 5 MB each." />`,
+  },
   'empty-state': emptyStatePreview,
   button: {
     defaults: { variant: 'primary', size: 'md', loading: false, disabled: false },
