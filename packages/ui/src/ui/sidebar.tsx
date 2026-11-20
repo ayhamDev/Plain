@@ -756,7 +756,7 @@ export const SidebarRail = /* @__PURE__ */ React.forwardRef<
       title={t(collapsed ? 'navigation.expand' : 'navigation.collapse')}
       aria-controls={contentId}
       aria-expanded={!collapsed}
-      {...styles('sidebar.rail', 'ui-sidebar-rail', className, unstyled)}
+      {...styles('sidebar.rail', 'ui-sidebar-rail ui-edge-handle', className, unstyled)}
       {...props}
       onClick={(event) => {
         onClick?.(event);

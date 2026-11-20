@@ -85,6 +85,22 @@ with `handleOnly={false}`. Use `maxWidth` with detached or floating bottom sheet
 for centered, bounded panels. Toasts now use the current surface and include a
 close button; `invert` and `closeButton={false}` retain the previous appearance.
 
+## Edge handles
+
+ResizableHandle now defaults to a clean edge line, matching SidebarRail. Both
+highlight with the same fade and growth transition on hover or keyboard focus;
+the resize highlight stays visible during a drag. Their geometry and pointer hit
+targets remain fixed. Devices without hover retain a visible affordance, and
+system/provider reduced motion removes the optional transition.
+
+Use `<ResizableHandle withHandle />` to retain the former grip pill, or supply
+children for a custom grip. The `withHandle` default changed from true to false;
+existing explicit choices retain their meaning. Native refs, separator keyboard
+controls, consumer handlers and the sidebar's collapse action remain supported.
+
+Theme aliases `edge-handle.color`, `edge-handle.thickness`, `edge-handle.duration`
+and `edge-handle.ease` customize the shared treatment using P.UI's semantic tokens.
+
 ## Section tabs
 
 Use the underline presentation for a record's sections, with a full-width baseline

@@ -578,14 +578,14 @@ export type ResizableHandleProps = Omit<React.ComponentProps<typeof Separator>, 
 export const ResizableHandle = /* @__PURE__ */ React.forwardRef<
   HTMLDivElement,
   ResizableHandleProps
->(({ className, unstyled, withHandle = true, children, ...props }, ref) => {
+>(({ className, unstyled, withHandle = false, children, ...props }, ref) => {
   const styles = useStyles();
   const { t } = useTranslation();
   return (
     <Separator
       elementRef={ref}
       aria-label={t('panel.resizePanels')}
-      {...styles('resizable.handle', 'ui-split-pane-handle', className, unstyled)}
+      {...styles('resizable.handle', 'ui-split-pane-handle ui-edge-handle', className, unstyled)}
       {...props}
     >
       {children ??

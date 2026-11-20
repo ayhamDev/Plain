@@ -239,6 +239,12 @@ export const extendedComponents: ComponentDefinition[] = [
     [
       p('orientation', 'horizontal | vertical', 'Desktop resize axis.', 'horizontal'),
       p(
+        'withHandle',
+        'boolean',
+        'ResizableHandle uses the same animated edge highlight as SidebarRail. Opt into the former grip pill with withHandle={true}; custom children still replace it.',
+        'false',
+      ),
+      p(
         'storageKey / storage',
         'string / Storage adapter',
         'Persist completed layouts, not every pointer movement. Use stable panel IDs.',
@@ -286,7 +292,7 @@ export const extendedComponents: ComponentDefinition[] = [
         'Subscribe to completed layout changes on the group.',
       ),
     ],
-    'The handle is an accessible separator with keyboard resizing. Give the handle a localized aria-label and panels meaningful content headings.',
+    'The handle is an accessible separator with keyboard resizing. Give the handle a localized aria-label and panels meaningful content headings. The highlight smoothly fades and grows on hover, keyboard focus or dragging, without changing hit targets or panel sizes. It respects system/provider reduced motion and stays visible on devices without hover.',
   ),
   ...(['list', 'grid', 'masonry'] as const).map((kind) =>
     define(

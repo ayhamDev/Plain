@@ -1200,7 +1200,7 @@ function ResizablePreview({ state }: { state: State }) {
             ))}
           </UI.Stack>
         </UI.ResizablePanel>
-        <UI.ResizableHandle aria-label="Resize explorer" />
+        <UI.ResizableHandle aria-label="Resize explorer" withHandle={!!state.withHandle} />
         <UI.ResizablePanel id="editor" minSize="30%">
           <UI.Stack padding={2} style={{ height: '100%' }}>
             <UI.Strong>button.tsx</UI.Strong>
@@ -1221,12 +1221,19 @@ function ResizablePreview({ state }: { state: State }) {
 }
 
 propPreviews['resizable'] = {
-  defaults: { orientation: 'horizontal', adaptTo: 'floating', responsive: true, persist: false },
+  defaults: {
+    orientation: 'horizontal',
+    adaptTo: 'floating',
+    responsive: true,
+    persist: false,
+    withHandle: false,
+  },
   controls: [
     options('orientation', ['horizontal', 'vertical']),
     options('adaptTo', ['floating', 'docked', 'hidden']),
     bool('responsive'),
     bool('persist'),
+    bool('withHandle'),
   ],
   render: (s) => <ResizablePreview state={s} />,
   code: (s) => `const [open, setOpen] = React.useState(true);
@@ -1237,7 +1244,7 @@ propPreviews['resizable'] = {
     <ResizablePanel id="files" defaultSize="30%" minSize="20%" collapsible collapsedSize="0%" open={open} onOpenChange={setOpen} collapseAt={${s.responsive ? 480 : 'undefined'}} adaptTo="${s.adaptTo}" overlayTitle="Explorer">
       <Stack padding={2}><Strong>Explorer</Strong><Button variant="ghost">button.tsx</Button></Stack>
     </ResizablePanel>
-    <ResizableHandle aria-label="Resize explorer" />
+    <ResizableHandle aria-label="Resize explorer" withHandle={${s.withHandle}} />
     <ResizablePanel id="editor" minSize="30%"><Stack padding={2}><Strong>button.tsx</Strong><Textarea variant="ghost" aria-label="Edit source" defaultValue="export function Save() {}" dir="ltr" /></Stack></ResizablePanel>
   </Resizable>
 </Stack>`,

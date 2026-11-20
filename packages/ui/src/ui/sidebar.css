@@ -189,7 +189,7 @@
     position: absolute;
     inset-block: 0;
     inset-inline-end: 0;
-    inline-size: 24px;
+    inline-size: 8px;
     border: 0;
     border-radius: 0;
     background: transparent;
@@ -199,10 +199,13 @@
   }
   .ui-sidebar-rail:hover,
   .ui-sidebar-rail:focus-visible {
-    box-shadow: inset -2px 0 var(--ui-accent);
     outline: none;
   }
   .ui-sidebar[data-side='end'] .ui-sidebar-rail {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+  }
+  .ui-sidebar[data-side='end'] .ui-sidebar-rail::before {
     inset-inline-start: 0;
     inset-inline-end: auto;
   }
@@ -218,9 +221,6 @@
   .ui-sidebar[data-state='collapsed'] .ui-sidebar-input {
     opacity: 0;
     pointer-events: none;
-  }
-  .ui-sidebar-rail {
-    inline-size: 8px;
   }
   .ui-bottom-navigation {
     position: relative;

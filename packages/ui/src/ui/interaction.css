@@ -20,6 +20,52 @@
 }
 
 @layer components {
+  /* One painted edge treatment; hit targets and native geometry stay fixed. */
+  .ui-edge-handle::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
+    inline-size: var(--ui-edge-handle-thickness, 2px);
+    background: var(--ui-edge-handle-color, var(--ui-accent));
+    opacity: 0;
+    transform: scale(var(--_ui-edge-handle-scale-x, 1), var(--_ui-edge-handle-scale-y, 0.6));
+    transform-origin: center;
+    transition:
+      opacity
+        calc(var(--ui-edge-handle-duration, var(--ui-duration-normal)) * var(--ui-motion-scale, 1))
+        var(--ui-edge-handle-ease, var(--ui-ease-out)),
+      transform
+        calc(var(--ui-edge-handle-duration, var(--ui-duration-normal)) * var(--ui-motion-scale, 1))
+        var(--ui-edge-handle-ease, var(--ui-ease-out));
+    pointer-events: none;
+    z-index: 1;
+  }
+  .ui-edge-handle:not(:disabled):not([aria-disabled='true']):is(
+      :hover,
+      :focus-visible,
+      :active,
+      [data-separator='hover'],
+      [data-separator='active']
+    )::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+  @media (hover: none) {
+    .ui-edge-handle:not(:disabled):not([aria-disabled='true'])::before {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    .ui-edge-handle[data-separator='active']::before {
+      opacity: 1;
+    }
+  }
+  @media (forced-colors: active) {
+    .ui-edge-handle::before {
+      background: Highlight;
+      forced-color-adjust: none;
+    }
+  }
   .ui-interactive {
     transition-property:
       background-color, border-color, color, box-shadow, opacity, filter, translate, scale;
