@@ -63,6 +63,25 @@ const departments = [
 ];
 const optionSource = JSON.stringify(departments, null, 2);
 
+function scrollPreviewFade(state: State): boolean | UI.ScrollAreaFadeOptions {
+  if (!state.fadeEdges) return false;
+  const presets: Record<string, readonly UI.ScrollAreaFadeEdge[]> = {
+    top: ['top'],
+    bottom: ['bottom'],
+    start: ['start'],
+    end: ['end'],
+    vertical: ['top', 'bottom'],
+    horizontal: ['start', 'end'],
+    all: ['top', 'bottom', 'start', 'end'],
+  };
+  return {
+    size: Number(state.fadeSize),
+    intensity: Number(state.fadeIntensityPercent) / 100,
+    mode: choice(state, 'fadeMode', ['scroll', 'always']),
+    edges: presets[String(state.fadeSides)],
+  };
+}
+
 function SelectPreview({ state }: { state: State }) {
   const id = React.useId();
   return (
@@ -615,6 +634,15 @@ export const propPreviews: Record<string, PropPreview> = {
       scrollbarVisibility: 'hover',
       elastic: false,
       refreshable: false,
+      orientation: 'vertical',
+      scrollbarExpandOnHover: true,
+      scrollbarSize: 6,
+      scrollbarHoverSize: 12,
+      fadeEdges: false,
+      fadeSize: 24,
+      fadeIntensityPercent: 100,
+      fadeMode: 'scroll',
+      fadeSides: 'auto',
     },
     controls: [
       options('type', ['hover', 'always', 'auto', 'scroll']),
@@ -622,11 +650,34 @@ export const propPreviews: Record<string, PropPreview> = {
       bool('elastic'),
       bool('refreshable'),
       number('height', 96, 240),
+      options('orientation', ['vertical', 'horizontal', 'both']),
+      bool('scrollbarExpandOnHover'),
+      number('scrollbarSize', 6, 16),
+      number('scrollbarHoverSize', 8, 24),
+      bool('fadeEdges'),
+      number('fadeSize', 0, 96),
+      number('fadeIntensityPercent', 0, 100),
+      options('fadeMode', ['scroll', 'always']),
+      options('fadeSides', [
+        'auto',
+        'top',
+        'bottom',
+        'start',
+        'end',
+        'vertical',
+        'horizontal',
+        'all',
+      ]),
     ],
     render: (s) => (
       <UI.ScrollArea
         elastic={!!s.elastic}
         scrollbarVisibility={choice(s, 'scrollbarVisibility', ['hover', 'always', 'hidden'])}
+        orientation={choice(s, 'orientation', ['vertical', 'horizontal', 'both'])}
+        scrollbarExpandOnHover={!!s.scrollbarExpandOnHover}
+        scrollbarSize={Number(s.scrollbarSize)}
+        scrollbarHoverSize={Number(s.scrollbarHoverSize)}
+        fadeEdges={scrollPreviewFade(s)}
         onRefresh={
           s.refreshable ? () => new Promise<void>((resolve) => setTimeout(resolve, 400)) : undefined
         }
@@ -634,15 +685,22 @@ export const propPreviews: Record<string, PropPreview> = {
         style={{ height: Number(s.height), width: '100%' }}
         aria-label="Project list"
       >
-        {Array.from({ length: 20 }, (_, index) => (
-          <p style={{ padding: 8 }} key={index}>
-            Project {index + 1}
-          </p>
-        ))}
+        <div style={{ minWidth: s.orientation === 'vertical' ? undefined : 640 }}>
+          {Array.from({ length: s.orientation === 'horizontal' ? 2 : 20 }, (_, index) => (
+            <p
+              style={{ padding: 12, display: 'flex', justifyContent: 'space-between', gap: 24 }}
+              key={index}
+            >
+              <span>Project {index + 1}</span>
+              <span>In progress</span>
+              <span>Team workspace</span>
+            </p>
+          ))}
+        </div>
       </UI.ScrollArea>
     ),
     code: (s) =>
-      `<ScrollArea scrollbarVisibility="${s.scrollbarVisibility}" elastic={${s.elastic}} ${s.refreshable ? 'onRefresh={async () => {}}' : ''} type="${s.type}" style={{ height: ${s.height} }} aria-label="Project list">{Array.from({ length: 20 }, (_, index) => <p key={index}>Project {index + 1}</p>)}</ScrollArea>`,
+      `<ScrollArea orientation="${s.orientation}" scrollbarVisibility="${s.scrollbarVisibility}" scrollbarExpandOnHover={${s.scrollbarExpandOnHover}} scrollbarSize={${s.scrollbarSize}} scrollbarHoverSize={${s.scrollbarHoverSize}} fadeEdges={${JSON.stringify(scrollPreviewFade(s))}} elastic={${s.elastic}} ${s.refreshable ? 'onRefresh={async () => {}}' : ''} type="${s.type}" style={{ height: ${s.height} }} aria-label="Project list"><div style={{ minWidth: ${s.orientation === 'vertical' ? 'undefined' : 640} }}>{Array.from({ length: ${s.orientation === 'horizontal' ? 2 : 20} }, (_, index) => <p key={index} style={{ padding: 12, display: 'flex', justifyContent: 'space-between', gap: 24 }}><span>Project {index + 1}</span><span>In progress</span><span>Team workspace</span></p>)}</div></ScrollArea>`,
   },
   'dropdown-menu': {
     defaults: { side: 'bottom', align: 'start', sideOffset: 6 },

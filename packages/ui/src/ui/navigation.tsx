@@ -1,6 +1,13 @@
 import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './styling';
 import * as React from 'react';
 import {
+  useScrollAreaFades,
+  scrollAreaLength,
+  fadeIntensity,
+  type ScrollAreaFadeOptions,
+} from './scroll-area-effects';
+export type { ScrollAreaFadeOptions, ScrollAreaFadeEdge } from './scroll-area-effects';
+import {
   Accordion as AccordionPrimitive,
   Tabs as TabsPrimitive,
   Collapsible as CollapsiblePrimitive,
@@ -223,6 +230,10 @@ export interface ScrollAreaProps
     PlainStyleProps,
     ElasticScrollOptions {
   scrollbarVisibility?: 'hover' | 'always' | 'hidden';
+  scrollbarExpandOnHover?: boolean;
+  scrollbarSize?: number | string;
+  scrollbarHoverSize?: number | string;
+  fadeEdges?: boolean | ScrollAreaFadeOptions;
   renderRefresh?: (state: RefreshState, refresh: () => Promise<void>) => React.ReactNode;
   orientation?: 'vertical' | 'horizontal' | 'both';
   viewportProps?: React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Viewport> &
@@ -242,6 +253,10 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
       viewportProps = {},
       viewportRef,
       scrollbarVisibility = 'hover',
+      scrollbarExpandOnHover = true,
+      scrollbarSize,
+      scrollbarHoverSize,
+      fadeEdges = false,
       elastic,
       onRefresh,
       refreshThreshold,
@@ -250,6 +265,7 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
       type,
       onScroll,
       dir,
+      style,
       ...props
     },
     ref,
@@ -259,6 +275,25 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
     const viewport = React.useRef<HTMLDivElement>(null);
     const { t } = useTranslation();
     const content = React.useRef<HTMLDivElement>(null);
+    const fade = fadeEdges && typeof fadeEdges === 'object' ? fadeEdges : {};
+    const fadeEdgesKey = (
+      fade.edges ??
+      (orientation === 'vertical'
+        ? ['top', 'bottom']
+        : orientation === 'horizontal'
+          ? ['start', 'end']
+          : ['top', 'bottom', 'start', 'end'])
+    ).join(' ');
+    const threshold = Number.isFinite(fade.threshold) ? Math.max(0, fade.threshold!) : 1;
+    useScrollAreaFades(
+      viewport,
+      content,
+      direction,
+      !!fadeEdges,
+      fadeEdgesKey,
+      fade.mode ?? 'scroll',
+      threshold,
+    );
     React.useImperativeHandle(viewportRef, () => viewport.current!);
     const refresh = useElasticScroll(viewport, content, {
       elastic,
@@ -284,6 +319,23 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
           className,
           unstyled,
         )}
+        style={
+          {
+            ...(scrollbarSize !== undefined
+              ? { '--ui-scrollbar-width': scrollAreaLength(scrollbarSize) }
+              : {}),
+            ...(scrollbarHoverSize !== undefined
+              ? { '--ui-scrollbar-hover-width': scrollAreaLength(scrollbarHoverSize) }
+              : {}),
+            ...(fade.size !== undefined
+              ? { '--ui-scroll-area-fade-size': scrollAreaLength(fade.size) }
+              : {}),
+            ...(fade.intensity !== undefined
+              ? { '--ui-scroll-area-fade-intensity': fadeIntensity(fade.intensity) }
+              : {}),
+            ...style,
+          } as React.CSSProperties
+        }
         {...props}
       >
         <ScrollAreaPrimitive.Viewport
@@ -293,6 +345,7 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
           aria-label={props['aria-label']}
           aria-labelledby={props['aria-labelledby']}
           data-orientation={orientation}
+          data-fade-edges={fadeEdges ? '' : undefined}
           {...styles(
             'scroll-area.viewport',
             'ui-scroll-viewport size-full rounded-[inherit] overscroll-contain outline-offset-[-2px]',
@@ -314,6 +367,7 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
         </ScrollAreaPrimitive.Viewport>
         {orientation !== 'horizontal' && (
           <ScrollBar
+            expandOnHover={scrollbarExpandOnHover}
             unstyled={unstyled}
             forceMount={scrollbarVisibility === 'hidden' || undefined}
             style={scrollbarVisibility === 'hidden' ? { display: 'none' } : undefined}
@@ -322,9 +376,20 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
         {orientation !== 'vertical' && (
           <ScrollBar
             orientation="horizontal"
+            expandOnHover={scrollbarExpandOnHover}
             unstyled={unstyled}
             forceMount={scrollbarVisibility === 'hidden' || undefined}
             style={scrollbarVisibility === 'hidden' ? { display: 'none' } : undefined}
+          />
+        )}
+        {orientation === 'both' && (
+          <ScrollAreaPrimitive.Corner
+            {...styles(
+              'scroll-area.corner',
+              'bg-[var(--ui-scrollbar-track,transparent)]',
+              undefined,
+              unstyled,
+            )}
           />
         )}
         {onRefresh && (
@@ -360,40 +425,70 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
   },
 );
 ScrollArea.displayName = 'ScrollArea';
+export interface ScrollBarProps
+  extends
+    React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
+    PlainStyleProps {
+  expandOnHover?: boolean;
+  size?: number | string;
+  hoverSize?: number | string;
+}
 export const ScrollBar = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
-  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar> & PlainStyleProps
->(({ className, orientation = 'vertical', unstyled, ...props }, ref) => {
-  const styles = useStyles();
+  ScrollBarProps
+>(
+  (
+    {
+      className,
+      orientation = 'vertical',
+      expandOnHover = true,
+      size,
+      hoverSize,
+      style,
+      unstyled,
+      ...props
+    },
+    ref,
+  ) => {
+    const styles = useStyles();
 
-  return (
-    <ScrollAreaPrimitive.ScrollAreaScrollbar
-      ref={ref}
-      orientation={orientation}
-      {...styles(
-        'scroll-bar.root',
-        cn(
-          'ui-scrollbar flex touch-none select-none bg-[var(--ui-scrollbar-track,transparent)] p-0.5',
-          orientation === 'vertical'
-            ? 'h-full w-[var(--ui-scrollbar-width,8px)] border-s border-transparent'
-            : 'h-[var(--ui-scrollbar-width,8px)] flex-col border-t border-transparent',
-        ),
-        className,
-        unstyled,
-      )}
-      {...props}
-    >
-      <ScrollAreaPrimitive.ScrollAreaThumb
+    return (
+      <ScrollAreaPrimitive.ScrollAreaScrollbar
+        ref={ref}
+        orientation={orientation}
+        data-expand-on-hover={expandOnHover}
         {...styles(
-          'scroll-bar.thumb',
-          'relative flex-1 rounded-full bg-[var(--ui-scrollbar-thumb,var(--ui-input-border))]',
-          undefined,
+          'scroll-bar.root',
+          cn(
+            'ui-scrollbar flex touch-none select-none bg-[var(--ui-scrollbar-track,transparent)] p-0.5',
+            orientation === 'horizontal' && 'flex-col',
+          ),
+          className,
           unstyled,
         )}
-      />
-    </ScrollAreaPrimitive.ScrollAreaScrollbar>
-  );
-});
+        style={
+          {
+            ...(size !== undefined ? { '--ui-scrollbar-width': scrollAreaLength(size) } : {}),
+            ...(hoverSize !== undefined
+              ? { '--ui-scrollbar-hover-width': scrollAreaLength(hoverSize) }
+              : {}),
+            ...style,
+          } as React.CSSProperties
+        }
+        {...props}
+      >
+        <ScrollAreaPrimitive.ScrollAreaThumb
+          {...styles(
+            'scroll-bar.thumb',
+            'ui-scrollbar-thumb relative flex-1 rounded-full bg-[var(--ui-scrollbar-thumb,var(--ui-input-border))]',
+            undefined,
+            unstyled,
+          )}
+        />
+      </ScrollAreaPrimitive.ScrollAreaScrollbar>
+    );
+  },
+);
 ScrollBar.displayName = 'ScrollBar';
 export function Breadcrumb({
   className,

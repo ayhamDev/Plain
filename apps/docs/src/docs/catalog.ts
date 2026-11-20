@@ -852,7 +852,7 @@ export const components: ComponentDefinition[] = [
     'Layout',
     'Contained scrolling with a subtle, consistent scrollbar.',
     ['ScrollArea'],
-    '<ScrollArea className="h-48">\n  <div className="space-y-4 p-4">\n    {Array.from({ length: 20 }, (_, i) => <p key={i}>Record {i + 1}</p>)}\n  </div>\n</ScrollArea>',
+    '<ScrollArea aria-label="Records" style={{ height: 192 }} fadeEdges={{ size: 32, intensity: 0.8 }}>\n  <div style={{ display: "grid", gap: 16, padding: 16 }}>\n    {Array.from({ length: 20 }, (_, i) => <p key={i}>Record {i + 1}</p>)}\n  </div>\n</ScrollArea>',
     [
       prop('orientation', 'vertical | horizontal | both', 'Enabled scrolling axes.', 'vertical'),
       prop(
@@ -860,6 +860,36 @@ export const components: ComponentDefinition[] = [
         'hover | always | hidden',
         'Overlay visibility without changing viewport space.',
         'hover',
+      ),
+      prop(
+        'scrollbarExpandOnHover',
+        'boolean',
+        'Animate the thumb to its wider size while hovering or dragging the track. Its hit area stays fixed, without changing viewport layout.',
+        'true',
+      ),
+      prop(
+        'scrollbarSize / scrollbarHoverSize',
+        'number | CSS length',
+        'Base and hovered thickness in pixels or CSS lengths. Existing scrollbar.width and new scrollbar.hover-width tokens supply the defaults.',
+        '6px / 12px',
+      ),
+      prop(
+        'fadeEdges',
+        'boolean | ScrollAreaFadeOptions',
+        'Opt into transparent edge masks. True follows the scrolling axes; options select top/bottom/start/end edges, size, intensity, mode and threshold.',
+        'false',
+      ),
+      prop(
+        'fadeEdges.size / intensity',
+        'number | CSS length / number',
+        'Fade distance and strength (0 opaque to 1 transparent), overridable with scroll-area.fade-size / fade-intensity tokens.',
+        '24px / 1',
+      ),
+      prop(
+        'fadeEdges.mode / threshold',
+        'scroll | always / number',
+        'Scroll mode fades only where more content remains, with a boundary tolerance in pixels. Always retains every selected edge.',
+        'scroll / 1px',
       ),
       prop(
         'elastic',
@@ -879,7 +909,7 @@ export const components: ComponentDefinition[] = [
       ),
       prop('type', 'auto | always | scroll | hover', 'Native Radix visibility override.', 'hover'),
     ],
-    'Radix preserves native scrolling and keyboard navigation. Provide a constrained height. ScrollBar is exported for horizontal scrollbars.',
+    'Radix preserves native scrolling and keyboard navigation. Provide a constrained height. Fades affect only content, use logical start/end in RTL, and are removed for visible keyboard focus and forced colors. ScrollBar also accepts size, hoverSize and expandOnHover. Reduced/none motion disables optional transitions.',
   ),
   definition(
     'collapsible',

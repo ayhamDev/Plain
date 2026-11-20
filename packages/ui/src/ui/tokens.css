@@ -368,6 +368,9 @@
   --ui-scrollbar-track: transparent;
   --ui-scrollbar-thumb: var(--ui-outline);
   --ui-scrollbar-width: 6px;
+  --ui-scrollbar-hover-width: 12px;
+  --ui-scroll-area-fade-size: 24px;
+  --ui-scroll-area-fade-intensity: 1;
   --ui-chart-background: var(--ui-surface);
   --ui-chart-foreground: var(--ui-foreground);
   --ui-chart-tooltip-background: var(--ui-surface);

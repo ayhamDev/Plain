@@ -1,3 +1,24 @@
+@property --_ui-scroll-fade-top {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+@property --_ui-scroll-fade-bottom {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+@property --_ui-scroll-fade-start {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+@property --_ui-scroll-fade-end {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
 @layer components {
   .ui-interactive {
     transition-property:
@@ -241,8 +262,51 @@
   }
 
   .ui-scrollbar {
+    --ui-scrollbar-track-size: max(
+      12px,
+      var(--ui-scrollbar-width, 6px),
+      var(--ui-scrollbar-hover-width, 12px)
+    );
+    --ui-scrollbar-thumb-inset: clamp(
+      0px,
+      calc(var(--ui-scrollbar-track-size) - var(--ui-scrollbar-width, 6px)),
+      calc(var(--ui-scrollbar-track-size) - 4px)
+    );
     transition: opacity calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1))
       var(--ui-ease-standard, ease);
+  }
+  .ui-scrollbar[data-orientation='vertical'] {
+    width: var(--ui-scrollbar-track-size);
+  }
+  .ui-scrollbar[data-expand-on-hover='false'] {
+    --ui-scrollbar-track-size: max(12px, var(--ui-scrollbar-width, 6px));
+  }
+  .ui-scrollbar[data-orientation='horizontal'] {
+    height: var(--ui-scrollbar-track-size);
+  }
+  .ui-scrollbar-thumb {
+    box-sizing: border-box;
+    background-clip: content-box;
+    transition:
+      padding calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1)) var(--ui-ease-out),
+      background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1))
+        var(--ui-ease-standard);
+  }
+  .ui-scrollbar[data-orientation='vertical'] > .ui-scrollbar-thumb {
+    padding-inline-start: var(--ui-scrollbar-thumb-inset);
+  }
+  .ui-scrollbar[data-orientation='horizontal'] > .ui-scrollbar-thumb {
+    padding-block-start: var(--ui-scrollbar-thumb-inset);
+  }
+  .ui-scrollbar[data-expand-on-hover='true']:is(:hover, :active) {
+    --ui-scrollbar-thumb-inset: clamp(
+      0px,
+      calc(
+        var(--ui-scrollbar-track-size) -
+          max(var(--ui-scrollbar-width, 6px), var(--ui-scrollbar-hover-width, 12px))
+      ),
+      calc(var(--ui-scrollbar-track-size) - 4px)
+    );
   }
 
   .ui-scrollbar[data-state='visible'] {
@@ -254,6 +318,81 @@
     animation: ui-fade-out
       max(1ms, calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1)))
       var(--ui-ease-standard, ease) both;
+  }
+
+  .ui-scroll-viewport[data-fade-edges] {
+    --_ui-scroll-fade-top: 1;
+    --_ui-scroll-fade-bottom: 1;
+    --_ui-scroll-fade-start: 1;
+    --_ui-scroll-fade-end: 1;
+    --_ui-scroll-fade-left: var(--_ui-scroll-fade-start);
+    --_ui-scroll-fade-right: var(--_ui-scroll-fade-end);
+    --_ui-scroll-fade-distance: min(50%, var(--ui-scroll-area-fade-size, 24px));
+    --_ui-scroll-fade-mask:
+      linear-gradient(
+        to bottom,
+        rgb(0 0 0 / var(--_ui-scroll-fade-top)) 0,
+        #000 var(--_ui-scroll-fade-distance),
+        #000 calc(100% - var(--_ui-scroll-fade-distance)),
+        rgb(0 0 0 / var(--_ui-scroll-fade-bottom)) 100%
+      ),
+      linear-gradient(
+        to right,
+        rgb(0 0 0 / var(--_ui-scroll-fade-left)) 0,
+        #000 var(--_ui-scroll-fade-distance),
+        #000 calc(100% - var(--_ui-scroll-fade-distance)),
+        rgb(0 0 0 / var(--_ui-scroll-fade-right)) 100%
+      );
+    -webkit-mask-image: var(--_ui-scroll-fade-mask);
+    mask-image: var(--_ui-scroll-fade-mask);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    scroll-padding: var(--ui-scroll-area-fade-size, 24px);
+    transition:
+      --_ui-scroll-fade-top calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1))
+        var(--ui-ease-out),
+      --_ui-scroll-fade-bottom calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1))
+        var(--ui-ease-out),
+      --_ui-scroll-fade-start calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1))
+        var(--ui-ease-out),
+      --_ui-scroll-fade-end calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1))
+        var(--ui-ease-out);
+  }
+  .ui-scroll-root[dir='rtl'] > .ui-scroll-viewport[data-fade-edges] {
+    --_ui-scroll-fade-left: var(--_ui-scroll-fade-end);
+    --_ui-scroll-fade-right: var(--_ui-scroll-fade-start);
+  }
+  .ui-scroll-viewport[data-fade-top] {
+    --_ui-scroll-fade-top: calc(1 - var(--ui-scroll-area-fade-intensity, 1));
+  }
+  .ui-scroll-viewport[data-fade-bottom] {
+    --_ui-scroll-fade-bottom: calc(1 - var(--ui-scroll-area-fade-intensity, 1));
+  }
+  .ui-scroll-viewport[data-fade-start] {
+    --_ui-scroll-fade-start: calc(1 - var(--ui-scroll-area-fade-intensity, 1));
+  }
+  .ui-scroll-viewport[data-fade-end] {
+    --_ui-scroll-fade-end: calc(1 - var(--ui-scroll-area-fade-intensity, 1));
+  }
+  .ui-scroll-viewport[data-fade-edges]:is(:focus-visible, :has(:focus-visible)) {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  @media (forced-colors: active) {
+    .ui-scrollbar {
+      --ui-scrollbar-thumb: CanvasText;
+    }
+    .ui-scrollbar-thumb {
+      /* Preserve the user's system foreground on this non-text painted thumb. */
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+    .ui-scroll-viewport[data-fade-edges] {
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
   }
 
   .ui-skeleton {
@@ -505,7 +644,9 @@
   .ui-interactive,
   .ui-motion-transform,
   .ui-navigation-viewport,
-  .ui-scrollbar {
+  .ui-scrollbar,
+  .ui-scrollbar-thumb,
+  .ui-scroll-viewport[data-fade-edges] {
     transition-duration: 0ms;
   }
 

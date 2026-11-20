@@ -346,6 +346,7 @@ export const styleSlots = [
   "resizable.panel",
   "resizable.root",
   "scroll-area.content",
+  "scroll-area.corner",
   "scroll-area.refresh",
   "scroll-area.root",
   "scroll-area.viewport",

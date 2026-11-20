@@ -85,6 +85,33 @@ with `handleOnly={false}`. Use `maxWidth` with detached or floating bottom sheet
 for centered, bounded panels. Toasts now use the current surface and include a
 close button; `invert` and `closeButton={false}` retain the previous appearance.
 
+## Scroll areas
+
+ScrollArea widens its scrollbar on hover without changing viewport geometry.
+`scrollbarSize`, `scrollbarHoverSize` and `scrollbarExpandOnHover` configure it.
+Sizes include the track's 4px gutter; the minimum hit area remains 12px.
+Faded edges are opt-in and use transparency, so they work on custom backgrounds:
+
+```tsx
+<ScrollArea
+  aria-label="Projects"
+  style={{ height: 240 }}
+  scrollbarSize={6}
+  scrollbarHoverSize={14}
+  fadeEdges={{ edges: ['top', 'bottom'], size: 32, intensity: 0.8 }}
+>
+  {projects}
+</ScrollArea>
+```
+
+The example's `projects` is application content; import `ScrollArea` from `@plain/ui`.
+`fadeEdges={true}` follows the scrolling axes. The default `mode: 'scroll'` fades
+only edges with more content; `'always'` keeps configured edges faded. `start`/`end`
+follow RTL. Keyboard-visible focus and forced colors remove masks for readability.
+Theme aliases are `scrollbar.width`, `scrollbar.hover-width`, `scroll-area.fade-size`
+and `scroll-area.fade-intensity`. Direct `ScrollBar` accepts `size`, `hoverSize` and
+`expandOnHover`.
+
 ## Develop
 
 Install from the monorepo root with `npm ci`. Run
