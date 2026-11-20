@@ -85,6 +85,40 @@ with `handleOnly={false}`. Use `maxWidth` with detached or floating bottom sheet
 for centered, bounded panels. Toasts now use the current surface and include a
 close button; `invert` and `closeButton={false}` retain the previous appearance.
 
+## Section tabs
+
+Use the underline presentation for a record's sections, with a full-width baseline
+and tabs sized to their labels:
+
+```tsx
+<Tabs defaultValue="details">
+  <TabsList
+    aria-label="Record sections"
+    variant="underline"
+    fullWidth
+    scrollable
+    indicatorThickness={1}
+  >
+    <TabsTrigger value="details">Details</TabsTrigger>
+    <TabsTrigger value="accounting">Accounting</TabsTrigger>
+    <TabsTrigger value="inventory">Inventory</TabsTrigger>
+  </TabsList>
+  <TabsContent value="details">Record details</TabsContent>
+  <TabsContent value="accounting">Accounting settings</TabsContent>
+  <TabsContent value="inventory">Inventory settings</TabsContent>
+</Tabs>
+```
+
+Import these parts from `@plain/ui` or `@plain/ui/navigation`. TabsList also accepts
+`size="sm" | "md" | "lg"` and `animated={false}`. Existing defaults remain segmented,
+intrinsic width and medium size. `scrollable` contains overflow and reveals active
+tabs, including controlled selection, without moving the surrounding page. Bound
+the parent width, or the list height for a vertical layout. It preserves native
+refs, tab keyboard behavior, disabled items, RTL and reduced motion.
+
+Theme aliases `tabs.border`, `tabs.indicator-color` and `tabs.indicator-thickness`
+customize the baseline and underline. Styling slots and `unstyled` remain available.
+
 ## Empty states
 
 Use any number of actions, custom media and supporting content with the shorthand:

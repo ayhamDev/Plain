@@ -350,30 +350,52 @@ export function ComponentExample({ slug }: { slug: string }) {
       );
     case 'tabs':
       return (
-        <div className="demo-form-stack">
-          <UI.Tabs defaultValue="account">
-            <UI.TabsList aria-label="Settings sections">
-              <UI.TabsTrigger value="account">Account</UI.TabsTrigger>
-              <UI.TabsTrigger value="security">Security</UI.TabsTrigger>
-              <UI.TabsTrigger value="billing">Billing</UI.TabsTrigger>
+        <div style={{ width: '100%', minWidth: 0 }}>
+          <UI.Tabs defaultValue="Details">
+            <UI.TabsList
+              aria-label="Record sections"
+              variant="underline"
+              fullWidth
+              scrollable
+              indicatorThickness={1}
+            >
+              {[
+                'Details',
+                'Accounting',
+                'UOM',
+                'Tax',
+                'Inventory',
+                'Purchasing',
+                'Sales',
+                'Manufacturing',
+                'Quality',
+              ].map((label) => (
+                <UI.TabsTrigger key={label} value={label}>
+                  {label}
+                </UI.TabsTrigger>
+              ))}
             </UI.TabsList>
-            <UI.TabsContent value="account">
-              <UI.Field label="Display name">
-                <UI.Input defaultValue="Alex Morgan" />
-              </UI.Field>
+            <UI.TabsContent value="Details">
+              <div style={{ maxWidth: 320 }}>
+                <UI.Field label="Display name">
+                  <UI.Input defaultValue="Alex Morgan" />
+                </UI.Field>
+              </div>
             </UI.TabsContent>
-            <UI.TabsContent value="security">
-              <UI.Field label="New password">
-                <UI.Input
-                  type="password"
-                  placeholder="Enter a new password"
-                  autoComplete="new-password"
-                />
-              </UI.Field>
-            </UI.TabsContent>
-            <UI.TabsContent value="billing">
-              <DepartmentSelect />
-            </UI.TabsContent>
+            {[
+              'Accounting',
+              'UOM',
+              'Tax',
+              'Inventory',
+              'Purchasing',
+              'Sales',
+              'Manufacturing',
+              'Quality',
+            ].map((label) => (
+              <UI.TabsContent key={label} value={label}>
+                <UI.P tone="muted">{label} settings for this record.</UI.P>
+              </UI.TabsContent>
+            ))}
           </UI.Tabs>
         </div>
       );

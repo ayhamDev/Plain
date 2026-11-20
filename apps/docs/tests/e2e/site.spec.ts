@@ -179,10 +179,10 @@ test('RTL layout, end sheet placement, and tabs use the intended direction', asy
   await page.goto('/components/tabs');
   await page.getByRole('button', { name: 'Switch to right-to-left' }).click();
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  const accountTab = page.getByRole('tab', { name: 'Account', exact: true });
-  await accountTab.focus();
+  const detailsTab = page.getByRole('tab', { name: 'Details', exact: true });
+  await detailsTab.focus();
   await page.keyboard.press('ArrowLeft');
-  await expect(page.getByRole('tab', { name: 'Security', exact: true })).toHaveAttribute(
+  await expect(page.getByRole('tab', { name: 'Accounting', exact: true })).toHaveAttribute(
     'aria-selected',
     'true',
   );

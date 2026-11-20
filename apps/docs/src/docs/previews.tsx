@@ -551,34 +551,82 @@ export const propPreviews: Record<string, PropPreview> = {
     code: (s) => `<Rating ${attr(s)} aria-label="Project rating" defaultValue={3} />`,
   },
   tabs: {
-    defaults: { variant: 'segmented', orientation: 'horizontal', activationMode: 'automatic' },
+    defaults: {
+      variant: 'underline',
+      orientation: 'horizontal',
+      activationMode: 'automatic',
+      fullWidth: true,
+      scrollable: true,
+      size: 'md',
+      indicatorThickness: 1,
+      animated: true,
+    },
     controls: [
       options('variant', ['segmented', 'underline']),
       options('orientation', ['horizontal', 'vertical']),
       options('activationMode', ['automatic', 'manual']),
+      bool('fullWidth'),
+      bool('scrollable'),
+      options('size', ['sm', 'md', 'lg']),
+      number('indicatorThickness', 1, 4),
+      bool('animated'),
     ],
     render: (s) => (
       <UI.Tabs
         defaultValue="overview"
         orientation={choice(s, 'orientation', ['horizontal', 'vertical'])}
         activationMode={choice(s, 'activationMode', ['automatic', 'manual'])}
+        style={{ width: '100%', minWidth: 0 }}
       >
         <UI.TabsList
           aria-label="Project views"
           variant={choice(s, 'variant', ['segmented', 'underline'])}
+          fullWidth={!!s.fullWidth}
+          scrollable={!!s.scrollable}
+          size={choice(s, 'size', ['sm', 'md', 'lg'])}
+          indicatorThickness={Number(s.indicatorThickness)}
+          animated={!!s.animated}
         >
           <UI.TabsTrigger value="overview">Overview</UI.TabsTrigger>
           <UI.TabsTrigger value="activity">Activity</UI.TabsTrigger>
+          {[
+            'Accounting',
+            'UOM',
+            'Tax',
+            'Inventory',
+            'Purchasing',
+            'Sales',
+            'Manufacturing',
+            'Quality',
+          ].map((label) => (
+            <UI.TabsTrigger key={label} value={label}>
+              {label}
+            </UI.TabsTrigger>
+          ))}
           <UI.TabsTrigger value="locked" disabled>
             Archived
           </UI.TabsTrigger>
         </UI.TabsList>
         <UI.TabsContent value="overview">Your project overview.</UI.TabsContent>
         <UI.TabsContent value="activity">No new activity.</UI.TabsContent>
+        {[
+          'Accounting',
+          'UOM',
+          'Tax',
+          'Inventory',
+          'Purchasing',
+          'Sales',
+          'Manufacturing',
+          'Quality',
+        ].map((label) => (
+          <UI.TabsContent key={label} value={label}>
+            {label} settings.
+          </UI.TabsContent>
+        ))}
       </UI.Tabs>
     ),
     code: (s) =>
-      `<Tabs defaultValue="overview" orientation="${s.orientation}" activationMode="${s.activationMode}"><TabsList aria-label="Project views" variant="${s.variant}"><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger><TabsTrigger value="locked" disabled>Archived</TabsTrigger></TabsList><TabsContent value="overview">Your project overview.</TabsContent><TabsContent value="activity">No new activity.</TabsContent></Tabs>`,
+      `<Tabs defaultValue="overview" orientation="${s.orientation}" activationMode="${s.activationMode}" style={{ width: '100%', minWidth: 0 }}><TabsList aria-label="Project views" variant="${s.variant}" fullWidth={${s.fullWidth}} scrollable={${s.scrollable}} size="${s.size}" indicatorThickness={${s.indicatorThickness}} animated={${s.animated}}><TabsTrigger value="overview">Overview</TabsTrigger><TabsTrigger value="activity">Activity</TabsTrigger>{['Accounting', 'UOM', 'Tax', 'Inventory', 'Purchasing', 'Sales', 'Manufacturing', 'Quality'].map((label) => <TabsTrigger key={label} value={label}>{label}</TabsTrigger>)}<TabsTrigger value="locked" disabled>Archived</TabsTrigger></TabsList><TabsContent value="overview">Your project overview.</TabsContent><TabsContent value="activity">No new activity.</TabsContent>{['Accounting', 'UOM', 'Tax', 'Inventory', 'Purchasing', 'Sales', 'Manufacturing', 'Quality'].map((label) => <TabsContent key={label} value={label}>{label} settings.</TabsContent>)}</Tabs>`,
   },
   accordion: {
     defaults: { type: 'single', disabled: false },

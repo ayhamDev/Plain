@@ -154,6 +154,56 @@
     position: relative;
     z-index: 1;
   }
+  .ui-tabs-list {
+    --_ui-tab-height: 32px;
+    --_ui-tab-padding-x: 12px;
+    --_ui-tab-padding-y: 4px;
+    --_ui-tab-font-size: 14px;
+    --_ui-tab-line-height: 20px;
+  }
+  .ui-tabs-list[data-variant='underline'] {
+    --_ui-tab-padding-x: 0px;
+    --_ui-tab-padding-y: 12px;
+  }
+  .ui-tabs-list[data-size='sm'] {
+    --_ui-tab-height: 28px;
+    --_ui-tab-padding-y: 2px;
+    --_ui-tab-font-size: 12px;
+    --_ui-tab-line-height: 16px;
+  }
+  .ui-tabs-list[data-size='lg'] {
+    --_ui-tab-height: 40px;
+    --_ui-tab-padding-y: 8px;
+    --_ui-tab-font-size: 16px;
+    --_ui-tab-line-height: 24px;
+  }
+  .ui-tabs-list[data-variant='underline'][data-size='sm'] {
+    --_ui-tab-padding-y: 8px;
+  }
+  .ui-tabs-list[data-variant='underline'][data-size='lg'] {
+    --_ui-tab-padding-y: 16px;
+  }
+  .ui-tabs-trigger {
+    flex-shrink: 0;
+    min-block-size: var(--_ui-tab-height, 32px);
+    padding-inline: var(--_ui-tab-padding-x, 12px);
+    padding-block: var(--_ui-tab-padding-y, 4px);
+    font-size: var(--_ui-tab-font-size, 14px);
+    line-height: var(--_ui-tab-line-height, 20px);
+  }
+  .ui-tabs-list[data-scrollable] {
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    scroll-padding: 4px;
+  }
+  .ui-tabs-list[data-scrollable]::-webkit-scrollbar {
+    display: none;
+  }
+  .ui-tabs-list[data-scrollable] .ui-tabs-trigger:focus-visible {
+    outline-offset: -3px;
+  }
   .ui-selection-indicator {
     display: none;
     position: absolute;
@@ -186,15 +236,22 @@
   .ui-tabs-list[data-variant='underline'] > .ui-selection-indicator {
     background: transparent;
     border-radius: 0;
-    box-shadow: inset 0 -2px var(--ui-accent);
+    box-shadow: inset 0 calc(-1 * var(--ui-tabs-indicator-thickness, 2px))
+      var(--ui-tabs-indicator-color, var(--ui-accent));
   }
   .ui-tabs-list[data-variant='underline']:not([data-has-indicator])
     .ui-tabs-trigger[data-state='active'] {
-    box-shadow: inset 0 -2px var(--ui-accent);
+    box-shadow: inset 0 calc(-1 * var(--ui-tabs-indicator-thickness, 2px))
+      var(--ui-tabs-indicator-color, var(--ui-accent));
   }
   .ui-tabs-list[data-orientation='vertical'] {
     flex-direction: column;
     align-items: stretch;
+  }
+  .ui-tabs-list[data-scrollable][data-orientation='vertical'] {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-block: contain;
   }
   .ui-segmented-control > .ui-selection-indicator {
     background: var(--ui-segmented-control-active-background, var(--ui-background));

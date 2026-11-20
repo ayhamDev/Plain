@@ -346,10 +346,35 @@ export const components: ComponentDefinition[] = [
     'Navigation',
     'Related views, with clear selection and a stable layout.',
     ['Tabs', 'TabsList', 'TabsTrigger', 'TabsContent'],
-    '<Tabs defaultValue="account">\n  <TabsList aria-label="Settings sections">\n    <TabsTrigger value="account">Account</TabsTrigger>\n    <TabsTrigger value="security">Security</TabsTrigger>\n  </TabsList>\n  <TabsContent value="account">Your account settings.</TabsContent>\n  <TabsContent value="security">Your security settings.</TabsContent>\n</Tabs>',
+    '<Tabs defaultValue="Details" style={{ width: "100%", minWidth: 0 }}>\n  <TabsList aria-label="Record sections" variant="underline" fullWidth scrollable indicatorThickness={1}>\n    {["Details", "Accounting", "UOM", "Tax", "Inventory", "Purchasing", "Sales", "Manufacturing", "Quality"].map((section) => <TabsTrigger key={section} value={section}>{section}</TabsTrigger>)}\n  </TabsList>\n  {["Details", "Accounting", "UOM", "Tax", "Inventory", "Purchasing", "Sales", "Manufacturing", "Quality"].map((section) => <TabsContent key={section} value={section}>{section} settings.</TabsContent>)}\n</Tabs>',
     [
       ...controlled,
       prop('variant', 'segmented | underline', 'TabsList presentation.', 'segmented'),
+      prop(
+        'fullWidth',
+        'boolean',
+        'Extend the TabsList baseline across the container while keeping tabs sized to their labels.',
+        'false',
+      ),
+      prop(
+        'scrollable',
+        'boolean',
+        'Keep a single scrolling row (or bounded vertical list), reveal selected tabs and contain overflow. Constrain the parent width or vertical height.',
+        'false',
+      ),
+      prop('size', 'sm | md | lg', 'TabsList label size, height and spacing.', 'md'),
+      prop(
+        'indicatorThickness',
+        'number',
+        'Underline thickness in pixels, with tabs.indicator-thickness as the theme default. Use 1 for a fine section-tab underline.',
+        '2',
+      ),
+      prop(
+        'animated',
+        'boolean',
+        'Move the shared highlight. False keeps static active feedback; provider/system reduced motion disables its transitions.',
+        'true',
+      ),
       prop(
         'activationMode',
         'automatic | manual',
@@ -357,7 +382,7 @@ export const components: ComponentDefinition[] = [
         'automatic',
       ),
     ],
-    'Tab enters the tab list; arrow keys move between tabs. Panels are associated with their triggers. Use manual activation for expensive remote views.',
+    'Tab enters the tab list; arrow keys move between tabs. Panels are associated with their triggers. Use manual activation for expensive remote views. Scrollable lists keep visible keyboard focus inside their bounds and reveal selected tabs without scrolling the surrounding page. Disabled tabs remain skipped. Supply an accessible label and use RTL direction context where appropriate.',
   ),
   definition(
     'dialog',

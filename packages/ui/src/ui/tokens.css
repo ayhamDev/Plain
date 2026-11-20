@@ -286,6 +286,9 @@
   --ui-tabs-active: var(--ui-surface);
   --ui-tabs-active-foreground: var(--ui-foreground);
   --ui-tabs-radius: var(--ui-radius);
+  --ui-tabs-border: var(--ui-border);
+  --ui-tabs-indicator-color: var(--ui-accent);
+  --ui-tabs-indicator-thickness: 2px;
   --ui-dialog-background: var(--ui-surface);
   --ui-dialog-foreground: var(--ui-foreground);
   --ui-dialog-border: var(--ui-border);
