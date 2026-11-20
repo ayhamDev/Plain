@@ -3,7 +3,7 @@ import { Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } 
 import { DatePicker } from './calendar';
 import { useTranslation } from './i18n';
 import { Chip } from './chips';
-import { Popover, PopoverContent, PopoverTrigger } from './overlays';
+import { TableMenu, type TableMenuPresentation } from './table-menu';
 import { filterOperators, type DataTableFilter, type DataTableFilterField } from './table-filter';
 
 function toDate(value: unknown) {
@@ -67,6 +67,7 @@ export function DataTableFilterValue<T>({
     if (rule.operator === 'in' || rule.operator === 'notIn')
       return (
         <MultiSelect
+          selectionDisplay="summary"
           options={options}
           aria-label={t('table.valueFor', { label: field.label })}
           placeholder={t('select.options')}
@@ -143,11 +144,13 @@ export function DataTableSimpleFilter<T>({
   rule,
   onChange,
   onRemove,
+  presentation,
 }: {
   field: DataTableFilterField<T>;
   rule?: DataTableFilter;
   onChange: (rule: DataTableFilter) => void;
   onRemove: () => void;
+  presentation?: TableMenuPresentation;
 }) {
   const { t } = useTranslation();
   const current = rule ?? {
@@ -157,8 +160,11 @@ export function DataTableSimpleFilter<T>({
   };
   const summary = rule ? filterSummary(field, rule, [t('common.no'), t('common.yes')]) : '';
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <TableMenu
+      label={field.label}
+      presentation={presentation}
+      contentProps={{ className: 'ui-table-simple-filter' }}
+      trigger={
         <Chip
           behavior="action"
           selected={!!summary || (!!rule && ['empty', 'notEmpty'].includes(rule.operator))}
@@ -167,39 +173,38 @@ export function DataTableSimpleFilter<T>({
           {field.label}
           {summary ? `: ${summary}` : ''}
         </Chip>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="ui-table-simple-filter">
-        <strong>{field.label}</strong>
-        <Select
-          value={current.operator}
-          onValueChange={(operator) =>
-            onChange({
-              ...current,
-              operator: operator as DataTableFilter['operator'],
-              value: undefined,
-            })
-          }
-        >
-          <SelectTrigger aria-label={t('table.filterOperator')}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {filterOperators(field).map((o) => (
-              <SelectItem key={o} value={o}>
-                {t(`filter.${o}`)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <DataTableFilterValue
-          field={field}
-          rule={current}
-          onChange={(value) => onChange({ ...current, value })}
-        />
-        <Chip behavior="action" onClick={onRemove}>
-          {t('common.clear')}
-        </Chip>
-      </PopoverContent>
-    </Popover>
+      }
+    >
+      <strong>{field.label}</strong>
+      <Select
+        value={current.operator}
+        onValueChange={(operator) =>
+          onChange({
+            ...current,
+            operator: operator as DataTableFilter['operator'],
+            value: undefined,
+          })
+        }
+      >
+        <SelectTrigger aria-label={t('table.filterOperator')}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {filterOperators(field).map((o) => (
+            <SelectItem key={o} value={o}>
+              {t(`filter.${o}`)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <DataTableFilterValue
+        field={field}
+        rule={current}
+        onChange={(value) => onChange({ ...current, value })}
+      />
+      <Chip behavior="action" onClick={onRemove}>
+        {t('common.clear')}
+      </Chip>
+    </TableMenu>
   );
 }

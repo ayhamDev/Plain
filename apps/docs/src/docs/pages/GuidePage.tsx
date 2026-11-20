@@ -1452,6 +1452,22 @@ function AccessibilityGuide() {
 function MotionGuide() {
   return (
     <>
+      <GuideSection title="Default feedback follows the same policy">
+        <p>
+          Buttons provide subtle hover and press feedback. Tabs, SegmentedControl and
+          BottomNavigation move one shared active indicator; set animated={'{false}'} to keep
+          individual state styling. Sidebar clips and fades labels while retaining the leading icon
+          position. The fast, normal, slow and long duration tokens are 160, 260, 360 and 520
+          milliseconds. Surface entrances and exits use those tokens without loading the optional
+          Motion engine.
+        </p>
+        <p>
+          Sheet and Drawer drag only from their handle by default. This preserves slider,
+          text-selection and scrolling gestures inside the panel. Set handleOnly={'{false}'}
+          deliberately for content swipes; maxWidth and detached/floating variants constrain bottom
+          panels without overriding the engine's transform.
+        </p>
+      </GuideSection>
       <GuideSection title="Policy works without the animation entry">
         <p>
           Set <code>theme.motion</code> on PlainProvider: system follows
@@ -1880,6 +1896,27 @@ function LocalizationGuide() {
 function DataTablesGuide() {
   return (
     <>
+      <GuideSection title="Choose browsing or selection">
+        <p>
+          Use selectable with defaultMode="browse" for a Select/Done workflow. Controlled mode and
+          onModeChange let the application manage that transition. Browse mode hides checkboxes and
+          bulk actions; Done clears selection unless clearSelectionOnExit is false. Existing
+          selectable tables still start in selection mode. List uses the same mode contract with
+          selectedKeys, stable getItemKey values and composable row content.
+        </p>
+        <p>
+          searchable, filterable, sortable, columnControls and showReset configure individual tools.
+          showToolbar hides the complete toolbar. pagination=false renders all loaded pre-pagination
+          rows and hides pagination; it does not fetch missing server pages. showPageSize,
+          showPageJump, showSummary and showSelectionControls control individual controls. Hiding a
+          tool preserves application-owned query state.
+        </p>
+        <p>
+          filterPresentation="auto" uses a scrollable bottom sheet at 640px and below, including
+          nested Select controls, a drag handle and a reachable Done action. Desktop uses a popover.
+          Set filterPresentation to "sheet" or "popover" to choose explicitly.
+        </p>
+      </GuideSection>
       <GuideSection title="Own the table state">
         <p>
           Use DataTable for local data, or useDataTable plus DataTableView for controlled sorting,

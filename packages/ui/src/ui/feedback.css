@@ -2,6 +2,47 @@
   .ui-progress-indicator {
     transition: width calc(240ms * var(--ui-motion-scale, 1)) var(--ui-ease-standard, ease);
   }
+  .ui-progress[data-segmented] {
+    display: flex;
+  }
+  .ui-progress-segment {
+    display: block;
+    flex: 0 0 auto;
+    block-size: 100%;
+    border-inline-end: 2px solid var(--ui-muted);
+    box-sizing: border-box;
+    transition:
+      width calc(var(--ui-duration-slow) * var(--ui-motion-scale)) var(--ui-ease-out),
+      background-color calc(var(--ui-duration-normal) * var(--ui-motion-scale))
+        var(--ui-ease-standard);
+  }
+  .ui-progress-segment:last-child {
+    border-inline-end: 0;
+  }
+  .ui-progress-legend {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    gap: 12px 24px;
+    padding: 0;
+    margin: 12px 0 0;
+    color: var(--ui-muted-foreground);
+    font-size: 12px;
+    line-height: 16px;
+  }
+  .ui-progress-legend li {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ui-progress-swatch {
+    display: inline-block;
+    flex: 0 0 8px;
+    inline-size: 8px;
+    block-size: 8px;
+    border-radius: 2px;
+  }
   .ui-progress-indeterminate {
     animation: ui-progress-travel 1.6s ease-in-out infinite;
   }
@@ -102,6 +143,178 @@
     [role='switch'],
     [role='slider'] {
       border: 1px solid ButtonText !important;
+    }
+  }
+  .ui-input-contrast {
+    --ui-input-border: var(--ui-input-contrast-border, var(--ui-outline));
+    --ui-input-background: var(--ui-input-contrast-background, var(--ui-surface));
+    --ui-input-foreground: var(--ui-input-contrast-foreground, var(--ui-foreground));
+    box-shadow: inset 0 0 0 1px var(--ui-input-border);
+  }
+  .ui-input-control[data-variant='filled'] {
+    background: var(--ui-muted);
+    border-color: transparent;
+  }
+  .ui-input-control[data-variant='ghost'] {
+    background: transparent;
+    border-color: transparent;
+  }
+  .ui-number-input[data-align='start'] input {
+    text-align: start;
+  }
+  .ui-number-input[data-align='end'] input {
+    text-align: end;
+  }
+  .ui-number-input[data-align='center'] input {
+    text-align: center;
+  }
+  .ui-input-control,
+  .ui-input-action {
+    transition:
+      background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale))
+        var(--ui-ease-standard),
+      border-color calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard),
+      box-shadow calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard);
+  }
+  .ui-card {
+    --ui-card-padding: 24px;
+    min-inline-size: 0;
+    text-decoration: none;
+    transition:
+      border-color calc(var(--ui-duration-normal) * var(--ui-motion-scale)) var(--ui-ease-standard),
+      background-color calc(var(--ui-duration-normal) * var(--ui-motion-scale))
+        var(--ui-ease-standard),
+      box-shadow calc(var(--ui-duration-normal) * var(--ui-motion-scale)) var(--ui-ease-standard),
+      translate calc(var(--ui-duration-normal) * var(--ui-motion-scale)) var(--ui-ease-out);
+  }
+  .ui-card[data-size='sm'] {
+    --ui-card-padding: 16px;
+  }
+  .ui-card[data-size='lg'] {
+    --ui-card-padding: 32px;
+  }
+  .ui-card[data-variant='filled'] {
+    --ui-card-background: var(--ui-muted);
+    --ui-card-border: transparent;
+  }
+  .ui-card[data-variant='elevated'] {
+    --ui-card-border: transparent;
+    box-shadow: var(--ui-card-shadow, var(--ui-shadow));
+  }
+  .ui-card[data-variant='ghost'] {
+    --ui-card-border: transparent;
+    --ui-card-background: transparent;
+  }
+  .ui-card[data-selected] {
+    --ui-card-border: var(--ui-accent);
+    box-shadow: 0 0 0 1px var(--ui-accent);
+  }
+  .ui-card-header {
+    position: relative;
+    padding: var(--ui-card-padding, 24px);
+  }
+  .ui-card-content,
+  .ui-card-footer {
+    padding: 0 var(--ui-card-padding, 24px) var(--ui-card-padding, 24px);
+  }
+  .ui-card-content:first-child,
+  .ui-card-footer:first-child {
+    padding-block-start: var(--ui-card-padding, 24px);
+  }
+  .ui-card[data-interactive]:focus-visible {
+    outline: 2px solid var(--ui-focus-ring);
+    outline-offset: 3px;
+  }
+  @media (hover: hover) {
+    .ui-card[data-interactive]:hover {
+      --ui-card-border: var(--ui-outline);
+      box-shadow: var(--ui-shadow);
+    }
+  }
+  .ui-alert {
+    --ui-alert-tone: var(--ui-info);
+    --ui-alert-soft: var(--ui-info-soft);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border: var(--ui-border-width, 1px) solid var(--ui-alert-border, var(--ui-border));
+    border-radius: min(var(--ui-alert-radius, var(--ui-radius)), 8px);
+    background: var(--ui-alert-background, var(--ui-surface));
+    color: var(--ui-alert-foreground, var(--ui-foreground));
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .ui-alert[data-variant='success'] {
+    --ui-alert-tone: var(--ui-success);
+    --ui-alert-soft: var(--ui-success-soft);
+  }
+  .ui-alert[data-variant='warning'] {
+    --ui-alert-tone: var(--ui-warning);
+    --ui-alert-soft: var(--ui-warning-soft);
+  }
+  .ui-alert[data-variant='destructive'] {
+    --ui-alert-tone: var(--ui-danger);
+    --ui-alert-soft: var(--ui-danger-soft);
+  }
+  .ui-alert[data-appearance='subtle'] {
+    background: var(
+      --ui-alert-background,
+      color-mix(in srgb, var(--ui-alert-soft) 40%, var(--ui-surface))
+    );
+  }
+  .ui-alert[data-appearance='filled'] {
+    background: var(--ui-alert-soft);
+    border-color: transparent;
+  }
+  .ui-alert-icon {
+    display: flex;
+    flex: 0 0 20px;
+    inline-size: 20px;
+    block-size: 20px;
+    margin-block-start: 2px;
+    color: var(--ui-alert-tone);
+  }
+  .ui-alert-icon svg {
+    inline-size: 20px;
+    block-size: 20px;
+  }
+  .ui-alert-description {
+    color: var(--ui-muted-foreground);
+  }
+  .ui-alert-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+  .ui-alert-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 24px;
+    inline-size: 24px;
+    block-size: 24px;
+    padding: 4px;
+    border: 0;
+    border-radius: 4px;
+    color: var(--ui-muted-foreground);
+    background: transparent;
+  }
+  .ui-alert-close svg {
+    inline-size: 16px;
+    block-size: 16px;
+  }
+  .ui-alert-close:hover {
+    background: var(--ui-muted);
+    color: var(--ui-foreground);
+  }
+  @media (max-width: 480px) {
+    .ui-alert {
+      flex-wrap: wrap;
+    }
+    .ui-alert-action {
+      margin-inline-start: 32px;
     }
   }
   @media (prefers-contrast: more) {

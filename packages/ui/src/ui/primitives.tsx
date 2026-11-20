@@ -1,6 +1,6 @@
 import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './styling';
 import * as React from 'react';
-import { useTranslation } from './i18n';
+import { useTranslation, numberFormatter } from './i18n';
 import {
   Slot,
   Avatar as AvatarPrimitive,
@@ -9,7 +9,7 @@ import {
   AspectRatio as AspectRatioPrimitive,
 } from 'radix-ui';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { LoaderCircle, Info, CircleCheck, TriangleAlert, Inbox } from 'lucide-react';
+import { LoaderCircle, Info, CircleCheck, TriangleAlert, Inbox, X } from 'lucide-react';
 import { cn } from './utils';
 export const buttonVariants = /* @__PURE__ */ cva(
   'ui-interactive inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[var(--ui-button-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-4 [&_svg]:shrink-0',
@@ -153,25 +153,50 @@ export function Badge({ className, variant, unstyled, ...props }: BadgeProps & P
     />
   );
 }
-export const Card = /* @__PURE__ */ React.forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<'div'> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
-  const styles = useStyles();
+export interface CardProps extends React.ComponentPropsWithoutRef<'div'>, PlainStyleProps {
+  asChild?: boolean;
+  variant?: 'outlined' | 'filled' | 'elevated' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  interactive?: boolean;
+  selected?: boolean;
+}
+export const Card = /* @__PURE__ */ React.forwardRef<HTMLDivElement, CardProps>(
+  (
+    {
+      className,
+      unstyled,
+      asChild,
+      variant = 'outlined',
+      size = 'md',
+      interactive = false,
+      selected = false,
+      ...props
+    },
+    ref,
+  ) => {
+    const styles = useStyles();
+    const Element = asChild ? Slot.Root : 'div';
 
-  return (
-    <div
-      ref={ref}
-      {...styles(
-        'card.root',
-        'rounded-[var(--ui-card-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-card-border,var(--ui-border))] bg-[var(--ui-card-background,var(--ui-surface))] text-[var(--ui-card-foreground,var(--ui-foreground))]',
-        className,
-        unstyled,
-      )}
-      {...props}
-    />
-  );
-});
+    return (
+      <StyleProvider unstyled={unstyled}>
+        <Element
+          ref={ref}
+          data-variant={variant}
+          data-size={size}
+          data-interactive={interactive || undefined}
+          data-selected={selected || undefined}
+          {...styles(
+            'card.root',
+            'ui-card rounded-[var(--ui-card-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-card-border,var(--ui-border))] bg-[var(--ui-card-background,var(--ui-surface))] text-[var(--ui-card-foreground,var(--ui-foreground))]',
+            className,
+            unstyled,
+          )}
+          {...props}
+        />
+      </StyleProvider>
+    );
+  },
+);
 Card.displayName = 'Card';
 export function CardHeader({
   className,
@@ -181,7 +206,10 @@ export function CardHeader({
   const styles = useStyles();
 
   return (
-    <div {...styles('card.header', 'flex flex-col gap-1.5 p-6', className, unstyled)} {...props} />
+    <div
+      {...styles('card.header', 'ui-card-header flex flex-col gap-1.5', className, unstyled)}
+      {...props}
+    />
   );
 }
 export function CardTitle({
@@ -224,7 +252,7 @@ export function CardContent({
 }: React.ComponentProps<'div'> & PlainStyleProps) {
   const styles = useStyles();
 
-  return <div {...styles('card.content', 'px-6 pb-6', className, unstyled)} {...props} />;
+  return <div {...styles('card.content', 'ui-card-content', className, unstyled)} {...props} />;
 }
 export function CardFooter({
   className,
@@ -235,7 +263,12 @@ export function CardFooter({
 
   return (
     <div
-      {...styles('card.footer', 'flex items-center gap-2 px-6 pb-6', className, unstyled)}
+      {...styles(
+        'card.footer',
+        'ui-card-footer flex flex-wrap items-center gap-2',
+        className,
+        unstyled,
+      )}
       {...props}
     />
   );
@@ -304,16 +337,25 @@ AvatarFallback.displayName = 'AvatarFallback';
 export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'info' | 'success' | 'warning' | 'destructive';
   icon?: React.ReactNode;
+  appearance?: 'subtle' | 'outlined' | 'filled';
+  action?: React.ReactNode;
+  onDismiss?: () => void;
+  dismissLabel?: string;
 }
 export function Alert({
   className,
   variant = 'info',
   icon,
+  appearance = 'subtle',
+  action,
+  onDismiss,
+  dismissLabel,
   children,
   unstyled,
   ...props
 }: AlertProps & PlainStyleProps) {
   const styles = useStyles();
+  const { t } = useTranslation();
 
   const Icon =
     variant === 'success'
@@ -322,26 +364,35 @@ export function Alert({
         ? TriangleAlert
         : Info;
   return (
-    <div
-      role="alert"
-      {...styles(
-        'alert.root',
-        cn(
-          'flex gap-3 rounded-[var(--ui-alert-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] p-4 text-sm [&>svg]:mt-0.5 [&>svg]:size-4 [&>svg]:shrink-0',
-          variant === 'destructive'
-            ? 'border-danger/25 bg-danger-soft text-[var(--ui-danger-soft-foreground,var(--ui-danger))]'
-            : variant === 'success'
-              ? 'border-accent/20 bg-accent-soft text-accent'
-              : 'border-[var(--ui-alert-border,var(--ui-border))] bg-[var(--ui-alert-background,var(--ui-muted))] text-[var(--ui-alert-foreground,var(--ui-foreground))]',
-        ),
-        className,
-        unstyled,
-      )}
-      {...props}
-    >
-      {icon ?? <Icon aria-hidden="true" />}
-      <div {...styles('alert.content', 'min-w-0 flex-1', undefined, unstyled)}>{children}</div>
-    </div>
+    <StyleProvider unstyled={unstyled}>
+      <div
+        role="alert"
+        data-variant={variant}
+        data-appearance={appearance}
+        {...styles('alert.root', 'ui-alert', className, unstyled)}
+        {...props}
+      >
+        {icon !== null && (
+          <span {...styles('alert.icon', 'ui-alert-icon', undefined, unstyled)} aria-hidden="true">
+            {icon ?? <Icon />}
+          </span>
+        )}
+        <div {...styles('alert.content', 'min-w-0 flex-1', undefined, unstyled)}>{children}</div>
+        {action && (
+          <div {...styles('alert.action', 'ui-alert-action', undefined, unstyled)}>{action}</div>
+        )}
+        {onDismiss && (
+          <button
+            type="button"
+            aria-label={dismissLabel ?? t('common.close')}
+            onClick={onDismiss}
+            {...styles('alert.close', 'ui-alert-close', undefined, unstyled)}
+          >
+            <X aria-hidden="true" />
+          </button>
+        )}
+      </div>
+    </StyleProvider>
   );
 }
 export function AlertTitle({
@@ -362,7 +413,12 @@ export function AlertDescription({
 
   return (
     <div
-      {...styles('alert.description', 'text-sm leading-6 opacity-90', className, unstyled)}
+      {...styles(
+        'alert.description',
+        'ui-alert-description text-sm leading-6',
+        className,
+        unstyled,
+      )}
       {...props}
     />
   );
@@ -392,55 +448,139 @@ Separator.displayName = 'Separator';
 export interface ProgressProps
   extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>, PlainStyleProps {
   size?: 'sm' | 'md' | 'lg';
+  segments?: readonly ProgressSegment[];
+  showLegend?: boolean;
+  formatValue?: (value: number, max: number) => string;
 }
-export const Progress = /* @__PURE__ */ React.forwardRef<
-  React.ElementRef<typeof ProgressPrimitive.Root>,
-  ProgressProps
->(({ className, value, max = 100, size = 'md', unstyled, ...props }, ref) => {
-  const styles = useStyles();
-
-  const direction = useDirection(
-    props.dir === 'rtl' || props.dir === 'ltr' ? props.dir : undefined,
-  );
-  const safeMax = Number.isFinite(max) && max > 0 ? max : 100;
-  const safeValue =
-    value == null || !Number.isFinite(value) ? null : Math.max(0, Math.min(safeMax, value));
-  return (
-    <ProgressPrimitive.Root
-      ref={ref}
-      dir={direction}
-      value={safeValue}
-      max={safeMax}
-      {...styles(
-        'progress.root',
-        cn(
-          'ui-progress relative w-full overflow-hidden rounded-full bg-muted',
-          { sm: 'h-1', md: 'h-2', lg: 'h-3' }[size],
-        ),
+export interface ProgressSegment {
+  id: string;
+  label: string;
+  value: number;
+  color?: React.CSSProperties['backgroundColor'];
+}
+// Keep the name assignment tree-shakable with the component and its locale formatter.
+export const Progress = /* @__PURE__ */ Object.assign(
+  /* @__PURE__ */ React.forwardRef<React.ElementRef<typeof ProgressPrimitive.Root>, ProgressProps>(
+    (
+      {
         className,
+        value,
+        max = 100,
+        size = 'md',
+        segments,
+        showLegend = true,
+        formatValue,
         unstyled,
-      )}
-      {...props}
-    >
-      <ProgressPrimitive.Indicator
-        {...styles(
-          'progress.indicator',
-          cn(
-            'ui-progress-indicator h-full rounded-full bg-accent',
-            safeValue === null && 'ui-progress-indeterminate',
-          ),
-          undefined,
-          unstyled,
-        )}
-        style={{
-          width: safeValue === null ? '40%' : `${(safeValue / safeMax) * 100}%`,
-          marginInlineStart: 0,
-        }}
-      />
-    </ProgressPrimitive.Root>
-  );
-});
-Progress.displayName = 'Progress';
+        ...props
+      },
+      ref,
+    ) => {
+      const styles = useStyles();
+      const { locale } = useTranslation();
+
+      const direction = useDirection(
+        props.dir === 'rtl' || props.dir === 'ltr' ? props.dir : undefined,
+      );
+      const safeMax = Number.isFinite(max) && max > 0 ? max : 100;
+      const parts = segments?.map((segment, index) => ({
+        ...segment,
+        value: Number.isFinite(segment.value) ? Math.max(0, segment.value) : 0,
+        color: segment.color ?? `var(--ui-chart-${(index % 8) + 1})`,
+      }));
+      const total = parts?.reduce((sum, segment) => sum + segment.value, 0);
+      const resolvedValue = total === Infinity ? safeMax : (total ?? value);
+      const safeValue =
+        resolvedValue == null || !Number.isFinite(resolvedValue)
+          ? null
+          : Math.max(0, Math.min(safeMax, resolvedValue));
+      const formatter = numberFormatter(locale, { style: 'percent', maximumFractionDigits: 1 });
+      const formatted = (amount: number) =>
+        formatValue?.(amount, safeMax) ?? formatter.format(amount / safeMax);
+      // Normalize before summing when finite allocations exceed Number.MAX_VALUE.
+      const scale =
+        total === Infinity ? parts!.reduce((largest, part) => Math.max(largest, part.value), 1) : 1;
+      const denominator = Math.max(
+        safeMax / scale,
+        parts?.reduce((sum, part) => sum + part.value / scale, 0) ?? 0,
+      );
+      return (
+        <>
+          <ProgressPrimitive.Root
+            ref={ref}
+            dir={direction}
+            value={safeValue}
+            max={safeMax}
+            {...(parts
+              ? {
+                  'aria-valuetext': parts
+                    .map((part) => `${part.label}: ${formatted(part.value)}`)
+                    .join('; '),
+                }
+              : {})}
+            data-segmented={!!parts || undefined}
+            {...styles(
+              'progress.root',
+              cn(
+                'ui-progress relative w-full overflow-hidden rounded-full bg-muted',
+                { sm: 'h-1', md: 'h-2', lg: 'h-3' }[size],
+              ),
+              className,
+              unstyled,
+            )}
+            {...props}
+          >
+            {parts ? (
+              parts.map((part) => (
+                <span
+                  key={part.id}
+                  aria-hidden="true"
+                  title={`${part.label}: ${formatted(part.value)}`}
+                  {...styles('progress.segment', 'ui-progress-segment', undefined, unstyled)}
+                  style={{
+                    width: `${(part.value / scale / denominator) * 100}%`,
+                    backgroundColor: part.color,
+                  }}
+                />
+              ))
+            ) : (
+              <ProgressPrimitive.Indicator
+                {...styles(
+                  'progress.indicator',
+                  cn(
+                    'ui-progress-indicator h-full rounded-full bg-accent',
+                    safeValue === null && 'ui-progress-indeterminate',
+                  ),
+                  undefined,
+                  unstyled,
+                )}
+                style={{
+                  width: safeValue === null ? '40%' : `${(safeValue / safeMax) * 100}%`,
+                  marginInlineStart: 0,
+                }}
+              />
+            )}
+          </ProgressPrimitive.Root>
+          {parts && showLegend && (
+            <ul {...styles('progress.legend', 'ui-progress-legend', undefined, unstyled)}>
+              {parts.map((part) => (
+                <li key={part.id}>
+                  <span
+                    aria-hidden="true"
+                    {...styles('progress.swatch', 'ui-progress-swatch', undefined, unstyled)}
+                    style={{ backgroundColor: part.color }}
+                  />
+                  <bdi>{part.label}</bdi>
+                  <bdi>{formatted(part.value)}</bdi>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      );
+    },
+  ),
+  { displayName: 'Progress' },
+);
 export const Skeleton = /* @__PURE__ */ React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<'div'> & PlainStyleProps

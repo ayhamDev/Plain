@@ -17,6 +17,10 @@
   "module": "./dist/ui/index.js",
   "types": "./dist/ui/index.d.ts",
   "exports": {
+    "./list": {
+      "types": "./dist/ui/list.d.ts",
+      "import": "./dist/ui/list.js"
+    },
     ".": {
       "types": "./dist/ui/index.d.ts",
       "import": "./dist/ui/index.js"

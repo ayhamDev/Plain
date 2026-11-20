@@ -18,7 +18,8 @@ import {
 import * as UI from '@plain/ui';
 const ExtendedExamples = React.lazy(() => import('./ExtendedExamples'));
 const SheetExample = React.lazy(() => import('./examples/SheetExample'));
-import { ProjectDemo, DepartmentSelect, PersonAvatar } from './showcase';
+const RefinementExample = React.lazy(() => import('./examples/RefinementExample'));
+import { DepartmentSelect, PersonAvatar } from './showcase';
 
 export type Invoice = {
   id: string;
@@ -141,10 +142,12 @@ export function ComponentExample({ slug }: { slug: string }) {
         </div>
       );
     case 'card':
+    case 'list':
+    case 'navigation-rail':
       return (
-        <div className="demo-bordered">
-          <ProjectDemo />
-        </div>
+        <React.Suspense fallback={<UI.Spinner />}>
+          <RefinementExample slug={slug} />
+        </React.Suspense>
       );
     case 'input':
       return (
@@ -646,6 +649,16 @@ export function ComponentExample({ slug }: { slug: string }) {
               </UI.NavigationMenuContent>
             </UI.NavigationMenuItem>
             <UI.NavigationMenuItem>
+              <UI.NavigationMenuTrigger>Resources</UI.NavigationMenuTrigger>
+              <UI.NavigationMenuContent>
+                <UI.NavigationMenuLink href="/docs/theming">Theming</UI.NavigationMenuLink>
+                <UI.NavigationMenuLink href="/docs/accessibility">
+                  Accessibility
+                </UI.NavigationMenuLink>
+                <UI.NavigationMenuLink href="/changelog">Changelog</UI.NavigationMenuLink>
+              </UI.NavigationMenuContent>
+            </UI.NavigationMenuItem>
+            <UI.NavigationMenuItem>
               <UI.NavigationMenuLink href="/examples">Examples</UI.NavigationMenuLink>
             </UI.NavigationMenuItem>
           </UI.NavigationMenuList>
@@ -735,6 +748,22 @@ export function ComponentExample({ slug }: { slug: string }) {
             <output>{slider[0]}%</output>
           </div>
           <UI.Progress value={slider[0]} aria-label="Project completion" />
+          <div style={{ marginBlock: 16 }}>
+            <UI.P size="sm" style={{ marginBottom: 12 }}>
+              Workspace storage
+            </UI.P>
+            <UI.Progress
+              aria-label="Workspace storage"
+              size="lg"
+              max={100}
+              formatValue={(value) => `${value} GB`}
+              segments={[
+                { id: 'documents', label: 'Documents', value: 24, color: 'var(--ui-chart-1)' },
+                { id: 'images', label: 'Images', value: 32, color: 'var(--ui-chart-2)' },
+                { id: 'video', label: 'Video', value: 18, color: 'var(--ui-chart-3)' },
+              ]}
+            />
+          </div>
           <UI.Slider
             value={slider}
             onValueChange={setSlider}

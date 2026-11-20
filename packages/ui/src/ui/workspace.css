@@ -122,35 +122,13 @@
     transition: none;
   }
 }
-.ui-sidebar[data-state='collapsed'] .ui-sidebar-item {
-  justify-content: center;
-  padding: 8px;
-  gap: 0;
-}
-.ui-sidebar[data-state='collapsed'] .ui-sidebar-item-label {
-  inline-size: 0;
-  opacity: 0;
-}
-.ui-sidebar-item-label {
-  transition: opacity calc(180ms * var(--ui-motion-scale, 1)) ease;
-}
-.ui-sidebar[data-state='collapsed'] .ui-sidebar-header,
-.ui-sidebar[data-state='collapsed'] .ui-sidebar-footer {
-  padding-inline: 8px;
-  overflow: hidden;
-  white-space: nowrap;
-}
-.ui-sidebar[data-state='collapsed'][data-collapsible='icon'] .ui-sidebar-input {
-  display: none;
-}
 .ui-bottom-navigation[data-mode='detached'] {
-  margin: 8px;
   border: 1px solid var(--ui-border);
   border-radius: min(var(--ui-radius), 8px);
   box-shadow: var(--ui-shadow-sm);
 }
 .ui-bottom-navigation[data-fixed][data-mode='detached'] {
-  inset-inline: 8px;
+  inset-inline: max(8px, env(safe-area-inset-left)) max(8px, env(safe-area-inset-right));
   inset-block-end: max(8px, env(safe-area-inset-bottom));
   margin: 0;
 }
@@ -158,8 +136,8 @@
   min-inline-size: 0;
   min-block-size: 48px;
   transition:
-    color calc(180ms * var(--ui-motion-scale, 1)) ease,
-    background calc(180ms * var(--ui-motion-scale, 1)) ease;
+    color calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1)) var(--ui-ease-standard),
+    background calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1)) var(--ui-ease-standard);
 }
 .ui-bottom-navigation-icon {
   position: relative;
@@ -169,7 +147,8 @@
   justify-content: center;
   padding: 4px 12px;
   border-radius: var(--ui-radius);
-  transition: background calc(200ms * var(--ui-motion-scale, 1)) ease;
+  transition: background calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1))
+    var(--ui-ease-standard);
 }
 .ui-bottom-navigation-icon svg {
   inline-size: 20px;
@@ -179,7 +158,7 @@
 .ui-bottom-navigation[data-indicator='icon'] .ui-bottom-navigation-item[aria-current] {
   background: transparent;
 }
-.ui-bottom-navigation[data-indicator='icon']
+.ui-bottom-navigation:not([data-has-indicator])[data-indicator='icon']
   .ui-bottom-navigation-item[aria-current]
   .ui-bottom-navigation-icon {
   background: var(--ui-accent);
@@ -211,13 +190,14 @@
 .ui-stepper-indicator,
 .ui-stepper-item::after {
   transition:
-    color calc(220ms * var(--ui-motion-scale, 1)) ease,
-    background calc(220ms * var(--ui-motion-scale, 1)) ease,
-    border-color calc(220ms * var(--ui-motion-scale, 1)) ease;
+    color calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1)) var(--ui-ease-standard),
+    background calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1)) var(--ui-ease-standard),
+    border-color calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1)) var(--ui-ease-standard);
 }
 .ui-stepper-content {
   margin-block-start: 24px;
-  animation: ui-step-content calc(240ms * var(--ui-motion-scale, 1)) ease both;
+  animation: ui-step-content calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1))
+    var(--ui-ease-out) both;
 }
 @keyframes ui-step-content {
   from {
@@ -238,11 +218,13 @@
 }
 .ui-menu-content[data-state='open'],
 .ui-multi-select-content[data-state='open'] {
-  animation: ui-surface-in calc(200ms * var(--ui-motion-scale, 1)) ease both;
+  animation: ui-surface-in calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1))
+    var(--ui-ease-out) both;
 }
 .ui-menu-content[data-state='closed'],
 .ui-multi-select-content[data-state='closed'] {
-  animation: ui-surface-out calc(150ms * var(--ui-motion-scale, 1)) ease both;
+  animation: ui-surface-out calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1))
+    var(--ui-ease-standard) both;
 }
 .ui-table-simple-filter {
   display: grid;
@@ -355,6 +337,25 @@
   inset-inline: var(--ui-panel-gap);
   border-radius: var(--ui-radius);
   max-height: calc(100dvh - 2 * var(--ui-panel-gap));
+}
+.ui-drawer {
+  box-sizing: border-box;
+  width: 100%;
+  margin-inline: auto;
+}
+.ui-drawer[data-variant='detached'],
+.ui-drawer[data-variant='floating'] {
+  width: calc(100% - 2 * var(--ui-panel-gap));
+}
+.ui-panel {
+  overflow-wrap: anywhere;
+}
+.ui-panel > * {
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+.ui-panel [data-slot='header'] {
+  margin-block-end: 24px;
 }
 .ui-drawer[data-variant='detached'][data-side='bottom'],
 .ui-drawer[data-variant='floating'][data-side='bottom'] {

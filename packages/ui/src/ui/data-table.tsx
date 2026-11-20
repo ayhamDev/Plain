@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { TableMenu, type TableMenuPresentation } from './table-menu';
+import { useCollectionMode, type CollectionModeProps } from './collection-mode';
 import {
   tableFeatures,
   useTable,
@@ -53,9 +55,6 @@ import {
 } from './data-table-filter-value';
 import { SearchInput } from './advanced';
 import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
@@ -178,12 +177,23 @@ export function useDataTable<T extends RowData>({
   });
 }
 export interface DataTableViewProps<T extends RowData>
-  extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps {
+  extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps, CollectionModeProps {
   table: DataTableInstance<T>;
   searchable?: boolean;
   searchPlaceholder?: string;
   filterFields?: readonly DataTableFilterField<T>[];
   filterMode?: 'advanced' | 'simple';
+  filterable?: boolean;
+  sortable?: boolean;
+  showToolbar?: boolean;
+  showReset?: boolean;
+  pagination?: boolean;
+  showPageSize?: boolean;
+  showPageJump?: boolean;
+  showSummary?: boolean;
+  showSelectionControls?: boolean;
+  clearSelectionOnExit?: boolean;
+  filterPresentation?: TableMenuPresentation;
   stickyHeader?: boolean;
   stickyFooter?: boolean;
   stickyScrollbar?: boolean;
@@ -273,9 +283,11 @@ function columnLabel(column: { id: string; columnDef: { header?: unknown } }) {
 export function DataTableFilters<T extends RowData>({
   table,
   fields,
+  presentation,
 }: {
   table: DataTableInstance<T>;
   fields: readonly DataTableFilterField<T>[];
+  presentation?: TableMenuPresentation;
 }) {
   const styles = useStyles();
   const { t } = useTranslation();
@@ -307,9 +319,12 @@ export function DataTableFilters<T extends RowData>({
     </Select>
   );
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="sm">
+    <TableMenu
+      label={t('table.filters')}
+      presentation={presentation}
+      contentProps={styles('data-table.filter-panel', 'ui-table-filter-panel')}
+      trigger={
+        <Button variant="outline">
           <Filter size={14} aria-hidden="true" />
           {t('table.filters')}
           {query.filters.filter(isActiveTableFilter).length > 0 && (
@@ -318,100 +333,99 @@ export function DataTableFilters<T extends RowData>({
             </span>
           )}
         </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" {...styles('data-table.filter-panel', 'ui-table-filter-panel')}>
-        <div {...styles('data-table.filter-heading', 'ui-table-filter-heading')}>
-          <strong>{t('table.filters')}</strong>
-          {select(
-            query.join,
-            (join) => {
-              table.setGlobalFilter({ ...query, join });
-              table.setPageIndex(0);
-            },
-            [
-              { value: 'and', label: t('table.matchAll') },
-              { value: 'or', label: t('table.matchAny') },
-            ],
-            t('table.matching'),
-          )}
-        </div>
-        <div {...styles('data-table.filter-rules', 'ui-table-filter-rules')}>
-          {query.filters.map((rule) => {
-            const field = fields.find((field) => field.id === rule.field) ?? fields[0];
-            if (!field) return null;
-            return (
-              <div {...styles('data-table.filter-rule', 'ui-table-filter-rule')} key={rule.id}>
-                {select(
-                  rule.field,
-                  (fieldId) => {
-                    const next = fields.find((field) => field.id === fieldId)!;
-                    patch(rule, {
-                      field: fieldId,
-                      operator: filterOperators(next)[0],
-                      value: undefined,
-                    });
-                  },
-                  fields.map((field) => ({ value: field.id, label: field.label })),
-                  t('table.filterField'),
-                )}
-                {select(
-                  rule.operator,
-                  (operator) =>
-                    patch(rule, {
-                      operator: operator as DataTableFilter['operator'],
-                      value: undefined,
-                    }),
-                  filterOperators(field).map((value) => ({ value, label: t(`filter.${value}`) })),
-                  t('table.filterOperator'),
-                )}
-                <DataTableFilterValue
-                  field={field}
-                  rule={rule}
-                  onChange={(value) => patch(rule, { value })}
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={t('table.removeFilter')}
-                  onClick={() => update(query.filters.filter((item) => item.id !== rule.id))}
-                >
-                  <X size={14} />
-                </Button>
-              </div>
-            );
-          })}
-        </div>
-        <div {...styles('data-table.filter-footer', 'ui-table-filter-footer')}>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              const field = fields[0];
-              if (field)
-                update([
-                  ...query.filters,
-                  {
-                    id: `${id}-${Date.now()}-${query.filters.length}`,
-                    field: field.id,
-                    operator: filterOperators(field)[0],
-                  },
-                ]);
-            }}
-          >
-            <Plus size={14} />
-            {t('table.addFilter')}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={!query.filters.length}
-            onClick={() => update([])}
-          >
-            {t('common.clear')}
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
+      }
+    >
+      <div {...styles('data-table.filter-heading', 'ui-table-filter-heading')}>
+        <strong>{t('table.filters')}</strong>
+        {select(
+          query.join,
+          (join) => {
+            table.setGlobalFilter({ ...query, join });
+            table.setPageIndex(0);
+          },
+          [
+            { value: 'and', label: t('table.matchAll') },
+            { value: 'or', label: t('table.matchAny') },
+          ],
+          t('table.matching'),
+        )}
+      </div>
+      <div {...styles('data-table.filter-rules', 'ui-table-filter-rules')}>
+        {query.filters.map((rule) => {
+          const field = fields.find((field) => field.id === rule.field) ?? fields[0];
+          if (!field) return null;
+          return (
+            <div {...styles('data-table.filter-rule', 'ui-table-filter-rule')} key={rule.id}>
+              {select(
+                rule.field,
+                (fieldId) => {
+                  const next = fields.find((field) => field.id === fieldId)!;
+                  patch(rule, {
+                    field: fieldId,
+                    operator: filterOperators(next)[0],
+                    value: undefined,
+                  });
+                },
+                fields.map((field) => ({ value: field.id, label: field.label })),
+                t('table.filterField'),
+              )}
+              {select(
+                rule.operator,
+                (operator) =>
+                  patch(rule, {
+                    operator: operator as DataTableFilter['operator'],
+                    value: undefined,
+                  }),
+                filterOperators(field).map((value) => ({ value, label: t(`filter.${value}`) })),
+                t('table.filterOperator'),
+              )}
+              <DataTableFilterValue
+                field={field}
+                rule={rule}
+                onChange={(value) => patch(rule, { value })}
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={t('table.removeFilter')}
+                onClick={() => update(query.filters.filter((item) => item.id !== rule.id))}
+              >
+                <X size={14} />
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+      <div {...styles('data-table.filter-footer', 'ui-table-filter-footer')}>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            const field = fields[0];
+            if (field)
+              update([
+                ...query.filters,
+                {
+                  id: `${id}-${Date.now()}-${query.filters.length}`,
+                  field: field.id,
+                  operator: filterOperators(field)[0],
+                },
+              ]);
+          }}
+        >
+          <Plus size={14} />
+          {t('table.addFilter')}
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={!query.filters.length}
+          onClick={() => update([])}
+        >
+          {t('common.clear')}
+        </Button>
+      </div>
+    </TableMenu>
   );
 }
 export function DataTableToolbar<T extends RowData>({
@@ -420,7 +434,11 @@ export function DataTableToolbar<T extends RowData>({
   searchPlaceholder,
   filterFields = [],
   filterMode = 'advanced',
+  filterable = true,
+  sortable = true,
+  filterPresentation,
   columnControls = true,
+  showReset = true,
   toolbarActions,
 }: Pick<
   DataTableViewProps<T>,
@@ -429,13 +447,30 @@ export function DataTableToolbar<T extends RowData>({
   | 'searchPlaceholder'
   | 'filterFields'
   | 'filterMode'
+  | 'filterable'
+  | 'sortable'
+  | 'filterPresentation'
   | 'columnControls'
+  | 'showReset'
   | 'toolbarActions'
 >) {
   const styles = useStyles();
   const { t } = useTranslation();
   const query = tableQuery(table.state.globalFilter),
     sorting = table.state.sorting;
+  const hasReset =
+    showReset &&
+    (searchable || filterable) &&
+    !!(query.search || query.filters.length || table.state.columnFilters.length);
+  if (
+    !searchable &&
+    !(filterable && filterFields.length) &&
+    !sortable &&
+    !columnControls &&
+    !toolbarActions &&
+    !hasReset
+  )
+    return null;
   return (
     <div {...styles('data-table.toolbar', 'ui-table-toolbar')}>
       {searchable && (
@@ -449,14 +484,16 @@ export function DataTableToolbar<T extends RowData>({
           }}
         />
       )}
-      {filterFields.length > 0 &&
+      {filterable &&
+        filterFields.length > 0 &&
         (filterMode === 'advanced' ? (
-          <DataTableFilters table={table} fields={filterFields} />
+          <DataTableFilters table={table} fields={filterFields} presentation={filterPresentation} />
         ) : (
           filterFields.map((field) => (
             <DataTableSimpleFilter
               key={field.id}
               field={field}
+              presentation={filterPresentation}
               rule={query.filters.find((r) => r.field === field.id)}
               onChange={(rule) => {
                 table.setGlobalFilter({
@@ -475,10 +512,9 @@ export function DataTableToolbar<T extends RowData>({
             />
           ))
         ))}
-      {!!(query.search || query.filters.length || table.state.columnFilters.length) && (
+      {hasReset && (
         <Button
           variant="ghost"
-          size="sm"
           onClick={() => {
             table.setGlobalFilter(emptyTableQuery);
             table.resetColumnFilters(true);
@@ -490,17 +526,24 @@ export function DataTableToolbar<T extends RowData>({
         </Button>
       )}
       <div {...styles('data-table.toolbar-end', 'ui-table-toolbar-end')}>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">
-              <ArrowUpDown size={14} />
-              {t('table.sort')}
-              {sorting.length > 0 && (
-                <span {...styles('data-table.count', 'ui-table-count')}>{sorting.length}</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" {...styles('data-table.sort-panel', 'ui-table-sort-panel')}>
+        {sortable && (
+          <TableMenu
+            label={t('table.sortOrder')}
+            presentation={filterPresentation}
+            contentProps={{
+              ...styles('data-table.sort-panel', 'ui-table-sort-panel'),
+              align: 'end',
+            }}
+            trigger={
+              <Button variant="outline">
+                <ArrowUpDown size={14} />
+                {t('table.sort')}
+                {sorting.length > 0 && (
+                  <span {...styles('data-table.count', 'ui-table-count')}>{sorting.length}</span>
+                )}
+              </Button>
+            }
+          >
             <strong>{t('table.sortOrder')}</strong>
             {sorting.map((rule, i) => (
               <div {...styles('data-table.sort-rule', 'ui-table-sort-rule')} key={rule.id}>
@@ -554,12 +597,12 @@ export function DataTableToolbar<T extends RowData>({
                   ))}
               </SelectContent>
             </Select>
-          </PopoverContent>
-        </Popover>
+          </TableMenu>
+        )}
         {columnControls && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline">
                 <SlidersHorizontal size={14} />
                 {t('table.columns')}
               </Button>
@@ -584,7 +627,7 @@ export function DataTableToolbar<T extends RowData>({
         )}
         {toolbarActions}
       </div>
-      {query.filters.length > 0 && (
+      {filterable && query.filters.length > 0 && (
         <div {...styles('data-table.active-filters', 'ui-table-active-filters')}>
           {query.filters.filter(isActiveTableFilter).map((rule) => (
             <Button
@@ -622,7 +665,13 @@ export function DataTablePagination<T extends RowData>({
   pageSizes = [10, 25, 50, 100],
   selectable,
   loading,
-}: Pick<DataTableViewProps<T>, 'table' | 'pageSizes' | 'selectable' | 'loading'>) {
+  showPageSize = true,
+  showPageJump = true,
+  showSummary = true,
+}: Pick<
+  DataTableViewProps<T>,
+  'table' | 'pageSizes' | 'selectable' | 'loading' | 'showPageSize' | 'showPageJump' | 'showSummary'
+>) {
   const styles = useStyles();
   const { t } = useTranslation();
   const direction = useDirection();
@@ -672,53 +721,59 @@ export function DataTablePagination<T extends RowData>({
   ] as const;
   return (
     <div {...styles('data-table.pagination', 'ui-table-pagination')}>
-      <span role="status" dir="auto" {...styles('data-table.status', 'ui-table-status')}>
-        {t('table.summary', {
-          selected: selectable ? table.getSelectedRowIds().length : 0,
-          from: firstRow,
-          to: lastRow,
-          total: unknown ? '?' : count,
-        })}
-      </span>
-      <div {...styles('data-table.page-size', 'ui-table-page-size')}>
-        <span>{t('table.rowsPerPage')}</span>
-        <Select
-          value={String(pageSize)}
-          disabled={loading}
-          onValueChange={(value) => table.setPageSize(Number(value))}
-        >
-          <SelectTrigger aria-label={t('table.rowsPerPage')}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {sizes.map((size) => (
-              <SelectItem key={size} value={String(size)}>
-                {size}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div {...styles('data-table.page-jump', 'ui-table-page-jump')}>
-        <span>{t('table.page')}</span>
-        <Input
-          type="number"
-          min={1}
-          max={unknown ? undefined : Math.max(1, pages)}
-          aria-label={t('table.pageNumber')}
-          value={draft}
-          disabled={loading || !count}
-          onChange={(event) => setDraft(event.target.value)}
-          onBlur={jump}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              jump();
-            }
-          }}
-        />
-        <span>{t('table.of', { count: unknown ? '?' : Math.max(1, pages) })}</span>
-      </div>
+      {showSummary && (
+        <span role="status" dir="auto" {...styles('data-table.status', 'ui-table-status')}>
+          {t(selectable ? 'table.summary' : 'table.range', {
+            selected: selectable ? table.getSelectedRowIds().length : 0,
+            from: firstRow,
+            to: lastRow,
+            total: unknown ? '?' : count,
+          })}
+        </span>
+      )}
+      {showPageSize && (
+        <div {...styles('data-table.page-size', 'ui-table-page-size')}>
+          <span>{t('table.rowsPerPage')}</span>
+          <Select
+            value={String(pageSize)}
+            disabled={loading}
+            onValueChange={(value) => table.setPageSize(Number(value))}
+          >
+            <SelectTrigger aria-label={t('table.rowsPerPage')}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {sizes.map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      {showPageJump && (
+        <div {...styles('data-table.page-jump', 'ui-table-page-jump')}>
+          <span>{t('table.page')}</span>
+          <Input
+            type="number"
+            min={1}
+            max={unknown ? undefined : Math.max(1, pages)}
+            aria-label={t('table.pageNumber')}
+            value={draft}
+            disabled={loading || !count}
+            onChange={(event) => setDraft(event.target.value)}
+            onBlur={jump}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                jump();
+              }
+            }}
+          />
+          <span>{t('table.of', { count: unknown ? '?' : Math.max(1, pages) })}</span>
+        </div>
+      )}
       <div {...styles('data-table.page-buttons', 'ui-table-page-buttons')}>
         {tools.map(([label, click, unavailable, Icon]) => (
           <Button
@@ -743,6 +798,20 @@ export function DataTableView<T extends RowData>({
   searchPlaceholder,
   filterFields,
   filterMode,
+  filterable = true,
+  sortable = true,
+  filterPresentation,
+  showToolbar = true,
+  showReset,
+  pagination = true,
+  showPageSize,
+  showPageJump,
+  showSummary,
+  mode,
+  defaultMode,
+  onModeChange,
+  showSelectionControls = true,
+  clearSelectionOnExit = true,
   stickyHeader,
   stickyFooter,
   stickyScrollbar,
@@ -750,7 +819,7 @@ export function DataTableView<T extends RowData>({
   stickyFooterOffset,
   scrollHeight,
   columnControls = true,
-  selectable = false,
+  selectable: selectionEnabled = false,
   loading,
   emptyTitle,
   renderEmpty,
@@ -768,9 +837,27 @@ export function DataTableView<T extends RowData>({
 }: DataTableViewProps<T>) {
   const styles = useStyles();
   const { t } = useTranslation();
-  const rows = table.getRowModel().rows,
+  const [currentMode, changeMode] = useCollectionMode(
+    { mode, defaultMode, onModeChange },
+    selectionEnabled ? 'selection' : 'browse',
+  );
+  const selectable = selectionEnabled && currentMode === 'selection';
+  const rows = (pagination ? table.getRowModel() : table.getPrePaginatedRowModel()).rows,
     columnCount = Math.max(1, table.getVisibleLeafColumns().length + Number(selectable));
-  const selected = table.getSelectedRowIds().length;
+  const selected = selectable ? table.getSelectedRowIds().length : 0;
+  const modeControl =
+    selectionEnabled && showSelectionControls ? (
+      <Button
+        variant="outline"
+        aria-pressed={selectable}
+        onClick={() => {
+          if (selectable && clearSelectionOnExit) table.resetRowSelection(true);
+          changeMode(selectable ? 'browse' : 'selection');
+        }}
+      >
+        {t(selectable ? 'common.done' : 'collection.select')}
+      </Button>
+    ) : null;
   const left = table.getStartVisibleLeafColumns(),
     right = table.getEndVisibleLeafColumns();
   const pinnedStyle = (
@@ -798,22 +885,38 @@ export function DataTableView<T extends RowData>({
   };
   return (
     <StyleProvider unstyled={unstyled}>
-      <div {...styles('data-table.root', 'ui-data-table', className, unstyled)} {...props}>
-        {toolbar === undefined ? (
-          <DataTableToolbar
-            table={table}
-            searchable={searchable}
-            searchPlaceholder={searchPlaceholder}
-            filterFields={filterFields}
-            filterMode={filterMode}
-            columnControls={columnControls}
-            toolbarActions={toolbarActions}
-          />
-        ) : typeof toolbar === 'function' ? (
-          toolbar(table)
-        ) : (
-          toolbar
-        )}
+      <div
+        data-mode={selectable ? 'selection' : 'browse'}
+        {...styles('data-table.root', 'ui-data-table', className, unstyled)}
+        {...props}
+      >
+        {showToolbar &&
+          (toolbar === undefined ? (
+            <DataTableToolbar
+              table={table}
+              searchable={searchable}
+              showReset={showReset}
+              searchPlaceholder={searchPlaceholder}
+              filterFields={filterFields}
+              filterMode={filterMode}
+              filterable={filterable}
+              sortable={sortable}
+              filterPresentation={filterPresentation}
+              columnControls={columnControls}
+              toolbarActions={
+                toolbarActions || modeControl ? (
+                  <>
+                    {toolbarActions}
+                    {modeControl}
+                  </>
+                ) : undefined
+              }
+            />
+          ) : typeof toolbar === 'function' ? (
+            toolbar(table)
+          ) : (
+            toolbar
+          ))}
         <div
           {...styles(
             'data-table.table-wrapper',
@@ -849,13 +952,25 @@ export function DataTableView<T extends RowData>({
                         aria-label={t('table.selectPage')}
                         disabled={loading || !rows.length}
                         checked={
-                          table.getIsAllPageRowsSelected()
+                          (
+                            pagination
+                              ? table.getIsAllPageRowsSelected()
+                              : table.getIsAllRowsSelected()
+                          )
                             ? true
-                            : table.getIsSomePageRowsSelected()
+                            : (
+                                  pagination
+                                    ? table.getIsSomePageRowsSelected()
+                                    : table.getIsSomeRowsSelected()
+                                )
                               ? 'indeterminate'
                               : false
                         }
-                        onCheckedChange={(checked) => table.toggleAllPageRowsSelected(!!checked)}
+                        onCheckedChange={(checked) =>
+                          pagination
+                            ? table.toggleAllPageRowsSelected(!!checked)
+                            : table.toggleAllRowsSelected(!!checked)
+                        }
                       />
                     </TableHead>
                   )}
@@ -874,7 +989,7 @@ export function DataTableView<T extends RowData>({
                               : undefined
                       }
                     >
-                      {header.isPlaceholder ? null : header.column.getCanSort() ? (
+                      {header.isPlaceholder ? null : sortable && header.column.getCanSort() ? (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -993,18 +1108,21 @@ export function DataTableView<T extends RowData>({
           data-sticky={stickyFooter || undefined}
           style={{ bottom: stickyFooterOffset ?? 0 }}
         >
-          {footer === undefined ? (
-            <DataTablePagination
-              table={table}
-              pageSizes={pageSizes}
-              selectable={selectable}
-              loading={loading}
-            />
-          ) : typeof footer === 'function' ? (
-            footer(table)
-          ) : (
-            footer
-          )}
+          {footer === undefined
+            ? pagination && (
+                <DataTablePagination
+                  table={table}
+                  pageSizes={pageSizes}
+                  selectable={selectable}
+                  loading={loading}
+                  showPageSize={showPageSize}
+                  showPageJump={showPageJump}
+                  showSummary={showSummary}
+                />
+              )
+            : typeof footer === 'function'
+              ? footer(table)
+              : footer}
         </div>
       </div>
     </StyleProvider>

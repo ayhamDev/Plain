@@ -384,7 +384,7 @@ describe('disclosure and menu state changes', () => {
 });
 
 describe('toast defaults', () => {
-  it('uses inverse theme tokens without a default close button and retains action buttons', async () => {
+  it('uses surface tokens with an accessible close button and retains action buttons', async () => {
     const action = vi.fn();
     render(<Toaster />);
     act(() => {
@@ -397,18 +397,24 @@ describe('toast defaults', () => {
     });
     const title = await screen.findByText('Saved');
     const notification = title.closest('[data-sonner-toast]')! as HTMLElement;
-    expect(notification).toHaveAttribute('data-invert', 'true');
+    expect(notification).toHaveAttribute('data-invert', 'false');
     expect(notification.style.getPropertyValue('--normal-bg')).toBe(
-      'var(--ui-toast-background,var(--ui-foreground))',
+      'var(--ui-toast-surface,var(--ui-surface))',
     );
-    expect(screen.queryByRole('button', { name: 'Close toast' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
     expect(action).toHaveBeenCalledOnce();
   });
 
   it('respects native close-button and inline-style overrides', async () => {
     render(
-      <Toaster closeButton toastOptions={{ style: { background: 'red', borderRadius: '2px' } }} />,
+      <Toaster
+        closeButton
+        toastOptions={{
+          closeButtonAriaLabel: 'Close toast',
+          style: { background: 'red', borderRadius: '2px' },
+        }}
+      />,
     );
     act(() => {
       toast('Review', { id: 'interaction-review', duration: Infinity });
@@ -420,5 +426,15 @@ describe('toast defaults', () => {
     });
     await userEvent.click(screen.getByRole('button', { name: 'Close toast' }));
     await waitFor(() => expect(screen.queryByText('Review')).not.toBeInTheDocument());
+  });
+
+  it('retains the opt-in inverse appearance and hidden close button', async () => {
+    render(<Toaster invert closeButton={false} />);
+    act(() => {
+      toast('Legacy appearance', { id: 'interaction-inverse', duration: Infinity });
+    });
+    const title = await screen.findByText('Legacy appearance');
+    expect(title.closest('[data-sonner-toast]')).toHaveAttribute('data-invert', 'true');
+    expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
   });
 });

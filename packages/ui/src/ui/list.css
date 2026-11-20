@@ -1,0 +1,96 @@
+@layer components {
+  .ui-list {
+    min-inline-size: 0;
+    color: var(--ui-foreground);
+  }
+  .ui-list-header,
+  .ui-list-footer,
+  .ui-list-selection-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-block: 12px;
+  }
+  .ui-list-mode-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-inline-start: auto;
+    font-size: 12px;
+    color: var(--ui-muted-foreground);
+  }
+  .ui-list-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .ui-list-row {
+    display: flex;
+    min-inline-size: 0;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 12px;
+    border-radius: min(var(--ui-radius), 8px);
+    transition: background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale))
+      var(--ui-ease-standard);
+  }
+  .ui-list[data-dividers='true'] .ui-list-row + .ui-list-row {
+    border-block-start: 1px solid var(--ui-border);
+  }
+  .ui-list[data-density='compact'] .ui-list-row {
+    padding-block: 8px;
+    gap: 12px;
+  }
+  .ui-list[data-mode='selection'] .ui-list-row:not([data-disabled]) {
+    cursor: pointer;
+  }
+  .ui-list[data-mode='selection'] .ui-list-row:hover:not([data-disabled]) {
+    background: var(--ui-muted);
+  }
+  .ui-list-row[data-selected] {
+    background: var(--ui-accent-soft);
+  }
+  .ui-list-row[data-disabled] {
+    opacity: 0.5;
+  }
+  .ui-list-leading,
+  .ui-list-trailing {
+    flex: 0 0 auto;
+    min-inline-size: 0;
+  }
+  .ui-list-content {
+    flex: 1;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+  .ui-list-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+  }
+  .ui-list-description {
+    margin-block-start: 4px;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--ui-muted-foreground);
+  }
+  .ui-list-trailing {
+    text-align: end;
+    font-size: 12px;
+    color: var(--ui-muted-foreground);
+    max-inline-size: 30%;
+    overflow-wrap: anywhere;
+  }
+  .ui-list-empty {
+    padding: 32px 16px;
+    color: var(--ui-muted-foreground);
+    text-align: center;
+  }
+  .ui-list-selection-actions {
+    position: sticky;
+    inset-block-end: 0;
+    background: var(--ui-surface);
+    border-block-start: 1px solid var(--ui-border);
+  }
+}

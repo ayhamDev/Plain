@@ -6,6 +6,9 @@ import { Button } from './primitives';
 import { Input } from './forms';
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from './overlays';
 import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
+import { useSelectionIndicator } from './selection-indicator';
+import { inertAttribute } from './utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './overlays';
 
 export interface SidebarContextValue {
   collapsed: boolean;
@@ -299,7 +302,7 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
           data-side={side}
           data-variant={variant}
           data-collapsible={collapsible}
-          inert={collapsed && collapsible === 'offcanvas' ? true : undefined}
+          inert={inertAttribute(collapsed && collapsible === 'offcanvas')}
           {...props}
         >
           {children}
@@ -364,7 +367,26 @@ export const SidebarHeader = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Si
         {...styles('sidebar.header', 'ui-sidebar-header', className, unstyled)}
         {...props}
       >
-        {compact && collapsedContent !== undefined ? collapsedContent : children}
+        {collapsedContent === undefined ? (
+          children
+        ) : (
+          <div className="ui-sidebar-section-swap">
+            <div
+              data-expanded-content=""
+              aria-hidden={compact || undefined}
+              inert={inertAttribute(!!compact)}
+            >
+              {children}
+            </div>
+            <div
+              data-collapsed-content=""
+              aria-hidden={!compact || undefined}
+              inert={inertAttribute(!compact)}
+            >
+              {collapsedContent}
+            </div>
+          </div>
+        )}
       </div>
     );
   },
@@ -381,7 +403,26 @@ export const SidebarFooter = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Si
         {...styles('sidebar.footer', 'ui-sidebar-footer', className, unstyled)}
         {...props}
       >
-        {compact && collapsedContent !== undefined ? collapsedContent : children}
+        {collapsedContent === undefined ? (
+          children
+        ) : (
+          <div className="ui-sidebar-section-swap">
+            <div
+              data-expanded-content=""
+              aria-hidden={compact || undefined}
+              inert={inertAttribute(!!compact)}
+            >
+              {children}
+            </div>
+            <div
+              data-collapsed-content=""
+              aria-hidden={!compact || undefined}
+              inert={inertAttribute(!compact)}
+            >
+              {collapsedContent}
+            </div>
+          </div>
+        )}
       </div>
     );
   },
@@ -490,11 +531,7 @@ export const SidebarItem = /* @__PURE__ */ React.forwardRef<HTMLButtonElement, S
     const sidebar = React.useContext(SidebarContext);
     const Element = asChild ? Slot.Root : 'button';
     const accessibleLabel = label ?? (typeof children === 'string' ? children : undefined);
-    const fallbackIcon =
-      !icon &&
-      sidebar?.collapsed &&
-      !sidebar.isMobile &&
-      accessibleLabel?.slice(0, 1).toLocaleUpperCase();
+    const fallbackIcon = !icon && accessibleLabel?.slice(0, 1).toLocaleUpperCase();
     return (
       <Element
         ref={ref}
@@ -536,6 +573,7 @@ export const SidebarItem = /* @__PURE__ */ React.forwardRef<HTMLButtonElement, S
           <>
             {(icon || fallbackIcon) && (
               <span
+                data-fallback={!icon || undefined}
                 {...styles('sidebar.item-icon', 'ui-sidebar-item-icon', undefined, unstyled)}
                 aria-hidden="true"
               >
@@ -672,11 +710,15 @@ export const SidebarInput = /* @__PURE__ */ React.forwardRef<
   React.ComponentProps<typeof Input>
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
+  const sidebar = React.useContext(SidebarContext);
+  const compact = !!sidebar?.collapsed && !sidebar.isMobile && sidebar.collapsible === 'icon';
 
   return (
     <Input
       ref={ref}
       {...styles('sidebar.input', 'ui-sidebar-input', className, unstyled)}
+      inert={inertAttribute(compact)}
+      aria-hidden={compact || undefined}
       unstyled={unstyled}
       {...props}
     />
@@ -812,6 +854,171 @@ export const AppShell = /* @__PURE__ */ React.forwardRef<HTMLDivElement, AppShel
 );
 AppShell.displayName = 'AppShell';
 
+export interface NavigationRailProps extends React.HTMLAttributes<HTMLElement>, PlainStyleProps {
+  items: readonly BottomNavigationItem[];
+  value?: string;
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
+  header?: React.ReactNode;
+  footer?: React.ReactNode;
+  side?: 'start' | 'end';
+  variant?: 'attached' | 'inset' | 'floating';
+  width?: React.CSSProperties['width'];
+  hideOnMobile?: boolean;
+}
+
+/** A persistent app/workspace switcher; SidebarRail remains the collapse edge control. */
+export const NavigationRail = /* @__PURE__ */ React.forwardRef<HTMLElement, NavigationRailProps>(
+  (
+    {
+      items,
+      value,
+      defaultValue,
+      onValueChange,
+      header,
+      footer,
+      side = 'start',
+      variant = 'attached',
+      width,
+      hideOnMobile = true,
+      className,
+      style,
+      unstyled,
+      dir,
+      ...props
+    },
+    ref,
+  ) => {
+    const styles = useStyles();
+    const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
+    const { t } = useTranslation();
+    const [local, setLocal] = React.useState(
+      defaultValue ?? items.find((item) => !item.disabled)?.value ?? '',
+    );
+    const current = value ?? local;
+    const list = React.useRef<HTMLDivElement>(null);
+    useSelectionIndicator(list, '[aria-current="page"]', !(unstyled ?? styles.unstyled));
+    return (
+      <TooltipProvider delayDuration={300}>
+        <nav
+          ref={ref}
+          dir={direction}
+          aria-label={t('navigation.primary')}
+          data-side={side}
+          data-variant={variant}
+          data-hide-on-mobile={hideOnMobile}
+          {...styles('navigation-rail.root', 'ui-navigation-rail', className, unstyled)}
+          style={{ ...(width !== undefined ? { width } : {}), ...style }}
+          {...props}
+        >
+          {header && (
+            <div
+              {...styles(
+                'navigation-rail.header',
+                'ui-navigation-rail-header',
+                undefined,
+                unstyled,
+              )}
+            >
+              {header}
+            </div>
+          )}
+          <div
+            ref={list}
+            {...styles('navigation-rail.items', 'ui-navigation-rail-items', undefined, unstyled)}
+          >
+            {items.map((item) => {
+              const Element = item.href ? 'a' : 'button';
+              return (
+                <Tooltip key={item.value}>
+                  <TooltipTrigger asChild>
+                    <Element
+                      type={item.href ? undefined : 'button'}
+                      href={item.disabled ? undefined : item.href}
+                      disabled={item.href ? undefined : item.disabled}
+                      tabIndex={item.disabled ? -1 : undefined}
+                      aria-disabled={item.disabled || undefined}
+                      aria-label={item.label}
+                      aria-current={current === item.value ? 'page' : undefined}
+                      {...styles(
+                        'navigation-rail.item',
+                        'ui-navigation-rail-item',
+                        undefined,
+                        unstyled,
+                      )}
+                      onClick={(event) => {
+                        if (item.disabled) {
+                          event.preventDefault();
+                          return;
+                        }
+                        if (value === undefined) setLocal(item.value);
+                        onValueChange?.(item.value);
+                      }}
+                    >
+                      <span
+                        {...styles(
+                          'navigation-rail.icon',
+                          'ui-navigation-rail-icon',
+                          undefined,
+                          unstyled,
+                        )}
+                        aria-hidden="true"
+                      >
+                        {item.renderIcon?.(current === item.value) ??
+                          item.icon ??
+                          item.label.slice(0, 1)}
+                      </span>
+                      {item.badge != null && (
+                        <span
+                          {...styles(
+                            'navigation-rail.badge',
+                            'ui-navigation-rail-badge',
+                            undefined,
+                            unstyled,
+                          )}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </Element>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side={(side === 'start') === (direction === 'ltr') ? 'right' : 'left'}
+                  >
+                    {item.label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+            <span
+              aria-hidden="true"
+              {...styles(
+                'navigation-rail.indicator',
+                'ui-selection-indicator',
+                undefined,
+                unstyled,
+              )}
+            />
+          </div>
+          {footer && (
+            <div
+              {...styles(
+                'navigation-rail.footer',
+                'ui-navigation-rail-footer',
+                undefined,
+                unstyled,
+              )}
+            >
+              {footer}
+            </div>
+          )}
+        </nav>
+      </TooltipProvider>
+    );
+  },
+);
+NavigationRail.displayName = 'NavigationRail';
+
 export interface BottomNavigationItem {
   value: string;
   label: string;
@@ -832,6 +1039,9 @@ export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement>
   showLabels?: boolean;
   indicator?: 'icon' | 'full';
   size?: 'sm' | 'md' | 'lg';
+  variant?: 'attached' | 'inset' | 'floating';
+  maxWidth?: React.CSSProperties['maxWidth'];
+  animated?: boolean;
 }
 export const BottomNavigation = /* @__PURE__ */ React.forwardRef<
   HTMLElement,
@@ -849,27 +1059,42 @@ export const BottomNavigation = /* @__PURE__ */ React.forwardRef<
       showLabels = true,
       indicator = 'icon',
       size = 'md',
+      variant,
+      maxWidth,
+      animated = true,
       className,
+      style,
       unstyled,
       ...props
     },
     ref,
   ) => {
     const styles = useStyles();
+    const root = React.useRef<HTMLElement>(null);
+    React.useImperativeHandle(ref, () => root.current!);
+    useSelectionIndicator(
+      root,
+      indicator === 'icon'
+        ? '[aria-current="page"] .ui-bottom-navigation-icon, [aria-current="page"]:not(:has(.ui-bottom-navigation-icon))'
+        : '[aria-current="page"]',
+      animated && !(unstyled ?? styles.unstyled),
+    );
     const [local, setLocal] = React.useState(defaultValue ?? items[0]?.value ?? '');
     const current = value ?? local;
     const { t } = useTranslation();
     return (
       <nav
-        ref={ref}
+        ref={root}
         aria-label={t('navigation.primary')}
         {...styles('bottom-navigation.root', 'ui-bottom-navigation', className, unstyled)}
         data-fixed={fixed || undefined}
         data-layout={itemLayout}
         data-mode={mode}
+        data-variant={variant ?? (mode === 'detached' ? 'floating' : 'attached')}
         data-indicator={indicator}
         data-size={size}
         data-labels={showLabels}
+        style={{ ...(maxWidth !== undefined ? { maxWidth } : {}), ...style }}
         {...props}
       >
         {items.map((item) => {
@@ -929,6 +1154,10 @@ export const BottomNavigation = /* @__PURE__ */ React.forwardRef<
             </Element>
           );
         })}
+        <span
+          aria-hidden="true"
+          {...styles('bottom-navigation.indicator', 'ui-selection-indicator', undefined, unstyled)}
+        />
       </nav>
     );
   },
@@ -941,7 +1170,9 @@ export interface StepperStep {
   description?: string;
   icon?: React.ReactNode;
   disabled?: boolean;
+  status?: 'complete' | 'error' | 'pending';
 }
+export type StepperStepState = 'complete' | 'current' | 'pending' | 'error';
 export interface StepperProps extends React.HTMLAttributes<HTMLElement>, PlainStyleProps {
   steps: readonly StepperStep[];
   value?: string;
@@ -950,6 +1181,13 @@ export interface StepperProps extends React.HTMLAttributes<HTMLElement>, PlainSt
   orientation?: 'horizontal' | 'vertical';
   linear?: boolean;
   renderContent?: (step: StepperStep, index: number) => React.ReactNode;
+  variant?: 'default' | 'compact' | 'dots';
+  size?: 'sm' | 'md' | 'lg';
+  showLabels?: boolean;
+  showDescriptions?: boolean;
+  labelPlacement?: 'bottom' | 'inline';
+  keepMounted?: boolean;
+  renderIndicator?: (step: StepperStep, index: number, state: StepperStepState) => React.ReactNode;
 }
 export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProps>(
   (
@@ -961,6 +1199,13 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
       orientation = 'horizontal',
       linear = false,
       renderContent,
+      variant = 'default',
+      size = 'md',
+      showLabels = true,
+      showDescriptions = true,
+      labelPlacement = 'bottom',
+      keepMounted = false,
+      renderIndicator,
       className,
       unstyled,
       dir,
@@ -985,6 +1230,11 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
         aria-label={t('navigation.steps')}
         {...styles('stepper.root', 'ui-stepper', className, unstyled)}
         data-orientation={orientation}
+        data-variant={variant}
+        data-size={size}
+        data-label-placement={labelPlacement}
+        data-labels={showLabels}
+        data-descriptions={showDescriptions}
         {...props}
         onKeyDown={(event) => {
           onKeyDown?.(event);
@@ -1020,50 +1270,77 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
         }}
       >
         <ol {...styles('stepper.list', 'ui-stepper-list', undefined, unstyled)}>
-          {steps.map((step, index) => (
-            <li
-              key={step.value}
-              {...styles('stepper.item', 'ui-stepper-item', undefined, unstyled)}
-              data-state={index < active ? 'complete' : index === active ? 'current' : 'pending'}
-            >
-              <button
-                type="button"
-                disabled={step.disabled || (linear && index > active + 1)}
-                aria-current={index === active ? 'step' : undefined}
-                {...styles('stepper.trigger', 'ui-stepper-trigger', undefined, unstyled)}
-                onClick={() => {
-                  if (value === undefined) setLocal(step.value);
-                  onValueChange?.(step.value);
-                }}
+          {steps.map((step, index) => {
+            const state: StepperStepState =
+              step.status ??
+              (index < active ? 'complete' : index === active ? 'current' : 'pending');
+            return (
+              <li
+                key={step.value}
+                {...styles('stepper.item', 'ui-stepper-item', undefined, unstyled)}
+                data-state={state}
               >
-                <span
-                  {...styles('stepper.indicator', 'ui-stepper-indicator', undefined, unstyled)}
-                  aria-hidden="true"
+                <button
+                  type="button"
+                  disabled={step.disabled || (linear && index > active + 1)}
+                  aria-current={index === active ? 'step' : undefined}
+                  aria-label={!showLabels ? step.label : undefined}
+                  {...styles('stepper.trigger', 'ui-stepper-trigger', undefined, unstyled)}
+                  onClick={() => {
+                    if (value === undefined) setLocal(step.value);
+                    onValueChange?.(step.value);
+                  }}
                 >
-                  {step.icon ?? (index < active ? <Check size={16} /> : index + 1)}
-                </span>
-                <span {...styles('stepper.text', 'ui-stepper-text', undefined, unstyled)}>
-                  <span {...styles('stepper.label', 'ui-stepper-label', undefined, unstyled)}>
-                    {step.label}
+                  <span
+                    {...styles('stepper.indicator', 'ui-stepper-indicator', undefined, unstyled)}
+                    aria-hidden="true"
+                  >
+                    {renderIndicator
+                      ? renderIndicator(step, index, state)
+                      : (step.icon ??
+                        (state === 'complete' ? (
+                          <Check size={16} />
+                        ) : state === 'error' ? (
+                          '!'
+                        ) : (
+                          index + 1
+                        )))}
                   </span>
-                  {step.description && (
-                    <span
-                      {...styles(
-                        'stepper.description',
-                        'ui-stepper-description',
-                        undefined,
-                        unstyled,
-                      )}
-                    >
-                      {step.description}
+                  <span {...styles('stepper.text', 'ui-stepper-text', undefined, unstyled)}>
+                    <span {...styles('stepper.label', 'ui-stepper-label', undefined, unstyled)}>
+                      {step.label}
                     </span>
-                  )}
-                </span>
-              </button>
-            </li>
-          ))}
+                    {step.description && (
+                      <span
+                        {...styles(
+                          'stepper.description',
+                          'ui-stepper-description',
+                          undefined,
+                          unstyled,
+                        )}
+                      >
+                        {step.description}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
         </ol>
-        {renderContent && steps[active] && (
+        {renderContent &&
+          keepMounted &&
+          steps.map((step, index) => (
+            <div
+              key={step.value}
+              hidden={index !== active}
+              data-state={index === active ? 'active' : 'inactive'}
+              {...styles('stepper.content', 'ui-stepper-content', undefined, unstyled)}
+            >
+              {renderContent(step, index)}
+            </div>
+          ))}
+        {renderContent && !keepMounted && steps[active] && (
           <div
             key={current}
             {...styles('stepper.content', 'ui-stepper-content', undefined, unstyled)}
@@ -1087,50 +1364,67 @@ export interface SegmentedControlOption {
 export type SegmentedControlProps = React.ComponentPropsWithoutRef<typeof RadioGroup.Root> &
   PlainStyleProps & {
     options: readonly SegmentedControlOption[];
+    animated?: boolean;
   };
 export const SegmentedControl = /* @__PURE__ */ React.forwardRef<
   HTMLDivElement,
   SegmentedControlProps
->(({ options, className, unstyled, dir, orientation = 'horizontal', ...props }, ref) => {
-  const styles = useStyles();
-  const { t } = useTranslation();
-  const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
-  return (
-    <RadioGroup.Root
-      ref={ref}
-      dir={direction}
-      orientation={orientation}
-      aria-label={t('common.options')}
-      {...styles('segmented-control.root', 'ui-segmented-control', className, unstyled)}
-      {...props}
-    >
-      {options.map((option) => (
-        <RadioGroup.Item
-          key={option.value}
-          value={option.value}
-          disabled={props.disabled || option.disabled}
-          aria-label={option['aria-label']}
-          {...styles('segmented-control.item', 'ui-segmented-control-item', undefined, unstyled)}
-        >
-          {option.icon && (
-            <span
-              {...styles(
-                'segmented-control.icon',
-                'ui-segmented-control-icon',
-                undefined,
-                unstyled,
-              )}
-              aria-hidden="true"
-            >
-              {option.icon}
-            </span>
-          )}
-          {option.label}
-        </RadioGroup.Item>
-      ))}
-    </RadioGroup.Root>
-  );
-});
+>(
+  (
+    { options, animated = true, className, unstyled, dir, orientation = 'horizontal', ...props },
+    ref,
+  ) => {
+    const styles = useStyles();
+    const { t } = useTranslation();
+    const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
+    const root = React.useRef<HTMLDivElement>(null);
+    React.useImperativeHandle(ref, () => root.current!);
+    useSelectionIndicator(
+      root,
+      '[role="radio"][data-state="checked"]',
+      animated && !(unstyled ?? styles.unstyled),
+    );
+    return (
+      <RadioGroup.Root
+        ref={root}
+        dir={direction}
+        orientation={orientation}
+        aria-label={t('common.options')}
+        {...styles('segmented-control.root', 'ui-segmented-control', className, unstyled)}
+        {...props}
+      >
+        {options.map((option) => (
+          <RadioGroup.Item
+            key={option.value}
+            value={option.value}
+            disabled={props.disabled || option.disabled}
+            aria-label={option['aria-label']}
+            {...styles('segmented-control.item', 'ui-segmented-control-item', undefined, unstyled)}
+          >
+            {option.icon && (
+              <span
+                {...styles(
+                  'segmented-control.icon',
+                  'ui-segmented-control-icon',
+                  undefined,
+                  unstyled,
+                )}
+                aria-hidden="true"
+              >
+                {option.icon}
+              </span>
+            )}
+            {option.label}
+          </RadioGroup.Item>
+        ))}
+        <span
+          aria-hidden="true"
+          {...styles('segmented-control.indicator', 'ui-selection-indicator', undefined, unstyled)}
+        />
+      </RadioGroup.Root>
+    );
+  },
+);
 SegmentedControl.displayName = 'SegmentedControl';
 
 export interface TreeNode {

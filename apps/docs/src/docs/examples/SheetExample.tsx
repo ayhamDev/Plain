@@ -25,6 +25,45 @@ export default function SheetExample() {
           </UI.Stack>
         </UI.SheetContent>
       </UI.Sheet>
+      <UI.Sheet side="end" handleOnly={false}>
+        <UI.SheetTrigger asChild>
+          <UI.Button variant="outline">Content swipe</UI.Button>
+        </UI.SheetTrigger>
+        <UI.SheetContent>
+          <UI.SheetHeader>
+            <UI.SheetTitle>Swipe to dismiss</UI.SheetTitle>
+            <UI.SheetDescription>
+              Content dragging is enabled for this read-only panel. Use handle-only gestures for
+              forms.
+            </UI.SheetDescription>
+          </UI.SheetHeader>
+          <UI.SheetClose asChild>
+            <UI.Button>Done</UI.Button>
+          </UI.SheetClose>
+        </UI.SheetContent>
+      </UI.Sheet>
+      <UI.Sheet side="bottom" variant="detached" maxWidth={560}>
+        <UI.SheetTrigger asChild>
+          <UI.Button variant="outline">Detached sheet</UI.Button>
+        </UI.SheetTrigger>
+        <UI.SheetContent>
+          <UI.SheetHeader>
+            <UI.SheetTitle>Playback settings</UI.SheetTitle>
+            <UI.SheetDescription>Sound and notifications for this workspace.</UI.SheetDescription>
+          </UI.SheetHeader>
+          <UI.Stack gap={3}>
+            <UI.Field label="Volume">
+              <UI.Slider defaultValue={[50]} />
+            </UI.Field>
+            <UI.Field label="Workspace name">
+              <UI.Input defaultValue="Design studio" />
+            </UI.Field>
+            <UI.SheetClose asChild>
+              <UI.Button>Done</UI.Button>
+            </UI.SheetClose>
+          </UI.Stack>
+        </UI.SheetContent>
+      </UI.Sheet>
       <UI.Sheet side="bottom" snapPoints={[0.4, 0.85]}>
         <UI.SheetTrigger asChild>
           <UI.Button variant="outline">Snap points</UI.Button>

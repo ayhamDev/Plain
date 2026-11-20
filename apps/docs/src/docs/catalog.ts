@@ -1,5 +1,6 @@
 import { workspaceComponents } from './workspace-catalog.ts';
 import { extendedComponents } from './extended-catalog.ts';
+import { refinementComponents, refinementProps } from './refinement-catalog.ts';
 
 export type Category =
   | 'Actions'
@@ -642,8 +643,15 @@ export const components: ComponentDefinition[] = [
     'Navigation menu',
     'Navigation',
     'Top-level destinations with optional, structured submenus.',
-    ['NavigationMenu', 'NavigationMenuList', 'NavigationMenuItem', 'NavigationMenuLink'],
-    '<NavigationMenu>\n  <NavigationMenuList>\n    <NavigationMenuItem><NavigationMenuLink href="/components">Components</NavigationMenuLink></NavigationMenuItem>\n    <NavigationMenuItem><NavigationMenuLink href="/docs/installation">Documentation</NavigationMenuLink></NavigationMenuItem>\n  </NavigationMenuList>\n</NavigationMenu>',
+    [
+      'NavigationMenu',
+      'NavigationMenuList',
+      'NavigationMenuItem',
+      'NavigationMenuTrigger',
+      'NavigationMenuContent',
+      'NavigationMenuLink',
+    ],
+    '<NavigationMenu>\n  <NavigationMenuList>\n    <NavigationMenuItem><NavigationMenuTrigger>Explore</NavigationMenuTrigger><NavigationMenuContent><NavigationMenuLink href="/components">Components</NavigationMenuLink><NavigationMenuLink href="/docs/installation">Documentation</NavigationMenuLink></NavigationMenuContent></NavigationMenuItem>\n    <NavigationMenuItem><NavigationMenuLink href="/examples">Examples</NavigationMenuLink></NavigationMenuItem>\n  </NavigationMenuList>\n</NavigationMenu>',
     controlled,
     'Radix provides keyboard navigation and submenu focus behavior. Links keep native semantics. NavigationMenuTrigger and Content support richer menus.',
   ),
@@ -931,7 +939,19 @@ export const components: ComponentDefinition[] = [
   ),
   ...extendedComponents,
   ...workspaceComponents,
+  ...refinementComponents,
 ];
+
+for (const component of components) {
+  const additions = refinementProps[component.slug];
+  if (additions)
+    component.props = [
+      ...additions,
+      ...component.props.filter(
+        (prop) => !additions.some((addition) => addition.name === prop.name),
+      ),
+    ];
+}
 
 export const categories: Category[] = [
   'Actions',

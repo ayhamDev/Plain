@@ -12,6 +12,65 @@
     flex-wrap: wrap;
     gap: 8px;
   }
+  .ui-table-toolbar > button,
+  .ui-table-toolbar-end > button {
+    min-block-size: var(--ui-control-height, 40px);
+  }
+  .ui-table-filter-rule .ui-multi-select {
+    min-block-size: var(--ui-control-height, 40px);
+    padding: 3px 12px;
+    font-size: 14px;
+  }
+  .ui-table-mobile-panel {
+    display: flex;
+    flex-direction: column;
+    max-block-size: 85dvh;
+    overflow: hidden;
+  }
+  .ui-table-mobile-panel .ui-table-mobile-panel-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 16px;
+    min-block-size: 0;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    padding: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 0;
+    box-shadow: none;
+  }
+  .ui-table-mobile-panel-body .ui-table-filter-heading {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .ui-table-mobile-panel-body .ui-table-filter-rules {
+    max-block-size: none;
+    overflow: visible;
+  }
+  .ui-table-mobile-panel-body .ui-table-filter-rule {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-inline-end: 48px;
+    padding-block: 4px 16px;
+    border-block-end: 1px solid var(--ui-border);
+  }
+  .ui-table-mobile-panel-body .ui-table-filter-rule > button:last-child {
+    position: absolute;
+    inset-inline-end: 0;
+    inset-block-start: 4px;
+  }
+  .ui-table-mobile-panel-footer {
+    flex: 0 0 auto;
+    margin-block-start: 16px;
+  }
+  .ui-table-mobile-panel-footer > button {
+    inline-size: 100%;
+  }
   .ui-table-toolbar > .ui-search-input {
     flex: 1 1 200px;
     max-inline-size: 320px;
@@ -136,8 +195,7 @@
   }
   .ui-table-filter-rule > [role='combobox'],
   .ui-table-filter-rule input {
-    padding-inline: 8px;
-    font-size: 12px;
+    font-size: 14px;
   }
   .ui-table-filter-rule > button:last-child {
     inline-size: 32px;

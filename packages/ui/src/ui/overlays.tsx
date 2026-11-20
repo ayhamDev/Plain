@@ -166,6 +166,8 @@ export type SheetProps = React.ComponentProps<typeof Vaul.Root> & {
   gap?: number;
   mobileSide?: SheetSide;
   mobileBreakpoint?: number;
+  /** Maximum panel width. Numbers are pixels; bottom/top panels remain centered. */
+  maxWidth?: React.CSSProperties['maxWidth'];
 };
 export type DrawerProps = SheetProps;
 type PanelConfiguration = { side?: SheetSide; dir?: TextDirection };
@@ -175,6 +177,7 @@ const PanelContext = /* @__PURE__ */ React.createContext<{
   variant: 'attached' | 'detached' | 'floating';
   size: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   gap: number;
+  maxWidth?: React.CSSProperties['maxWidth'];
   configure: React.Dispatch<React.SetStateAction<PanelConfiguration>>;
 } | null>(null);
 const usePanelLayoutEffect =
@@ -192,6 +195,8 @@ function PanelRoot({
   gap = 12,
   mobileSide,
   mobileBreakpoint = 640,
+  maxWidth,
+  handleOnly = true,
   ...props
 }: SheetProps & { defaultSide: SheetSide }) {
   const [configuration, configure] = React.useState<PanelConfiguration>({});
@@ -225,13 +230,19 @@ function PanelRoot({
       variant,
       size,
       gap,
+      maxWidth,
     }),
-    [resolvedSide, props.snapPoints?.length, variant, size, gap],
+    [resolvedSide, props.snapPoints?.length, variant, size, gap, maxWidth],
   );
   return (
     <DirectionProvider dir={textDirection}>
       <PanelContext.Provider value={context}>
-        <Vaul.Root direction={resolvedSide} autoFocus={autoFocus} {...props}>
+        <Vaul.Root
+          direction={resolvedSide}
+          autoFocus={autoFocus}
+          handleOnly={handleOnly}
+          {...props}
+        >
           {children}
         </Vaul.Root>
       </PanelContext.Provider>
@@ -316,6 +327,8 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
     showClose?: boolean;
     overlay?: boolean;
     overlayProps?: React.ComponentProps<typeof SheetOverlay>;
+    maxWidth?: React.CSSProperties['maxWidth'];
+    showHandle?: boolean;
   }) &
     PlainStyleProps
 >(
@@ -327,6 +340,8 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
       showClose = true,
       overlay = true,
       overlayProps,
+      maxWidth,
+      showHandle,
       unstyled,
       dir,
       style,
@@ -356,7 +371,7 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
           {...styles(
             'sheet.content',
             cn(
-              'fixed z-[var(--ui-layer-dialog)] overflow-y-auto overscroll-contain border-[length:var(--ui-border-width,1px)] border-[var(--ui-sheet-border,var(--ui-border))] bg-[var(--ui-sheet-background,var(--ui-surface))] p-5 text-[var(--ui-sheet-foreground,var(--ui-foreground))] shadow-[var(--ui-sheet-shadow,var(--ui-shadow))] outline-none sm:p-6',
+              'ui-panel fixed z-[var(--ui-layer-dialog)] min-w-0 overflow-x-hidden overflow-y-auto overscroll-contain border-[length:var(--ui-border-width,1px)] border-[var(--ui-sheet-border,var(--ui-border))] bg-[var(--ui-sheet-background,var(--ui-surface))] p-5 text-[var(--ui-sheet-foreground,var(--ui-foreground))] shadow-[var(--ui-sheet-shadow,var(--ui-shadow))] outline-none sm:p-6',
               vertical
                 ? cn(
                     'ui-drawer inset-x-0',
@@ -379,10 +394,22 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
           data-side={resolvedSide}
           data-variant={context?.variant ?? 'attached'}
           data-size={context?.size ?? 'md'}
-          style={{ '--ui-panel-gap': `${context?.gap ?? 12}px`, ...style } as React.CSSProperties}
+          style={
+            {
+              '--ui-panel-gap': `${context?.gap ?? 12}px`,
+              ...((maxWidth ?? context?.maxWidth) != null
+                ? { maxWidth: maxWidth ?? context?.maxWidth }
+                : {}),
+              ...style,
+            } as React.CSSProperties
+          }
           data-ui-motion={motion.reduced ? 'reduced' : undefined}
           {...props}
         >
+          {(showHandle ?? vertical) &&
+            !React.Children.toArray(children).some(
+              (child) => React.isValidElement(child) && child.type === SheetHandle,
+            ) && <SheetHandle />}
           {children}
           {showClose && (
             <SheetClose
@@ -794,17 +821,18 @@ export function Toaster({
   toastOptions,
   unstyled,
   dir: localDirection,
-  invert = true,
+  invert = false,
   style,
   ...props
 }: ToasterProps) {
   const styles = useStyles();
+  const { t } = useTranslation();
   const dir = useDirection(localDirection === 'auto' ? undefined : localDirection);
   const isUnstyled = unstyled ?? styles.unstyled;
   const toastUnstyled = toastOptions?.unstyled ?? isUnstyled;
   const background = invert
     ? 'var(--ui-toast-background,var(--ui-foreground))'
-    : 'var(--ui-surface)';
+    : 'var(--ui-toast-surface,var(--ui-surface))';
   const foreground = invert
     ? 'var(--ui-toast-foreground,var(--ui-background))'
     : 'var(--ui-foreground)';
@@ -813,14 +841,16 @@ export function Toaster({
       dir={dir}
       invert={invert}
       position={dir === 'rtl' ? 'bottom-left' : 'bottom-right'}
-      closeButton={false}
-      gap={8}
+      closeButton
+      gap={12}
+      containerAriaLabel={t('toast.notifications')}
       style={{ zIndex: 'var(--ui-layer-toast)', ...style }}
       toastOptions={{
         unstyled: isUnstyled,
         ...toastOptions,
         className: styles('toast.root', 'ui-toast', toastOptions?.className, toastUnstyled)
           .className,
+        closeButtonAriaLabel: toastOptions?.closeButtonAriaLabel ?? t('common.close'),
         style: toastUnstyled
           ? toastOptions?.style
           : ({

@@ -2,6 +2,9 @@ import * as React from 'react';
 import { Direction } from 'radix-ui';
 
 export const englishMessages = {
+  'toast.notifications': 'Notifications',
+  'collection.select': 'Select',
+  'collection.selected': '{count} selected',
   'input.number': 'Number',
   'input.password': 'Password',
   'input.pin': 'Verification code',
@@ -134,6 +137,7 @@ export const englishMessages = {
   'table.lastPage': 'Last page',
   'table.pageNumber': 'Go to page',
   'table.summary': '{selected} selected · {from}-{to} of {total}',
+  'table.range': '{from}-{to} of {total}',
   'table.empty': 'Try another search or clear your filters.',
   'table.clearFilters': 'Clear filters',
   'filter.contains': 'contains',
@@ -207,6 +211,10 @@ export type TranslationMessage = string | ((values: TranslationValues, locale: s
 export type TranslationMessages = Partial<Record<TranslationKey, TranslationMessage>>;
 
 export const arabicMessages: TranslationMessages = {
+  'toast.notifications': 'الإشعارات',
+  'collection.select': '\u062a\u062d\u062f\u064a\u062f',
+  'table.range': '{from}-{to} \u0645\u0646 {total}',
+  'collection.selected': '\u062a\u0645 \u062a\u062d\u062f\u064a\u062f {count}',
   'input.number': 'رقم',
   'input.password': 'كلمة المرور',
   'input.pin': 'رمز التحقق',

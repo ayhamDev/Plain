@@ -13,6 +13,7 @@ import { Button } from './primitives';
 import { RefreshCw } from 'lucide-react';
 import { useTranslation } from './i18n';
 import { useElasticScroll, type ElasticScrollOptions, type RefreshState } from './elastic-scroll';
+import { useSelectionIndicator } from './selection-indicator';
 export const Accordion = AccordionPrimitive.Root;
 export const AccordionItem = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
@@ -93,19 +94,27 @@ export const TabsList = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   (React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & {
     variant?: 'segmented' | 'underline';
+    animated?: boolean;
   }) &
     PlainStyleProps
->(({ className, variant = 'segmented', unstyled, ...props }, ref) => {
+>(({ className, variant = 'segmented', animated = true, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
+  const root = React.useRef<HTMLDivElement>(null);
+  React.useImperativeHandle(ref, () => root.current!);
+  useSelectionIndicator(
+    root,
+    '[role="tab"][data-state="active"]',
+    animated && !(unstyled ?? styles.unstyled),
+  );
 
   return (
     <TabsPrimitive.List
-      ref={ref}
+      ref={root}
       data-variant={variant}
       {...styles(
         'tabs.list',
         cn(
-          'group flex w-fit max-w-full items-center gap-1',
+          'ui-tabs-list group flex w-fit max-w-full items-center gap-1',
           variant === 'segmented'
             ? 'rounded-[var(--ui-tabs-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-border bg-[var(--ui-tabs-background,var(--ui-muted))] p-1'
             : 'gap-6 border-b border-border',
@@ -114,7 +123,13 @@ export const TabsList = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    >
+      {children}
+      <span
+        aria-hidden="true"
+        {...styles('tabs.indicator', 'ui-selection-indicator', undefined, unstyled)}
+      />
+    </TabsPrimitive.List>
   );
 });
 TabsList.displayName = 'TabsList';
@@ -129,7 +144,7 @@ export const TabsTrigger = /* @__PURE__ */ React.forwardRef<
       ref={ref}
       {...styles(
         'tabs.trigger',
-        'ui-interactive inline-flex min-h-8 items-center justify-center gap-2 rounded-[min(var(--ui-tabs-radius,var(--ui-radius)),4px)] px-3 py-1 text-sm font-medium whitespace-nowrap text-[var(--ui-tabs-foreground,var(--ui-muted-foreground))] hover:text-foreground data-[state=active]:bg-[var(--ui-tabs-active,var(--ui-surface))] data-[state=active]:text-[var(--ui-tabs-active-foreground,var(--ui-foreground))] disabled:pointer-events-none disabled:opacity-45 group-data-[variant=underline]:rounded-none group-data-[variant=underline]:border-b-2 group-data-[variant=underline]:border-transparent group-data-[variant=underline]:px-0 group-data-[variant=underline]:py-3 group-data-[variant=underline]:data-[state=active]:border-foreground group-data-[variant=underline]:data-[state=active]:bg-transparent [&_svg]:size-4',
+        'ui-tabs-trigger ui-interactive inline-flex min-h-8 items-center justify-center gap-2 rounded-[min(var(--ui-tabs-radius,var(--ui-radius)),4px)] px-3 py-1 text-sm font-medium whitespace-nowrap text-[var(--ui-tabs-foreground,var(--ui-muted-foreground))] hover:text-foreground data-[state=active]:text-[var(--ui-tabs-active-foreground,var(--ui-foreground))] disabled:pointer-events-none disabled:opacity-45 group-data-[variant=underline]:rounded-none group-data-[variant=underline]:px-0 group-data-[variant=underline]:py-3 [&_svg]:size-4',
         className,
         unstyled,
       )}
@@ -573,7 +588,7 @@ export const NavigationMenu = /* @__PURE__ */ React.forwardRef<
       <div
         {...styles(
           'navigation-menu.viewport-wrapper',
-          'absolute top-full start-0 z-40 flex justify-center',
+          'absolute top-full left-1/2 z-40 flex -translate-x-1/2 justify-center pt-2',
           undefined,
           unstyled,
         )}
@@ -581,7 +596,7 @@ export const NavigationMenu = /* @__PURE__ */ React.forwardRef<
         <NavigationPrimitive.Viewport
           {...styles(
             'navigation-menu.viewport',
-            'ui-popup ui-navigation-viewport mt-2 h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] max-w-[calc(100vw-32px)] overflow-hidden rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))]',
+            'ui-popup ui-navigation-viewport h-[var(--radix-navigation-menu-viewport-height)] w-[var(--radix-navigation-menu-viewport-width)] max-w-[calc(100vw-32px)] overflow-hidden rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))]',
             undefined,
             unstyled,
           )}

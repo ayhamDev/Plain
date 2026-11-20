@@ -56,10 +56,16 @@ for (const width of [1440, 320]) {
     const projects = preview.getByRole('button', { name: 'Projects', exact: true });
     await projects.click();
     await expect(projects).toHaveAttribute('aria-current', 'page');
-    await expect(projects.locator('.ui-bottom-navigation-icon')).not.toHaveCSS(
-      'background-color',
-      'rgba(0, 0, 0, 0)',
-    );
+    const indicator = preview.locator('.ui-bottom-navigation > .ui-selection-indicator');
+    await expect(indicator).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect
+      .poll(async () =>
+        Math.abs(
+          (await indicator.boundingBox())!.x -
+            (await projects.locator('.ui-bottom-navigation-icon').boundingBox())!.x,
+        ),
+      )
+      .toBeLessThan(1);
     await fits(page);
     await accessible(page, '.component-preview');
     await preview.screenshot({ path: info.outputPath(`bottom-navigation-${width}.png`) });

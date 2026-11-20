@@ -46,7 +46,9 @@ describe('workspace foundations', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Collapse navigation' }));
     expect(screen.getByText('Brand mark')).toBeInTheDocument();
     expect(screen.getByText('Avatar')).toBeInTheDocument();
-    expect(screen.queryByText('Workspace name')).toBeNull();
+    expect(screen.getByText('Workspace name').closest('[data-expanded-content]')).toHaveAttribute(
+      'inert',
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Expand navigation' }));
     expect(screen.getByText('Workspace name')).toBeInTheDocument();
     expect(screen.getByText('Account details')).toBeInTheDocument();

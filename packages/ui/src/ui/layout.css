@@ -280,26 +280,6 @@
     min-inline-size: 0;
     overflow-wrap: anywhere;
   }
-  .ui-sidebar[data-state='collapsed'] .ui-sidebar-group-label,
-  .ui-sidebar[data-state='collapsed'] .ui-sidebar-item-label,
-  .ui-sidebar[data-state='collapsed'] .ui-sidebar-item > :not(svg):not(.ui-sidebar-item-icon) {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-  .ui-sidebar[data-state='collapsed'] .ui-sidebar-item {
-    padding-inline: 0;
-    justify-content: center;
-  }
-  .ui-sidebar[data-state='collapsed'] .ui-sidebar-header,
-  .ui-sidebar[data-state='collapsed'] .ui-sidebar-footer {
-    padding: 8px;
-    justify-content: center;
-    overflow: hidden;
-  }
   .ui-sidebar-trigger {
     display: inline-flex;
     flex: 0 0 40px;

@@ -94,14 +94,14 @@ export default function App() {
 
 ## Components
 
-| Area                        | Included                                                                                                                |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Actions and feedback        | Buttons, toggles, chips, badges, alerts, avatars, progress, loading, and empty states                                   |
-| Forms                       | Inputs, textarea, select, combobox, checkbox, radio, switch, slider, color, file, number, password, PIN, and tags       |
-| Date and time               | Calendar, date/time pickers, ranges, and timezone-aware validation                                                      |
-| Navigation and overlays     | Sidebar, bottom navigation, tabs, breadcrumb, pagination, stepper, tree view, dialog, sheet, drawer, menus, and popover |
-| Layout and data             | Layout primitives, Resizable, ScrollArea, Table, DataTable, virtual lists, grids, and masonry                           |
-| Visualization and workflows | Area, bar, line, donut, pie, radar, scatter, composed, heatmap, Gantt, full calendar, Kanban, and search views          |
+| Area                        | Included                                                                                                                                 |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Actions and feedback        | Buttons, toggles, chips, badges, alerts, avatars, grouped progress, loading, and empty states                                            |
+| Forms                       | Inputs, textarea, select, combobox, checkbox, radio, switch, slider, color, file, number, password, PIN, and tags                        |
+| Date and time               | Calendar, date/time pickers, ranges, and timezone-aware validation                                                                       |
+| Navigation and overlays     | Sidebar, navigation rail, bottom navigation, tabs, breadcrumb, pagination, stepper, tree view, dialog, sheet, drawer, menus, and popover |
+| Layout and data             | Layout primitives, Resizable, ScrollArea, List, Table, DataTable, virtual lists, grids, and masonry                                      |
+| Visualization and workflows | Area, bar, line, donut, pie, radar, scatter, composed, heatmap, Gantt, full calendar, Kanban, and search views                           |
 
 Use the core package for everyday components. Charts, full-calendar scheduling, Kanban, and the optional Motion wrapper are **not** exported from the core barrel:
 
@@ -118,7 +118,7 @@ Use the core package for everyday components. Charts, full-calendar scheduling, 
 | `@plain/ui/search-view`   | Docked, modal, and fullscreen search                                    | Core stylesheet                      |
 | `@plain/ui/motion`        | Lazy MotionProvider, Motion, Presence, and presets                      | No additional CSS                    |
 
-Additional public entry points cover primitives, forms, overlays, navigation, calendar, command, table, advanced controls, virtualization, typography, i18n, chips, theme, tokens, styling, color generation, and component extension. See the [export map](packages/ui/package.json).
+Additional public entry points cover primitives, forms, overlays, navigation, calendar, command, table, List collections, advanced controls, virtualization, typography, i18n, chips, theme, tokens, styling, color generation, and component extension. See the [export map](packages/ui/package.json) and [collection examples](packages/ui/README.md#composable-collections-and-feedback).
 
 Dependencies are externalized and modules are tree-shakeable. Your imports and bundler determine browser bundle size; installation size is not a bundle-size promise.
 

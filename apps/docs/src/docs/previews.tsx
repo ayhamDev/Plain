@@ -4,6 +4,7 @@ import * as UI from '@plain/ui';
 import { CodeBlock } from './shared';
 import { workspaceComponents as workspaceDefinitions } from './workspace-catalog';
 import { chartSampleData, donutSampleData } from './chart-samples';
+import { refinementPreviews } from './refinement-previews';
 const WorkspacePreview = React.lazy(() => import('./examples/WorkspaceExample'));
 const TablePreview = React.lazy(() => import('./examples/TableWorkspaceExample'));
 const ChartPreview = React.lazy(() => import('./examples/ChartExample'));
@@ -191,7 +192,7 @@ export const propPreviews: Record<string, PropPreview> = {
     },
     controls: [
       options('type', ['text', 'email', 'url', 'tel', 'search']),
-      options('variant', ['outlined', 'filled', 'ghost']),
+      options('variant', ['outlined', 'filled', 'ghost', 'contrast']),
       bool('disabled'),
       bool('readOnly'),
       bool('required'),
@@ -200,7 +201,7 @@ export const propPreviews: Record<string, PropPreview> = {
     render: (s) =>
       field(
         <UI.Input
-          variant={choice(s, 'variant', ['outlined', 'filled', 'ghost'])}
+          variant={choice(s, 'variant', ['outlined', 'filled', 'ghost', 'contrast'])}
           type={String(s.type)}
           {...native(s)}
           placeholder="Project Atlas"
@@ -218,7 +219,7 @@ export const propPreviews: Record<string, PropPreview> = {
       'aria-invalid': false,
     },
     controls: [
-      options('variant', ['outlined', 'filled', 'ghost']),
+      options('variant', ['outlined', 'filled', 'ghost', 'contrast']),
       number('rows', 2, 8),
       bool('disabled'),
       bool('readOnly'),
@@ -227,7 +228,7 @@ export const propPreviews: Record<string, PropPreview> = {
     render: (s) =>
       field(
         <UI.Textarea
-          variant={choice(s, 'variant', ['outlined', 'filled', 'ghost'])}
+          variant={choice(s, 'variant', ['outlined', 'filled', 'ghost', 'contrast'])}
           {...native(s)}
           rows={Number(s.rows)}
           placeholder="A few notes for your team"
@@ -316,10 +317,16 @@ export const propPreviews: Record<string, PropPreview> = {
     code: (s) => `<Badge ${attr(s)}>In progress</Badge>`,
   },
   alert: {
-    defaults: { variant: 'info' },
-    controls: [options('variant', ['info', 'success', 'warning', 'destructive'])],
+    defaults: { variant: 'info', appearance: 'subtle' },
+    controls: [
+      options('variant', ['info', 'success', 'warning', 'destructive']),
+      options('appearance', ['subtle', 'outlined', 'filled']),
+    ],
     render: (s) => (
-      <UI.Alert variant={choice(s, 'variant', ['info', 'success', 'warning', 'destructive'])}>
+      <UI.Alert
+        variant={choice(s, 'variant', ['info', 'success', 'warning', 'destructive'])}
+        appearance={choice(s, 'appearance', ['subtle', 'outlined', 'filled'])}
+      >
         <UI.AlertTitle>Project updated</UI.AlertTitle>
         <UI.AlertDescription>Your team has the latest changes.</UI.AlertDescription>
       </UI.Alert>
@@ -474,14 +481,30 @@ export const propPreviews: Record<string, PropPreview> = {
       `<Field label="Due date"><DatePicker ${attr(s)} defaultValue={new Date(2026, 9, 14)} /></Field>`,
   },
   'number-input': {
-    defaults: { step: 1, showControls: true, disabled: false, readOnly: false },
-    controls: [number('step', 1, 10), bool('showControls'), bool('disabled'), bool('readOnly')],
+    defaults: {
+      step: 1,
+      showControls: true,
+      disabled: false,
+      readOnly: false,
+      variant: 'outlined',
+      textAlign: 'center',
+    },
+    controls: [
+      number('step', 1, 10),
+      bool('showControls'),
+      bool('disabled'),
+      bool('readOnly'),
+      options('variant', ['outlined', 'filled', 'ghost', 'contrast']),
+      options('textAlign', ['start', 'center', 'end']),
+    ],
     render: (s) =>
       field(
         <UI.NumberInput
           {...native(s)}
           step={Number(s.step)}
           showControls={!!s.showControls}
+          variant={choice(s, 'variant', ['outlined', 'filled', 'ghost', 'contrast'])}
+          textAlign={choice(s, 'textAlign', ['start', 'center', 'end'])}
           min={0}
           max={100}
           defaultValue={5}
@@ -672,14 +695,19 @@ export const propPreviews: Record<string, PropPreview> = {
       `<Field label="Tags"><TagsInput ${attr(s)} defaultValue={["Design", "Research"]} /></Field>`,
   },
   'multi-select': {
-    defaults: { disabled: false, maxSelected: 3 },
-    controls: [bool('disabled'), number('maxSelected', 1, 3)],
+    defaults: { disabled: false, maxSelected: 3, selectionDisplay: 'tags' },
+    controls: [
+      bool('disabled'),
+      number('maxSelected', 1, 3),
+      options('selectionDisplay', ['tags', 'summary']),
+    ],
     render: (s) =>
       field(
         <UI.MultiSelect
           options={departments}
           disabled={!!s.disabled}
           maxSelected={Number(s.maxSelected)}
+          selectionDisplay={s.selectionDisplay === 'summary' ? 'summary' : 'tags'}
         />,
         'Departments',
       ),
@@ -1130,12 +1158,19 @@ const remote = useRemoteDataTable<Project>({
   },
 });
 
-<DataTableView table={remote.table} loading={remote.loading} filterMode="${state.filterMode}" filterFields={remote.filterFields} stickyHeader={${state.stickyHeader}} stickyFooter={${state.stickyFooter}} stickyScrollbar={${state.stickyScrollbar}} scrollHeight={${state.contained ? 340 : 'undefined'}} selectable />
+<DataTableView table={remote.table} loading={remote.loading} ${attr({ defaultMode: state.mode, searchable: state.searchable, filterable: state.filterable, sortable: state.sortable, columnControls: state.columnControls, pagination: state.pagination, showToolbar: state.showToolbar })} filterMode="${state.filterMode}" filterFields={remote.filterFields} stickyHeader={${state.stickyHeader}} stickyFooter={${state.stickyFooter}} stickyScrollbar={${state.stickyScrollbar}} scrollHeight={${state.contained ? 340 : 'undefined'}} selectable />
 {!!remote.error && <Button onClick={remote.refresh}>Retry</Button>}`;
 }
 
 propPreviews['data-table'] = {
   defaults: {
+    mode: 'selection',
+    searchable: true,
+    filterable: true,
+    sortable: true,
+    columnControls: true,
+    pagination: true,
+    showToolbar: true,
     filterMode: 'advanced',
     remote: false,
     stickyHeader: false,
@@ -1144,6 +1179,13 @@ propPreviews['data-table'] = {
     contained: false,
   },
   controls: [
+    options('mode', ['browse', 'selection']),
+    bool('searchable'),
+    bool('filterable'),
+    bool('sortable'),
+    bool('columnControls'),
+    bool('pagination'),
+    bool('showToolbar'),
     options('filterMode', ['advanced', 'simple']),
     bool('remote'),
     bool('stickyHeader'),
@@ -1162,7 +1204,7 @@ propPreviews['data-table'] = {
       : `const data = [{ id: 'a', name: 'Website redesign', status: 'Active', amount: 120 }, { id: 'b', name: 'Mobile experience', status: 'Review', amount: 90 }];
 const columns = [{ accessorKey: 'name', header: 'Project' }, { accessorKey: 'status', header: 'Status' }, { accessorKey: 'amount', header: 'Amount' }];
 
-<DataTable data={data} columns={columns} filterMode="${s.filterMode}" filterFields={[{ id: 'status', label: 'Status', type: 'enum', options: [{ value: 'Active', label: 'Active' }, { value: 'Review', label: 'Review' }] }, { id: 'amount', label: 'Amount', type: 'number' }]} stickyHeader={${s.stickyHeader}} stickyFooter={${s.stickyFooter}} stickyScrollbar={${s.stickyScrollbar}} scrollHeight={${s.contained ? 340 : 'undefined'}} getRowId={row => row.id} selectable />`,
+<DataTable data={data} columns={columns} ${attr({ defaultMode: s.mode, searchable: s.searchable, filterable: s.filterable, sortable: s.sortable, columnControls: s.columnControls, pagination: s.pagination, showToolbar: s.showToolbar })} filterMode="${s.filterMode}" filterFields={[{ id: 'status', label: 'Status', type: 'enum', options: [{ value: 'Active', label: 'Active' }, { value: 'Review', label: 'Review' }] }, { id: 'amount', label: 'Amount', type: 'number' }]} stickyHeader={${s.stickyHeader}} stickyFooter={${s.stickyFooter}} stickyScrollbar={${s.stickyScrollbar}} scrollHeight={${s.contained ? 340 : 'undefined'}} getRowId={row => row.id} selectable />`,
 };
 for (const slug of [
   'chips',
@@ -1251,6 +1293,8 @@ for (const slug of [
     },
   };
 }
+
+Object.assign(propPreviews, refinementPreviews);
 
 export function previewSource(preview: PropPreview, state: State) {
   const code = preview.code(state);

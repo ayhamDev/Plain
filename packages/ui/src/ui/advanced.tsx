@@ -88,6 +88,8 @@ export interface NumberInputProps
   max?: number;
   step?: number | 'any';
   showControls?: boolean;
+  variant?: import('./forms').InputVariant;
+  textAlign?: 'start' | 'center' | 'end';
 }
 export const NumberInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, NumberInputProps>(
   (
@@ -99,6 +101,8 @@ export const NumberInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Nu
       max,
       step = 1,
       showControls = true,
+      variant = 'outlined',
+      textAlign = showControls ? 'center' : 'start',
       className,
       unstyled,
       onChange,
@@ -132,8 +136,16 @@ export const NumberInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Nu
     };
     return (
       <div
-        {...styles('number-input.root', 'ui-input-control ui-number-input', undefined, unstyled)}
+        {...styles(
+          'number-input.root',
+          `ui-input-control ui-number-input${variant === 'contrast' ? ' ui-input-contrast' : ''}`,
+          undefined,
+          unstyled,
+        )}
         data-disabled={disabled || undefined}
+        data-variant={variant}
+        data-controls={showControls}
+        data-align={textAlign}
       >
         {showControls && (
           <button
@@ -955,6 +967,7 @@ export interface MultiSelectProps
   defaultValue?: readonly string[];
   onValueChange?: (values: string[]) => void;
   maxSelected?: number;
+  selectionDisplay?: 'tags' | 'summary';
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -968,6 +981,7 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
       defaultValue = [],
       onValueChange,
       maxSelected = Infinity,
+      selectionDisplay = 'tags',
       open: controlledOpen,
       defaultOpen = false,
       onOpenChange,
@@ -997,12 +1011,16 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
     const generated = React.useId();
     const id = suppliedId ?? `multiselect-${generated}`;
     const listId = `${id}-options`;
+    const summaryId = `${id}-selection`;
     const [values, setValues, reset] = useValue<readonly string[]>(
       controlled,
       defaultValue,
       (next) => onValueChange?.([...next]),
     );
     const [open, setOpen] = useValue(controlledOpen, defaultOpen, onOpenChange);
+    const selectionSummary = values
+      .map((value) => options.find((option) => option.value === value)?.label ?? value)
+      .join(', ');
     const [query, setQuery] = React.useState('');
     const [active, setActive] = React.useState<string | null>(null);
     const resetAll = React.useCallback(() => {
@@ -1045,46 +1063,65 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
             {...styles('multi-select.root', 'ui-tags-input ui-multi-select', undefined, unstyled)}
             dir={direction}
             data-disabled={disabled || undefined}
+            data-selection-display={selectionDisplay}
+            data-has-value={values.length > 0 || undefined}
           >
-            {values.map((value, index) => (
-              <span
-                key={`${value}-${index}`}
-                {...styles('multi-select.tag', 'ui-input-tag', undefined, unstyled)}
-              >
+            {selectionDisplay === 'tags' &&
+              values.map((value, index) => (
                 <span
-                  {...styles('multi-select.tag-label', 'ui-input-tag-label', undefined, unstyled)}
+                  key={`${value}-${index}`}
+                  {...styles('multi-select.tag', 'ui-input-tag', undefined, unstyled)}
                 >
-                  {options.find((option) => option.value === value)?.label ?? value}
-                </span>
-                {!readOnly && (
-                  <button
-                    type="button"
-                    disabled={disabled}
-                    aria-label={t('common.remove', {
-                      label: options.find((option) => option.value === value)?.label ?? value,
-                    })}
-                    {...styles('multi-select.remove', 'ui-tag-remove', undefined, unstyled)}
-                    onClick={() => {
-                      setValues(values.filter((current) => current !== value));
-                      input.current?.focus();
-                    }}
+                  <span
+                    {...styles('multi-select.tag-label', 'ui-input-tag-label', undefined, unstyled)}
                   >
-                    <X
-                      {...styles(
-                        'multi-select.remove-icon',
-                        'ui-control-icon',
-                        undefined,
-                        unstyled,
-                      )}
-                      aria-hidden="true"
-                    />
-                  </button>
-                )}
-                {name && (
-                  <input type="hidden" name={name} form={form} value={value} disabled={disabled} />
-                )}
+                    {options.find((option) => option.value === value)?.label ?? value}
+                  </span>
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      aria-label={t('common.remove', {
+                        label: options.find((option) => option.value === value)?.label ?? value,
+                      })}
+                      {...styles('multi-select.remove', 'ui-tag-remove', undefined, unstyled)}
+                      onClick={() => {
+                        setValues(values.filter((current) => current !== value));
+                        input.current?.focus();
+                      }}
+                    >
+                      <X
+                        {...styles(
+                          'multi-select.remove-icon',
+                          'ui-control-icon',
+                          undefined,
+                          unstyled,
+                        )}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  )}
+                </span>
+              ))}
+            {name &&
+              values.map((value, index) => (
+                <input
+                  key={`${value}-${index}`}
+                  type="hidden"
+                  name={name}
+                  form={form}
+                  value={value}
+                  disabled={disabled}
+                />
+              ))}
+            {selectionDisplay === 'summary' && (
+              <span
+                id={summaryId}
+                {...styles('multi-select.summary', 'ui-visually-hidden', undefined, unstyled)}
+              >
+                {selectionSummary}
               </span>
-            ))}
+            )}
             <input
               ref={input}
               id={id}
@@ -1102,6 +1139,19 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
               readOnly={readOnly}
               {...styles('multi-select.input', 'ui-tags-native', className, unstyled)}
               {...props}
+              placeholder={
+                selectionDisplay === 'summary' && values.length
+                  ? selectionSummary
+                  : props.placeholder
+              }
+              aria-describedby={
+                [
+                  props['aria-describedby'],
+                  selectionDisplay === 'summary' && values.length ? summaryId : undefined,
+                ]
+                  .filter(Boolean)
+                  .join(' ') || undefined
+              }
               onFocus={(event) => {
                 onFocus?.(event);
                 if (!event.defaultPrevented && !readOnly) setOpen(true);

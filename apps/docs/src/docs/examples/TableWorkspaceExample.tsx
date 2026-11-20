@@ -77,6 +77,13 @@ function presentation(state: State) {
   return {
     caption: 'Customer invoices',
     selectable: true,
+    defaultMode: state.mode === 'browse' ? ('browse' as const) : ('selection' as const),
+    searchable: state.searchable !== false,
+    filterable: state.filterable !== false,
+    sortable: state.sortable !== false,
+    columnControls: state.columnControls !== false,
+    pagination: state.pagination !== false,
+    showToolbar: state.showToolbar !== false,
     filterMode: state.filterMode === 'simple' ? ('simple' as const) : ('advanced' as const),
     filterFields,
     stickyHeader: !!state.stickyHeader,
@@ -87,7 +94,7 @@ function presentation(state: State) {
 }
 function LocalTable({ state }: { state: State }) {
   const table = useDataTable({ data: records, columns, filterFields, getRowId: (row) => row.id });
-  return <DataTable table={table} {...presentation(state)} />;
+  return <DataTable key={String(state.mode)} table={table} {...presentation(state)} />;
 }
 async function load(request: DataTableRequest, signal: AbortSignal) {
   await new Promise<void>((resolve, reject) => {
@@ -144,6 +151,7 @@ function RemoteTable({ state }: { state: State }) {
   return (
     <>
       <DataTable
+        key={String(state.mode)}
         table={remote.table}
         {...presentation(state)}
         loading={remote.loading}

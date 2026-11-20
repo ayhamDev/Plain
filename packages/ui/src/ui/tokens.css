@@ -59,10 +59,10 @@
   --ui-shadow: 0 8px 32px #101a1212, 0 2px 8px #101a1208;
   --ui-shadow-sm: 0 2px 8px #101a1208;
   --ui-shadow-lg: 0 16px 48px #101a121c;
-  --ui-duration-fast: 120ms;
-  --ui-duration-normal: 200ms;
-  --ui-duration-slow: 320ms;
-  --ui-duration-long: 480ms;
+  --ui-duration-fast: 160ms;
+  --ui-duration-normal: 260ms;
+  --ui-duration-slow: 360ms;
+  --ui-duration-long: 520ms;
   --ui-ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ui-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ui-ease-in: cubic-bezier(0.4, 0, 1, 1);

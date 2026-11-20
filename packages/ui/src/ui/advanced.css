@@ -246,11 +246,11 @@
     min-inline-size: 0;
     min-block-size: var(--ui-control-height, 40px);
     box-sizing: border-box;
-    padding: 6px 8px;
+    padding: 3px 8px;
     border: var(--ui-tags-input-border-width, var(--ui-border-width, 1px)) solid
       var(--ui-tags-input-border, var(--ui-input-border));
     border-radius: var(--ui-tags-input-radius, var(--ui-input-radius, var(--ui-radius)));
-    background: var(--ui-tags-input-background, var(--ui-background));
+    background: var(--ui-tags-input-background, var(--ui-input-background, var(--ui-surface)));
     color: var(--ui-tags-input-foreground, var(--ui-foreground));
     font-size: 14px;
   }
@@ -315,6 +315,20 @@
     background: var(--ui-panel-background, var(--ui-background));
     color: var(--ui-panel-foreground, var(--ui-foreground));
     box-shadow: var(--ui-panel-shadow, var(--ui-shadow));
+  }
+  .ui-multi-select[data-selection-display='summary'] {
+    flex-wrap: nowrap;
+    padding: 3px 12px;
+  }
+  .ui-multi-select[data-selection-display='summary'] .ui-tags-native {
+    flex: 1 1 0;
+    inline-size: 0;
+    min-inline-size: 0;
+    text-overflow: ellipsis;
+  }
+  .ui-multi-select[data-selection-display='summary'][data-has-value] .ui-tags-native::placeholder {
+    color: var(--ui-input-foreground, var(--ui-foreground));
+    opacity: 1;
   }
   .ui-multi-select-option {
     display: flex;

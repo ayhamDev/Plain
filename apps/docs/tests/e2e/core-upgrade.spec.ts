@@ -231,28 +231,33 @@ async function openPreviewPanel(
 }
 
 for (const mode of ['light', 'dark'] as const) {
-  test(`toast is inverse and has no default close button in ${mode} mode`, async ({ page }) => {
+  test(`toast uses its surface and an accessible close button in ${mode} mode`, async ({
+    page,
+  }) => {
     await initialize(page, mode);
     const preview = await component(page, 'toast');
     await expect(page.locator('html')).toHaveAttribute('data-theme', mode);
     await preview.getByRole('button', { name: /success/i }).click();
     const toast = page.locator('[data-sonner-toast]').first();
     await expect(toast).toBeVisible();
-    await expect(toast.locator('[data-close-button]')).toHaveCount(0);
+    await toast.hover();
+    await expect(toast.getByRole('button', { name: 'Close', exact: true })).toBeVisible();
+    await expect(toast).toHaveAttribute('data-invert', 'false');
     const colors = await resolvedColors(toast);
-    const body = await resolvedColors(page.locator('body'));
     expect(colors.background[3]).toBe(255);
     expect(contrast(colors.background, colors.foreground)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(colors.background, body.background)).toBeGreaterThan(4.5);
-    if (mode === 'light') expect(luminance(colors.background)).toBeLessThan(0.1);
-    else expect(luminance(colors.background)).toBeGreaterThan(0.7);
+    if (mode === 'light') expect(luminance(colors.background)).toBeGreaterThan(0.7);
+    else expect(luminance(colors.background)).toBeLessThan(0.1);
     const description = await resolvedColors(toast.locator('[data-description]'));
     expect(contrast(colors.background, description.foreground)).toBeGreaterThanOrEqual(4.5);
+    await toast.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(toast).toHaveCount(0);
     await preview.getByRole('button', { name: /action/i }).click();
     const actionable = page
       .locator('[data-sonner-toast]')
       .filter({ has: page.locator('[data-action]') });
     await expect(actionable).toBeVisible();
+    await actionable.hover();
     await actionable.locator('[data-action]').click();
     await expect(actionable).toHaveCount(0);
   });
@@ -593,15 +598,16 @@ test.describe('mobile Vaul interactions on the assembled docs site', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
 
   for (const dir of ['ltr', 'rtl']) {
-    test(`logical end Sheet can be touch-dismissed in ${dir}`, async ({ page }) => {
+    test(`logical end Sheet supports opt-in content touch dismissal in ${dir}`, async ({
+      page,
+    }) => {
       await initialize(page, 'light', dir);
       const preview = await component(page, 'sheet');
       const side = dir === 'rtl' ? 'left' : 'right';
-      const { panel, trigger } = await openPreviewPanel(
-        page,
-        preview,
-        async (candidate) => (await candidate.getAttribute('data-vaul-drawer-direction')) === side,
-      );
+      const trigger = preview.getByRole('button', { name: 'Content swipe', exact: true });
+      await trigger.click();
+      const panel = page.locator(panelSelector);
+      await expect(panel).toBeVisible();
       await expect(panel).toHaveAttribute('dir', dir);
       await expect(panel).toHaveAttribute('data-side', side);
       await expect(panel).toHaveAccessibleName(/\S/);
