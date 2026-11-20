@@ -384,7 +384,7 @@ describe('disclosure and menu state changes', () => {
 });
 
 describe('toast defaults', () => {
-  it('uses surface tokens with an accessible close button and retains action buttons', async () => {
+  it('uses inverse tokens by default with an accessible close button and action buttons', async () => {
     const action = vi.fn();
     render(<Toaster />);
     act(() => {
@@ -397,9 +397,9 @@ describe('toast defaults', () => {
     });
     const title = await screen.findByText('Saved');
     const notification = title.closest('[data-sonner-toast]')! as HTMLElement;
-    expect(notification).toHaveAttribute('data-invert', 'false');
+    expect(notification).toHaveAttribute('data-invert', 'true');
     expect(notification.style.getPropertyValue('--normal-bg')).toBe(
-      'var(--ui-toast-surface,var(--ui-surface))',
+      'var(--ui-toast-current-background)',
     );
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Undo' }));
@@ -428,13 +428,13 @@ describe('toast defaults', () => {
     await waitFor(() => expect(screen.queryByText('Review')).not.toBeInTheDocument());
   });
 
-  it('retains the opt-in inverse appearance and hidden close button', async () => {
-    render(<Toaster invert closeButton={false} />);
+  it('allows surface appearance and a hidden close button explicitly', async () => {
+    render(<Toaster invert={false} closeButton={false} />);
     act(() => {
-      toast('Legacy appearance', { id: 'interaction-inverse', duration: Infinity });
+      toast('Surface appearance', { id: 'interaction-surface', duration: Infinity });
     });
-    const title = await screen.findByText('Legacy appearance');
-    expect(title.closest('[data-sonner-toast]')).toHaveAttribute('data-invert', 'true');
+    const title = await screen.findByText('Surface appearance');
+    expect(title.closest('[data-sonner-toast]')).toHaveAttribute('data-invert', 'false');
     expect(screen.queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
   });
 });

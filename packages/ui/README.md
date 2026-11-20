@@ -126,14 +126,46 @@ All default motion respects the provider and system reduced-motion policy.
 Sheet/Drawer now default to `handleOnly={true}` so nested controls keep their
 gestures. Vertical panels include a handle automatically; opt into content swipes
 with `handleOnly={false}`. Use `maxWidth` with detached or floating bottom sheets
-for centered, bounded panels. Toasts now use the current surface and include a
-close button; `invert` and `closeButton={false}` retain the previous appearance.
+for centered, bounded panels. Toasts include a close button and default to
+inverse contrast: dark in light mode and light in
+dark mode. Use `<Toaster invert={false} />` for the current surface, or
+`closeButton={false}` to hide dismissal. Theme tokens and caller inline styles
+continue to control colors and actions.
 
 Time picker fields stay side by side, including optional period and seconds.
 Styled popovers use Radix's available width and height to stay within their
 collision boundary, scrolling tall content internally. `PopoverContent` defaults
 to `collisionPadding={8}` and `sticky="always"`; native placement/collision props
 and consumer class/style overrides remain available. Unstyled consumers own sizing.
+
+Calendars and all date picker popups include direct month/year selectors by
+default, with localized labels and keyboard order matching the visible controls.
+Use `captionLayout="label"` on Calendar (or through a picker's `calendarProps`)
+for the former text caption. Configure year ranges and order explicitly:
+
+```tsx
+import { DatePicker } from '@plain/ui';
+
+<DatePicker
+  aria-label="Birth date"
+  calendarProps={{
+    captionLayout: 'dropdown',
+    startMonth: new Date(1900, 0),
+    endMonth: new Date(2026, 11),
+    reverseYears: true,
+  }}
+/>;
+```
+
+`dropdown-months` and `dropdown-years` show just one selector. The default year
+window covers 100 years before and after today and includes explicitly displayed
+outlying years. A one-sided bound anchors the opposite default window to that
+bound. Range and date/time pickers use min/max months for navigation unless
+`calendarProps.startMonth/endMonth` override them; selection restrictions still
+apply. `month`, `defaultMonth` and `onMonthChange` control navigation independently
+of the chosen date.
+The `calendar.month-width` and `calendar.year-width` tokens keep selector widths
+stable between month names and can accommodate custom labels or formatters.
 
 ## Gantt timelines
 

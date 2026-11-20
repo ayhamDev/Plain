@@ -836,7 +836,7 @@ export function Toaster({
   toastOptions,
   unstyled,
   dir: localDirection,
-  invert = false,
+  invert = true,
   style,
   ...props
 }: ToasterProps) {
@@ -845,12 +845,10 @@ export function Toaster({
   const dir = useDirection(localDirection === 'auto' ? undefined : localDirection);
   const isUnstyled = unstyled ?? styles.unstyled;
   const toastUnstyled = toastOptions?.unstyled ?? isUnstyled;
-  const background = invert
-    ? 'var(--ui-toast-background,var(--ui-foreground))'
-    : 'var(--ui-toast-surface,var(--ui-surface))';
-  const foreground = invert
-    ? 'var(--ui-toast-foreground,var(--ui-background))'
-    : 'var(--ui-foreground)';
+  // Resolve appearance from each toast's effective inversion, including native
+  // per-toast overrides, while leaving caller inline styles last.
+  const background = 'var(--ui-toast-current-background)';
+  const foreground = 'var(--ui-toast-current-foreground)';
   return (
     <Sonner
       dir={dir}

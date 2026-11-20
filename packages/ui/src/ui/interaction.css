@@ -481,6 +481,15 @@
   }
 }
 
+.ui-toast[data-sonner-toast][data-styled='true'] {
+  --ui-toast-current-background: var(--ui-toast-surface, var(--ui-surface));
+  --ui-toast-current-foreground: var(--ui-foreground);
+}
+.ui-toast[data-sonner-toast][data-styled='true'][data-invert='true'] {
+  --ui-toast-current-background: var(--ui-toast-background, var(--ui-foreground));
+  --ui-toast-current-foreground: var(--ui-toast-foreground, var(--ui-background));
+}
+
 .ui-toast[data-sonner-toast][data-styled] [data-description] {
   color: var(--ui-toast-description, currentColor) !important;
 }

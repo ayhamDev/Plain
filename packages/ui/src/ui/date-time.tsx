@@ -216,7 +216,8 @@ function calendarDefaults(providedLocale: string | undefined, props?: PickerCale
     formatters: {
       formatCaption: (date: Date) => formatDay(date, locale, { month: 'long', year: 'numeric' }),
       formatDay: (date: Date) => formatDay(date, locale, { day: 'numeric' }),
-      formatWeekdayName: (date: Date) => formatDay(date, locale, { weekday: 'short' }),
+      formatWeekdayName: (date: Date) =>
+        formatDay(date, locale, { weekday: locale?.startsWith('ar') ? 'narrow' : 'short' }),
       formatMonthDropdown: (date: Date) => formatDay(date, locale, { month: 'long' }),
       formatYearDropdown: (date: Date) => formatDay(date, locale, { year: 'numeric' }),
       ...props?.formatters,
@@ -555,6 +556,8 @@ function TemporalInput({
                   mode="single"
                   selected={selected}
                   defaultMonth={calendarProps?.defaultMonth ?? selected ?? calendarDate(min)}
+                  startMonth={calendarProps?.startMonth ?? calendarDate(min)}
+                  endMonth={calendarProps?.endMonth ?? calendarDate(max)}
                   disabled={unavailable}
                   onSelect={pickDate}
                   autoFocus
@@ -889,6 +892,8 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
               selected={current}
               onSelect={select}
               defaultMonth={calendarProps?.defaultMonth ?? from ?? minimum}
+              startMonth={calendarProps?.startMonth ?? minimum}
+              endMonth={calendarProps?.endMonth ?? maximum}
               disabled={unavailable}
               min={minNights}
               max={maxNights}

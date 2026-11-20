@@ -144,6 +144,9 @@
   --rdp-today-color: var(--ui-accent);
   --rdp-weekday-opacity: 1;
   --rdp-months-gap: 24px;
+  --rdp-dropdown-gap: 4px;
+  --rdp-nav_button-width: 28px;
+  --rdp-nav_button-height: 32px;
   font-size: 13px;
   color: var(--ui-calendar-foreground);
 }
@@ -159,6 +162,58 @@
 .ui-calendar .rdp-caption_label {
   font-size: 14px;
   font-weight: 600;
+}
+.ui-calendar[data-nav-layout='after'] .rdp-month:has(> .rdp-nav) > .rdp-month_caption {
+  padding-inline-end: calc(var(--rdp-nav_button-width) * 2 + 8px);
+}
+.ui-calendar .rdp-dropdowns {
+  min-width: 0;
+  max-width: 100%;
+}
+.ui-calendar .rdp-dropdown_root {
+  min-width: 0;
+  height: 32px;
+  border: var(--ui-border-width, 1px) solid var(--ui-input-border);
+  border-radius: var(--ui-input-radius, var(--ui-radius));
+  background: var(--ui-input-background, var(--ui-surface));
+  cursor: pointer;
+  transition:
+    background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard),
+    border-color calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard);
+}
+.ui-calendar .rdp-dropdown_root:not([data-disabled='true']):hover {
+  background: var(--ui-calendar-hover);
+}
+.ui-calendar .rdp-dropdown_root:has(> .rdp-months_dropdown) {
+  width: var(--ui-calendar-month-width, 104px);
+}
+.ui-calendar .rdp-dropdown_root:has(> .rdp-years_dropdown) {
+  width: var(--ui-calendar-year-width, 64px);
+}
+.ui-calendar .rdp-month_grid {
+  margin-inline: auto;
+}
+.ui-calendar .rdp-dropdown_root:focus-within {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+.ui-calendar .rdp-dropdown:focus-visible ~ .rdp-caption_label {
+  outline: none;
+}
+.ui-calendar .rdp-dropdown_root .rdp-caption_label {
+  overflow: hidden;
+  padding-inline: 6px;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.ui-calendar .rdp-dropdown_root .rdp-chevron {
+  flex-shrink: 0;
+}
+.ui-calendar .rdp-dropdown {
+  color: var(--ui-calendar-foreground);
+  background: var(--ui-calendar-background);
+  font: inherit;
 }
 .ui-calendar .rdp-weekday {
   color: var(--ui-muted-foreground);

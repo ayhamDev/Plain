@@ -771,7 +771,7 @@ export const extendedComponents: ComponentDefinition[] = [
       p(
         'calendarProps',
         'PickerCalendarProps',
-        'Locale, displayed months and calendar constraints.',
+        'Month/year selectors, startMonth/endMonth, reverseYears, locale and displayed month. Navigation defaults to min/max months; explicit calendar limits can widen it without enabling excluded dates.',
       ),
       p('fromName / toName', 'string', 'Local YYYY-MM-DD form values.'),
     ],
@@ -793,6 +793,11 @@ export const extendedComponents: ComponentDefinition[] = [
         '5 / h23',
       ),
       p('min / max', 'string', 'Wall-time bounds in YYYY-MM-DDTHH:mm format.'),
+      p(
+        'calendarProps',
+        'PickerCalendarProps',
+        'Configure month/year selectors, year bounds, descending years and displayed month. Navigation defaults to min/max months.',
+      ),
       p(
         'timeZone / disambiguation',
         'IANA zone / compatible | earlier | later | reject',
@@ -826,6 +831,11 @@ export const extendedComponents: ComponentDefinition[] = [
         'Shared timezone validation, without implicit conversion.',
       ),
       p('min / max / disabledDates', 'native bounds / Matcher', 'Shared field constraints.'),
+      p(
+        'calendarProps',
+        'PickerCalendarProps',
+        'Month/year selectors, year bounds and order for both popups. Each endpoint also respects the other endpoint’s date when deriving navigation limits.',
+      ),
     ],
     'Each field is labeled and the interval is validated. Use an explicit timezone in applications spanning locations; ambiguous local times require a deliberate policy.',
   ),

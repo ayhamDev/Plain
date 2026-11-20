@@ -121,6 +121,15 @@ function CalendarPreview({ state }: { state: State }) {
     showOutsideDays: !!state.showOutsideDays,
     numberOfMonths: Number(state.numberOfMonths),
     weekStartsOn: Number(state.weekStartsOn) as 0 | 1,
+    captionLayout: choice(state, 'captionLayout', [
+      'dropdown',
+      'label',
+      'dropdown-months',
+      'dropdown-years',
+    ]),
+    reverseYears: !!state.reverseYears,
+    startMonth: new Date(Number(state.startYear), 0),
+    endMonth: new Date(Number(state.endYear), 11),
   };
   if (state.mode === 'range')
     return <UI.Calendar {...props} mode="range" selected={range} onSelect={setRange} />;
@@ -475,31 +484,69 @@ export const propPreviews: Record<string, PropPreview> = {
     code: (s) => popupCode(s, 'Tooltip'),
   },
   calendar: {
-    defaults: { mode: 'single', numberOfMonths: 1, weekStartsOn: 0, showOutsideDays: true },
+    defaults: {
+      mode: 'single',
+      numberOfMonths: 1,
+      weekStartsOn: 0,
+      showOutsideDays: true,
+      captionLayout: 'dropdown',
+      reverseYears: false,
+      startYear: 1900,
+      endYear: 2100,
+    },
     controls: [
       options('mode', ['single', 'multiple', 'range']),
       number('numberOfMonths', 1, 2),
       options('weekStartsOn', ['0', '1']),
       bool('showOutsideDays'),
+      options('captionLayout', ['dropdown', 'label', 'dropdown-months', 'dropdown-years']),
+      bool('reverseYears'),
+      number('startYear', 1800, 2026),
+      number('endYear', 2026, 2200),
     ],
     render: (s) => <CalendarPreview state={s} />,
     code: (s) =>
-      `const [selected, setSelected] = React.useState<${s.mode === 'range' ? 'DateRange' : s.mode === 'multiple' ? 'Date[]' : 'Date'}>();\n\n<Calendar mode="${s.mode}" selected={selected} onSelect={setSelected} numberOfMonths={${s.numberOfMonths}} weekStartsOn={${s.weekStartsOn}} showOutsideDays={${s.showOutsideDays}} defaultMonth={new Date(2026, 9, 1)} />`,
+      `const [selected, setSelected] = React.useState<${s.mode === 'range' ? 'DateRange' : s.mode === 'multiple' ? 'Date[]' : 'Date'}>();\n\n<Calendar mode="${s.mode}" selected={selected} onSelect={setSelected} numberOfMonths={${s.numberOfMonths}} weekStartsOn={${s.weekStartsOn}} showOutsideDays={${s.showOutsideDays}} captionLayout="${s.captionLayout}" reverseYears={${s.reverseYears}} startMonth={new Date(${s.startYear}, 0)} endMonth={new Date(${s.endYear}, 11)} defaultMonth={new Date(2026, 9, 1)} />`,
   },
   'date-picker': {
-    defaults: { clearable: true, disabled: false },
-    controls: [bool('clearable'), bool('disabled')],
+    defaults: {
+      clearable: true,
+      disabled: false,
+      captionLayout: 'dropdown',
+      reverseYears: false,
+      startYear: 1900,
+      endYear: 2100,
+    },
+    controls: [
+      bool('clearable'),
+      bool('disabled'),
+      options('captionLayout', ['dropdown', 'label', 'dropdown-months', 'dropdown-years']),
+      bool('reverseYears'),
+      number('startYear', 1800, 2026),
+      number('endYear', 2026, 2200),
+    ],
     render: (s) =>
       field(
         <UI.DatePicker
           clearable={!!s.clearable}
           disabled={!!s.disabled}
           defaultValue={new Date(2026, 9, 14)}
+          calendarProps={{
+            captionLayout: choice(s, 'captionLayout', [
+              'dropdown',
+              'label',
+              'dropdown-months',
+              'dropdown-years',
+            ]),
+            reverseYears: !!s.reverseYears,
+            startMonth: new Date(Number(s.startYear), 0),
+            endMonth: new Date(Number(s.endYear), 11),
+          }}
         />,
         'Due date',
       ),
     code: (s) =>
-      `<Field label="Due date"><DatePicker ${attr(s)} defaultValue={new Date(2026, 9, 14)} /></Field>`,
+      `<Field label="Due date"><DatePicker clearable={${s.clearable}} disabled={${s.disabled}} defaultValue={new Date(2026, 9, 14)} calendarProps={{ captionLayout: "${s.captionLayout}", reverseYears: ${s.reverseYears}, startMonth: new Date(${s.startYear}, 0), endMonth: new Date(${s.endYear}, 11) }} /></Field>`,
   },
   'number-input': {
     defaults: {

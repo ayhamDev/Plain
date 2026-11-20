@@ -279,6 +279,8 @@ export const componentTokenAliases = {
   'calendar.hover': 'var(--ui-muted)',
   'calendar.radius': 'var(--ui-radius)',
   'calendar.day-size': '32px',
+  'calendar.month-width': '104px',
+  'calendar.year-width': '64px',
   'table.background': 'var(--ui-surface)',
   'table.foreground': 'var(--ui-foreground)',
   'table.muted-foreground': 'var(--ui-muted-foreground)',

@@ -278,10 +278,10 @@ export const refinementProps: Record<string, PropDefinition[]> = {
   ],
   toast: [
     p(
-      'invert / closeButton',
+      'invert',
       'boolean',
-      'Surface-aligned notifications and a dismiss button by default. Inversion remains opt-in.',
-      'false / true',
+      'Inverse notifications by default: dark on light themes and light on dark themes. Set false to use the current surface.',
+      'true',
     ),
   ],
   'data-table': [

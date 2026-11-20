@@ -8,6 +8,12 @@ import { cn } from './utils';
 import { Button } from './primitives';
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from './overlays';
 export type CalendarProps = DayPickerProps & { localeCode?: string };
+function yearMonth(year: number, month: number) {
+  const date = new Date(0);
+  date.setFullYear(year, month, 1);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
 export function Calendar({
   className,
   showOutsideDays = true,
@@ -15,15 +21,35 @@ export function Calendar({
   localeCode,
   labels,
   formatters,
+  captionLayout = 'dropdown',
+  navLayout = 'after',
   ...props
 }: CalendarProps & PlainStyleProps) {
   const styles = useStyles();
   const language = useTranslation();
   const locale = localeCode ?? language.locale;
   const dir = useDirection(props.dir as 'ltr' | 'rtl' | undefined);
+  const [referenceDate] = React.useState(() => new Date());
+  const today = props.today ?? referenceDate;
+  const displayedYear = (props.month ?? props.defaultMonth ?? today).getFullYear();
+  const hasYearDropdown = captionLayout === 'dropdown' || captionLayout === 'dropdown-years';
+  // DayPicker's year dropdown otherwise stops at this year. Include future dates,
+  // one-sided bounds and an explicitly displayed year outside the default window.
+  const startMonth =
+    props.startMonth ??
+    (hasYearDropdown
+      ? yearMonth(Math.min((props.endMonth ?? today).getFullYear() - 100, displayedYear), 0)
+      : undefined);
+  const endMonth =
+    props.endMonth ??
+    (hasYearDropdown
+      ? yearMonth(Math.max((props.startMonth ?? today).getFullYear() + 100, displayedYear), 11)
+      : undefined);
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      captionLayout={captionLayout}
+      navLayout={navLayout}
       dir={dir}
       locale={locale.startsWith('ar') ? ar : enUS}
       lang={locale}
@@ -61,13 +87,18 @@ export function Calendar({
         formatCaption: (date) =>
           dateFormatter(locale, { month: 'long', year: 'numeric' }).format(date),
         formatDay: (date) => dateFormatter(locale, { day: 'numeric' }).format(date),
-        formatWeekdayName: (date) => dateFormatter(locale, { weekday: 'short' }).format(date),
+        formatWeekdayName: (date) =>
+          dateFormatter(locale, { weekday: locale.startsWith('ar') ? 'narrow' : 'short' }).format(
+            date,
+          ),
         formatMonthDropdown: (date) => dateFormatter(locale, { month: 'long' }).format(date),
         formatYearDropdown: (date) => dateFormatter(locale, { year: 'numeric' }).format(date),
         ...formatters,
       }}
       {...styles('calendar.root', 'ui-calendar', className, unstyled)}
       {...props}
+      startMonth={startMonth}
+      endMonth={endMonth}
     />
   );
 }
@@ -157,6 +188,8 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
         </span>
         <PopoverContent
           align="start"
+          aria-label={props['aria-label'] ?? placeholder}
+          aria-labelledby={props['aria-labelledby']}
           {...styles('date-picker.content', 'p-3', undefined, unstyled)}
         >
           <Calendar
