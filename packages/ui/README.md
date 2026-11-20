@@ -52,6 +52,12 @@ responsibilities. Custom themes/renderers require application accessibility QA.
 and selection from your application. Table search, filtering, sorting, column
 controls, pagination and the entire toolbar can be hidden independently. On
 small screens the filter and sort editors use a bottom sheet automatically.
+List selection is indicated by the checkbox without a persistent row fill. Enabled
+rows retain the same hover treatment in both modes on devices with hover support.
+The `data-selected` attribute and render state remain available for customization.
+Disabled item text stays readable; its checkbox communicates unavailable selection.
+Mobile table sheets keep scrolling inside their content and retain a visible
+completion action; sort labels and controls wrap within the sheet width.
 
 Progress allocations share one capacity and retain text labels alongside color:
 

@@ -52,6 +52,8 @@ export const refinementComponents: ComponentDefinition[] = [
     ],
     accessibility:
       'Native list and checkbox semantics. Checkbox labels come from getItemLabel or stable keys. Nested buttons and links keep their own actions; keyboard users select with native checkboxes. The list does not impose an application schema or treat arbitrary interactive row content as a listbox.',
+    usage:
+      'Selected items are indicated by their checkboxes; selection does not fill the row. Enabled rows have the same hover treatment in browse and selection modes on devices that support hover. data-selected and the render state remain available for application styling. Long content wraps within the row.',
   },
   {
     slug: 'navigation-rail',

@@ -1,6 +1,7 @@
 @layer components {
   .ui-list {
     min-inline-size: 0;
+    max-inline-size: 100%;
     color: var(--ui-foreground);
   }
   .ui-list-header,
@@ -11,11 +12,24 @@
     flex-wrap: wrap;
     gap: 12px;
     padding-block: 12px;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
+  }
+  .ui-list-header > *,
+  .ui-list-footer > *,
+  .ui-list-selection-actions > * {
+    min-inline-size: 0;
+    max-inline-size: 100%;
   }
   .ui-list-mode-controls {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-inline-size: 0;
+    max-inline-size: 100%;
     margin-inline-start: auto;
     font-size: 12px;
     color: var(--ui-muted-foreground);
@@ -28,6 +42,7 @@
   .ui-list-row {
     display: flex;
     min-inline-size: 0;
+    max-inline-size: 100%;
     align-items: center;
     gap: 16px;
     padding: 16px 12px;
@@ -45,19 +60,30 @@
   .ui-list[data-mode='selection'] .ui-list-row:not([data-disabled]) {
     cursor: pointer;
   }
-  .ui-list[data-mode='selection'] .ui-list-row:hover:not([data-disabled]) {
-    background: var(--ui-muted);
+  @media (hover: hover) {
+    .ui-list-row:hover:not([data-disabled]) {
+      background: var(--ui-muted);
+    }
   }
-  .ui-list-row[data-selected] {
-    background: var(--ui-accent-soft);
-  }
-  .ui-list-row[data-disabled] {
-    opacity: 0.5;
+  .ui-list-row > [role='checkbox'] {
+    flex-shrink: 0;
   }
   .ui-list-leading,
   .ui-list-trailing {
     flex: 0 0 auto;
     min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+  .ui-list-leading {
+    max-inline-size: 25%;
+  }
+  .ui-list-leading > *,
+  .ui-list-trailing > * {
+    max-inline-size: 100%;
+  }
+  .ui-list-leading :where(img, video) {
+    max-inline-size: 100%;
+    block-size: auto;
   }
   .ui-list-content {
     flex: 1;

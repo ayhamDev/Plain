@@ -30,16 +30,22 @@
   .ui-table-mobile-panel .ui-table-mobile-panel-body {
     display: flex;
     flex-direction: column;
-    flex: 1;
+    flex: 1 1 auto;
     gap: 16px;
     min-block-size: 0;
+    min-inline-size: 0;
     inline-size: 100%;
     max-inline-size: 100%;
-    padding: 0;
+    padding: 4px;
     overflow-y: auto;
+    overflow-x: hidden;
     overscroll-behavior: contain;
     border: 0;
     box-shadow: none;
+  }
+  .ui-table-mobile-panel-body > * {
+    min-inline-size: 0;
+    max-inline-size: 100%;
   }
   .ui-table-mobile-panel-body .ui-table-filter-heading {
     flex-wrap: wrap;
@@ -243,14 +249,28 @@
   }
   .ui-table-sort-rule {
     display: grid;
-    grid-template-columns: 1fr 1fr 32px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
     gap: 8px;
     align-items: center;
     font-size: 12px;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+  .ui-table-sort-rule > * {
+    min-inline-size: 0;
+    max-inline-size: 100%;
   }
   .ui-table-sort-rule > span {
     min-inline-size: 0;
     overflow-wrap: anywhere;
+  }
+  @media (max-width: 400px) {
+    .ui-table-mobile-panel-body .ui-table-sort-rule {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .ui-table-mobile-panel-body .ui-table-sort-rule > span {
+      grid-column: 1 / -1;
+    }
   }
   @media (max-width: 560px) {
     .ui-table-filter-rule {

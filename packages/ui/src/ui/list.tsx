@@ -107,7 +107,14 @@ function ListImpl<T>(
         {(header || (selectable && showSelectionControls)) && (
           <div {...styles('list.header', 'ui-list-header', undefined, unstyled)}>
             {header}
-            <div {...styles('list.mode-controls', 'ui-list-mode-controls', undefined, unstyled)}>
+            <div
+              {...styles(
+                'list.mode-controls',
+                'ui-list-mode-controls [&_button]:whitespace-normal',
+                undefined,
+                unstyled,
+              )}
+            >
               {selecting && (
                 <span role="status">{t('collection.selected', { count: selected.size })}</span>
               )}
@@ -200,7 +207,12 @@ function ListImpl<T>(
           ))}
         {selecting && selected.size > 0 && selectionActions && (
           <div
-            {...styles('list.selection-actions', 'ui-list-selection-actions', undefined, unstyled)}
+            {...styles(
+              'list.selection-actions',
+              'ui-list-selection-actions [&_button]:whitespace-normal [&_a]:whitespace-normal',
+              undefined,
+              unstyled,
+            )}
             role="region"
             aria-label={t('table.selectedActions')}
           >

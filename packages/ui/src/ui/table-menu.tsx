@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Button } from './primitives';
 import { useTranslation } from './i18n';
+import { useStyles } from './styling';
+import { cn } from './utils';
 import {
   Popover,
   PopoverTrigger,
@@ -39,16 +41,20 @@ export function TableMenu({
   const compact = React.useSyncExternalStore(subscribe, snapshot, serverSnapshot);
   const [open, setOpen] = React.useState(false);
   const { t } = useTranslation();
+  const { unstyled } = useStyles();
   if (presentation === 'sheet' || (presentation === 'auto' && compact)) {
     return (
       <Sheet side="bottom" open={open} onOpenChange={setOpen} maxWidth={640}>
         <SheetTrigger asChild>{trigger}</SheetTrigger>
-        <SheetContent className="ui-table-mobile-panel" aria-describedby={undefined}>
-          <SheetTitle className="ui-visually-hidden">{label}</SheetTitle>
-          <div className={`ui-table-mobile-panel-body ${contentProps.className ?? ''}`}>
+        <SheetContent
+          className={unstyled ? undefined : 'ui-table-mobile-panel overflow-hidden max-h-[85dvh]'}
+          aria-describedby={undefined}
+        >
+          <SheetTitle className={unstyled ? undefined : 'ui-visually-hidden'}>{label}</SheetTitle>
+          <div className={cn(!unstyled && 'ui-table-mobile-panel-body', contentProps.className)}>
             {children}
           </div>
-          <SheetFooter className="ui-table-mobile-panel-footer">
+          <SheetFooter className={unstyled ? undefined : 'ui-table-mobile-panel-footer'}>
             <SheetClose asChild>
               <Button>{t('common.done')}</Button>
             </SheetClose>
