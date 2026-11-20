@@ -17,6 +17,7 @@ const ChartExample = React.lazy(() => import('./examples/ChartExample'));
 const ScheduleExample = React.lazy(() => import('./examples/ScheduleExample'));
 const WorkspaceExample = React.lazy(() => import('./examples/WorkspaceExample'));
 const MotionExample = React.lazy(() => import('./examples/MotionExample'));
+const QRCodeExample = React.lazy(() => import('./examples/QRCodeExample'));
 const records = Array.from({ length: 1000 }, (_, index) => ({
   id: String(index),
   name: `Project ${index + 1}`,
@@ -462,6 +463,12 @@ export default function ExtendedExamples({ slug }: { slug: string }) {
       </React.Suspense>
     );
   if (layouts.has(slug)) return <LayoutExample slug={slug} />;
+  if (slug === 'qr-code')
+    return (
+      <React.Suspense fallback={<UI.Spinner />}>
+        <QRCodeExample />
+      </React.Suspense>
+    );
   if (slug.endsWith('-chart'))
     return (
       <React.Suspense fallback={<UI.Skeleton style={{ height: 280, width: '100%' }} />}>

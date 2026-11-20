@@ -40,6 +40,7 @@ import {
 } from '@plain/ui';
 import { Button as ModularButton } from '@plain/ui/primitives';
 import { Dropzone as ModularDropzone } from '@plain/ui/advanced';
+import { QRCode as ModularQRCode } from '@plain/ui/qr-code';
 import '@plain/ui/styles.css';
 import { FullCalendar, type FullCalendarRef } from '@plain/ui/full-calendar';
 import '@plain/ui/full-calendar.css';
@@ -65,6 +66,12 @@ export function ConsumerApp() {
     <PlainProvider dir="rtl" styles={styles} tokens={{ radius: '8px' }} persist={false}>
       <ThemeScope tokens={{ accent: '#1d4ed8' }}>
         <H1 size="2xl">Project workspace</H1>
+        <ModularQRCode
+          value="https://github.com/ayhamDev/Plain"
+          label="Project repository"
+          level="Q"
+          style={tokensToStyle({ 'qr-code.foreground': '#123456' })}
+        />
         <P tone="muted" align="start">
           Your current projects.
         </P>

@@ -71,6 +71,55 @@ const chartData = `const data = ${JSON.stringify(chartSampleData, null, 2)};`;
 
 export const extendedComponents: ComponentDefinition[] = [
   define(
+    'qr-code',
+    'QR code',
+    'Feedback',
+    'Scannable SVG codes generated locally from text, links and Unicode content.',
+    ['QRCode'],
+    '<QRCode value="https://github.com/ayhamDev/Plain" label="Open the P.UI repository" size={192} level="M" margin={4} />',
+    [
+      p('value', 'string', 'Exact content to encode; Unicode and whitespace are retained.'),
+      p(
+        'size',
+        'number',
+        'Intrinsic SVG size in pixels. Native SVG props, classes and style remain available.',
+        '192',
+      ),
+      p(
+        'level',
+        'L | M | Q | H',
+        'Error correction level; higher levels reduce content capacity.',
+        'M',
+      ),
+      p(
+        'margin',
+        'number',
+        'Quiet-zone width in modules, rounded down and normalized to at least four.',
+        '4',
+      ),
+      p(
+        'foreground / background',
+        'CSS color strings',
+        'Optional explicit ink/paper colors. Black on white is retained in both themes by default.',
+      ),
+      p(
+        'label / description',
+        'string',
+        'Accessible image name and descriptive text; native ARIA props also pass through.',
+      ),
+      p(
+        'onEncodingError',
+        '(error: Error) => void',
+        'Receive encoder failures. Empty content shows an empty state without an error callback.',
+      ),
+    ],
+    'The native SVG has image semantics, an accessible name and description. Include an equivalent visible link or text in the application. Codes keep their orientation in RTL. Empty/oversized values render a text placeholder without a misleading QR pattern.',
+    {
+      usage:
+        'The value is encoded locally with qrcode; no remote image service is contacted. Supply readable colors and enough display/print size for the encoded content. The four-module quiet zone stays in the SVG geometry. Typed qr-code.foreground/background aliases and qr-code.* slots support local overrides. The example adds editable content and an application-owned standalone SVG download.',
+    },
+  ),
+  define(
     'typography',
     'Typography',
     'Typography',

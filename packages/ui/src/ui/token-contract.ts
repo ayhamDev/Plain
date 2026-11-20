@@ -168,6 +168,8 @@ export const componentTokenAliases = {
   'input.height': 'var(--ui-control-height)',
   'input.placeholder': 'var(--ui-muted-foreground)',
   'input.focus': 'var(--ui-focus-ring)',
+  'qr-code.foreground': '#000000',
+  'qr-code.background': '#ffffff',
   'dropzone.background': 'var(--ui-surface)',
   'dropzone.foreground': 'var(--ui-foreground)',
   'dropzone.border': 'var(--ui-control-border)',

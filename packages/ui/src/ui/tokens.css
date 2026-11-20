@@ -258,6 +258,8 @@
   --ui-input-height: var(--ui-control-height);
   --ui-input-placeholder: var(--ui-muted-foreground);
   --ui-input-focus: var(--ui-focus-ring);
+  --ui-qr-code-foreground: #000000;
+  --ui-qr-code-background: #ffffff;
   --ui-dropzone-background: var(--ui-surface);
   --ui-dropzone-foreground: var(--ui-foreground);
   --ui-dropzone-border: var(--ui-control-border);

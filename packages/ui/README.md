@@ -80,6 +80,7 @@ in both modes. Native refs, handlers, disabled state and form behavior remain in
   optional composable event editor.
 - `@plain/ui/kanban`: controlled drag-and-drop lanes.
 - `@plain/ui/motion`: optional lazy motion.
+- `@plain/ui/qr-code`: the SVG QRCode component and its types.
 - `/layout`, `/sidebar`, `/virtual`, `/advanced`, `/date-time`, `/typography`,
   `/i18n`, `/chips`, `/list`, `/search-view`, `/data-table`, `/forms`, `/overlays`, `/theme`
   and other declared exports provide modular entry points.
@@ -87,6 +88,38 @@ in both modes. Native refs, handlers, disabled state and form behavior remain in
 Heavy chart, scheduling, Kanban and motion implementations stay outside the core
 barrel. Calendar editing, server filtering and persistence remain application
 responsibilities. Custom themes/renderers require application accessibility QA.
+
+## QR code
+
+```tsx
+import { QRCode } from '@plain/ui'; // also @plain/ui/qr-code
+
+<QRCode
+  value="https://github.com/ayhamDev/Plain"
+  label="Open the P.UI repository"
+  size={192}
+  level="M"
+  margin={4}
+/>;
+```
+
+QRCode uses the `qrcode` encoder locally and renders SVG during SSR and in the
+browser. `value` is encoded exactly, including Unicode and whitespace. `level`
+supports L/M/Q/H. The quiet zone is measured in modules and stays at least four
+modules wide. Defaults keep black ink on white paper in both themes. Explicit
+`foreground`/`background` props or typed `qr-code.foreground`/`qr-code.background`
+tokens customize colors; choose readable combinations and verify scanning at the
+intended size. RTL does not mirror the code, and the component does not animate
+its modules.
+
+Native SVG refs, attributes, handlers, classes and style target the actual SVG.
+Typed `qr-code.*` slots customize its parts. Unstyled mode removes default classes
+while retaining SVG geometry and functional ink/paper defaults. Empty values show
+an empty placeholder. Encoder failures show an unavailable placeholder and call
+`onEncodingError`; neither state renders a fake code. `data-state` reports ready,
+empty or error. Provide meaningful `label`/`description` or native ARIA props, with
+equivalent text or a link alongside the image. Download actions belong to the
+application; the docs example demonstrates exporting SVG with resolved colors.
 
 ## Dropzone
 

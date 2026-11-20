@@ -159,6 +159,25 @@ const popoverControls = [
 ];
 
 export const propPreviews: Record<string, PropPreview> = {
+  'qr-code': {
+    defaults: { size: 192, level: 'M', margin: 4 },
+    controls: [
+      number('size', 96, 320),
+      options('level', ['L', 'M', 'Q', 'H']),
+      number('margin', 4, 12),
+    ],
+    render: (state) => (
+      <UI.QRCode
+        value="https://github.com/ayhamDev/Plain"
+        size={Number(state.size)}
+        level={choice(state, 'level', ['L', 'M', 'Q', 'H'])}
+        margin={Number(state.margin)}
+        label="Open the P.UI repository"
+      />
+    ),
+    code: (state) =>
+      `<QRCode value="https://github.com/ayhamDev/Plain" ${attr(state)} label="Open the P.UI repository" />`,
+  },
   dropzone: {
     defaults: { multiple: true, maxFiles: 5, showFileList: true, disabled: false },
     controls: [bool('multiple'), number('maxFiles', 1, 10), bool('showFileList'), bool('disabled')],

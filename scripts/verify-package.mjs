@@ -144,6 +144,7 @@ for (const heavy of [
   'material-color-utilities',
   'vaul',
   'react-resizable-panels',
+  '/qrcode/',
 ])
   assert(!modules.some((id) => id.includes(heavy)), `Button bundle retained ${heavy}`);
 const bundle = chunks.map((chunk) => chunk.code).join('\n');
@@ -202,6 +203,14 @@ for (const directory of [consumer, minimumConsumer]) {
   );
   assert(markup.includes(' inert=""'), `React ${peerReact.version} dropped the inert attribute.`);
   assert(markup.includes('aria-hidden="true"'));
+  const qr = peerServer.renderToString(
+    peerReact.createElement(peerLibrary.QRCode, { value: 'https://github.com/ayhamDev/Plain' }),
+  );
+  assert(qr.startsWith('<svg'), `React ${peerReact.version} did not render QRCode as SVG.`);
+  assert(
+    qr.includes('data-state="ready"') && qr.includes('<path'),
+    `React ${peerReact.version} did not encode QRCode during SSR.`,
+  );
   assert(
     peerServer
       .renderToString(peerReact.createElement(peerLibrary.H1, null, 'Native heading'))
