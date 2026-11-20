@@ -2,6 +2,7 @@ import * as React from 'react';
 
 export type RefreshState = 'idle' | 'pulling' | 'ready' | 'refreshing' | 'error';
 export interface ElasticScrollOptions {
+  /** Desktop wheel/trackpad edge resistance; inactive on mobile and with reduced motion. */
   elastic?: boolean;
   onRefresh?: () => void | Promise<void>;
   refreshThreshold?: number;
@@ -10,7 +11,7 @@ export interface ElasticScrollOptions {
 export function useElasticScroll(
   viewport: React.RefObject<HTMLDivElement | null>,
   content: React.RefObject<HTMLDivElement | null>,
-  { elastic, onRefresh, refreshThreshold = 72, onRefreshError }: ElasticScrollOptions,
+  { onRefresh, refreshThreshold = 72, onRefreshError }: ElasticScrollOptions,
 ) {
   const [state, setState] = React.useState<RefreshState>('idle');
   const callbacks = React.useRef({ onRefresh, onRefreshError });
@@ -46,8 +47,8 @@ export function useElasticScroll(
   React.useEffect(() => {
     const root = viewport.current;
     const body = content.current;
-    if (!root || !body || (!elastic && !refreshable)) return;
-    let origin: { x: number; y: number; edge: 'top' | 'bottom' } | null = null;
+    if (!root || !body || !refreshable) return;
+    let origin: { x: number; y: number } | null = null;
     let distance = 0;
     let frame = 0;
     let phase: RefreshState = 'idle';
@@ -80,14 +81,8 @@ export function useElasticScroll(
           return;
         target = target.parentElement;
       }
-      const edge =
-        root.scrollTop <= 0
-          ? 'top'
-          : root.scrollTop + root.clientHeight >= root.scrollHeight - 1
-            ? 'bottom'
-            : null;
-      if (!edge || (edge === 'bottom' && !elastic)) return;
-      origin = { x: event.touches[0].clientX, y: event.touches[0].clientY, edge };
+      if (root.scrollTop > 0) return;
+      origin = { x: event.touches[0].clientX, y: event.touches[0].clientY };
       distance = 0;
     };
     const move = (event: TouchEvent) => {
@@ -98,7 +93,7 @@ export function useElasticScroll(
       }
       const dy = event.touches[0].clientY - origin.y;
       const dx = event.touches[0].clientX - origin.x;
-      if (Math.abs(dx) > Math.abs(dy) || (origin.edge === 'top' ? dy < 0 : dy > 0)) {
+      if (Math.abs(dx) > Math.abs(dy) || dy < 0) {
         reset();
         return;
       }
@@ -110,11 +105,10 @@ export function useElasticScroll(
       frame = requestAnimationFrame(() =>
         body.style.setProperty('--ui-elastic-offset', `${distance}px`),
       );
-      if (origin.edge === 'top' && callbacks.current.onRefresh)
-        phaseChange(distance >= threshold ? 'ready' : 'pulling');
+      if (callbacks.current.onRefresh) phaseChange(distance >= threshold ? 'ready' : 'pulling');
     };
     const end = () => {
-      const ready = origin?.edge === 'top' && distance >= threshold && callbacks.current.onRefresh;
+      const ready = origin && distance >= threshold && callbacks.current.onRefresh;
       reset();
       if (ready) void refresh();
     };
@@ -130,6 +124,6 @@ export function useElasticScroll(
       root.removeEventListener('touchend', end);
       root.removeEventListener('touchcancel', reset);
     };
-  }, [viewport, content, elastic, refreshable, refreshThreshold, refresh]);
+  }, [viewport, content, refreshable, refreshThreshold, refresh]);
   return { state, refresh };
 }

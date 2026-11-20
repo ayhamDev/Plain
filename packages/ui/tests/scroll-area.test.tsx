@@ -16,7 +16,9 @@ describe('ScrollArea effects', () => {
     const viewportRef = createRef<HTMLDivElement>(),
       rootRef = createRef<HTMLDivElement>();
     const onScroll = vi.fn(),
-      onViewportScroll = vi.fn();
+      onViewportScroll = vi.fn(),
+      onWheel = vi.fn(),
+      onViewportWheel = vi.fn();
     render(
       <ScrollArea
         ref={rootRef}
@@ -24,10 +26,12 @@ describe('ScrollArea effects', () => {
         orientation="both"
         dir="rtl"
         fadeEdges
+        elastic
         scrollbarSize={8}
         scrollbarHoverSize="1rem"
         onScroll={onScroll}
-        viewportProps={{ onScroll: onViewportScroll }}
+        onWheel={onWheel}
+        viewportProps={{ onScroll: onViewportScroll, onWheel: onViewportWheel }}
         style={{ '--ui-scroll-area-fade-size': '40px' } as CSSProperties}
         aria-label="Records"
       >
@@ -44,6 +48,10 @@ describe('ScrollArea effects', () => {
     expect(onScroll).toHaveBeenCalledOnce();
     expect(onViewportScroll).toHaveBeenCalledOnce();
     expect(onScroll.mock.calls[0][0].target).toBe(viewport);
+    fireEvent.wheel(viewport, { deltaY: 120 });
+    expect(onWheel).toHaveBeenCalledOnce();
+    expect(onViewportWheel).toHaveBeenCalledOnce();
+    expect(onViewportWheel.mock.calls[0][0].target).toBe(viewport);
     expect(rootRef.current?.style.getPropertyValue('--ui-scrollbar-width')).toBe('8px');
     expect(rootRef.current?.style.getPropertyValue('--ui-scrollbar-hover-width')).toBe('1rem');
     expect(rootRef.current?.style.getPropertyValue('--ui-scroll-area-fade-size')).toBe('40px');
@@ -84,6 +92,7 @@ describe('ScrollArea effects', () => {
       </ScrollArea>,
     );
     expect(screen.getByRole('region')).not.toHaveAttribute('data-fade-edges');
+    expect(screen.getByRole('region')).not.toHaveAttribute('data-elastic');
     rerender(
       <ScrollArea unstyled type="always" orientation="both" fadeEdges>
         One item

@@ -20,6 +20,7 @@ import { Button } from './primitives';
 import { RefreshCw } from 'lucide-react';
 import { useTranslation } from './i18n';
 import { useElasticScroll, type ElasticScrollOptions, type RefreshState } from './elastic-scroll';
+import { useScrollAreaElastic } from './scroll-area-elastic';
 import { useSelectionIndicator } from './selection-indicator';
 export const Accordion = AccordionPrimitive.Root;
 export const AccordionItem = /* @__PURE__ */ React.forwardRef<
@@ -332,7 +333,6 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
     );
     React.useImperativeHandle(viewportRef, () => viewport.current!);
     const refresh = useElasticScroll(viewport, content, {
-      elastic,
       onRefresh,
       refreshThreshold,
       onRefreshError,
@@ -341,8 +341,10 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
       className: viewportClassName,
       unstyled: viewportUnstyled,
       onScroll: onViewportScroll,
+      onWheel: onViewportWheel,
       ...nativeViewportProps
     } = viewportProps;
+    const onElasticWheel = useScrollAreaElastic(viewport, !!elastic, orientation, direction);
     return (
       <ScrollAreaPrimitive.Root
         ref={ref}
@@ -389,6 +391,14 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
             viewportUnstyled ?? unstyled,
           )}
           {...nativeViewportProps}
+          onWheel={
+            elastic
+              ? (event) => {
+                  onViewportWheel?.(event);
+                  onElasticWheel(event);
+                }
+              : onViewportWheel
+          }
           onScroll={(event) => {
             onViewportScroll?.(event);
             onScroll?.(event);

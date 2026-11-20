@@ -921,7 +921,7 @@ export const components: ComponentDefinition[] = [
     'Layout',
     'Contained scrolling with a subtle, consistent scrollbar.',
     ['ScrollArea'],
-    '<ScrollArea aria-label="Records" style={{ height: 192 }} fadeEdges={{ size: 32, intensity: 0.8 }}>\n  <div style={{ display: "grid", gap: 16, padding: 16 }}>\n    {Array.from({ length: 20 }, (_, i) => <p key={i}>Record {i + 1}</p>)}\n  </div>\n</ScrollArea>',
+    '<ScrollArea elastic aria-label="Records" style={{ height: 192 }} fadeEdges={{ size: 32, intensity: 0.8 }}>\n  <div style={{ display: "grid", gap: 16, padding: 16 }}>\n    {Array.from({ length: 20 }, (_, i) => <p key={i}>Record {i + 1}</p>)}\n  </div>\n</ScrollArea>',
     [
       prop('orientation', 'vertical | horizontal | both', 'Enabled scrolling axes.', 'vertical'),
       prop(
@@ -963,7 +963,7 @@ export const components: ComponentDefinition[] = [
       prop(
         'elastic',
         'boolean',
-        'Touch-only edge resistance; leaves normal native scrolling and nested scroll areas alone.',
+        'Opt into desktop wheel/trackpad edge resistance on the enabled axes. Active at 768px and wider with a fine pointer and hover; inactive on mobile, touch gestures and reduced/none motion. Native scrolling, nested scrollers and zoom gestures are retained.',
         'false',
       ),
       prop(
@@ -978,7 +978,7 @@ export const components: ComponentDefinition[] = [
       ),
       prop('type', 'auto | always | scroll | hover', 'Native Radix visibility override.', 'hover'),
     ],
-    'Radix preserves native scrolling and keyboard navigation. Provide a constrained height. Fades affect only content, use logical start/end in RTL, and are removed for visible keyboard focus and forced colors. ScrollBar also accepts size, hoverSize and expandOnHover. Reduced/none motion disables optional transitions.',
+    'Radix preserves native scrolling and keyboard navigation. Provide a constrained height. Elastic is opt-in and desktop-only, supports pixel/line/page wheel deltas and both axes, and returns smoothly without changing scroll dimensions. onRefresh independently enables touch pull-to-refresh. Fades affect only content, use logical start/end in RTL, and are removed for visible keyboard focus and forced colors. ScrollBar also accepts size, hoverSize and expandOnHover. Reduced/none motion disables optional transitions and elasticity.',
   ),
   definition(
     'collapsible',

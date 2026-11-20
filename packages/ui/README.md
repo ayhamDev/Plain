@@ -330,6 +330,7 @@ Faded edges are opt-in and use transparency, so they work on custom backgrounds:
 ```tsx
 <ScrollArea
   aria-label="Projects"
+  elastic
   style={{ height: 240 }}
   scrollbarSize={6}
   scrollbarHoverSize={14}
@@ -346,6 +347,18 @@ follow RTL. Keyboard-visible focus and forced colors remove masks for readabilit
 Theme aliases are `scrollbar.width`, `scrollbar.hover-width`, `scroll-area.fade-size`
 and `scroll-area.fade-intensity`. Direct `ScrollBar` accepts `size`, `hoverSize` and
 `expandOnHover`.
+
+`elastic` opts into spring-like resistance at the enabled scroll edges for desktop
+mouse wheels and trackpads. It activates at viewport widths of 768px and above
+with a fine primary pointer and hover support. It stays inactive on mobile,
+touch gestures and reduced/none motion, and resets when the device or motion
+preference changes. Native scrolling, keyboard navigation, scrollbar dragging,
+scroll dimensions, nested scrollers and pinch/zoom gestures are preserved. Pixel,
+line and page wheel units and Shift-wheel horizontal scrolling are supported.
+
+The existing `elastic` boolean now controls desktop feedback instead of its former
+touch-only resistance. `onRefresh` independently enables touch pull-to-refresh and
+its accessible refresh command; wheel/trackpad elasticity never triggers refresh.
 
 ## Develop
 

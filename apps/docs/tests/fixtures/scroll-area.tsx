@@ -14,6 +14,8 @@ const orientation =
 function Fixture() {
   const [count, setCount] = React.useState(20);
   const [wide, setWide] = React.useState(true);
+  const [elastic, setElastic] = React.useState(params.has('elastic'));
+  const [refreshes, setRefreshes] = React.useState(0);
   return (
     <PlainProvider
       persist={false}
@@ -29,10 +31,29 @@ function Fixture() {
           <Button onClick={() => setCount(2)}>Remove projects</Button>
           <Button onClick={() => setCount(30)}>Add projects</Button>
           <Button onClick={() => setWide((value) => !value)}>Resize content</Button>
+          {params.has('elastic') && (
+            <Button onClick={() => setElastic((value) => !value)}>Toggle elasticity</Button>
+          )}
         </div>
         <ScrollArea
           aria-label="Projects"
           orientation={orientation}
+          elastic={elastic}
+          onRefresh={
+            params.has('refresh')
+              ? () => {
+                  setRefreshes((value) => value + 1);
+                }
+              : undefined
+          }
+          onWheel={(event) => {
+            if (params.get('cancel') === 'root') event.preventDefault();
+          }}
+          viewportProps={{
+            onWheel: (event) => {
+              if (params.get('cancel') === 'viewport') event.preventDefault();
+            },
+          }}
           scrollbarVisibility="always"
           scrollbarExpandOnHover={params.get('expand') !== 'off'}
           scrollbarSize={Number(params.get('size') ?? 6)}
@@ -65,6 +86,18 @@ function Fixture() {
               color: 'var(--ui-background)',
             }}
           >
+            {params.has('nested') && (
+              <ScrollArea elastic aria-label="Nested projects" style={{ height: 128, width: 240 }}>
+                <div style={{ height: 600, padding: 16 }}>Nested project updates</div>
+              </ScrollArea>
+            )}
+            {params.has('controls') && (
+              <textarea
+                aria-label="Project notes"
+                defaultValue={'Project notes\n'.repeat(30)}
+                style={{ height: 96, width: 220 }}
+              />
+            )}
             {Array.from({ length: orientation === 'horizontal' ? 2 : count }, (_, index) => (
               <div key={index} style={{ height: 64, padding: 16 }}>
                 {index === 5 ? <Button>Project details</Button> : `Project ${index + 1}`}
@@ -72,6 +105,7 @@ function Fixture() {
             ))}
           </div>
         </ScrollArea>
+        {params.has('refresh') && <output aria-label="Refresh calls">{refreshes}</output>}
       </main>
     </PlainProvider>
   );

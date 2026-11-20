@@ -74,13 +74,32 @@
   display: block !important;
   min-inline-size: 100%;
 }
+.ui-scroll-viewport {
+  --ui-elastic-offset: 0px;
+  --ui-scroll-elastic-x: 0px;
+  --ui-scroll-elastic-y: 0px;
+}
 .ui-scroll-viewport[data-orientation='horizontal'] > div,
 .ui-scroll-viewport[data-orientation='both'] > div {
   inline-size: max-content;
 }
 .ui-scroll-content {
   min-inline-size: 0;
-  transform: translateY(var(--ui-elastic-offset, 0px));
+  transform: translate(
+    var(--ui-scroll-elastic-x, 0px),
+    calc(var(--ui-elastic-offset, 0px) + var(--ui-scroll-elastic-y, 0px))
+  );
+}
+.ui-scroll-viewport[data-elastic] {
+  overscroll-behavior: none;
+}
+/* Keep visual stretching out of native scroll dimensions and thumb geometry. */
+.ui-scroll-viewport[data-elastic] > div {
+  overflow: clip;
+}
+.ui-scroll-viewport[data-elastic-active] > div > .ui-scroll-content {
+  transition: none;
+  will-change: transform;
 }
 .ui-scroll-content[data-settling] {
   transition: transform calc(320ms * var(--ui-motion-scale, 1)) cubic-bezier(0.2, 0.8, 0.2, 1);
