@@ -44,7 +44,7 @@ async function setMinute(page: Page, panel: Locator) {
   const wheel = panel.getByRole('spinbutton', { name: 'Minute', exact: true });
   if (await wheel.count()) {
     await wheel.press('Home');
-    for (let index = 0; index < 6; index++) await wheel.press('ArrowUp');
+    for (let index = 0; index < 30; index++) await wheel.press('ArrowUp');
     return;
   }
   await panel.getByRole('combobox', { name: 'Minute', exact: true }).click();

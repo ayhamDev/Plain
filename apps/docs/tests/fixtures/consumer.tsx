@@ -92,7 +92,12 @@ export function ConsumerApp() {
           style={tokensToStyle({ 'qr-code.foreground': '#123456' })}
         />
         <Field label="Start time">
-          <ModularTimePicker defaultValue="09:15" pickerMode={'wheel' satisfies TimePickerMode} />
+          <ModularTimePicker
+            defaultValue="16:07"
+            hour12
+            pickerMode={'wheel' satisfies TimePickerMode}
+            popoverProps={{ align: 'start', collisionPadding: 12 }}
+          />
         </Field>
         <P tone="muted" align="start">
           Your current projects.

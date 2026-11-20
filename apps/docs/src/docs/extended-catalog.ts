@@ -910,7 +910,7 @@ const fields: DataTableFilterField<Invoice>[] = [
     'time-picker',
     'Time picker',
     'Scheduling',
-    'Keyboard-editable time with a styled picker, constraints and form participation.',
+    'A click-to-open time picker with consistent formatting, constraints and form participation.',
     ['Field', 'TimePicker'],
     '<Field label="Start time"><TimePicker defaultValue="09:00" min="08:00" max="18:00" name="startTime" /></Field>',
     [
@@ -928,16 +928,33 @@ const fields: DataTableFilterField<Invoice>[] = [
         'auto',
       ),
       p(
-        'minuteStep / hourCycle',
-        'number / h12 | h23',
-        'Picker interval and display format; native step remains in seconds.',
-        '5 / h23',
+        'minuteStep',
+        'number',
+        'Minute interval in the picker. Every minute is available by default; native step remains in seconds.',
+        '1',
+      ),
+      p(
+        'hour12 / hourCycle',
+        'boolean / h12 | h23',
+        'Choose AM/PM or 24-hour display in both the field and picker. hour12 takes precedence.',
+        'undefined / h23',
+      ),
+      p(
+        'editable',
+        'boolean',
+        'Opt into native segmented keyboard editing. The default field opens the picker on click, Enter, Space or Arrow Down.',
+        'false',
+      ),
+      p(
+        'popoverProps',
+        'PopoverContent props',
+        'Desktop alignment, side, collision boundaries, styling and native handlers. The whole field is the anchor.',
       ),
     ],
     inputA11y,
     {
       usage:
-        'Values are local wall-time strings, not UTC instants. Mobile opens a bottom sheet with independently scrollable time wheels, a centered selection band and a reachable Done action. Wheel controls support Arrow Up/Down, Page Up/Down and Home/End; the native field remains editable. Desktop uses side-by-side selects. pickerMode can force select or wheel controls; compact screens still use a sheet. Overnight ranges require an explicit application policy.',
+        'Values are ISO wall-time strings, not UTC instants. Click anywhere in the field to choose a time. The formatted field and picker share hour12/hourCycle; the default is 24-hour time with one-minute intervals. Mobile uses independently scrollable wheels, which commit after a gesture settles, and a reachable Done action. Wheel controls support Arrow Up/Down, Page Up/Down and Home/End. Desktop uses side-by-side selects anchored to the whole field. editable opts into native editing, and minuteStep={5} restores five-minute choices. pickerMode can force select or wheel controls; compact screens still use a sheet. Overnight ranges require an explicit application policy.',
     },
   ),
   define(
@@ -952,6 +969,16 @@ const fields: DataTableFilterField<Invoice>[] = [
       p('fromLabel / toLabel', 'string', 'Localized field labels.'),
       p('fromName / toName', 'string', 'Independent submitted values.'),
       p('allowOvernight', 'boolean', 'Permit an end before start to mean the following day.'),
+      p(
+        'hour12 / hourCycle / minuteStep / editable',
+        'shared time options',
+        'Both fields use the same format, interval and click-to-open or native-editing behavior.',
+      ),
+      p(
+        'popoverProps',
+        'PopoverContent props',
+        'Desktop placement and collision options for both fields.',
+      ),
       p(
         'pickerMode',
         'auto | select | wheel',
@@ -992,10 +1019,15 @@ const fields: DataTableFilterField<Invoice>[] = [
     [
       ...value,
       p(
-        'minuteStep / hourCycle',
-        'number / h12 | h23',
-        'Time picker interval and display format.',
-        '5 / h23',
+        'minuteStep / hour12 / hourCycle',
+        'number / boolean / h12 | h23',
+        'One-minute choices by default; hour12/hourCycle consistently format the field and popup. hour12 takes precedence.',
+        '1 / undefined / h23',
+      ),
+      p(
+        'editable / popoverProps',
+        'boolean / PopoverContent props',
+        'Opt into native editing or configure desktop placement and collision boundaries. The default picker opens from the whole field.',
       ),
       p('min / max', 'string', 'Wall-time bounds in YYYY-MM-DDTHH:mm format.'),
       p(
@@ -1042,6 +1074,11 @@ const fields: DataTableFilterField<Invoice>[] = [
         'Shared timezone validation, without implicit conversion.',
       ),
       p('min / max / disabledDates', 'native bounds / Matcher', 'Shared field constraints.'),
+      p(
+        'hour12 / hourCycle / minuteStep / editable / popoverProps',
+        'shared picker options',
+        'Both endpoints share consistent field/picker formatting, intervals, click behavior and desktop placement.',
+      ),
       p(
         'pickerMode',
         'auto | select | wheel',

@@ -1246,20 +1246,34 @@ for (const slug of [
       disabled: false,
       readOnly: false,
       required: false,
-      ...(timeControl ? { pickerMode: 'auto' } : {}),
+      ...(timeControl
+        ? { pickerMode: 'auto', minuteStep: 1, hourCycle: 'h23', editable: false }
+        : {}),
     },
     controls: [
       bool('disabled'),
       bool('readOnly'),
       bool('required'),
-      ...(timeControl ? [options('pickerMode', ['auto', 'select', 'wheel'])] : []),
+      ...(timeControl
+        ? [
+            options('pickerMode', ['auto', 'select', 'wheel']),
+            options('hourCycle', ['h23', 'h12']),
+            number('minuteStep', 1, 60),
+            bool('editable'),
+          ]
+        : []),
     ],
     render: (s) =>
       field(
         <Component
           {...native(s)}
           {...(timeControl
-            ? { pickerMode: choice(s, 'pickerMode', ['auto', 'select', 'wheel']) }
+            ? {
+                pickerMode: choice(s, 'pickerMode', ['auto', 'select', 'wheel']),
+                minuteStep: Number(s.minuteStep),
+                hourCycle: choice(s, 'hourCycle', ['h23', 'h12']),
+                editable: !!s.editable,
+              }
             : {})}
         />,
         'Booking time',

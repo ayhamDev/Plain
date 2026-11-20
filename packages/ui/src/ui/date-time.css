@@ -71,6 +71,46 @@
 .ui-temporal .ui-temporal-action {
   flex-shrink: 0;
 }
+.ui-temporal-field {
+  position: relative;
+  flex: 1 1 0%;
+  min-inline-size: 0;
+}
+.ui-temporal-field[data-picker-only] > .ui-temporal-input {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  caret-color: transparent;
+  cursor: pointer;
+}
+.ui-temporal-field[data-picker-only] > .ui-temporal-input::-webkit-datetime-edit {
+  opacity: 0;
+}
+.ui-temporal-field[data-picker-only] > .ui-temporal-input:disabled {
+  cursor: not-allowed;
+}
+.ui-temporal-field[data-picker-only] > .ui-temporal-input[readonly] {
+  cursor: default;
+}
+.ui-temporal-display {
+  position: absolute;
+  inset-inline: 12px;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  color: var(--ui-temporal-foreground, var(--ui-foreground));
+  font: inherit;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.ui-temporal-display[data-placeholder] {
+  color: var(--ui-temporal-muted, var(--ui-muted-foreground));
+}
+.ui-temporal-field:has(.ui-temporal-input:disabled) > .ui-temporal-display {
+  opacity: 0.55;
+}
 .ui-time-choices {
   display: grid;
   grid-auto-flow: column;
@@ -262,7 +302,7 @@
   width: max-content;
 }
 .ui-time-content {
-  width: 320px;
+  width: clamp(280px, var(--radix-popover-trigger-width, 320px), 360px);
 }
 
 .ui-temporal-range {

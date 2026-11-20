@@ -43,9 +43,9 @@ describe('adaptive time wheels', () => {
     await openTime();
     key('Hour', 'ArrowUp');
     key('Minute', 'ArrowUp');
-    expect(ref.current).toHaveValue('10:15');
+    expect(ref.current).toHaveValue('10:13');
     expect(change).toHaveBeenCalledTimes(2);
-    expect(new FormData(container.querySelector('form')!).get('start')).toBe('10:15');
+    expect(new FormData(container.querySelector('form')!).get('start')).toBe('10:13');
     expect(screen.getByRole('spinbutton', { name: 'Hour' })).toHaveAttribute('aria-valuenow', '10');
   });
 
@@ -56,18 +56,18 @@ describe('adaptive time wheels', () => {
     );
     await openTime();
     key('Minute', 'ArrowUp');
-    expect(change).toHaveBeenLastCalledWith('09:15');
+    expect(change).toHaveBeenLastCalledWith('09:13');
     expect(screen.getByLabelText('Time', { selector: 'input' })).toHaveValue('09:12');
     expect(screen.getByRole('spinbutton', { name: 'Minute' })).toHaveAttribute(
       'aria-valuenow',
       '12',
     );
     rerender(
-      <TimePicker aria-label="Time" value="09:15" pickerMode="wheel" onValueChange={change} />,
+      <TimePicker aria-label="Time" value="09:13" pickerMode="wheel" onValueChange={change} />,
     );
     expect(screen.getByRole('spinbutton', { name: 'Minute' })).toHaveAttribute(
       'aria-valuenow',
-      '15',
+      '13',
     );
     expect(change).toHaveBeenCalledOnce();
   });
@@ -123,6 +123,7 @@ describe('adaptive time wheels', () => {
     await waitFor(() =>
       expect(screen.getByLabelText('Time', { selector: 'input' })).toHaveValue('09:12'),
     );
+    await openTime();
     expect(screen.getByRole('spinbutton', { name: 'Hour' })).toHaveAttribute('aria-valuenow', '9');
   });
 
@@ -176,7 +177,7 @@ describe('adaptive time wheels', () => {
       await userEvent.click(screen.getByRole('button', { name: 'Done' }));
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
       expect(screen.getByLabelText('Time')).toHaveFocus();
-      expect(screen.getByLabelText('Time')).toHaveValue('09:20');
+      expect(screen.getByLabelText('Time')).toHaveValue('09:16');
       rerender(<TimePicker aria-label="Time" defaultValue="09:15" pickerMode="select" />);
       await openTime();
       expect(screen.getByRole('combobox', { name: 'Hour' })).toBeInTheDocument();

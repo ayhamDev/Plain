@@ -227,36 +227,53 @@ filters and returns to page one while preserving sorting, columns and selection;
 use controller methods in application actions for a different reset policy.
 The working docs example is `/components/data-table-controls`.
 
-## Mobile time pickers
+## Time pickers
 
 TimePicker, DateTimePicker and their range variants open a bottom sheet below
 768px. The default `pickerMode="auto"` uses iOS-style wheels on compact screens
 and select controls in a desktop popover. Set `pickerMode="select"` or `"wheel"`
 to choose the time controls explicitly; compact screens still use a sheet.
+Click the field, or press Enter, Space or an arrow key, to open the picker.
 An open surface stays stable across screen rotation; the next opening follows
-the new viewport size.
+the new viewport size. Minute choices default to every minute.
 
 ```tsx
 import { Field, TimePicker } from '@plain/ui';
 
 <Field label="Start time">
-  <TimePicker defaultValue="09:15" hourCycle="h12" minuteStep={5} pickerMode="auto" />
+  <TimePicker defaultValue="16:07" hour12 popoverProps={{ align: 'start', collisionPadding: 12 }} />
 </Field>;
+
+<TimePicker defaultValue="16:07" hour12={false} />; // 24-hour field and picker
+<TimePicker defaultValue="09:15" minuteStep={5} />; // Explicit five-minute choices
+<TimePicker defaultValue="09:15" editable />; // Opt into native keyboard editing
 ```
 
-Touch scrolling, mouse wheels and trackpads use native scrolling and snap points.
-Each column also supports Arrow Up/Down, Page Up/Down and Home/End. AM/PM and
-seconds appear when requested by `hourCycle` and the value's precision. Values
-remain ISO wall-time strings in the actual native input: refs, change events,
-forms, bounds, controlled state and resets retain their existing behavior.
-Selections update immediately; Done dismisses the surface and restores input
+`hour12` selects AM/PM; `hour12={false}` selects 24-hour time. It takes precedence
+over `hourCycle="h12" | "h23"`, whose default remains `h23`. The default field and
+picker use the same localized format. With `editable`, the browser controls the
+native editor's display format; use the icon or Alt+ArrowDown to open the picker.
+These settings also apply to DateTimePicker and both time range variants.
+
+Touch gestures retain native scrolling and inertia. Mouse-wheel notches advance
+one row, while small trackpad deltas accumulate smoothly. Wheel values commit
+when the gesture settles; Done accepts any pending column changes together.
+Each column also supports Arrow Up/Down, Page Up/Down and Home/End. Seconds appear
+when present in the value. Values remain ISO wall-time strings in the actual
+native input: refs, change events, forms, bounds and controlled state remain
+available. Clear and form reset discard pending gestures. Done restores field
 focus. Date-time sheets keep their calendar in a scrollable body, with Done
 outside that body. Wheel gestures do not drag the sheet.
+
+Desktop popovers anchor to the whole field and fit the available viewport. Use
+`popoverProps` for placement, collision boundaries, sizing or native popover
+handlers. Compact screens retain a bottom sheet regardless of desktop placement.
 
 Use ThemeScope/PlainProvider tokens for scoped portal overrides:
 `temporal.wheel-row-height` (48px by default, minimum visual height 44px),
 `temporal.wheel-selection`, `temporal.wheel-foreground` and `temporal.wheel-muted`.
-Typed `temporal.wheel*`, `temporal.mobile-panel` and `temporal.mobile-body` slots
+Typed `temporal.field`, `temporal.display`, `temporal.wheel*`, `temporal.mobile-panel`
+and `temporal.mobile-body` slots
 support custom classes. Neutral light/dark styling, RTL, localized numerals,
 reduced motion and unstyled composition follow the existing library contract.
 Custom unstyled wheels need application CSS for their scrolling geometry.

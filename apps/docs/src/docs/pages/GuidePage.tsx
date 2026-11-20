@@ -1797,9 +1797,12 @@ function SchedulingGuide() {
       <GuideSection title="Dates, wall times, and instants">
         <p>
           Calendar and DateRangePicker use DayPicker for date selection. TimePicker and
-          DateTimePicker retain native keyboard editing, refs, validation and form submission, with
-          P.UI popovers and labeled hour/minute controls. Calendar, clock and clear actions share
-          the input boundary. Use minuteStep and hourCycle to configure the popup.
+          DateTimePicker open from the whole field and retain native refs, validation and form
+          submission. Compact screens use a bottom sheet with time wheels; desktop popovers anchor
+          to the field. Minute choices default to every minute. Use hour12 or hourCycle for a
+          consistent AM/PM or 24-hour format, and minuteStep for another interval. Set editable to
+          opt into the browser's native keyboard editor. Use popoverProps to customize desktop
+          placement and collision boundaries.
         </p>
         <CodeBlock code={examples.pickers} />
         <p>

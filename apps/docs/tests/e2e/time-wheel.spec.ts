@@ -191,6 +191,7 @@ test('opening an animated desktop wheel preserves a value near the end of its ra
   await settled(panel.getByRole('spinbutton', { name: 'Minute' }));
   await expect(hour).toHaveAttribute('aria-valuenow', '23');
   await expect(page.locator('input[type="time"]')).toHaveValue('23:55');
+  await expect(page.getByTestId('time-changes')).toHaveText('[]');
 });
 
 test('reduced motion and forced colors keep keyboard wheels usable', async ({ page }) => {

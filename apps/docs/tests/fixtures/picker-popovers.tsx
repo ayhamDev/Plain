@@ -59,6 +59,7 @@ function Options() {
   );
 }
 function Fixture() {
+  const [changes, setChanges] = React.useState<string[]>([]);
   return (
     <PlainProvider
       persist={false}
@@ -83,8 +84,15 @@ function Fixture() {
               <TimePicker
                 defaultValue={params.get('value') ?? (params.has('seconds') ? '09:15:30' : '09:15')}
                 hourCycle={params.has('twelve') ? 'h12' : 'h23'}
+                hour12={params.has('hour12') ? params.get('hour12') !== 'false' : undefined}
+                editable={params.has('editable')}
                 pickerMode={(params.get('mode') ?? 'auto') as TimePickerMode}
-                minuteStep={Number(params.get('minuteStep') ?? 5)}
+                minuteStep={params.has('minuteStep') ? Number(params.get('minuteStep')) : undefined}
+                onValueChange={(value) => setChanges((previous) => [...previous, value ?? ''])}
+                popoverProps={{
+                  side: params.get('side') === 'top' ? 'top' : 'bottom',
+                  align: params.get('align') === 'end' ? 'end' : 'start',
+                }}
                 name="start"
                 min={params.get('min') ?? undefined}
                 max={params.get('max') ?? undefined}
@@ -92,6 +100,9 @@ function Fixture() {
             </Field>
           </div>
         )}
+        <output hidden data-testid="time-changes">
+          {JSON.stringify(changes)}
+        </output>
       </main>
     </PlainProvider>
   );
