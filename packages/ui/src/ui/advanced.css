@@ -13,10 +13,10 @@
     min-inline-size: 0;
     min-block-size: var(--ui-control-height, 40px);
     border: var(--ui-input-border-width, var(--ui-border-width, 1px)) solid
-      var(--ui-input-border, var(--ui-border));
+      var(--_ui-input-border, var(--ui-input-border, var(--ui-border)));
     border-radius: var(--ui-input-radius, var(--ui-radius));
-    background: var(--ui-input-background, var(--ui-background));
-    color: var(--ui-input-foreground, var(--ui-foreground));
+    background: var(--_ui-input-background, var(--ui-input-background, var(--ui-background)));
+    color: var(--_ui-input-foreground, var(--ui-input-foreground, var(--ui-foreground)));
     padding-inline: 8px;
     font-size: 14px;
   }
@@ -111,10 +111,10 @@
     min-inline-size: 0;
     block-size: 48px;
     border: var(--ui-pin-input-border-width, var(--ui-border-width, 1px)) solid
-      var(--ui-pin-input-border, var(--ui-input-border));
+      var(--_ui-input-border, var(--ui-pin-input-border, var(--ui-input-border)));
     border-radius: var(--ui-pin-input-radius, var(--ui-input-radius, var(--ui-radius)));
-    background: var(--ui-pin-input-background, var(--ui-background));
-    color: var(--ui-pin-input-foreground, var(--ui-foreground));
+    background: var(--_ui-input-background, var(--ui-pin-input-background, var(--ui-background)));
+    color: var(--_ui-input-foreground, var(--ui-pin-input-foreground, var(--ui-foreground)));
     font-size: 18px;
   }
   .ui-pin-slot[data-active] {
@@ -138,16 +138,17 @@
     outline: none;
   }
   .ui-pin-input:has(input[aria-invalid='true']) .ui-pin-slot {
+    --_ui-input-border: var(--ui-danger);
     border-color: var(--ui-danger);
   }
   .ui-file-upload {
     border: var(--ui-file-upload-border-width, var(--ui-border-width, 1px)) dashed
-      var(--ui-file-upload-border, var(--ui-border));
+      var(--_ui-input-border, var(--ui-file-upload-border, var(--ui-border)));
     border-radius: var(--ui-file-upload-radius, var(--ui-radius));
     padding: 16px;
     min-inline-size: 0;
-    background: var(--ui-file-upload-background, var(--ui-background));
-    color: var(--ui-file-upload-foreground, var(--ui-foreground));
+    background: var(--_ui-input-background, var(--ui-file-upload-background, var(--ui-background)));
+    color: var(--_ui-input-foreground, var(--ui-file-upload-foreground, var(--ui-foreground)));
   }
   .ui-file-upload[data-dragging] {
     border-color: var(--ui-file-upload-accent, var(--ui-accent));
@@ -218,9 +219,10 @@
     min-block-size: var(--ui-dropzone-min-height, 192px);
     padding: 24px;
     border: var(--ui-dropzone-border-width, var(--ui-border-width, 1px)) dashed
-      var(--ui-dropzone-border, var(--ui-control-border));
+      var(--_ui-input-border, var(--ui-dropzone-border, var(--ui-control-border)));
     border-radius: var(--ui-dropzone-radius, var(--ui-radius));
-    background: var(--ui-dropzone-background, var(--ui-surface));
+    background: var(--_ui-input-background, var(--ui-dropzone-background, var(--ui-surface)));
+    color: var(--_ui-input-foreground, inherit);
     transition:
       background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1))
         var(--ui-ease-standard),
@@ -235,6 +237,7 @@
     background: var(--ui-dropzone-active-background, var(--ui-accent-soft));
   }
   .ui-dropzone[data-invalid] .ui-dropzone-area {
+    --_ui-input-border: var(--ui-danger);
     border-color: var(--ui-danger);
   }
   .ui-dropzone[data-invalid] .ui-dropzone-area:focus-within {
@@ -401,10 +404,13 @@
     box-sizing: border-box;
     padding: 3px 8px;
     border: var(--ui-tags-input-border-width, var(--ui-border-width, 1px)) solid
-      var(--ui-tags-input-border, var(--ui-input-border));
+      var(--_ui-input-border, var(--ui-tags-input-border, var(--ui-input-border)));
     border-radius: var(--ui-tags-input-radius, var(--ui-input-radius, var(--ui-radius)));
-    background: var(--ui-tags-input-background, var(--ui-input-background, var(--ui-surface)));
-    color: var(--ui-tags-input-foreground, var(--ui-foreground));
+    background: var(
+      --_ui-input-background,
+      var(--ui-tags-input-background, var(--ui-input-background, var(--ui-surface)))
+    );
+    color: var(--_ui-input-foreground, var(--ui-tags-input-foreground, var(--ui-foreground)));
     font-size: 14px;
   }
   .ui-tags-native {
@@ -428,7 +434,10 @@
     max-inline-size: 100%;
     padding: 2px 4px 2px 8px;
     border-radius: var(--ui-radius);
-    background: var(--ui-tags-input-tag-background, var(--ui-muted));
+    background: var(
+      --ui-tags-input-tag-background,
+      var(--_ui-input-tag-background, var(--ui-muted))
+    );
     color: var(--ui-tags-input-tag-foreground, var(--ui-foreground));
     font-size: 13px;
   }

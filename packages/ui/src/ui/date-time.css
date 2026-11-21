@@ -5,9 +5,10 @@
   gap: 0;
   min-width: 0;
   width: 100%;
-  border: var(--ui-border-width, 1px) solid var(--ui-temporal-border, var(--ui-control-border));
+  border: var(--ui-border-width, 1px) solid
+    var(--_ui-input-border, var(--ui-temporal-border, var(--ui-control-border)));
   border-radius: var(--ui-temporal-radius, var(--ui-radius));
-  background: var(--ui-temporal-background, var(--ui-surface));
+  background: var(--_ui-input-background, var(--ui-temporal-background, var(--ui-surface)));
   padding-inline-end: 4px;
 }
 
@@ -21,7 +22,7 @@
   border: var(--ui-border-width, 1px) solid
     var(--ui-temporal-border, var(--ui-input-border, #858e87));
   border-radius: var(--ui-temporal-radius, var(--ui-radius, 6px));
-  color: var(--ui-temporal-foreground, var(--ui-foreground, #202321));
+  color: var(--_ui-input-foreground, var(--ui-temporal-foreground, var(--ui-foreground, #202321)));
   background: var(--ui-temporal-background, var(--ui-surface, #fff));
   font: inherit;
   font-size: 14px;
@@ -101,7 +102,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   pointer-events: none;
-  color: var(--ui-temporal-foreground, var(--ui-foreground));
+  color: var(--_ui-input-foreground, var(--ui-temporal-foreground, var(--ui-foreground)));
   font: inherit;
   font-size: 14px;
   font-variant-numeric: tabular-nums;

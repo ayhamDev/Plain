@@ -45,6 +45,7 @@ const native = (state: State) => ({
 const field = (element: React.ReactElement<{ id?: string }>, label = 'Project name') => (
   <UI.Field label={label}>{element}</UI.Field>
 );
+const inputVariants = ['outlined', 'filled', 'ghost', 'contrast'] as const;
 const sizes = ['xs', 'sm', 'md', 'lg'] as const;
 const buttonVariants = [
   'primary',
@@ -90,7 +91,7 @@ function SelectPreview({ state }: { state: State }) {
     <div style={{ width: '100%', maxWidth: 320 }}>
       <UI.Label htmlFor={id}>Team</UI.Label>
       <UI.Select defaultValue="engineering" disabled={!!state.disabled}>
-        <UI.SelectTrigger id={id}>
+        <UI.SelectTrigger id={id} variant={choice(state, 'variant', inputVariants)}>
           <UI.SelectValue placeholder="Select department" />
         </UI.SelectTrigger>
         <UI.SelectContent
@@ -243,11 +244,24 @@ export const propPreviews: Record<string, PropPreview> = {
         .join(' ')} label="Open the P.UI repository" />`,
   },
   dropzone: {
-    defaults: { multiple: true, maxFiles: 5, showFileList: true, disabled: false },
-    controls: [bool('multiple'), number('maxFiles', 1, 10), bool('showFileList'), bool('disabled')],
+    defaults: {
+      variant: 'outlined',
+      multiple: true,
+      maxFiles: 5,
+      showFileList: true,
+      disabled: false,
+    },
+    controls: [
+      options('variant', inputVariants),
+      bool('multiple'),
+      number('maxFiles', 1, 10),
+      bool('showFileList'),
+      bool('disabled'),
+    ],
     render: (state) => (
       <div style={{ width: '100%', maxWidth: 520 }}>
         <UI.Dropzone
+          variant={choice(state, 'variant', inputVariants)}
           aria-label="Upload project documents"
           accept=".pdf,.txt"
           multiple={!!state.multiple}
@@ -264,6 +278,39 @@ export const propPreviews: Record<string, PropPreview> = {
       `<Dropzone ${attr(state)} aria-label="Upload project documents" accept=".pdf,.txt" maxSize={5000000} label="Add project documents" description="PDF or text files, up to ${state.multiple ? state.maxFiles : 1} files, 5 MB each." />`,
   },
   'empty-state': emptyStatePreview,
+  'file-upload': {
+    defaults: { variant: 'outlined', disabled: false, multiple: true },
+    controls: [options('variant', inputVariants), bool('disabled'), bool('multiple')],
+    render: (s) => (
+      <UI.FileUpload
+        variant={choice(s, 'variant', inputVariants)}
+        disabled={!!s.disabled}
+        multiple={!!s.multiple}
+        aria-label="Project files"
+      />
+    ),
+    code: (s) => `<FileUpload ${attr(s)} aria-label="Project files" />`,
+  },
+  command: {
+    defaults: { variant: 'outlined', disabled: false },
+    controls: [options('variant', inputVariants), bool('disabled')],
+    render: (s) => (
+      <UI.Command style={{ width: '100%', maxWidth: 360 }}>
+        <UI.CommandInput
+          variant={choice(s, 'variant', inputVariants)}
+          disabled={!!s.disabled}
+          aria-label="Search commands"
+        />
+        <UI.CommandList>
+          <UI.CommandEmpty>No commands found.</UI.CommandEmpty>
+          <UI.CommandItem>Open project</UI.CommandItem>
+          <UI.CommandItem>View activity</UI.CommandItem>
+        </UI.CommandList>
+      </UI.Command>
+    ),
+    code: (s) =>
+      `<Command><CommandInput ${attr(s)} aria-label="Search commands" /><CommandList><CommandEmpty>No commands found.</CommandEmpty><CommandItem>Open project</CommandItem><CommandItem>View activity</CommandItem></CommandList></Command>`,
+  },
   button: {
     defaults: { variant: 'primary', size: 'md', loading: false, disabled: false },
     controls: [
@@ -286,6 +333,7 @@ export const propPreviews: Record<string, PropPreview> = {
   },
   select: {
     defaults: {
+      variant: 'outlined',
       position: 'popper',
       side: 'bottom',
       align: 'start',
@@ -293,6 +341,7 @@ export const propPreviews: Record<string, PropPreview> = {
       disabled: false,
     },
     controls: [
+      options('variant', inputVariants),
       options('position', ['popper', 'item-aligned']),
       { ...options('side', sides), when: { position: 'popper' } },
       { ...options('align', alignments), when: { position: 'popper' } },
@@ -304,7 +353,7 @@ export const propPreviews: Record<string, PropPreview> = {
 
 <Label htmlFor={id}>Team</Label>
 <Select defaultValue="engineering" disabled={${s.disabled}}>
-  <SelectTrigger id={id}><SelectValue placeholder="Select department" /></SelectTrigger>
+  <SelectTrigger id={id} variant="${s.variant}"><SelectValue placeholder="Select department" /></SelectTrigger>
   <SelectContent ${attr({ position: s.position, side: s.side, align: s.align, sideOffset: s.sideOffset })}>
     <SelectGroup><SelectLabel>Teams</SelectLabel>
       <SelectItem value="design">Design</SelectItem>
@@ -326,7 +375,7 @@ export const propPreviews: Record<string, PropPreview> = {
     },
     controls: [
       options('type', ['text', 'email', 'url', 'tel', 'search']),
-      options('variant', ['outlined', 'filled', 'ghost', 'contrast']),
+      options('variant', inputVariants),
       bool('disabled'),
       bool('readOnly'),
       bool('required'),
@@ -335,7 +384,7 @@ export const propPreviews: Record<string, PropPreview> = {
     render: (s) =>
       field(
         <UI.Input
-          variant={choice(s, 'variant', ['outlined', 'filled', 'ghost', 'contrast'])}
+          variant={choice(s, 'variant', inputVariants)}
           type={String(s.type)}
           {...native(s)}
           placeholder="Project Atlas"
@@ -353,7 +402,7 @@ export const propPreviews: Record<string, PropPreview> = {
       'aria-invalid': false,
     },
     controls: [
-      options('variant', ['outlined', 'filled', 'ghost', 'contrast']),
+      options('variant', inputVariants),
       number('rows', 2, 8),
       bool('disabled'),
       bool('readOnly'),
@@ -362,7 +411,7 @@ export const propPreviews: Record<string, PropPreview> = {
     render: (s) =>
       field(
         <UI.Textarea
-          variant={choice(s, 'variant', ['outlined', 'filled', 'ghost', 'contrast'])}
+          variant={choice(s, 'variant', inputVariants)}
           {...native(s)}
           rows={Number(s.rows)}
           placeholder="A few notes for your team"
@@ -423,10 +472,16 @@ export const propPreviews: Record<string, PropPreview> = {
       `<Slider orientation="${s.orientation}" step={${s.step}} disabled={${s.disabled}} defaultValue={${s.range ? '[25, 75]' : '[50]'}} thumbLabels={${s.range ? '["Minimum budget", "Maximum budget"]' : '["Budget"]'}} />`,
   },
   combobox: {
-    defaults: { disabled: false, side: 'bottom', align: 'start' },
-    controls: [bool('disabled'), options('side', sides), options('align', alignments)],
+    defaults: { variant: 'outlined', disabled: false, side: 'bottom', align: 'start' },
+    controls: [
+      options('variant', inputVariants),
+      bool('disabled'),
+      options('side', sides),
+      options('align', alignments),
+    ],
     render: (s) => (
       <UI.Combobox
+        variant={choice(s, 'variant', inputVariants)}
         options={departments}
         aria-label="Department"
         disabled={!!s.disabled}
@@ -436,7 +491,7 @@ export const propPreviews: Record<string, PropPreview> = {
       />
     ),
     code: (s) =>
-      `const options = ${optionSource};\n\n<Combobox options={options} aria-label="Department" defaultValue="engineering" disabled={${s.disabled}} contentProps={{ side: "${s.side}", align: "${s.align}" }} />`,
+      `const options = ${optionSource};\n\n<Combobox variant="${s.variant}" options={options} aria-label="Department" defaultValue="engineering" disabled={${s.disabled}} contentProps={{ side: "${s.side}", align: "${s.align}" }} />`,
   },
   badge: {
     defaults: { variant: 'accent' },
@@ -614,6 +669,7 @@ export const propPreviews: Record<string, PropPreview> = {
   },
   'date-picker': {
     defaults: {
+      variant: 'outlined',
       clearable: true,
       disabled: false,
       captionLayout: 'dropdown',
@@ -622,6 +678,7 @@ export const propPreviews: Record<string, PropPreview> = {
       endYear: 2100,
     },
     controls: [
+      options('variant', inputVariants),
       bool('clearable'),
       bool('disabled'),
       options('captionLayout', ['dropdown', 'label', 'dropdown-months', 'dropdown-years']),
@@ -632,6 +689,7 @@ export const propPreviews: Record<string, PropPreview> = {
     render: (s) =>
       field(
         <UI.DatePicker
+          variant={choice(s, 'variant', inputVariants)}
           clearable={!!s.clearable}
           disabled={!!s.disabled}
           defaultValue={new Date(2026, 9, 14)}
@@ -650,7 +708,7 @@ export const propPreviews: Record<string, PropPreview> = {
         'Due date',
       ),
     code: (s) =>
-      `<Field label="Due date"><DatePicker clearable={${s.clearable}} disabled={${s.disabled}} defaultValue={new Date(2026, 9, 14)} calendarProps={{ captionLayout: "${s.captionLayout}", reverseYears: ${s.reverseYears}, startMonth: new Date(${s.startYear}, 0), endMonth: new Date(${s.endYear}, 11) }} /></Field>`,
+      `<Field label="Due date"><DatePicker variant="${s.variant}" clearable={${s.clearable}} disabled={${s.disabled}} defaultValue={new Date(2026, 9, 14)} calendarProps={{ captionLayout: "${s.captionLayout}", reverseYears: ${s.reverseYears}, startMonth: new Date(${s.startYear}, 0), endMonth: new Date(${s.endYear}, 11) }} /></Field>`,
   },
   'number-input': {
     defaults: {
@@ -666,7 +724,7 @@ export const propPreviews: Record<string, PropPreview> = {
       bool('showControls'),
       bool('disabled'),
       bool('readOnly'),
-      options('variant', ['outlined', 'filled', 'ghost', 'contrast']),
+      options('variant', inputVariants),
       options('textAlign', ['start', 'center', 'end']),
     ],
     render: (s) =>
@@ -675,7 +733,7 @@ export const propPreviews: Record<string, PropPreview> = {
           {...native(s)}
           step={Number(s.step)}
           showControls={!!s.showControls}
-          variant={choice(s, 'variant', ['outlined', 'filled', 'ghost', 'contrast'])}
+          variant={choice(s, 'variant', inputVariants)}
           textAlign={choice(s, 'textAlign', ['start', 'center', 'end'])}
           min={0}
           max={100}
@@ -931,31 +989,54 @@ export const propPreviews: Record<string, PropPreview> = {
       `<DropdownMenu><DropdownMenuTrigger asChild><Button variant="outline">Project actions</Button></DropdownMenuTrigger><DropdownMenuContent ${attr(s)}><DropdownMenuItem>Edit project</DropdownMenuItem><DropdownMenuSub><DropdownMenuSubTrigger>Move to</DropdownMenuSubTrigger><DropdownMenuSubContent><DropdownMenuItem>Workspace</DropdownMenuItem><DropdownMenuItem>Archive</DropdownMenuItem></DropdownMenuSubContent></DropdownMenuSub></DropdownMenuContent></DropdownMenu>`,
   },
   'password-input': {
-    defaults: { disabled: false, readOnly: false },
-    controls: [bool('disabled'), bool('readOnly')],
+    defaults: { variant: 'outlined', disabled: false, readOnly: false },
+    controls: [options('variant', inputVariants), bool('disabled'), bool('readOnly')],
     render: (s) =>
-      field(<UI.PasswordInput {...native(s)} defaultValue="atlas-project" />, 'Password'),
+      field(
+        <UI.PasswordInput
+          variant={choice(s, 'variant', inputVariants)}
+          {...native(s)}
+          defaultValue="atlas-project"
+        />,
+        'Password',
+      ),
     code: (s) =>
       `<Field label="Password"><PasswordInput ${attr(s)} defaultValue="atlas-project" /></Field>`,
   },
   'search-input': {
-    defaults: { disabled: false, readOnly: false },
-    controls: [bool('disabled'), bool('readOnly')],
-    render: (s) => field(<UI.SearchInput {...native(s)} placeholder="Search projects" />, 'Search'),
+    defaults: { variant: 'outlined', disabled: false, readOnly: false },
+    controls: [options('variant', inputVariants), bool('disabled'), bool('readOnly')],
+    render: (s) =>
+      field(
+        <UI.SearchInput
+          variant={choice(s, 'variant', inputVariants)}
+          {...native(s)}
+          placeholder="Search projects"
+        />,
+        'Search',
+      ),
     code: (s) =>
       `<Field label="Search"><SearchInput ${attr(s)} placeholder="Search projects" /></Field>`,
   },
   'tags-input': {
-    defaults: { disabled: false, readOnly: false },
-    controls: [bool('disabled'), bool('readOnly')],
+    defaults: { variant: 'outlined', disabled: false, readOnly: false },
+    controls: [options('variant', inputVariants), bool('disabled'), bool('readOnly')],
     render: (s) =>
-      field(<UI.TagsInput {...native(s)} defaultValue={['Design', 'Research']} />, 'Tags'),
+      field(
+        <UI.TagsInput
+          variant={choice(s, 'variant', inputVariants)}
+          {...native(s)}
+          defaultValue={['Design', 'Research']}
+        />,
+        'Tags',
+      ),
     code: (s) =>
       `<Field label="Tags"><TagsInput ${attr(s)} defaultValue={["Design", "Research"]} /></Field>`,
   },
   'multi-select': {
-    defaults: { disabled: false, maxSelected: 3, selectionDisplay: 'tags' },
+    defaults: { variant: 'outlined', disabled: false, maxSelected: 3, selectionDisplay: 'tags' },
     controls: [
+      options('variant', inputVariants),
       bool('disabled'),
       number('maxSelected', 1, 3),
       options('selectionDisplay', ['tags', 'summary']),
@@ -963,6 +1044,7 @@ export const propPreviews: Record<string, PropPreview> = {
     render: (s) =>
       field(
         <UI.MultiSelect
+          variant={choice(s, 'variant', inputVariants)}
           options={departments}
           disabled={!!s.disabled}
           maxSelected={Number(s.maxSelected)}
@@ -974,11 +1056,18 @@ export const propPreviews: Record<string, PropPreview> = {
       `const options = ${optionSource};\n\n<Field label="Departments"><MultiSelect options={options} ${attr(s)} /></Field>`,
   },
   'pin-input': {
-    defaults: { length: 6, numeric: true, masked: false, disabled: false },
-    controls: [number('length', 4, 8), bool('numeric'), bool('masked'), bool('disabled')],
+    defaults: { variant: 'outlined', length: 6, numeric: true, masked: false, disabled: false },
+    controls: [
+      options('variant', inputVariants),
+      number('length', 4, 8),
+      bool('numeric'),
+      bool('masked'),
+      bool('disabled'),
+    ],
     render: (s) =>
       field(
         <UI.PinInput
+          variant={choice(s, 'variant', inputVariants)}
           length={Number(s.length)}
           numeric={!!s.numeric}
           masked={!!s.masked}
@@ -989,9 +1078,17 @@ export const propPreviews: Record<string, PropPreview> = {
     code: (s) => `<Field label="Verification code"><PinInput ${attr(s)} /></Field>`,
   },
   'color-picker': {
-    defaults: { disabled: false, readOnly: false },
-    controls: [bool('disabled'), bool('readOnly')],
-    render: (s) => field(<UI.ColorPicker {...native(s)} defaultValue="#2563eb" />, 'Project color'),
+    defaults: { variant: 'outlined', disabled: false, readOnly: false },
+    controls: [options('variant', inputVariants), bool('disabled'), bool('readOnly')],
+    render: (s) =>
+      field(
+        <UI.ColorPicker
+          variant={choice(s, 'variant', inputVariants)}
+          {...native(s)}
+          defaultValue="#2563eb"
+        />,
+        'Project color',
+      ),
     code: (s) =>
       `<Field label="Project color"><ColorPicker ${attr(s)} defaultValue="#2563eb" /></Field>`,
   },
@@ -1307,6 +1404,7 @@ for (const slug of [
   const timeControl = slug !== 'date-range-picker';
   propPreviews[slug] = {
     defaults: {
+      variant: 'outlined',
       disabled: false,
       readOnly: false,
       required: false,
@@ -1315,6 +1413,7 @@ for (const slug of [
         : {}),
     },
     controls: [
+      options('variant', inputVariants),
       bool('disabled'),
       bool('readOnly'),
       bool('required'),
@@ -1330,6 +1429,7 @@ for (const slug of [
     render: (s) =>
       field(
         <Component
+          variant={choice(s, 'variant', inputVariants)}
           {...native(s)}
           {...(timeControl
             ? {
@@ -1522,7 +1622,7 @@ for (const slug of [
     slug === 'chips'
       ? { type: 'multiple', variant: 'outlined', size: 'md', disabled: false }
       : slug === 'search-view'
-        ? { variant: 'modal', loading: false }
+        ? { variant: 'modal', inputVariant: 'outlined', loading: false }
         : slug === 'kanban'
           ? { disabled: false, columnWidth: 252 }
           : slug === 'gantt-chart'
@@ -1546,24 +1646,26 @@ for (const slug of [
   const controls = Object.keys(defaults).map((key) =>
     key === 'type'
       ? options(key, ['single', 'multiple'])
-      : key === 'variant'
-        ? options(
-            key,
-            slug === 'chips' ? ['outlined', 'filled'] : ['modal', 'docked', 'fullscreen'],
-          )
-        : key === 'size'
-          ? options(key, ['sm', 'md'])
-          : key === 'labelPosition'
-            ? options(key, ['auto', 'inside', 'outside', 'hidden'])
-            : key === 'scale'
-              ? options(key, ['day', 'week', 'month'])
-              : key === 'dataTable'
-                ? options(key, ['sr-only', 'visible', 'false'])
-                : key === 'columnWidth'
-                  ? number(key, 200, 360)
-                  : key === 'cellSize'
-                    ? number(key, 24, 64)
-                    : bool(key),
+      : key === 'inputVariant'
+        ? options(key, inputVariants)
+        : key === 'variant'
+          ? options(
+              key,
+              slug === 'chips' ? ['outlined', 'filled'] : ['modal', 'docked', 'fullscreen'],
+            )
+          : key === 'size'
+            ? options(key, ['sm', 'md'])
+            : key === 'labelPosition'
+              ? options(key, ['auto', 'inside', 'outside', 'hidden'])
+              : key === 'scale'
+                ? options(key, ['day', 'week', 'month'])
+                : key === 'dataTable'
+                  ? options(key, ['sr-only', 'visible', 'false'])
+                  : key === 'columnWidth'
+                    ? number(key, 200, 360)
+                    : key === 'cellSize'
+                      ? number(key, 24, 64)
+                      : bool(key),
   );
   propPreviews[slug] = {
     defaults,
@@ -1589,7 +1691,7 @@ for (const slug of [
       else if (slug === 'search-view')
         markup = markup.replace(
           'variant="modal"',
-          attr({ variant: s.variant, loading: s.loading }),
+          attr({ variant: s.variant, inputVariant: s.inputVariant, loading: s.loading }),
         );
       else if (slug === 'kanban')
         markup = markup.replace('<KanbanBoard', '<KanbanBoard ' + attr(s));

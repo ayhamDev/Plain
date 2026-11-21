@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { inputVariantClass, type InputVariant } from './input-variants';
 import { dateFormatter, numberFormatter, useTranslation } from './i18n';
 import { CalendarDays, Clock3, X } from 'lucide-react';
 import { Temporal } from 'temporal-polyfill';
@@ -45,7 +46,7 @@ type WallInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   'type' | 'value' | 'defaultValue' | 'min' | 'max' | 'children'
 > &
-  PlainStyleProps;
+  PlainStyleProps & { variant?: InputVariant };
 
 export interface TimePickerProps extends WallInputProps {
   value?: TimeValue;
@@ -121,6 +122,7 @@ export interface DateRangePickerProps
       'value' | 'defaultValue' | 'onChange' | 'children'
     >,
     PlainStyleProps {
+  variant?: InputVariant;
   /** DayPicker's inclusive range. Dates use their local calendar date, never toISOString(). */
   value?: DateRange;
   defaultValue?: DateRange;
@@ -459,6 +461,7 @@ function TemporalInput({
   forwardedRef: React.ForwardedRef<HTMLInputElement>;
 }) {
   const {
+    variant = 'outlined',
     value: suppliedValue,
     defaultValue,
     onValueChange,
@@ -738,9 +741,20 @@ function TemporalInput({
               tabIndex={tooltip === undefined ? undefined : disabled ? 0 : -1}
               ref={fieldRef}
               {...(kind === 'time'
-                ? styles('time-picker.root', 'ui-temporal', undefined, unstyled)
-                : styles('date-time-picker.root', 'ui-temporal', undefined, unstyled))}
+                ? styles(
+                    'time-picker.root',
+                    `ui-temporal ${inputVariantClass(variant)}`,
+                    undefined,
+                    unstyled,
+                  )
+                : styles(
+                    'date-time-picker.root',
+                    `ui-temporal ${inputVariantClass(variant)}`,
+                    undefined,
+                    unstyled,
+                  ))}
               dir={direction}
+              data-variant={variant}
               data-disabled={disabled ? '' : undefined}
             >
               <div
@@ -1211,6 +1225,7 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
   DateRangePickerProps
 >((allProps, forwardedRef) => {
   const {
+    variant = 'outlined',
     value: suppliedValue,
     defaultValue,
     onValueChange,
@@ -1352,7 +1367,14 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
   return (
     <StyleProvider unstyled={unstyled}>
       <div
-        {...styles('date-range-picker.root', 'ui-temporal', undefined, unstyled)}
+        {...styles(
+          'date-range-picker.root',
+          `ui-temporal ${inputVariantClass(variant)}`,
+          undefined,
+          unstyled,
+        )}
+        data-variant={variant}
+        data-disabled={disabled || undefined}
         dir={direction}
       >
         <PickerRoot

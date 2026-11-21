@@ -15,9 +15,8 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from './utils';
 import { useModalInert } from './modal-accessibility';
 import { useTranslation } from './i18n';
-const inputClass =
-  'ui-interactive flex min-h-[var(--ui-input-height,var(--ui-control-height))] w-full min-w-0 rounded-[var(--ui-input-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-input-border bg-[var(--ui-input-background,var(--ui-surface))] px-3 py-2 text-sm text-[var(--ui-input-foreground,var(--ui-foreground))] placeholder:text-[var(--ui-input-placeholder,var(--ui-muted-foreground))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-input-focus,var(--ui-accent))] disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-55 aria-invalid:border-danger aria-invalid:focus-visible:outline-danger';
-export type InputVariant = 'outlined' | 'filled' | 'ghost' | 'contrast';
+import { inputClass, inputVariantClass, type InputVariant } from './input-variants';
+export type { InputVariant } from './input-variants';
 export type InputProps = React.InputHTMLAttributes<HTMLInputElement> &
   PlainStyleProps & { variant?: InputVariant };
 export const Input = /* @__PURE__ */ React.forwardRef<HTMLInputElement, InputProps>(
@@ -28,17 +27,7 @@ export const Input = /* @__PURE__ */ React.forwardRef<HTMLInputElement, InputPro
         ref={ref}
         type={type}
         data-variant={variant}
-        {...styles(
-          'input.root',
-          cn(
-            inputClass,
-            variant === 'contrast' && 'ui-input-contrast',
-            variant === 'filled' && 'border-transparent bg-muted',
-            variant === 'ghost' && 'border-transparent bg-transparent hover:bg-muted',
-          ),
-          className,
-          unstyled,
-        )}
+        {...styles('input.root', cn(inputClass, inputVariantClass(variant)), className, unstyled)}
         {...props}
       />,
       unstyled,
@@ -58,13 +47,7 @@ export const Textarea = /* @__PURE__ */ React.forwardRef<
       data-variant={variant}
       {...styles(
         'textarea.root',
-        cn(
-          inputClass,
-          variant === 'contrast' && 'ui-input-contrast',
-          'min-h-24 resize-y leading-6',
-          variant === 'filled' && 'border-transparent bg-muted',
-          variant === 'ghost' && 'border-transparent bg-transparent hover:bg-muted',
-        ),
+        cn(inputClass, inputVariantClass(variant), 'min-h-24 resize-y leading-6'),
         className,
         unstyled,
       )}
@@ -394,17 +377,20 @@ SelectGroup.displayName = 'SelectGroup';
 export const SelectValue = SelectPrimitive.Value;
 export const SelectTrigger = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & PlainStyleProps
->(({ className, children, unstyled, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> &
+    PlainStyleProps & { variant?: InputVariant }
+>(({ className, children, unstyled, variant = 'outlined', ...props }, ref) => {
   const styles = useStyles();
   return styles.tooltip(
     <SelectPrimitive.Trigger
       ref={ref}
+      data-variant={variant}
       {...styles(
         'select.trigger',
         cn(
           inputClass,
-          'items-center justify-between gap-2 border-[var(--ui-select-border)] bg-[var(--ui-select-background)] text-[var(--ui-select-foreground)] rounded-[var(--ui-select-radius)] min-h-[var(--ui-select-height)] focus-visible:outline-[var(--ui-select-focus)] text-start data-[placeholder]:text-[var(--ui-select-placeholder)] [&>span]:truncate',
+          inputVariantClass(variant),
+          'items-center justify-between gap-2 border-[color:var(--_ui-input-border,var(--ui-select-border))] bg-[var(--_ui-input-background,var(--ui-select-background))] text-[var(--_ui-input-foreground,var(--ui-select-foreground))] rounded-[var(--ui-select-radius)] min-h-[var(--ui-select-height)] focus-visible:outline-[var(--ui-select-focus)] text-start data-[placeholder]:text-[var(--ui-select-placeholder)] [&>span]:truncate',
         ),
         className,
         unstyled,

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { inputVariantClass, type InputVariant } from './input-variants';
 import { useTranslation } from './i18n';
 import {
   ContextMenu as ContextPrimitive,
@@ -88,7 +89,7 @@ export interface NumberInputProps
   max?: number;
   step?: number | 'any';
   showControls?: boolean;
-  variant?: import('./forms').InputVariant;
+  variant?: InputVariant;
   textAlign?: 'start' | 'center' | 'end';
 }
 export const NumberInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, NumberInputProps>(
@@ -138,7 +139,7 @@ export const NumberInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Nu
       <div
         {...styles(
           'number-input.root',
-          `ui-input-control ui-number-input${variant === 'contrast' ? ' ui-input-contrast' : ''}`,
+          `ui-input-control ui-number-input ${inputVariantClass(variant)}`,
           undefined,
           unstyled,
         )}
@@ -219,6 +220,7 @@ export interface SearchInputProps
   extends
     Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'defaultValue'>,
     PlainStyleProps {
+  variant?: InputVariant;
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
@@ -229,6 +231,7 @@ export const SearchInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Se
   (
     {
       value: controlled,
+      variant = 'outlined',
       defaultValue = '',
       onValueChange,
       onClear,
@@ -250,7 +253,13 @@ export const SearchInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Se
     useFormReset(input, reset);
     return (
       <div
-        {...styles('search-input.root', 'ui-input-control ui-search-input', undefined, unstyled)}
+        {...styles(
+          'search-input.root',
+          `ui-input-control ui-search-input ${inputVariantClass(variant)}`,
+          undefined,
+          unstyled,
+        )}
+        data-variant={variant}
         data-disabled={disabled || undefined}
       >
         <Search
@@ -303,6 +312,7 @@ export interface PasswordInputProps
   extends
     Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'defaultValue'>,
     PlainStyleProps {
+  variant?: InputVariant;
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
@@ -314,6 +324,7 @@ export const PasswordInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, 
   (
     {
       value: controlled,
+      variant = 'outlined',
       defaultValue = '',
       onValueChange,
       visible: controlledVisible,
@@ -336,7 +347,13 @@ export const PasswordInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, 
     useFormReset(input, reset);
     return (
       <div
-        {...styles('password-input.root', 'ui-input-control', undefined, unstyled)}
+        {...styles(
+          'password-input.root',
+          `ui-input-control ${inputVariantClass(variant)}`,
+          undefined,
+          unstyled,
+        )}
+        data-variant={variant}
         data-disabled={disabled || undefined}
       >
         {styles.tooltip(
@@ -390,6 +407,7 @@ export interface PinInputProps
       'type' | 'value' | 'defaultValue' | 'size' | 'maxLength'
     >,
     PlainStyleProps {
+  variant?: InputVariant;
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
@@ -402,6 +420,7 @@ export const PinInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, PinIn
   (
     {
       value: controlled,
+      variant = 'outlined',
       defaultValue = '',
       onValueChange,
       onComplete,
@@ -439,6 +458,7 @@ export const PinInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, PinIn
       <div
         tabIndex={tooltip === undefined ? undefined : disabled ? 0 : -1}
         {...styles('pin-input.root', 'ui-pin-input', undefined, unstyled)}
+        data-variant={variant}
         data-disabled={disabled || undefined}
         style={
           { '--ui-pin-length': size, '--ui-pin-columns': Math.min(8, size) } as React.CSSProperties
@@ -448,8 +468,15 @@ export const PinInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, PinIn
           {Array.from({ length: size }, (_, index) => (
             <span
               key={index}
+              data-variant={variant}
+              data-disabled={disabled || undefined}
               data-active={(focused && index === Math.min(cursor, size - 1)) || undefined}
-              {...styles('pin-input.slot', 'ui-pin-slot', undefined, unstyled)}
+              {...styles(
+                'pin-input.slot',
+                `ui-pin-slot ${inputVariantClass(variant)}`,
+                undefined,
+                unstyled,
+              )}
             >
               {value[index] ? (masked ? '*' : value[index]) : ''}
             </span>
@@ -528,6 +555,7 @@ export interface FileUploadProps
       'type' | 'value' | 'defaultValue' | 'children'
     >,
     PlainStyleProps {
+  variant?: InputVariant;
   value?: readonly File[];
   defaultValue?: readonly File[];
   onValueChange?: (files: File[]) => void;
@@ -607,6 +635,7 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
   (
     {
       value: controlled,
+      variant = 'outlined',
       defaultValue = [],
       onValueChange,
       onFilesChange,
@@ -654,8 +683,14 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
     return styles.tooltip(
       <div
         tabIndex={tooltip === undefined ? undefined : disabled ? 0 : -1}
-        {...styles('file-upload.root', 'ui-file-upload', undefined, unstyled)}
+        {...styles(
+          'file-upload.root',
+          `ui-file-upload ${inputVariantClass(variant)}`,
+          undefined,
+          unstyled,
+        )}
         data-dragging={dragging || undefined}
+        data-variant={variant}
         data-disabled={disabled || undefined}
         onDragEnter={(event) => {
           event.preventDefault();
@@ -782,6 +817,7 @@ export const Dropzone = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Dropz
   (
     {
       value: controlled,
+      variant = 'outlined',
       defaultValue = [],
       onValueChange,
       onFilesChange,
@@ -863,6 +899,7 @@ export const Dropzone = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Dropz
         style={Object.fromEntries(
           Object.entries(style ?? {}).filter(([key]) => key.startsWith('--ui-')),
         )}
+        data-variant={variant}
         data-disabled={disabled || undefined}
         data-dragging={dragging || undefined}
         data-invalid={
@@ -870,7 +907,14 @@ export const Dropzone = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Dropz
         }
       >
         <div
-          {...styles('dropzone.area', 'ui-dropzone-area', undefined, unstyled)}
+          data-variant={variant}
+          data-disabled={disabled || undefined}
+          {...styles(
+            'dropzone.area',
+            `ui-dropzone-area ${inputVariantClass(variant)}`,
+            undefined,
+            unstyled,
+          )}
           onDragEnter={(event) => {
             if (!hasFiles(event) || event.defaultPrevented) return;
             event.preventDefault();
@@ -1162,6 +1206,7 @@ export interface TagsInputProps
   extends
     Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'defaultValue' | 'size'>,
     PlainStyleProps {
+  variant?: InputVariant;
   value?: readonly string[];
   defaultValue?: readonly string[];
   onValueChange?: (value: string[]) => void;
@@ -1173,6 +1218,7 @@ export const TagsInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Tags
   (
     {
       value: controlled,
+      variant = 'outlined',
       defaultValue = [],
       onValueChange,
       maxTags = Infinity,
@@ -1217,7 +1263,13 @@ export const TagsInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Tags
     };
     return (
       <div
-        {...styles('tags-input.root', 'ui-tags-input', undefined, unstyled)}
+        {...styles(
+          'tags-input.root',
+          `ui-tags-input ${inputVariantClass(variant)}`,
+          undefined,
+          unstyled,
+        )}
+        data-variant={variant}
         data-disabled={disabled || undefined}
       >
         {tags.map((tag, index) => (
@@ -1305,6 +1357,7 @@ export interface MultiSelectProps
   extends
     Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'defaultValue' | 'size'>,
     PlainStyleProps {
+  variant?: InputVariant;
   options: readonly MultiSelectOption[];
   value?: readonly string[];
   defaultValue?: readonly string[];
@@ -1321,6 +1374,7 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
     {
       options,
       value: controlled,
+      variant = 'outlined',
       defaultValue = [],
       onValueChange,
       maxSelected = Infinity,
@@ -1403,8 +1457,14 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
       <PopoverPrimitive.Root open={open && !disabled && !readOnly} onOpenChange={setOpen}>
         <PopoverPrimitive.Anchor asChild>
           <div
-            {...styles('multi-select.root', 'ui-tags-input ui-multi-select', undefined, unstyled)}
+            {...styles(
+              'multi-select.root',
+              `ui-tags-input ui-multi-select ${inputVariantClass(variant)}`,
+              undefined,
+              unstyled,
+            )}
             dir={direction}
+            data-variant={variant}
             data-disabled={disabled || undefined}
             data-selection-display={selectionDisplay}
             data-has-value={values.length > 0 || undefined}

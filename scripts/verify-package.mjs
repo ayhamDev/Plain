@@ -276,6 +276,38 @@ for (const directory of [consumer, minimumConsumer]) {
   const peerCharts = await import(
     pathToFileURL(join(directory, 'node_modules/@plain/ui/dist/ui/charts.js')).href
   );
+  for (const variant of ['outlined', 'filled', 'ghost', 'contrast']) {
+    const pin = peerServer.renderToString(
+      peerReact.createElement(peerLibrary.PinInput, {
+        variant,
+        name: 'verification',
+        defaultValue: '1234',
+        length: 4,
+        'aria-label': 'Verification code',
+      }),
+    );
+    assert(
+      pin.includes(`data-variant="${variant}"`) &&
+        pin.includes('value="1234"') &&
+        pin.includes('name="verification"') &&
+        !/\svariant=/.test(pin) &&
+        (pin.match(/data-slot="slot"/g) ?? []).length === 4,
+      `React ${peerReact.version} did not preserve the ${variant} PIN appearance and native value.`,
+    );
+    const choice = peerServer.renderToString(
+      peerReact.createElement(peerLibrary.Combobox, {
+        variant,
+        name: 'team',
+        defaultValue: 'design',
+        options: [{ value: 'design', label: 'Design' }],
+      }),
+    );
+    assert(
+      choice.includes('type="button"') &&
+        choice.includes('value="design"') &&
+        !/\svariant=/.test(choice),
+    );
+  }
   assert.equal(peerLibrary.ChartSkeleton, peerCharts.ChartSkeleton);
   const chartSkeleton = peerServer.renderToString(
     peerReact.createElement(

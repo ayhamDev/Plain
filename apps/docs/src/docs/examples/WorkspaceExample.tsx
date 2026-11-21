@@ -84,7 +84,16 @@ export default function WorkspaceExample({ slug, state = {} }: { slug: string; s
     );
   return (
     <UI.Stack gap={2}>
-      <UI.SearchView label="Search workspace" variant={mode} loading={!!state.loading}>
+      <UI.SearchView
+        inputVariant={
+          ['outlined', 'filled', 'ghost', 'contrast'].includes(String(state.inputVariant))
+            ? (state.inputVariant as UI.InputVariant)
+            : undefined
+        }
+        label="Search workspace"
+        variant={mode}
+        loading={!!state.loading}
+      >
         {({ close }) => (
           <>
             <UI.CommandEmpty>No projects found.</UI.CommandEmpty>

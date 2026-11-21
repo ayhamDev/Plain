@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { InputVariant } from './input-variants';
 import { Search, X } from 'lucide-react';
 import {
   Dialog,
@@ -28,6 +29,7 @@ export interface SearchViewProps extends PlainStyleProps {
   onOpenChange?: (open: boolean) => void;
   onSubmit?: (value: string) => void;
   variant?: 'docked' | 'modal' | 'fullscreen';
+  inputVariant?: InputVariant;
   trigger?: React.ReactNode;
   placeholder?: string;
   label?: string;
@@ -49,6 +51,7 @@ export function SearchView({
   onOpenChange,
   onSubmit,
   variant = 'modal',
+  inputVariant,
   trigger,
   placeholder,
   label,
@@ -90,6 +93,7 @@ export function SearchView({
     >
       <div className="ui-search-view-input">
         <CommandInput
+          variant={inputVariant}
           aria-label={label ?? t('search.title')}
           placeholder={placeholder ?? t('common.search')}
           value={query}

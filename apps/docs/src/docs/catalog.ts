@@ -1157,6 +1157,52 @@ for (const component of components) {
     ];
 }
 
+const inputVariantPages = new Set([
+  'input',
+  'textarea',
+  'select',
+  'combobox',
+  'number-input',
+  'search-input',
+  'password-input',
+  'pin-input',
+  'tags-input',
+  'multi-select',
+  'color-picker',
+  'file-upload',
+  'dropzone',
+  'date-picker',
+  'date-range-picker',
+  'time-picker',
+  'date-time-picker',
+  'time-range-picker',
+  'date-time-range-picker',
+  'command',
+  'search-view',
+]);
+for (const component of components) {
+  if (!inputVariantPages.has(component.slug)) continue;
+  const name =
+    component.slug === 'select'
+      ? 'SelectTrigger.variant'
+      : component.slug === 'command'
+        ? 'CommandInput.variant'
+        : component.slug === 'search-view'
+          ? 'inputVariant'
+          : 'variant';
+  if (!component.props.some((p) => p.name === name || p.name.startsWith(`${name} /`)))
+    component.props.unshift(
+      prop(
+        name,
+        'outlined | filled | ghost | contrast',
+        'Shared input appearance. PIN styles each slot and range pickers style both endpoints; native values, keyboard behavior and focus outlines are preserved.',
+        component.slug === 'command' || component.slug === 'search-view'
+          ? 'integrated when omitted'
+          : 'outlined',
+      ),
+    );
+}
+
 export const categories: Category[] = [
   'Actions',
   'Forms',

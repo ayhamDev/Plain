@@ -1,10 +1,10 @@
 import { StyleProvider, useStyles, type PlainStyleProps } from './styling';
 import * as React from 'react';
+import { inputClass, inputVariantClass, type InputVariant } from './input-variants';
 import { useTranslation } from './i18n';
 import { Command as CommandPrimitive } from 'cmdk';
 import { Check, ChevronsUpDown, Search } from 'lucide-react';
 import { cn } from './utils';
-import { Button } from './primitives';
 import { Popover, PopoverTrigger, PopoverContent } from './overlays';
 export const Command = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -30,13 +30,23 @@ export const Command = /* @__PURE__ */ React.forwardRef<
 Command.displayName = 'Command';
 export const CommandInput = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> &
+    PlainStyleProps & { variant?: InputVariant }
+>(({ className, unstyled, variant, ...props }, ref) => {
   const styles = useStyles();
   const { t } = useTranslation();
   return (
     <div
-      {...styles('command.wrapper', 'flex items-center gap-2 border-b px-3', undefined, unstyled)}
+      {...styles(
+        'command.wrapper',
+        variant
+          ? `ui-input-control ${inputVariantClass(variant)} m-2 w-[calc(100%_-_16px)]`
+          : 'flex items-center gap-2 border-b px-3',
+        undefined,
+        unstyled,
+      )}
+      data-variant={variant}
+      data-disabled={props.disabled || undefined}
     >
       <Search
         {...styles(
@@ -53,7 +63,9 @@ export const CommandInput = /* @__PURE__ */ React.forwardRef<
           placeholder={t('common.search')}
           {...styles(
             'command.input',
-            'h-11 w-full min-w-0 bg-transparent text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:opacity-50',
+            variant
+              ? 'ui-advanced-input'
+              : 'h-11 w-full min-w-0 bg-transparent text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:opacity-50',
             className,
             unstyled,
           )}
@@ -192,6 +204,7 @@ export interface ComboboxProps
       React.ButtonHTMLAttributes<HTMLButtonElement>,
       'value' | 'defaultValue' | 'onChange' | 'children'
     > {
+  variant?: InputVariant;
   options: ComboboxOption[];
   value?: string;
   defaultValue?: string;
@@ -208,6 +221,7 @@ export const Combobox = /* @__PURE__ */ React.forwardRef<
 >((allProps, ref) => {
   const {
     options,
+    variant = 'outlined',
     value,
     defaultValue = '',
     onValueChange,
@@ -236,9 +250,10 @@ export const Combobox = /* @__PURE__ */ React.forwardRef<
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           {styles.tooltip(
-            <Button
+            <button
               ref={ref}
-              variant="outline"
+              type="button"
+              data-variant={variant}
               role="combobox"
               aria-expanded={open}
               aria-haspopup="listbox"
@@ -246,7 +261,9 @@ export const Combobox = /* @__PURE__ */ React.forwardRef<
               {...styles(
                 'combobox.root',
                 cn(
-                  'w-full justify-between border-input-border font-normal',
+                  inputClass,
+                  inputVariantClass(variant),
+                  'items-center justify-between gap-2 font-normal text-start',
                   !selected && 'text-muted-foreground',
                 ),
                 className,
@@ -254,12 +271,14 @@ export const Combobox = /* @__PURE__ */ React.forwardRef<
               )}
               {...props}
             >
-              {selected?.label ?? placeholder}
+              <span {...styles('combobox.value', 'min-w-0 truncate', undefined, unstyled)}>
+                {selected?.label ?? placeholder}
+              </span>
               <ChevronsUpDown
-                {...styles('combobox.icon', 'opacity-60', undefined, unstyled)}
+                {...styles('combobox.icon', 'size-4 shrink-0 opacity-60', undefined, unstyled)}
                 aria-hidden="true"
               />
-            </Button>,
+            </button>,
             unstyled,
           )}
         </PopoverTrigger>

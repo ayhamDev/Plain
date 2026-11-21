@@ -10,6 +10,10 @@ import {
   LayoutPresence,
   Field,
   Input,
+  PinInput,
+  SearchInput,
+  DateTimeRangePicker,
+  type InputVariant,
   Switch,
   tokensToStyle,
   extendComponent,
@@ -155,12 +159,25 @@ export function ConsumerApp() {
         />
         <Field label="Start time">
           <ModularTimePicker
+            variant="filled"
             defaultValue="16:07"
             hour12
             pickerMode={'wheel' satisfies TimePickerMode}
             popoverProps={{ align: 'start', collisionPadding: 12 }}
           />
         </Field>
+        {(['outlined', 'filled', 'ghost', 'contrast'] satisfies InputVariant[]).map((variant) => (
+          <Stack key={variant} gap={2}>
+            <PinInput variant={variant} name={`code-${variant}`} aria-label={`Code ${variant}`} />
+            <SearchInput variant={variant} aria-label={`Search ${variant}`} />
+            <Combobox
+              variant={variant}
+              options={[{ value: 'one', label: 'One' }]}
+              aria-label={`Choice ${variant}`}
+            />
+            <DateTimeRangePicker variant={variant} aria-label={`Booking ${variant}`} />
+          </Stack>
+        ))}
         <P tone="muted" align="start">
           Your current projects.
         </P>

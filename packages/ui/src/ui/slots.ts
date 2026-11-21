@@ -103,6 +103,7 @@ export const styleSlots = [
   "combobox.icon",
   "combobox.root",
   "combobox.selected-icon",
+  "combobox.value",
   "command.empty",
   "command.group",
   "command.input",

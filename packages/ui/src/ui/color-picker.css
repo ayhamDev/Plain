@@ -7,9 +7,10 @@
     inline-size: 100%;
     max-inline-size: 240px;
     min-inline-size: 0;
-    border: var(--ui-border-width, 1px) solid var(--ui-control-border);
+    border: var(--ui-border-width, 1px) solid var(--_ui-input-border, var(--ui-control-border));
     border-radius: var(--ui-radius);
-    background: var(--ui-surface);
+    background: var(--_ui-input-background, var(--ui-surface));
+    color: var(--_ui-input-foreground, var(--ui-color-picker-foreground, var(--ui-foreground)));
     padding-inline: 4px;
   }
   .ui-color-picker:focus-within {
@@ -25,7 +26,7 @@
     outline: none;
     padding-inline: 6px;
     font-family: var(--ui-font-mono);
-    color: var(--ui-color-picker-foreground, var(--ui-foreground));
+    color: inherit;
   }
   .ui-color-preview {
     inline-size: 24px;

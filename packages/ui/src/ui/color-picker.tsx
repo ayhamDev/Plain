@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { inputVariantClass, type InputVariant } from './input-variants';
 import { useTranslation } from './i18n';
 import { Check, Palette } from 'lucide-react';
 import { Input, Label, Slider } from './forms';
@@ -71,6 +72,7 @@ export interface ColorPickerProps
   extends
     Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'value' | 'defaultValue'>,
     PlainStyleProps {
+  variant?: InputVariant;
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
@@ -80,6 +82,7 @@ export interface ColorPickerProps
 export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, ColorPickerProps>(
   (allProps, ref) => {
     const {
+      variant = 'outlined',
       value,
       defaultValue = '#252826',
       onValueChange,
@@ -164,7 +167,14 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
       <StyleProvider unstyled={unstyled}>
         <Popover open={open} onOpenChange={setOpen}>
           <div
-            {...styles('color-picker.root', 'ui-color-picker', className, unstyled)}
+            {...styles(
+              'color-picker.root',
+              `ui-color-picker ${inputVariantClass(variant)}`,
+              className,
+              unstyled,
+            )}
+            data-variant={variant}
+            data-disabled={disabled || undefined}
             style={style}
           >
             <PopoverTrigger asChild>
@@ -185,6 +195,7 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
             {styles.tooltip(
               <Input
                 ref={input}
+                variant={variant}
                 {...props}
                 disabled={disabled}
                 readOnly={readOnly}

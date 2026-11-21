@@ -35,6 +35,36 @@ focus outline remains visible and uses `input.focus` or `select.focus`; error
 styling and explicitly chosen contrast variants remain available. Filled, ghost
 and theme-borderless fields do not gain a border when focused.
 
+## Input appearances
+
+Text fields and picker controls share `variant="outlined" | "filled" | "ghost" |
+"contrast"`. This includes Input, Textarea, NumberInput, SearchInput, PasswordInput,
+PinInput, TagsInput, MultiSelect, ColorPicker, FileUpload, Dropzone, Combobox,
+DatePicker, DateRangePicker, TimePicker, DateTimePicker, TimeRangePicker and
+DateTimeRangePicker. Set the variant on `SelectTrigger` for a Select. The default
+is `outlined`; PIN applies the treatment to each slot and ranges to both endpoints.
+
+```tsx
+<PinInput variant="filled" length={6} aria-label="Verification code" />
+<SearchInput variant="ghost" aria-label="Search projects" />
+<Select defaultValue="design">
+  <SelectTrigger variant="contrast" aria-label="Team"><SelectValue /></SelectTrigger>
+  <SelectContent><SelectItem value="design">Design</SelectItem></SelectContent>
+</Select>
+<DateTimeRangePicker variant="filled" name="booking" />
+```
+
+CommandInput accepts an optional `variant`; omitting it retains the integrated
+command-header layout. SearchView exposes the same field setting as
+`inputVariant`, independently of its `variant` for modal/docked/fullscreen layout.
+DataTableSearch inherits SearchInput's variants.
+
+Use `input.filled-background`, `input.ghost-hover`, `input.contrast-background`,
+`input.contrast-foreground` and `input.contrast-border` tokens to customize shared
+variant colors. Existing component radius, sizing and focus tokens still apply.
+Focused fields retain their resting border and keep the separate outer focus
+outline. Invalid and disabled states remain available in every variant.
+
 ## Tooltips on components
 
 Add `tooltip` to a rendered component or compound trigger for the same P.UI

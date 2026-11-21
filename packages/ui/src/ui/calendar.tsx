@@ -1,5 +1,6 @@
 import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './styling';
 import * as React from 'react';
+import { inputClass, inputVariantClass, type InputVariant } from './input-variants';
 import { ar, enUS } from 'react-day-picker/locale';
 import { dateFormatter, numberFormatter, useTranslation } from './i18n';
 import {
@@ -179,6 +180,7 @@ export interface DatePickerProps
       React.ButtonHTMLAttributes<HTMLButtonElement>,
       'value' | 'defaultValue' | 'onChange' | 'children'
     > {
+  variant?: InputVariant;
   value?: Date;
   defaultValue?: Date;
   onValueChange?: (value: Date | undefined) => void;
@@ -197,6 +199,7 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
   DatePickerProps & PlainStyleProps
 >((allProps, ref) => {
   const {
+    variant = 'outlined',
     value,
     defaultValue,
     onValueChange,
@@ -287,13 +290,16 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
       >
         <Trigger asChild>
           {styles.tooltip(
-            <Button
+            <button
               ref={buttonRef}
-              variant="outline"
+              type="button"
+              data-variant={variant}
               {...styles(
                 'date-picker.trigger',
                 cn(
-                  'w-full justify-start border-input-border font-normal',
+                  inputClass,
+                  inputVariantClass(variant),
+                  'items-center justify-start gap-2 font-normal text-start',
                   !current && 'text-muted-foreground',
                 ),
                 className,
@@ -304,11 +310,16 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
               aria-describedby={[props['aria-describedby'], valueId].filter(Boolean).join(' ')}
             >
               <CalendarDays
-                {...styles('date-picker.icon', 'text-muted-foreground', undefined, unstyled)}
+                {...styles(
+                  'date-picker.icon',
+                  'size-4 shrink-0 text-muted-foreground',
+                  undefined,
+                  unstyled,
+                )}
                 aria-hidden="true"
               />
               {formattedValue}
-            </Button>,
+            </button>,
             unstyled,
           )}
         </Trigger>

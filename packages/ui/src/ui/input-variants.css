@@ -1,0 +1,30 @@
+@layer components {
+  .ui-input-variant {
+    --_ui-input-background: initial;
+    --_ui-input-foreground: initial;
+    --_ui-input-border: initial;
+    --_ui-input-tag-background: initial;
+  }
+  .ui-input-variant[data-variant='filled'] {
+    --_ui-input-background: var(--ui-input-filled-background, var(--ui-muted));
+    --_ui-input-border: transparent;
+    --_ui-input-tag-background: var(--ui-surface);
+  }
+  .ui-input-variant[data-variant='ghost'] {
+    --_ui-input-background: transparent;
+    --_ui-input-border: transparent;
+  }
+  .ui-input-variant[data-variant='ghost']:hover:not(:disabled):not([data-disabled]),
+  .ui-pin-input[data-variant='ghost']:hover:not([data-disabled]) .ui-pin-slot {
+    --_ui-input-background: var(--ui-input-ghost-hover, var(--ui-muted));
+  }
+  .ui-input-variant[data-variant='contrast'] {
+    --_ui-input-background: var(--ui-input-contrast-background, var(--ui-surface));
+    --_ui-input-foreground: var(--ui-input-contrast-foreground, var(--ui-foreground));
+    --_ui-input-border: var(--ui-input-contrast-border, var(--ui-outline));
+  }
+  .ui-input-variant[aria-invalid='true'],
+  .ui-input-variant:has(input[aria-invalid='true']) {
+    --_ui-input-border: var(--ui-danger);
+  }
+}
