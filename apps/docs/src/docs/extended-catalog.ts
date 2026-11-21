@@ -528,8 +528,11 @@ const fields: DataTableFilterField<Invoice>[] = [
       `Virtual ${kind}`,
       'Virtualization',
       `Render a window of a large ${kind} collection with measured positioning and stable keys.`,
-      [kind === 'list' ? 'VirtualList' : kind === 'grid' ? 'VirtualGrid' : 'VirtualMasonry'],
-      `<${kind === 'list' ? 'VirtualList' : kind === 'grid' ? 'VirtualGrid' : 'VirtualMasonry'}\n  items={items}\n  getItemKey={(item) => item.id}\n  height={320}\n  ${kind === 'grid' ? 'columns={{ base: 1, md: 2 }} rowHeight={64}' : kind === 'masonry' ? 'lanes={{ base: 1, md: 2 }} estimateSize={64}' : 'estimateSize={48}'}\n  renderItem={(item) => <div style={{ padding: 16 }}>{item.name}</div>}\n/>`,
+      [
+        kind === 'list' ? 'VirtualList' : kind === 'grid' ? 'VirtualGrid' : 'VirtualMasonry',
+        'Item',
+      ],
+      `<${kind === 'list' ? 'VirtualList' : kind === 'grid' ? 'VirtualGrid' : 'VirtualMasonry'}\n  items={items}\n  getItemKey={(item) => item.id}\n  height={320}\n  ${kind === 'grid' ? 'columns={{ base: 1, md: 2 }} rowHeight={64}' : kind === 'masonry' ? 'lanes={{ base: 1, md: 2 }} estimateSize={64}' : 'estimateSize={48}'}\n  renderItem={(item${kind === 'masonry' ? ', index' : ''}) => <Item style={{ minHeight: ${kind === 'masonry' ? '56 + (index % 3) * 24' : '56'} }}>{item.name}</Item>}\n/>`,
       [
         p('items', 'readonly T[]', 'Stable collection of records.'),
         p('getItemKey', '(item: T, index: number) => Key', 'Required stable identity.'),

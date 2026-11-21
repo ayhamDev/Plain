@@ -11,6 +11,9 @@ import {
   Field,
   Input,
   Textarea,
+  Item,
+  ItemContent,
+  ItemTitle,
   PinInput,
   SearchInput,
   DateTimeRangePicker,
@@ -50,6 +53,7 @@ import {
 } from '@plain/ui';
 import { Button as ModularButton } from '@plain/ui/primitives';
 import { Textarea as ModularTextarea, type TextareaProps } from '@plain/ui/forms';
+import { Item as ModularItem, ItemActions, type ItemProps } from '@plain/ui/item';
 import { ChartSkeleton as ModularChartSkeleton } from '@plain/ui/charts';
 import { TooltipProvider as ModularTooltipProvider, type TooltipValue } from '@plain/ui/overlays';
 import { Dropzone as ModularDropzone } from '@plain/ui/advanced';
@@ -67,7 +71,12 @@ import '@plain/ui/full-calendar.css';
 
 type Record = { id: string; name: string };
 const columns: DataTableColumn<Record>[] = [{ accessorKey: 'name', header: 'Name' }];
-const styles: ComponentStyles = { 'button.root': 'rounded-full', 'data-table.root': 'space-y-8' };
+const styles: ComponentStyles = {
+  'button.root': 'rounded-full',
+  'data-table.root': 'space-y-8',
+  'item.root': 'font-medium',
+  'item.actions': 'gap-2',
+};
 const anchorRef = createRef<HTMLAnchorElement>();
 const quoteRef = createRef<HTMLQuoteElement>();
 const calendarRef = createRef<FullCalendarRef>();
@@ -113,6 +122,21 @@ export function ConsumerApp() {
           <ModularTableSort table={table} tooltip={{ content: 'Reorder records', align: 'end' }} />
         </ModularTooltipProvider>
         <H1 size="2xl">Project workspace</H1>
+        <Item defaultSelected onSelectedChange={(value) => console.log(value)}>
+          <ItemContent>
+            <ItemTitle>Public file</ItemTitle>
+          </ItemContent>
+        </Item>
+        <ModularItem {...({ interactive: false, selected: true } satisfies ItemProps)}>
+          <ItemContent asChild>
+            <div>
+              <ItemTitle>Independent actions</ItemTitle>
+            </div>
+          </ItemContent>
+          <ItemActions>
+            <Button type="button">Open file</Button>
+          </ItemActions>
+        </ModularItem>
         <Textarea resize="none" name="description" aria-label="Description" />
         <ModularTextarea
           {...({ resize: 'both' } satisfies Pick<TextareaProps, 'resize'>)}

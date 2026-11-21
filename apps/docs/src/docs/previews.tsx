@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { RotateCcw, Code2, SlidersHorizontal } from 'lucide-react';
+import { RotateCcw, Code2, SlidersHorizontal, FileCode } from 'lucide-react';
 import * as UI from '@plain/ui';
 import { CodeBlock } from './shared';
 import { workspaceComponents as workspaceDefinitions } from './workspace-catalog';
@@ -1239,6 +1239,49 @@ for (const slug of ['stack', 'inline'] as const) {
       `<${name} ${attr(s)}>{['Research', 'Design', 'Build'].map(label => <Badge key={label}>{label}</Badge>)}</${name}>`,
   };
 }
+propPreviews.item = {
+  defaults: {
+    size: 'md',
+    selected: true,
+    interactive: true,
+    disabled: false,
+    description: false,
+    trailing: false,
+  },
+  controls: [
+    options('size', ['sm', 'md', 'lg']),
+    bool('selected'),
+    bool('interactive'),
+    bool('disabled'),
+    bool('description'),
+    bool('trailing'),
+  ],
+  render: (s) => (
+    <div style={{ width: '100%', maxWidth: 360 }}>
+      <UI.Item
+        key={String(s.selected)}
+        size={choice(s, 'size', ['sm', 'md', 'lg'])}
+        defaultSelected={!!s.selected}
+        interactive={!!s.interactive}
+        disabled={!!s.disabled}
+      >
+        <UI.ItemMedia>
+          <FileCode aria-hidden="true" />
+        </UI.ItemMedia>
+        <UI.ItemContent>
+          <UI.ItemTitle>index.ts</UI.ItemTitle>
+          {s.description && (
+            <UI.ItemDescription>Public exports for your component library.</UI.ItemDescription>
+          )}
+        </UI.ItemContent>
+        {s.trailing && <UI.ItemTrailing>2 KB</UI.ItemTrailing>}
+      </UI.Item>
+    </div>
+  ),
+  code: (s) =>
+    `<Item size="${s.size}" defaultSelected={${s.selected}} interactive={${s.interactive}} disabled={${s.disabled}}><ItemMedia><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75}><path d="M14 2H6a2 2 0 0 0-2 2v7m10-9 6 6v12a2 2 0 0 1-2 2h-4M14 2v6h6M5 15l-3 3 3 3m4-6 3 3-3 3" /></svg></ItemMedia><ItemContent><ItemTitle>index.ts</ItemTitle>${s.description ? '<ItemDescription>Public exports for your component library.</ItemDescription>' : ''}</ItemContent>${s.trailing ? '<ItemTrailing>2 KB</ItemTrailing>' : ''}</Item>`,
+};
+
 for (const slug of ['virtual-list', 'virtual-grid', 'virtual-masonry'] as const) {
   const name = (
     {
@@ -1262,11 +1305,7 @@ for (const slug of ['virtual-list', 'virtual-grid', 'virtual-masonry'] as const)
         overscan: Number(s.overscan),
         gap: Number(s.gap),
         style: { width: '100%' },
-        renderItem: (item: (typeof items)[number]) => (
-          <UI.Button variant="secondary" style={{ width: '100%' }}>
-            {item.name}
-          </UI.Button>
-        ),
+        renderItem: (item: (typeof items)[number]) => <UI.Item>{item.name}</UI.Item>,
       };
       return slug === 'virtual-grid' ? (
         <UI.VirtualGrid {...props} columns={2} rowHeight={40} />
@@ -1277,7 +1316,7 @@ for (const slug of ['virtual-list', 'virtual-grid', 'virtual-masonry'] as const)
       );
     },
     code: (s) =>
-      `const items = Array.from({ length: 1000 }, (_, index) => ({ id: String(index), name: 'Project ' + (index + 1) }));\n\n<${name} items={items} getItemKey={item => item.id} ${attr(s)} ${slug === 'virtual-grid' ? 'columns={2} rowHeight={40}' : slug === 'virtual-masonry' ? 'lanes={2} estimateSize={40}' : 'estimateSize={40}'} renderItem={item => <Button variant="secondary" style={{ width: '100%' }}>{item.name}</Button>} />`,
+      `const items = Array.from({ length: 1000 }, (_, index) => ({ id: String(index), name: 'Project ' + (index + 1) }));\n\n<${name} items={items} getItemKey={item => item.id} ${attr(s)} ${slug === 'virtual-grid' ? 'columns={2} rowHeight={40}' : slug === 'virtual-masonry' ? 'lanes={2} estimateSize={40}' : 'estimateSize={40}'} renderItem={item => <Item>{item.name}</Item>} />`,
   };
 }
 
@@ -1451,6 +1490,7 @@ for (const slug of [
 
 function ResizablePreview({ state }: { state: State }) {
   const [open, setOpen] = React.useState(true);
+  const [file, setFile] = React.useState('button.tsx');
   const [text, setText] = React.useState(
     "import { Button } from '@plain/ui';\n\nexport function Save() {\n  return <Button>Save changes</Button>;\n}",
   );
@@ -1482,16 +1522,16 @@ function ResizablePreview({ state }: { state: State }) {
           <UI.Stack padding={2}>
             <UI.Strong>Explorer</UI.Strong>
             {['button.tsx', 'theme.css', 'index.ts'].map((name) => (
-              <UI.Button key={name} variant="ghost" style={{ justifyContent: 'start' }}>
+              <UI.Item key={name} selected={file === name} onClick={() => setFile(name)}>
                 {name}
-              </UI.Button>
+              </UI.Item>
             ))}
           </UI.Stack>
         </UI.ResizablePanel>
         <UI.ResizableHandle aria-label="Resize explorer" withHandle={!!state.withHandle} />
         <UI.ResizablePanel id="editor" minSize="30%">
           <UI.Stack padding={2} style={{ height: '100%' }}>
-            <UI.Strong>button.tsx</UI.Strong>
+            <UI.Strong>{file}</UI.Strong>
             <UI.Textarea
               variant="ghost"
               aria-label="Edit source"
@@ -1525,15 +1565,16 @@ propPreviews['resizable'] = {
   ],
   render: (s) => <ResizablePreview state={s} />,
   code: (s) => `const [open, setOpen] = React.useState(true);
+const [file, setFile] = React.useState('button.tsx');
 
 <Stack gap={1} style={{ width: '100%' }}>
   <Button variant="ghost" onClick={() => setOpen(!open)}>{open ? 'Close explorer' : 'Open explorer'}</Button>
   <Resizable orientation="${s.orientation}" mobileOrientation={false} storageKey={${s.persist ? '"my-editor"' : 'undefined'}} style={{ height: 340 }}>
     <ResizablePanel id="files" defaultSize="30%" minSize="20%" collapsible collapsedSize="0%" open={open} onOpenChange={setOpen} collapseAt={${s.responsive ? 480 : 'undefined'}} adaptTo="${s.adaptTo}" overlayTitle="Explorer">
-      <Stack padding={2}><Strong>Explorer</Strong><Button variant="ghost">button.tsx</Button></Stack>
+      <Stack padding={2}><Strong>Explorer</Strong>{['button.tsx', 'theme.css', 'index.ts'].map(name => <Item key={name} selected={file === name} onClick={() => setFile(name)}>{name}</Item>)}</Stack>
     </ResizablePanel>
     <ResizableHandle aria-label="Resize explorer" withHandle={${s.withHandle}} />
-    <ResizablePanel id="editor" minSize="30%"><Stack padding={2}><Strong>button.tsx</Strong><Textarea variant="ghost" aria-label="Edit source" defaultValue="export function Save() {}" dir="ltr" /></Stack></ResizablePanel>
+    <ResizablePanel id="editor" minSize="30%"><Stack padding={2}><Strong>{file}</Strong><Textarea variant="ghost" resize="none" aria-label="Edit source" defaultValue="export function Save() {}" dir="ltr" /></Stack></ResizablePanel>
   </Resizable>
 </Stack>`,
 };

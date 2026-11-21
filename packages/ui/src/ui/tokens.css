@@ -280,6 +280,16 @@
   --ui-dropzone-active-border: var(--ui-accent);
   --ui-dropzone-min-height: 192px;
   --ui-card-background: var(--ui-surface);
+  --ui-item-background: transparent;
+  --ui-item-foreground: var(--ui-foreground);
+  --ui-item-hover: var(--ui-muted);
+  --ui-item-active: var(--ui-surface-highest);
+  --ui-item-selected: var(--ui-surface-high);
+  --ui-item-selected-foreground: var(--ui-foreground);
+  --ui-item-muted-foreground: var(--ui-muted-foreground);
+  --ui-item-radius: var(--ui-radius);
+  --ui-item-height: var(--ui-control-height);
+  --ui-item-focus: var(--ui-focus-ring);
   --ui-card-foreground: var(--ui-foreground);
   --ui-card-border: var(--ui-border);
   --ui-card-radius: var(--ui-radius);

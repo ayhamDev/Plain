@@ -1,0 +1,152 @@
+@layer components {
+  .ui-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    inline-size: 100%;
+    min-block-size: var(--ui-item-height, var(--ui-control-height));
+    padding: 8px 12px;
+    border: 0;
+    border-radius: var(--ui-item-radius, var(--ui-radius));
+    background: var(--ui-item-background, transparent);
+    color: var(--ui-item-foreground, var(--ui-foreground));
+    font: inherit;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: start;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    transition:
+      background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale))
+        var(--ui-ease-standard),
+      color calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard);
+  }
+  .ui-item[data-size='sm'] {
+    min-block-size: 32px;
+    padding: 4px 8px;
+    gap: 8px;
+  }
+  .ui-item[data-size='lg'] {
+    min-block-size: 48px;
+    padding: 12px 16px;
+    gap: 16px;
+  }
+  .ui-item[data-interactive] {
+    cursor: pointer;
+  }
+  .ui-item[data-selected] {
+    background: var(--ui-item-selected, var(--ui-surface-high));
+    color: var(--ui-item-selected-foreground, var(--ui-foreground));
+  }
+  @media (hover: hover) {
+    .ui-item[data-interactive]:hover:not([data-disabled]):not(:disabled):not(
+        [aria-disabled='true']
+      ) {
+      background: var(--ui-item-hover, var(--ui-muted));
+    }
+    .ui-item[data-interactive][data-selected]:hover:not([data-disabled]):not(:disabled):not(
+        [aria-disabled='true']
+      ) {
+      background: color-mix(
+        in srgb,
+        var(--ui-item-selected-foreground, var(--ui-foreground)) 4%,
+        var(--ui-item-selected, var(--ui-surface-high))
+      );
+    }
+  }
+  .ui-item[data-interactive]:active:not([data-disabled]):not(:disabled):not(
+      [aria-disabled='true']
+    ) {
+    background: var(--ui-item-active, var(--ui-surface-highest));
+  }
+  .ui-item[data-interactive]:focus-visible {
+    outline: 2px solid var(--ui-item-focus, var(--ui-focus-ring));
+    outline-offset: -2px;
+  }
+  .ui-item:is([data-disabled], :disabled, [aria-disabled='true']) {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .ui-item-media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-inline-size: 0;
+    max-inline-size: 25%;
+  }
+  .ui-item-media > svg {
+    inline-size: 20px;
+    block-size: 20px;
+    flex-shrink: 0;
+  }
+  .ui-item-media :where(img, video) {
+    max-inline-size: 100%;
+    block-size: auto;
+  }
+  .ui-item-content {
+    display: block;
+    flex: 1;
+    min-inline-size: 0;
+  }
+  .ui-item-title {
+    display: block;
+    min-inline-size: 0;
+    font-weight: 500;
+  }
+  .ui-item-description {
+    display: block;
+    margin-block-start: 4px;
+    color: var(--ui-item-muted-foreground, var(--ui-muted-foreground));
+    font-size: 12px;
+    line-height: 18px;
+  }
+  .ui-item-trailing {
+    flex: 0 0 auto;
+    min-inline-size: 0;
+    max-inline-size: 35%;
+    color: var(--ui-item-muted-foreground, var(--ui-muted-foreground));
+    font-size: 12px;
+    text-align: end;
+  }
+  .ui-item-actions {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-inline-size: 0;
+    max-inline-size: 45%;
+  }
+  :where(.ui-item) > * {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+  .ui-item-actions > * {
+    max-inline-size: 100%;
+  }
+  .ui-item-actions :where(button, a) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  @media (forced-colors: active) {
+    .ui-item[data-selected] {
+      background: Highlight;
+      color: HighlightText;
+      forced-color-adjust: none;
+    }
+    .ui-item[data-selected] .ui-item-description,
+    .ui-item[data-selected] .ui-item-trailing {
+      color: HighlightText;
+    }
+    .ui-item[data-interactive]:focus-visible {
+      outline-color: Highlight;
+    }
+    .ui-item[data-interactive][data-selected]:focus-visible {
+      outline-color: HighlightText;
+    }
+  }
+}

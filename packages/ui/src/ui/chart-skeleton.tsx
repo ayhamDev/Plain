@@ -45,10 +45,8 @@ const hidden: React.CSSProperties = {
   border: 0,
 };
 const bars = [70, 104, 90, 142, 118, 178, 154, 194];
-const curve =
-  'M64 190 C96 190 102 138 142 146 S198 186 226 154 S278 74 320 104 S378 150 410 102 S474 130 508 80 S576 94 612 44';
-const secondCurve =
-  'M64 208 C110 208 110 178 158 184 S226 164 270 184 S326 122 374 152 S448 160 496 136 S564 158 612 112';
+const curve = 'M64 190 C132 180 146 150 216 156 S330 104 392 112 S522 68 612 52';
+const secondCurve = 'M64 208 C150 204 172 184 242 186 S382 154 450 160 S552 132 612 124';
 const points = [
   [86, 190],
   [130, 148],
@@ -67,13 +65,26 @@ const points = [
   [592, 68],
 ];
 
+/** Intrinsic SVG paint rules also keep the fallback valid before CSS is ready. */
+function Guide(props: React.SVGProps<SVGPathElement>) {
+  return (
+    <path
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1}
+      vectorEffect="non-scaling-stroke"
+      opacity={0.45}
+      {...props}
+    />
+  );
+}
 function Guides({ gridClassName }: { gridClassName?: string }) {
   return (
     <>
       {[44, 96, 148, 200].map((y) => (
         <g key={y}>
           <rect x={8} y={y - 4} width={y === 148 ? 24 : 32} height={8} rx={4} opacity={0.7} />
-          <path
+          <Guide
             d={`M56 ${y}H620`}
             data-ui="chart-skeleton"
             data-slot="grid"
@@ -81,7 +92,7 @@ function Guides({ gridClassName }: { gridClassName?: string }) {
           />
         </g>
       ))}
-      <path
+      <Guide
         d="M56 28V228H620"
         data-ui="chart-skeleton"
         data-slot="grid"
@@ -157,7 +168,7 @@ function Shape({
       <>
         {[48, 92, 136, 180, 224].map((y, i) => (
           <g key={y}>
-            <path
+            <Guide
               d={`M0 ${y}H640`}
               data-ui="chart-skeleton"
               data-slot="grid"
@@ -177,7 +188,7 @@ function Shape({
           </g>
         ))}
         {showTaskList && (
-          <path
+          <Guide
             d="M176 0V280"
             data-ui="chart-skeleton"
             data-slot="grid"
@@ -194,7 +205,7 @@ function Shape({
               rx={3.5}
               opacity={0.65}
             />
-            <path
+            <Guide
               d={`M${(showTaskList ? 176 : 0) + i * (showTaskList ? 77 : 106)} 48V280`}
               data-ui="chart-skeleton"
               data-slot="grid"
@@ -251,6 +262,11 @@ function Shape({
         {[1, 0.72, 0.44].map((scale) => (
           <polygon
             key={scale}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1}
+            vectorEffect="non-scaling-stroke"
+            opacity={0.45}
             points="320,28 416,98 380,210 260,210 224,98"
             data-ui="chart-skeleton"
             data-slot="grid"
@@ -265,7 +281,7 @@ function Shape({
           [260, 210],
           [224, 98],
         ].map(([x, y]) => (
-          <path
+          <Guide
             key={x + y}
             d={`M320 130L${x} ${y}`}
             data-ui="chart-skeleton"
@@ -314,11 +330,28 @@ function Shape({
         )}
       {variant === 'area' && <path d={`${curve}V228H64Z`} opacity={0.4} />}
       {['area', 'line', 'composed'].includes(variant) && (
-        <path d={curve} data-ui="chart-skeleton" data-slot="line" className={lineClassName} />
+        <path
+          d={curve}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+          data-ui="chart-skeleton"
+          data-slot="line"
+          className={lineClassName}
+        />
       )}
       {variant === 'line' && (
         <path
           d={secondCurve}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={3}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
           data-ui="chart-skeleton"
           data-slot="line"
           className={lineClassName}
@@ -401,6 +434,12 @@ export const ChartSkeleton = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Ch
         )}
         <svg
           aria-hidden="true"
+          fill="currentColor"
+          color={
+            (unstyled ?? styles.unstyled)
+              ? undefined
+              : 'var(--ui-skeleton-background,var(--ui-border,#e5e7e6))'
+          }
           focusable="false"
           viewBox={
             ['pie', 'donut', 'radar'].includes(variant)

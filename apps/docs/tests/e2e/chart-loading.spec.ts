@@ -44,6 +44,23 @@ for (const appearance of [
       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(appearance.width);
       await expect(section.locator('.recharts-wrapper, table, button')).toHaveCount(0);
       expect(await svg.evaluate((n) => getComputedStyle(n).animationName)).toBe('none');
+      const paint = await svg
+        .locator('[data-slot="grid"], [data-slot="line"]')
+        .evaluateAll((nodes) =>
+          nodes.map((node) => ({
+            fill: getComputedStyle(node).fill,
+            stroke: getComputedStyle(node).stroke,
+            vectorEffect: getComputedStyle(node).vectorEffect,
+          })),
+        );
+      expect(
+        paint.every(
+          (shape) =>
+            shape.fill === 'none' &&
+            shape.stroke !== 'none' &&
+            shape.vectorEffect === 'non-scaling-stroke',
+        ),
+      ).toBe(true);
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
@@ -75,6 +92,39 @@ test('keeps the plot height stable when loading resolves and preserves the separ
   await page.getByRole('button', { name: 'empty', exact: true }).click();
   await expect(chart.getByRole('status')).toHaveText('No data');
   await expect(chart.locator('svg')).toHaveCount(0);
+});
+
+test('line loading stays as muted strokes when CSS is late and matches the real docs preview', async ({
+  page,
+}, info) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/components/line-chart');
+  const preview = page.locator('#props-preview');
+  await preview.getByRole('button', { name: 'Preview properties', exact: true }).click();
+  await preview.getByRole('switch', { name: 'loading', exact: true }).click();
+  const loading = preview.locator(skeleton);
+  await expect(loading).toBeVisible();
+  const plot = loading.locator('svg');
+  const color = await plot.evaluate((node) => getComputedStyle(node).color);
+  expect(color).not.toBe(
+    await preview.locator('figure').evaluate((node) => getComputedStyle(node).color),
+  );
+  for (const path of await plot.locator('[data-slot="line"], [data-slot="grid"]').all()) {
+    await expect(path).toHaveCSS('fill', 'none');
+    await expect(path).toHaveCSS('stroke', color);
+  }
+  await loading.screenshot({ path: info.outputPath('line-loading.png') });
+  await loading.evaluate((node) => {
+    node.removeAttribute('class');
+    node.querySelectorAll('[class]').forEach((part) => part.removeAttribute('class'));
+  });
+  await expect(plot).toHaveCSS('color', color);
+  for (const path of await plot.locator('[data-slot="line"], [data-slot="grid"]').all()) {
+    await expect(path).toHaveCSS('fill', 'none');
+    await expect(path).toHaveCSS('stroke', color);
+  }
+  await loading.screenshot({ path: info.outputPath('line-before-css.png') });
 });
 
 test('follows live reduced-motion changes, explicit policy and scoped skeleton tokens', async ({

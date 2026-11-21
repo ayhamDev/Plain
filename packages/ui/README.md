@@ -77,6 +77,51 @@ consumers control their own CSS, with the requested mode exposed as `data-resize
 <Textarea resize="both" aria-label="Draft" style={{ maxHeight: 400 }} />
 ```
 
+## Item rows
+
+Use `Item` for a reusable file, choice, destination or content row. It is a native
+button by default, with soft hover/pressed surfaces, a selected background and a
+visible keyboard focus outline. It does not lift, scale or add selected borders.
+
+```tsx
+import { Item, ItemMedia, ItemContent, ItemTitle, ItemDescription } from '@plain/ui/item';
+
+<Item defaultSelected onSelectedChange={(selected) => console.log(selected)}>
+  <ItemMedia>
+    <span aria-hidden="true">TS</span>
+  </ItemMedia>
+  <ItemContent>
+    <ItemTitle>index.ts</ItemTitle>
+    <ItemDescription>Public component exports</ItemDescription>
+  </ItemContent>
+</Item>;
+```
+
+Selection is opt-in through `selected`, `defaultSelected` or `onSelectedChange`.
+Use `selected` with application state for a controlled file explorer; action-only
+items run native `onClick` without creating selection. The default button type is
+`button`; explicit native form props still apply. `size` accepts `sm`, `md`, `lg`.
+Media, content, title, description, trailing metadata and actions are optional parts.
+Parts render spans by default; use their `asChild` prop for custom elements.
+Long content wraps and all regions can shrink within a narrow parent.
+
+Use `asChild` with one link/button or a component forwarding native props and refs.
+Buttons expose `aria-pressed`, native links `aria-current`, and explicit selection
+roles such as `option` expose `aria-selected`. A custom router component should
+supply its appropriate `aria-current` or `aria-pressed` attribute on the child.
+Disabled items prevent activation and selection; disabled native links lose their
+href until enabled. Native handlers can cancel selection with `preventDefault()`.
+
+For independent buttons, links or checkboxes, use `interactive={false}` to render
+a content container, and put controls in `ItemActions` or the content. Set selection
+semantics on those controls. Keep interactive descendants out of a button/link Item.
+Compose Item in a native list or VirtualList/Grid; it does not own collection
+keyboard navigation. Existing List continues to indicate selection using checkboxes.
+
+Typed `item.*` styling slots and tokens cover surfaces, foreground, focus, radius,
+height and supporting text. `tooltip`, scoped themes, inline tokens and unstyled
+composition follow the provider contract. Parts inherit an unstyled Item.
+
 ## Tooltips on components
 
 Add `tooltip` to a rendered component or compound trigger for the same P.UI

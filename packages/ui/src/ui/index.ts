@@ -2,6 +2,7 @@
 
 export * from './utils';
 export * from './list';
+export * from './item';
 export * from './qr-code';
 export * from './i18n';
 export * from './chips';

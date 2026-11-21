@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as UI from '@plain/ui';
-import { Folder, Home, Inbox, Settings, User } from 'lucide-react';
+import { Folder, Home, Inbox, Settings, User, FileCode } from 'lucide-react';
 
 type State = Record<string, string | number | boolean>;
 const choice = <const T extends string>(state: State, key: string, values: readonly T[]) =>
@@ -54,6 +54,22 @@ export default function RefinementExample({ slug, state = {} }: { slug: string; 
   const [destination, setDestination] = React.useState('projects');
   const [step, setStep] = React.useState('details');
   const [section, setSection] = React.useState('Overview');
+  const [file, setFile] = React.useState('index.ts');
+  if (slug === 'item')
+    return (
+      <div style={{ width: '100%', maxWidth: 360, display: 'grid', gap: 4 }}>
+        {['button.tsx', 'theme.css', 'index.ts'].map((name) => (
+          <UI.Item key={name} selected={file === name} onClick={() => setFile(name)}>
+            <UI.ItemMedia>
+              <FileCode aria-hidden="true" />
+            </UI.ItemMedia>
+            <UI.ItemContent>
+              <UI.ItemTitle>{name}</UI.ItemTitle>
+            </UI.ItemContent>
+          </UI.Item>
+        ))}
+      </div>
+    );
   if (slug === 'list')
     return (
       <div style={{ width: '100%', maxWidth: 640 }}>

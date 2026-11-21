@@ -276,6 +276,26 @@ for (const directory of [consumer, minimumConsumer]) {
   const peerCharts = await import(
     pathToFileURL(join(directory, 'node_modules/@plain/ui/dist/ui/charts.js')).href
   );
+  const item = peerServer.renderToString(
+    peerReact.createElement(peerLibrary.Item, { defaultSelected: true }, 'Peer item'),
+  );
+  assert(
+    item.includes('aria-pressed="true"') &&
+      item.includes('type="button"') &&
+      !/\s(?:selected|defaultSelected|interactive)=/.test(item),
+    `React ${peerReact.version} did not preserve Item semantics.`,
+  );
+  const disabledItem = peerServer.renderToString(
+    peerReact.createElement(
+      peerLibrary.Item,
+      { asChild: true, disabled: true },
+      peerReact.createElement('a', { href: '#file' }, 'File'),
+    ),
+  );
+  assert(
+    disabledItem.includes('aria-disabled="true"') && !disabledItem.includes('href='),
+    `React ${peerReact.version} left a disabled Item link navigable.`,
+  );
   for (const resize of ['none', 'vertical', 'horizontal', 'both']) {
     const textarea = peerServer.renderToString(
       peerReact.createElement(peerLibrary.Textarea, {

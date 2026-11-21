@@ -17,6 +17,10 @@
   "module": "./dist/ui/index.js",
   "types": "./dist/ui/index.d.ts",
   "exports": {
+    "./item": {
+      "types": "./dist/ui/item.d.ts",
+      "import": "./dist/ui/item.js"
+    },
     "./qr-code": {
       "types": "./dist/ui/qr-code.d.ts",
       "import": "./dist/ui/qr-code.js"

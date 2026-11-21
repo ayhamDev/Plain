@@ -148,6 +148,7 @@ export function ComponentExample({ slug }: { slug: string }) {
     case 'card':
     case 'list':
     case 'navigation-rail':
+    case 'item':
       return (
         <React.Suspense fallback={<UI.Spinner />}>
           <RefinementExample slug={slug} />

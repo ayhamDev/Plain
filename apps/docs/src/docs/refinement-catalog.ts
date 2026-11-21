@@ -7,6 +7,66 @@ const p = (
 ): PropDefinition => ({ name, type, description, defaultValue });
 export const refinementComponents: ComponentDefinition[] = [
   {
+    slug: 'item',
+    name: 'Item',
+    category: 'Layout',
+    description:
+      'A reusable row for files, destinations, choices and rich content, with consistent interaction states.',
+    imports: [
+      'Item',
+      'ItemMedia',
+      'ItemContent',
+      'ItemTitle',
+      'ItemDescription',
+      'ItemTrailing',
+      'ItemActions',
+      'Button',
+    ],
+    setup: 'import { FileCode } from "lucide-react";',
+    functionSetup: 'const [selected, setSelected] = React.useState("index.ts");',
+    code: '<div style={{ display: "grid", gap: 4, width: "100%", maxWidth: 360 }}>\n  {["button.tsx", "theme.css", "index.ts"].map(file => <Item key={file} selected={selected === file} onClick={() => setSelected(file)}><ItemMedia><FileCode aria-hidden="true" /></ItemMedia><ItemContent><ItemTitle>{file}</ItemTitle></ItemContent></Item>)}\n</div>',
+    props: [
+      p(
+        'selected / defaultSelected / onSelectedChange',
+        'boolean / boolean / (selected: boolean) => void',
+        'Controlled or uncontrolled selected state. Selection props enable toggle behavior; ordinary action items do not toggle themselves.',
+      ),
+      p(
+        'interactive',
+        'boolean',
+        'A native button by default. False renders a static content row, allowing independent nested controls.',
+        'true',
+      ),
+      p(
+        'asChild',
+        'boolean',
+        'Compose onto one native link/button or an application component that forwards native props and refs.',
+        'false',
+      ),
+      p('size', 'sm | md | lg', 'Shared row spacing and minimum target height.', 'md'),
+      p(
+        'disabled',
+        'boolean',
+        'Prevents activation and selection, including composed links.',
+        'false',
+      ),
+      p(
+        'ItemMedia / ItemContent / ItemTitle / ItemDescription / ItemTrailing',
+        'composition parts',
+        'Optional media, flexible content, wrapping labels, supporting text and trailing metadata.',
+      ),
+      p(
+        'ItemActions',
+        'composition part',
+        'Independent actions inside an interactive={false} row. Keep buttons and links out of an interactive Item.',
+      ),
+    ],
+    accessibility:
+      'Interactive items use native button keyboard activation and default to type="button". Selection exposes aria-pressed on buttons, aria-current on native links, and aria-selected for an explicitly supplied selection role. Custom router components own their appropriate aria-current/aria-pressed attributes. Static rows leave control semantics to their nested controls. Use semantic list wrappers or the collection components when grouping items.',
+    usage:
+      'Soft backgrounds communicate hover, pressed and selected states without borders or transforms. Keyboard focus keeps a visible inset outline. Item does not own collection selection or keyboard navigation; compose it inside VirtualList, VirtualGrid, a native list or a navigation region. Existing List checkbox selection remains independent. Item supports semantic item.* tokens, typed styling slots, tooltip and unstyled presentation.',
+  },
+  {
     slug: 'list',
     name: 'List',
     category: 'Layout',

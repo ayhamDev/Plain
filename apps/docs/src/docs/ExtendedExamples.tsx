@@ -145,16 +145,10 @@ function SplitWorkspace() {
             {['button.tsx', 'theme.css', 'index.ts']
               .filter((name) => name.includes(query))
               .map((name) => (
-                <UI.Button
-                  key={name}
-                  variant="ghost"
-                  aria-pressed={name === file}
-                  className="workspace-file"
-                  onClick={() => setFile(name)}
-                >
+                <UI.Item key={name} selected={name === file} onClick={() => setFile(name)}>
                   <FileCode2 size={14} aria-hidden="true" />
                   {name}
-                </UI.Button>
+                </UI.Item>
               ))}
           </div>
         </UI.ResizablePanel>
@@ -503,15 +497,13 @@ export default function ExtendedExamples({ slug }: { slug: string }) {
     </div>
   );
   const renderRow = (item: (typeof records)[number], index: number) => (
-    <div
+    <UI.Item
       style={{
-        padding: 16,
         minHeight: slug === 'virtual-masonry' ? 56 + (index % 3) * 24 : 56,
-        borderBottom: '1px solid var(--ui-border)',
       }}
     >
       {item.name}
-    </div>
+    </UI.Item>
   );
   switch (slug) {
     case 'virtual-list':
