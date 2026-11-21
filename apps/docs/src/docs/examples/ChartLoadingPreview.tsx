@@ -20,6 +20,9 @@ export function ChartLoadingPreview({
             : 280
       }
       legend={variant !== 'scatter' && state.legend !== false}
+      grid={state.grid !== false}
+      xAxis={state.xAxis !== false}
+      yAxis={state.yAxis !== false}
       rows={3}
       columns={5}
       showToolbar={state.showToolbar !== false}

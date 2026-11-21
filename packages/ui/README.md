@@ -812,7 +812,12 @@ const RevenueChart = lazy(() => import('./RevenueChart'));
 Variants are `area`, `bar`, `line`, `composed`, `donut`, `pie`, `radar`,
 `scatter`, `heatmap` and `gantt`. Match `height` to the chart's viewport;
 Gantt's `showToolbar` adds a toolbar placeholder above that height.
-`legend`, Cartesian `layout` and Gantt's `showTaskList` match optional features.
+`legend`, Cartesian `layout`, `grid`, `xAxis`, `yAxis` and Gantt's `showTaskList`
+match optional features. Chart wrappers infer their loading axes, grid and legend
+from the visible chart configuration; standalone fallbacks can set these flags.
+All placeholder shapes define their own neutral SVG paint. Small labels and dots
+retain their stroke width when the viewport stretches, and radial charts keep
+their circular proportions.
 Heatmap `rows` and `columns` match a known grid; skeleton density is capped at
 12 rows and 24 columns so placeholders stay lightweight.
 `label` overrides the localized screen-reader announcement. `animate={false}`

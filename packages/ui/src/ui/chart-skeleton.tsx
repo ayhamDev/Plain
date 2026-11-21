@@ -23,6 +23,10 @@ export interface ChartSkeletonProps extends React.HTMLAttributes<HTMLDivElement>
   label?: string;
   animate?: boolean;
   legend?: boolean;
+  /** Match the visible chart's Cartesian guides and axis labels. */
+  grid?: boolean;
+  xAxis?: boolean;
+  yAxis?: boolean;
   /** Mirrors Cartesian chart layout; vertical means horizontal bars. */
   layout?: 'horizontal' | 'vertical';
   /** Gantt toolbar and task column placeholders. */
@@ -73,34 +77,124 @@ function Guide(props: React.SVGProps<SVGPathElement>) {
       stroke="currentColor"
       strokeWidth={1}
       vectorEffect="non-scaling-stroke"
-      opacity={0.45}
+      opacity={0.35}
       {...props}
     />
   );
 }
-function Guides({ gridClassName }: { gridClassName?: string }) {
+function Block(props: React.SVGProps<SVGRectElement>) {
+  return React.createElement('rect', { fill: 'currentColor', stroke: 'none', ...props });
+}
+/** Round stroke caps keep dots circular even in a stretched Cartesian viewport. */
+function Dot({
+  x,
+  y,
+  size = 8,
+  ...props
+}: React.SVGProps<SVGPathElement> & {
+  x: number;
+  y: number;
+  size?: number;
+}) {
+  return (
+    <path
+      d={`M${x} ${y}h0.01`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={size}
+      strokeLinecap="round"
+      vectorEffect="non-scaling-stroke"
+      {...props}
+    />
+  );
+}
+function Label({
+  x,
+  y,
+  width,
+  ...props
+}: React.SVGProps<SVGPathElement> & {
+  x: number;
+  y: number;
+  width: number;
+}) {
+  return (
+    <path
+      d={`M${x + 3} ${y}h${width - 6}`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={6}
+      strokeLinecap="round"
+      vectorEffect="non-scaling-stroke"
+      {...props}
+    />
+  );
+}
+function PlaceholderLegend({ count = 2 }: { count?: number }) {
+  const start = 320 - (count * 84 - 24) / 2;
+  return (
+    <g data-part="legend" opacity={0.75}>
+      {Array.from({ length: count }, (_, i) => (
+        <g key={i} opacity={1 - i * 0.16}>
+          <Dot x={start + i * 84} y={270} size={6} />
+          <Label x={start + 12 + i * 84} y={270} width={48} />
+        </g>
+      ))}
+    </g>
+  );
+}
+function Guides({
+  gridClassName,
+  grid,
+  xAxis,
+  yAxis,
+}: {
+  gridClassName?: string;
+  grid: boolean;
+  xAxis: boolean;
+  yAxis: boolean;
+}) {
   return (
     <>
-      {[44, 96, 148, 200].map((y) => (
-        <g key={y}>
-          <rect x={8} y={y - 4} width={y === 148 ? 24 : 32} height={8} rx={4} opacity={0.7} />
+      {grid && (
+        <g data-part="grid-lines">
+          {[44, 96, 148, 200].map((y) => (
+            <Guide
+              key={y}
+              d={`M56 ${y}H620`}
+              data-ui="chart-skeleton"
+              data-slot="grid"
+              className={gridClassName}
+            />
+          ))}
+        </g>
+      )}
+      {yAxis && (
+        <g data-part="y-axis">
+          {[44, 96, 148, 200].map((y) => (
+            <Label key={y} x={12} y={y} width={y === 148 ? 22 : 30} opacity={0.7} />
+          ))}
           <Guide
-            d={`M56 ${y}H620`}
+            d="M56 28V228"
             data-ui="chart-skeleton"
             data-slot="grid"
             className={gridClassName}
           />
         </g>
-      ))}
-      <Guide
-        d="M56 28V228H620"
-        data-ui="chart-skeleton"
-        data-slot="grid"
-        className={gridClassName}
-      />
-      {[64, 168, 272, 376, 480, 584].map((x) => (
-        <rect key={x} x={x} y={244} width={32} height={8} rx={4} opacity={0.65} />
-      ))}
+      )}
+      {xAxis && (
+        <g data-part="x-axis">
+          <Guide
+            d="M56 228H620"
+            data-ui="chart-skeleton"
+            data-slot="grid"
+            className={gridClassName}
+          />
+          {[64, 168, 272, 376, 480, 584].map((x) => (
+            <Label key={x} x={x} y={246} width={28} opacity={0.65} />
+          ))}
+        </g>
+      )}
     </>
   );
 }
@@ -114,44 +208,43 @@ function Shape({
   lineClassName,
   rows,
   columns,
+  grid,
+  xAxis,
+  yAxis,
 }: Required<Pick<ChartSkeletonProps, 'variant' | 'layout' | 'legend' | 'showTaskList'>> & {
   gridClassName?: string;
   lineClassName?: string;
   rows: number;
   columns: number;
+  grid: boolean;
+  xAxis: boolean;
+  yAxis: boolean;
 }) {
   if (variant === 'heatmap')
     return (
       <>
         {Array.from({ length: rows }, (_, row) => (
           <g key={row}>
-            <rect
-              x={8}
-              y={32 + row * 36}
-              width={row % 2 ? 44 : 60}
-              height={8}
-              rx={4}
-              opacity={0.65}
-            />
+            <Label x={8} y={36 + row * 36} width={row % 2 ? 44 : 60} opacity={0.65} />
             {Array.from({ length: columns }, (_, col) => (
-              <rect
+              <Block
                 key={col}
                 x={96 + col * 36}
                 y={20 + row * 36}
                 width={32}
                 height={32}
                 rx={4}
-                opacity={0.4 + ((row * 3 + col) % 4) * 0.16}
+                opacity={0.35 + ((row + col) % 3) * 0.15}
               />
             ))}
           </g>
         ))}
         {Array.from({ length: columns }, (_, col) => (
-          <rect key={col} x={102 + col * 36} y={6} width={20} height={6} rx={3} opacity={0.6} />
+          <Label key={col} x={102 + col * 36} y={9} width={20} opacity={0.6} />
         ))}
         {legend &&
           [0, 1, 2, 3, 4].map((i) => (
-            <rect
+            <Block
               key={i}
               x={96 + columns * 36 - 120 + i * 24}
               y={28 + rows * 36}
@@ -174,16 +267,14 @@ function Shape({
               data-slot="grid"
               className={gridClassName}
             />
-            {showTaskList && (
-              <rect x={16} y={y + 15} width={i % 2 ? 92 : 120} height={8} rx={4} opacity={0.6} />
-            )}
-            <rect
+            {showTaskList && <Label x={16} y={y + 19} width={i % 2 ? 92 : 120} opacity={0.6} />}
+            <Block
               x={(showTaskList ? 200 : 24) + i * (showTaskList ? 36 : 54)}
               y={y + 9}
               width={116 + (i % 3) * 28}
               height={24}
               rx={5}
-              opacity={i % 2 ? 0.65 : 0.95}
+              opacity={i % 2 ? 0.55 : 0.8}
             />
           </g>
         ))}
@@ -197,12 +288,10 @@ function Shape({
         )}
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <g key={i}>
-            <rect
+            <Label
               x={(showTaskList ? 200 : 24) + i * (showTaskList ? 72 : 100)}
-              y={20}
+              y={24}
               width={32}
-              height={7}
-              rx={3.5}
               opacity={0.65}
             />
             <Guide
@@ -223,73 +312,89 @@ function Shape({
             <circle
               cx={320}
               cy={132}
-              r={82}
+              r={80}
               fill="none"
               stroke="currentColor"
-              strokeWidth={30}
-              opacity={0.45}
+              strokeWidth={24}
+              opacity={0.25}
             />
             <circle
               cx={320}
               cy={132}
-              r={82}
+              r={80}
               fill="none"
               stroke="currentColor"
-              strokeWidth={30}
-              strokeDasharray="128 12 206 12 145 12"
+              strokeWidth={24}
+              strokeDasharray="140 10 190 10 142 11"
+              opacity={0.8}
               transform={`rotate(-90 ${320} 132)`}
             />
           </>
         ) : (
-          <g transform={`translate(${320} 132)`}>
-            <circle r={96} opacity={0.7} />
-            <path d="M0 0V-96A96 96 0 0 1 83.14 48Z" />
-            <path d="M0 0L83.14 48A96 96 0 0 1 -83.14 48Z" opacity={0.45} />
+          <g transform="translate(320 132)" stroke="none">
+            <path d="M0 0L1.54 -87.99A88 88 0 0 1 76.97 42.66Z" fill="currentColor" opacity={0.8} />
+            <path
+              d="M0 0L75.43 45.32A88 88 0 0 1 -75.43 45.32Z"
+              fill="currentColor"
+              opacity={0.5}
+            />
+            <path
+              d="M0 0L-76.97 42.66A88 88 0 0 1 -1.54 -87.99Z"
+              fill="currentColor"
+              opacity={0.65}
+            />
           </g>
         )}
-        {legend &&
-          [0, 1, 2].map((i) => (
-            <g key={i} opacity={1 - i * 0.13}>
-              <circle cx={218 + i * 76} cy={258} r={4} />
-              <rect x={230 + i * 76} y={254} width={44} height={8} rx={4} />
-            </g>
-          ))}
+        {legend && <PlaceholderLegend count={3} />}
       </>
     );
   if (variant === 'radar')
     return (
       <>
-        {[1, 0.72, 0.44].map((scale) => (
-          <polygon
-            key={scale}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1}
-            vectorEffect="non-scaling-stroke"
-            opacity={0.45}
-            points="320,28 416,98 380,210 260,210 224,98"
-            data-ui="chart-skeleton"
-            data-slot="grid"
-            className={gridClassName}
-            transform={`translate(320 130) scale(${scale}) translate(-320 -130)`}
-          />
-        ))}
-        {[
-          [320, 28],
-          [416, 98],
-          [380, 210],
-          [260, 210],
-          [224, 98],
-        ].map(([x, y]) => (
-          <Guide
-            key={x + y}
-            d={`M320 130L${x} ${y}`}
-            data-ui="chart-skeleton"
-            data-slot="grid"
-            className={gridClassName}
-          />
-        ))}
-        <polygon points="320,54 388,106 354,178 274,192 256,108" opacity={0.6} />
+        {grid && (
+          <g data-part="grid-lines">
+            {[1, 0.72, 0.44].map((scale) => (
+              <polygon
+                key={scale}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1}
+                vectorEffect="non-scaling-stroke"
+                opacity={0.35}
+                points="320,28 416,98 380,210 260,210 224,98"
+                data-ui="chart-skeleton"
+                data-slot="grid"
+                className={gridClassName}
+                transform={`translate(320 130) scale(${scale}) translate(-320 -130)`}
+              />
+            ))}
+            {[
+              [320, 28],
+              [416, 98],
+              [380, 210],
+              [260, 210],
+              [224, 98],
+            ].map(([x, y]) => (
+              <Guide
+                key={x + y}
+                d={`M320 130L${x} ${y}`}
+                data-ui="chart-skeleton"
+                data-slot="grid"
+                className={gridClassName}
+              />
+            ))}
+          </g>
+        )}
+        <polygon
+          points="320,54 388,106 354,178 274,192 256,108"
+          fill="currentColor"
+          stroke="currentColor"
+          strokeWidth={2}
+          vectorEffect="non-scaling-stroke"
+          fillOpacity={0.18}
+          strokeOpacity={0.8}
+          strokeLinejoin="round"
+        />
         {[
           [296, 8],
           [436, 94],
@@ -297,47 +402,57 @@ function Shape({
           [218, 228],
           [166, 94],
         ].map(([x, y]) => (
-          <rect key={x + y} x={x} y={y} width={40} height={8} rx={4} opacity={0.6} />
+          <Label key={x + y} x={x} y={y + 4} width={40} opacity={0.6} />
         ))}
+        {legend && <PlaceholderLegend />}
       </>
     );
   return (
     <>
-      <Guides gridClassName={gridClassName} />
+      <Guides gridClassName={gridClassName} grid={grid} xAxis={xAxis} yAxis={yAxis} />
       {(variant === 'bar' || variant === 'composed') &&
         bars.map((height, i) =>
           layout === 'vertical' ? (
-            <rect
+            <Block
               key={i}
               x={64}
               y={28 + i * 24}
               width={height * 2.5}
               height={14}
               rx={4}
-              opacity={variant === 'composed' ? 0.6 : 1}
+              opacity={variant === 'composed' ? 0.45 : 0.8}
             />
           ) : (
-            <rect
+            <Block
               key={i}
               x={72 + i * 66}
               y={228 - height}
               width={38}
               height={height}
               rx={5}
-              opacity={variant === 'composed' ? 0.6 : 1}
+              opacity={variant === 'composed' ? 0.45 : 0.8}
             />
           ),
         )}
-      {variant === 'area' && <path d={`${curve}V228H64Z`} opacity={0.4} />}
+      {variant === 'area' && (
+        <path
+          data-part="area-fill"
+          d={`${curve}V228H64Z`}
+          fill="currentColor"
+          stroke="none"
+          opacity={0.18}
+        />
+      )}
       {['area', 'line', 'composed'].includes(variant) && (
         <path
           d={curve}
           fill="none"
           stroke="currentColor"
-          strokeWidth={3}
+          strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
+          opacity={0.85}
           data-ui="chart-skeleton"
           data-slot="line"
           className={lineClassName}
@@ -348,7 +463,7 @@ function Shape({
           d={secondCurve}
           fill="none"
           stroke="currentColor"
-          strokeWidth={3}
+          strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
           vectorEffect="non-scaling-stroke"
@@ -361,16 +476,9 @@ function Shape({
       )}
       {variant === 'scatter' &&
         points.map(([x, y], i) => (
-          <circle key={x} cx={x} cy={y} r={(i % 3) + 5} opacity={i % 2 ? 0.55 : 1} />
+          <Dot key={x} x={x} y={y} size={(i % 3) + 6} opacity={i % 2 ? 0.5 : 0.85} />
         ))}
-      {legend && (
-        <g opacity={0.7}>
-          <circle cx={252} cy={272} r={4} />
-          <rect x={264} y={268} width={52} height={8} rx={4} />
-          <circle cx={340} cy={272} r={4} />
-          <rect x={352} y={268} width={52} height={8} rx={4} />
-        </g>
-      )}
+      {legend && <PlaceholderLegend />}
     </>
   );
 }
@@ -384,6 +492,9 @@ export const ChartSkeleton = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Ch
       label,
       animate = true,
       legend = true,
+      grid = true,
+      xAxis = true,
+      yAxis = true,
       layout = 'horizontal',
       showToolbar = true,
       showTaskList = true,
@@ -407,8 +518,17 @@ export const ChartSkeleton = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Ch
       1,
       Math.min(24, Math.round(Number.isFinite(columns) ? columns : 12)),
     );
-    const plotWidth = variant === 'heatmap' ? 96 + columnCount * 36 : 640;
-    const plotHeight = variant === 'heatmap' ? 16 + rowCount * 36 + (legend ? 28 : 0) : 280;
+    const cartesian = ['area', 'bar', 'line', 'composed', 'scatter'].includes(variant);
+    const plotLeft = cartesian && !yAxis ? 48 : 0;
+    const plotWidth = variant === 'heatmap' ? 96 + columnCount * 36 : 640 - plotLeft;
+    const plotHeight =
+      variant === 'heatmap'
+        ? 16 + rowCount * 36 + (legend ? 28 : 0)
+        : cartesian && !legend
+          ? xAxis
+            ? 260
+            : 236
+          : 280;
     return styles.tooltip(
       <div
         ref={ref}
@@ -434,7 +554,8 @@ export const ChartSkeleton = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Ch
         )}
         <svg
           aria-hidden="true"
-          fill="currentColor"
+          fill="none"
+          stroke="none"
           color={
             (unstyled ?? styles.unstyled)
               ? undefined
@@ -444,7 +565,7 @@ export const ChartSkeleton = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Ch
           viewBox={
             ['pie', 'donut', 'radar'].includes(variant)
               ? '160 0 320 280'
-              : `0 0 ${plotWidth} ${plotHeight}`
+              : `${plotLeft} 0 ${plotWidth} ${plotHeight}`
           }
           preserveAspectRatio={
             ['pie', 'donut', 'radar'].includes(variant)
@@ -471,7 +592,7 @@ export const ChartSkeleton = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Ch
           <g
             transform={
               direction === 'rtl' && !['pie', 'donut', 'radar'].includes(variant)
-                ? `translate(${plotWidth} 0) scale(-1 1)`
+                ? `translate(${2 * plotLeft + plotWidth} 0) scale(-1 1)`
                 : undefined
             }
           >
@@ -482,6 +603,9 @@ export const ChartSkeleton = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Ch
               showTaskList={showTaskList}
               rows={rowCount}
               columns={columnCount}
+              grid={grid}
+              xAxis={xAxis}
+              yAxis={yAxis}
               gridClassName={
                 styles('chart-skeleton.grid', 'ui-chart-skeleton-grid', undefined, unstyled)
                   .className

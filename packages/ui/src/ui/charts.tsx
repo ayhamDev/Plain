@@ -209,13 +209,30 @@ function loadingAppearance(child: React.ReactElement) {
   ]);
   let variant = variants.get(child.type) ?? 'line';
   let legend = false;
+  let grid = false;
+  let xAxis = false;
+  let yAxis = false;
   const visit = (nodes: React.ReactNode) =>
     React.Children.forEach(nodes, (node) => {
       if (
-        !React.isValidElement<{ innerRadius?: number | string; children?: React.ReactNode }>(node)
+        !React.isValidElement<{
+          innerRadius?: number | string;
+          children?: React.ReactNode;
+          hide?: boolean;
+          horizontal?: boolean;
+          vertical?: boolean;
+        }>(node)
       )
         return;
       if (node.type === ChartLegend || node.type === Legend) legend = true;
+      if (node.type === ChartXAxis || node.type === XAxis) xAxis ||= !node.props.hide;
+      if (node.type === ChartYAxis || node.type === YAxis) yAxis ||= !node.props.hide;
+      if (
+        node.type === PolarGrid ||
+        ((node.type === ChartGrid || node.type === CartesianGrid) &&
+          (node.props.horizontal !== false || node.props.vertical !== false))
+      )
+        grid = true;
       if (
         (node.type === ChartPie || node.type === Pie) &&
         node.props.innerRadius &&
@@ -226,7 +243,7 @@ function loadingAppearance(child: React.ReactElement) {
     });
   const props = child.props as { layout?: 'horizontal' | 'vertical'; children?: React.ReactNode };
   visit(props.children);
-  return { variant, legend, layout: props.layout };
+  return { variant, legend, grid, xAxis, yAxis, layout: props.layout };
 }
 
 /** Composes any Recharts chart, preserving native keyboard navigation and an accessible data alternative. */

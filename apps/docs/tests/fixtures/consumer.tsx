@@ -300,7 +300,14 @@ export function ConsumerApp() {
             <SidebarTrigger />
           </SidebarInset>
         </SidebarProvider>
-        <ChartSkeleton variant="area" height={280} label="Loading revenue" />
+        <ChartSkeleton
+          variant="area"
+          height={280}
+          label="Loading revenue"
+          grid={false}
+          xAxis={false}
+          yAxis={false}
+        />
         <ModularChartSkeleton variant="heatmap" rows={3} columns={5} height={176} animate={false} />
         <EmptyState align="start">
           <EmptyStateContent>

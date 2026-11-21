@@ -15,10 +15,13 @@ import {
   GanttChart,
   Chart,
   ChartLine,
+  ChartGrid,
+  ChartXAxis,
+  ChartYAxis,
   ChartSkeleton as ChartsSkeleton,
 } from '../src/ui/charts';
 import { ChartSkeleton } from '../src/ui/chart-skeleton';
-import { LineChart as RechartsLineChart } from 'recharts';
+import { LineChart as RechartsLineChart, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { StyleProvider } from '../src/ui/styling';
 import { LanguageProvider } from '../src/ui/i18n';
 import { MotionPolicyProvider } from '../src/ui/motion-policy';
@@ -105,7 +108,7 @@ describe('chart loading', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Fetching sales');
     const bar = container.querySelector('svg rect[x="64"][height="14"]');
     expect(bar).toHaveAttribute('height', '14');
-    expect(container.querySelector('svg circle')).toBeNull();
+    expect(container.querySelector('[data-part="legend"]')).toBeNull();
     rerender(
       <Chart data={data} loading loadingVariant="scatter">
         <RechartsLineChart data={data}>
@@ -114,6 +117,53 @@ describe('chart loading', () => {
       </Chart>,
     );
     expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'scatter');
+  });
+
+  it('matches hidden axes and grids while loading, including native Recharts compositions', () => {
+    const { container, rerender } = render(
+      <LineChart {...common} grid={false} xAxis={false} yAxis={false} legend={false} />,
+    );
+    expect(
+      container.querySelector(
+        '[data-part="grid-lines"], [data-part="x-axis"], [data-part="y-axis"], [data-part="legend"]',
+      ),
+    ).toBeNull();
+    rerender(
+      <Chart data={data} loading>
+        <RechartsLineChart data={data}>
+          <CartesianGrid horizontal={false} vertical={false} />
+          <XAxis hide />
+          <YAxis hide />
+          <ChartLine dataKey="value" />
+        </RechartsLineChart>
+      </Chart>,
+    );
+    expect(
+      container.querySelector(
+        '[data-part="grid-lines"], [data-part="x-axis"], [data-part="y-axis"]',
+      ),
+    ).toBeNull();
+    rerender(
+      <Chart data={data} loading>
+        <RechartsLineChart data={data}>
+          <ChartGrid />
+          <ChartXAxis />
+          <ChartYAxis />
+          <ChartLine dataKey="value" />
+        </RechartsLineChart>
+      </Chart>,
+    );
+    for (const part of ['grid-lines', 'x-axis', 'y-axis'])
+      expect(container.querySelector(`[data-part="${part}"]`)).toBeInTheDocument();
+  });
+
+  it('keeps a standalone skeleton configurable without leaking visual flags to the DOM', () => {
+    const { container } = render(
+      <ChartSkeleton grid={false} xAxis={false} yAxis={false} legend={false} />,
+    );
+    expect(container.querySelector('[data-part]')).toBeNull();
+    const markup = renderToString(<ChartSkeleton grid={false} xAxis={false} yAxis={false} />);
+    expect(markup).not.toMatch(/\s(?:grid|xAxis|yAxis)=/);
   });
 
   it.each(['reduced', 'none'] as const)('makes loading static under %s motion', (policy) => {
