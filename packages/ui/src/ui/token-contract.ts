@@ -170,6 +170,8 @@ export const componentTokenAliases = {
   'input.focus': 'var(--ui-focus-ring)',
   'qr-code.foreground': '#000000',
   'qr-code.background': '#ffffff',
+  'qr-code.duration': '400ms',
+  'qr-code.delay': '0ms',
   'dropzone.background': 'var(--ui-surface)',
   'dropzone.foreground': 'var(--ui-foreground)',
   'dropzone.border': 'var(--ui-control-border)',

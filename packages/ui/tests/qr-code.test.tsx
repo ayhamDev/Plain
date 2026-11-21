@@ -6,8 +6,143 @@ import { QRCode } from '../src/ui/qr-code';
 import { StyleProvider } from '../src/ui/styling';
 import { tokensToStyle } from '../src/ui/token-contract';
 import { LanguageProvider } from '../src/ui/i18n';
+import { MotionPolicyProvider } from '../src/ui/motion-policy';
 
 describe('QRCode', () => {
+  it('animates by default, accepts timing overrides and can disable animation', () => {
+    const { rerender } = render(<QRCode value="Motion" />);
+    expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'reveal');
+    rerender(<QRCode value="Motion" animation={{ preset: 'fade', duration: 700, delay: 80 }} />);
+    expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'fade');
+    expect(
+      (screen.getByRole('img') as unknown as SVGElement).style.getPropertyValue(
+        '--ui-qr-code-duration',
+      ),
+    ).toBe('700ms');
+    rerender(<QRCode value="Motion" animation={{ duration: 0 }} />);
+    expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'none');
+    rerender(<QRCode value="Motion" animation={false} />);
+    expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'none');
+  });
+  it.each(['none', 'reduced'] as const)('honors provider motion policy %s', (policy) => {
+    render(
+      <MotionPolicyProvider policy={policy}>
+        <QRCode value="Motion" />
+      </MotionPolicyProvider>,
+    );
+    expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'none');
+    expect(screen.getByRole('img').querySelector('mask')).toBeNull();
+  });
+  it('makes a circular silhouette while retaining a square quiet zone inside it', () => {
+    render(<QRCode value="Round code" shape="circle" />);
+    const code = screen.getByRole('img');
+    expect(code).toHaveAttribute('data-shape', 'circle');
+    expect(code).toHaveAttribute('data-module-shape', 'dots');
+    const paper = code.querySelector('[data-slot="background"]')!;
+    expect(paper.tagName).toBe('circle');
+    const origin = Number(
+      code
+        .querySelector('[data-slot="foreground"]')!
+        .getAttribute('transform')!
+        .match(/\d+(\.\d+)?/)![0],
+    );
+    const extent = Number(code.getAttribute('viewBox')!.split(' ')[2]);
+    const matrix = extent - origin * 2;
+    expect((matrix + 8) * Math.SQRT2).toBeLessThanOrEqual(extent);
+    expect(code.querySelector('[data-slot="circle"]')).toHaveAttribute(
+      'd',
+      expect.stringContaining('M'),
+    );
+  });
+  it('supports independent finder styling, gradients and logo cutouts with strong default correction', () => {
+    render(
+      <QRCode
+        value="Brand"
+        finderShape="rounded"
+        finderCenterShape="circle"
+        finderColor="#123456"
+        finderCenterColor="#234567"
+        gradient={{
+          stops: [
+            { offset: 0, color: '#111111' },
+            { offset: 1, color: '#333333' },
+          ],
+        }}
+        logo={{ src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>' }}
+      />,
+    );
+    const code = screen.getByRole('img');
+    expect(code).toHaveAttribute('data-level', 'H');
+    expect(code.querySelectorAll('[data-slot="finder"]')).toHaveLength(3);
+    expect(code.querySelector('[data-slot="finder-frame"]')).toHaveAttribute('fill', '#123456');
+    expect(code.querySelector('[data-slot="finder-center"]')).toHaveAttribute('fill', '#234567');
+    expect(code.querySelector('linearGradient')?.querySelectorAll('stop')).toHaveLength(2);
+    expect(code.querySelector('[data-slot="logo"]')).toHaveAttribute('mask');
+    expect(code.querySelector('[data-slot="logo-image"]')).toHaveAttribute('clip-path');
+  });
+  it('keeps multiple SVG definition IDs unique and preserves the native SVG version attribute', () => {
+    render(
+      <>
+        <QRCode
+          value="First"
+          version="1.1"
+          qrVersion={7}
+          gradient={{ stops: [{ offset: 0, color: 'black' }] }}
+        />
+        <QRCode value="Second" gradient={{ stops: [{ offset: 0, color: 'black' }] }} />
+      </>,
+    );
+    const [first, second] = screen.getAllByRole('img');
+    expect(first).toHaveAttribute('viewBox', '0 0 53 53');
+    expect(first).toHaveAttribute('version', '1.1');
+    expect(first.querySelector('linearGradient')!.id).not.toBe(
+      second.querySelector('linearGradient')!.id,
+    );
+    expect(first).not.toHaveAttribute('qrVersion');
+  });
+  it('supports advanced module/finder rendering without one DOM node per module by default', () => {
+    const module = vi.fn((_module, element) => element),
+      finder = vi.fn((_finder, element) => element);
+    const { rerender } = render(<QRCode value="Custom" />);
+    expect(screen.getByRole('img').querySelectorAll('path').length).toBeLessThan(20);
+    rerender(<QRCode value="Custom" renderModule={module} renderFinder={finder} />);
+    expect(module).toHaveBeenCalledWith(
+      expect.objectContaining({ x: expect.any(Number), isFunction: expect.any(Boolean) }),
+      expect.anything(),
+    );
+    expect(finder).toHaveBeenCalledTimes(3);
+    expect(screen.getByRole('img').querySelector('clipPath')).not.toBeNull();
+  });
+
+  it('normalizes invalid geometry options and reports a version too small for the content', () => {
+    const error = vi.fn();
+    const { rerender } = render(
+      <QRCode
+        value="https://github.com/ayhamDev/Plain"
+        size={NaN}
+        margin={Infinity}
+        moduleScale={-1}
+        qrVersion={99}
+        maskPattern={9}
+        circlePattern={false}
+      />,
+    );
+    expect(screen.getByRole('img')).toHaveAttribute('width', '192');
+    expect(screen.getByRole('img')).toHaveAttribute('data-state', 'ready');
+    expect(screen.getByRole('img').querySelector('[data-slot="circle"]')).toBeNull();
+    rerender(
+      <QRCode
+        value="https://github.com/ayhamDev/Plain"
+        qrVersion={1}
+        level="H"
+        onEncodingError={error}
+      />,
+    );
+    expect(screen.getByRole('img')).toHaveAttribute('data-state', 'error');
+    expect(error).toHaveBeenCalledOnce();
+    rerender(<QRCode value="https://github.com/ayhamDev/Plain" qrVersion={7} level="H" />);
+    expect(screen.getByRole('img')).toHaveAttribute('data-state', 'ready');
+  });
   it('keeps SVG refs, native props, ARIA and handlers on the generated image', () => {
     const ref = React.createRef<SVGSVGElement>();
     const click = vi.fn();

@@ -6,6 +6,9 @@ import { readFile } from 'node:fs/promises';
 
 const repository = 'https://github.com/ayhamDev/Plain';
 async function decoded(code: Locator) {
+  await code.evaluate(async (node) => {
+    await Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished));
+  });
   const png = PNG.sync.read(await code.screenshot());
   return jsQR(new Uint8ClampedArray(png.data), png.width, png.height)?.data ?? null;
 }
@@ -100,7 +103,10 @@ test('all correction levels decode and keep a four-module minimum quiet zone', a
     );
     const code = page.getByRole('img', { name: 'Project QR code', exact: true });
     await expect(code).toHaveAttribute('data-level', level);
-    await expect(code.locator('path')).toHaveAttribute('transform', 'translate(4 4)');
+    await expect(code.locator('[data-slot="foreground"]')).toHaveAttribute(
+      'transform',
+      'translate(4 4)',
+    );
     expect(await decoded(code)).toBe(value);
     const png = PNG.sync.read(await code.screenshot());
     for (let x = 0; x < png.width; x++) {
@@ -116,8 +122,8 @@ test('tokens and explicit SVG colors keep a scannable code in a dark RTL scope',
   await page.setViewportSize({ width: 390, height: 1000 });
   await page.goto('/tests/fixtures/qr-code.html?custom&theme=dark&dir=rtl');
   const code = page.getByRole('img', { name: 'Project QR code', exact: true });
-  await expect(code.locator('path')).toHaveCSS('fill', 'rgb(18, 52, 86)');
-  await expect(code.locator('rect')).toHaveCSS('fill', 'rgb(255, 255, 255)');
+  await expect(code.locator('[data-slot="foreground"]')).toHaveCSS('fill', 'rgb(18, 52, 86)');
+  await expect(code.locator('[data-slot="background"]')).toHaveCSS('fill', 'rgb(255, 255, 255)');
   expect(await decoded(code)).toBe(repository);
   await accessible(page, 'main');
   await page.screenshot({ path: info.outputPath('qr-code-custom-rtl.png') });

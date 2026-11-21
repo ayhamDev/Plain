@@ -356,21 +356,80 @@ import { QRCode } from '@plain/ui'; // also @plain/ui/qr-code
 
 QRCode uses the `qrcode` encoder locally and renders SVG during SSR and in the
 browser. `value` is encoded exactly, including Unicode and whitespace. `level`
-supports L/M/Q/H. The quiet zone is measured in modules and stays at least four
-modules wide. Defaults keep black ink on white paper in both themes. Explicit
-`foreground`/`background` props or typed `qr-code.foreground`/`qr-code.background`
-tokens customize colors; choose readable combinations and verify scanning at the
-intended size. RTL does not mirror the code, and the component does not animate
-its modules.
+supports L/M/Q/H, defaulting to M or H with a logo. Explicit levels take precedence.
+The quiet zone is measured in modules and normalized to 4..128. Defaults keep
+black ink on white paper in both themes. RTL does not mirror the code.
+
+A brief reveal runs on mount and content changes by default. Configure
+`animation={{ preset: 'fade', duration: 600, delay: 80 }}` or use
+`animation={false}` (also `duration: 0`). System reduced-motion preferences and
+provider `reduced`/`none` policies disable it. Timing uses the library easing and
+motion scale, with local `qr-code.duration` and `qr-code.delay` token overrides.
+There is no continuous animation or per-module animation overhead.
+
+```tsx
+<QRCode
+  value="https://github.com/ayhamDev/Plain"
+  label="Open the P.UI repository"
+  shape="circle"
+  size={320}
+  moduleShape="dots"
+  finderShape="rounded"
+  finderCenterShape="circle"
+  finderColor="#111827"
+  gradient={{
+    type: 'linear',
+    rotation: 45,
+    stops: [
+      { offset: 0, color: '#111827' },
+      { offset: 1, color: '#3730a3' },
+    ],
+  }}
+  logo={{ src: '/brand.svg', size: 0.18, padding: 1, radius: 0.5 }}
+/>
+```
+
+`shape="circle"` surrounds a complete square QR matrix and its quiet zone with
+decorative outer modules on a circular background. Encoded corners are never
+cropped. It defaults to dotted data modules and rounded finders. Use
+`circlePattern={false}` for just the circular background or `circlePatternColor`
+for separate outer ink. Circular layouts give the encoded matrix less space at
+the same SVG size; increase `size` for dense content.
+
+`moduleShape` accepts square, rounded, dots and diamond, with `moduleScale` in
+0.6..1 (default 1). `finderShape` and `finderCenterShape` accept square, rounded
+and circle. Finder centers inherit the outer shape/color unless overridden with
+`finderCenterShape`/`finderCenterColor`. Explicit `foreground`/`background` or
+typed `qr-code.foreground`/`qr-code.background` tokens customize ink and paper.
+`gradient` supports linear/radial, rotation and up to 16 stops (offset 0..1,
+color, optional opacity). Function patterns keep solid foreground ink.
+
+`logo` accepts src, size (matrix fraction 0..0.24; default 0.18), padding
+(modules 0..4; default 1), background, radius (modules; default 0.5), and
+crossOrigin. Its cutout preserves reserved light and dark function cells.
+Use an embedded data URL for a portable standalone logo export. Custom colors,
+small modules and logos need scanning checks with your content at the intended
+display/print size.
+
+Advanced consumers can set `qrVersion` (1..40) and `maskPattern` (0..7).
+Native SVG `version` remains separate. `renderModule(module, defaultElement)`
+receives x/y, size: 1 and isFunction, using matrix coordinates.
+`renderFinder(finder, defaultElement)` receives corner, x/y and size: 7; its
+returned SVG uses local 0..7 coordinates. Both callbacks are clipped to the
+matrix to preserve the quiet zone. Default rendering combines modules into a
+few paths; custom module rendering opts into individual DOM nodes.
 
 Native SVG refs, attributes, handlers, classes and style target the actual SVG.
-Typed `qr-code.*` slots customize its parts. Unstyled mode removes default classes
-while retaining SVG geometry and functional ink/paper defaults. Empty values show
+Typed `qr-code.*` slots customize its background, data/function paths, finder
+frames/centers, outer circle, logo and animation parts. Unstyled mode removes
+default classes/animation while retaining SVG geometry and ink/paper defaults. Empty values show
 an empty placeholder. Encoder failures show an unavailable placeholder and call
 `onEncodingError`; neither state renders a fake code. `data-state` reports ready,
 empty or error. Provide meaningful `label`/`description` or native ARIA props, with
 equivalent text or a link alongside the image. Download actions belong to the
-application; the docs example demonstrates exporting SVG with resolved colors.
+application; the docs example demonstrates exporting a complete static SVG with
+resolved colors, gradient definitions and an embedded logo, plus interactive
+style, color and animation controls.
 
 ## Dropzone
 

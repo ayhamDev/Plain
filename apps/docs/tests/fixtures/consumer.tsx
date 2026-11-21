@@ -43,7 +43,7 @@ import {
 } from '@plain/ui';
 import { Button as ModularButton } from '@plain/ui/primitives';
 import { Dropzone as ModularDropzone } from '@plain/ui/advanced';
-import { QRCode as ModularQRCode } from '@plain/ui/qr-code';
+import { QRCode as ModularQRCode, type QRCodeProps } from '@plain/ui/qr-code';
 import { TimePicker as ModularTimePicker, type TimePickerMode } from '@plain/ui/date-time';
 import {
   DataTableSearch as ModularTableSearch,
@@ -109,8 +109,30 @@ export function ConsumerApp() {
         <ModularQRCode
           value="https://github.com/ayhamDev/Plain"
           label="Project repository"
-          level="Q"
-          style={tokensToStyle({ 'qr-code.foreground': '#123456' })}
+          {...({
+            shape: 'circle',
+            moduleShape: 'dots',
+            moduleScale: 0.95,
+            finderShape: 'rounded',
+            finderCenterShape: 'circle',
+            finderColor: '#123456',
+            finderCenterColor: '#123456',
+            gradient: {
+              stops: [
+                { offset: 0, color: '#123456' },
+                { offset: 1, color: '#111111' },
+              ],
+            },
+            logo: { src: '/brand.svg', size: 0.18, padding: 1, radius: 0.5 },
+            circlePattern: true,
+            circlePatternColor: '#123456',
+            animation: { preset: 'fade', duration: 600, delay: 80 },
+            qrVersion: 7,
+            maskPattern: 3,
+            renderModule: (_module, element) => element,
+            renderFinder: (_finder, element) => element,
+          } satisfies Omit<QRCodeProps, 'value'>)}
+          style={tokensToStyle({ 'qr-code.foreground': '#123456', 'qr-code.duration': '600ms' })}
         />
         <Field label="Start time">
           <ModularTimePicker

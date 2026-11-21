@@ -260,6 +260,8 @@
   --ui-input-focus: var(--ui-focus-ring);
   --ui-qr-code-foreground: #000000;
   --ui-qr-code-background: #ffffff;
+  --ui-qr-code-duration: 400ms;
+  --ui-qr-code-delay: 0ms;
   --ui-dropzone-background: var(--ui-surface);
   --ui-dropzone-foreground: var(--ui-foreground);
   --ui-dropzone-border: var(--ui-control-border);

@@ -6,4 +6,38 @@
     block-size: auto;
     forced-color-adjust: none;
   }
+  .ui-qr-code[data-animation='fade'] [data-slot='pattern'] {
+    animation: ui-qr-fade calc(var(--ui-qr-code-duration, 400ms) * var(--ui-motion-scale, 1))
+      var(--ui-ease-standard, ease) calc(var(--ui-qr-code-delay, 0ms) * var(--ui-motion-scale, 1))
+      both;
+  }
+  .ui-qr-code[data-animation='reveal'] [data-slot='reveal'] {
+    transform-box: fill-box;
+    transform-origin: center top;
+    animation: ui-qr-reveal calc(var(--ui-qr-code-duration, 400ms) * var(--ui-motion-scale, 1))
+      var(--ui-ease-standard, ease) calc(var(--ui-qr-code-delay, 0ms) * var(--ui-motion-scale, 1))
+      both;
+  }
+}
+@keyframes ui-qr-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes ui-qr-reveal {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-qr-code [data-slot='pattern'],
+  .ui-qr-code [data-slot='reveal'] {
+    animation: none !important;
+  }
 }

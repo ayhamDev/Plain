@@ -158,25 +158,86 @@ const popoverControls = [
   number('sideOffset', 0, 24),
 ];
 
+function qrPreviewProps(state: State): Omit<UI.QRCodeProps, 'value'> {
+  return {
+    size: Number(state.size),
+    margin: Number(state.margin),
+    level: state.level === 'auto' ? undefined : choice(state, 'level', ['L', 'M', 'Q', 'H']),
+    shape: choice(state, 'shape', ['square', 'circle']),
+    moduleShape:
+      state.moduleShape === 'auto'
+        ? undefined
+        : choice(state, 'moduleShape', ['square', 'rounded', 'dots', 'diamond']),
+    moduleScale: Number(state.moduleScalePercent) / 100,
+    finderShape:
+      state.finderShape === 'auto'
+        ? undefined
+        : choice(state, 'finderShape', ['square', 'rounded', 'circle']),
+    finderCenterShape:
+      state.finderCenterShape === 'auto'
+        ? undefined
+        : choice(state, 'finderCenterShape', ['square', 'rounded', 'circle']),
+    circlePattern: !!state.circlePattern,
+    animation: state.animation
+      ? {
+          preset: choice(state, 'animationPreset', ['reveal', 'fade']),
+          duration: Number(state.animationDuration),
+        }
+      : false,
+    qrVersion: Number(state.qrVersion) || undefined,
+    maskPattern: Number(state.maskPattern) < 0 ? undefined : Number(state.maskPattern),
+  };
+}
+
 export const propPreviews: Record<string, PropPreview> = {
   'qr-code': {
-    defaults: { size: 192, level: 'M', margin: 4 },
+    defaults: {
+      size: 192,
+      level: 'auto',
+      margin: 4,
+      shape: 'square',
+      moduleShape: 'auto',
+      moduleScalePercent: 100,
+      finderShape: 'auto',
+      finderCenterShape: 'auto',
+      circlePattern: true,
+      animation: true,
+      animationPreset: 'reveal',
+      animationDuration: 400,
+      qrVersion: 0,
+      maskPattern: -1,
+    },
     controls: [
       number('size', 96, 320),
-      options('level', ['L', 'M', 'Q', 'H']),
+      options('level', ['auto', 'L', 'M', 'Q', 'H']),
       number('margin', 4, 12),
+      options('shape', ['square', 'circle']),
+      options('moduleShape', ['auto', 'square', 'rounded', 'dots', 'diamond']),
+      number('moduleScalePercent', 60, 100),
+      options('finderShape', ['auto', 'square', 'rounded', 'circle']),
+      options('finderCenterShape', ['auto', 'square', 'rounded', 'circle']),
+      bool('circlePattern'),
+      bool('animation'),
+      options('animationPreset', ['reveal', 'fade']),
+      number('animationDuration', 0, 1200),
+      number('qrVersion', 0, 12),
+      number('maskPattern', -1, 7),
     ],
     render: (state) => (
       <UI.QRCode
         value="https://github.com/ayhamDev/Plain"
-        size={Number(state.size)}
-        level={choice(state, 'level', ['L', 'M', 'Q', 'H'])}
-        margin={Number(state.margin)}
+        {...qrPreviewProps(state)}
         label="Open the P.UI repository"
       />
     ),
     code: (state) =>
-      `<QRCode value="https://github.com/ayhamDev/Plain" ${attr(state)} label="Open the P.UI repository" />`,
+      `<QRCode value="https://github.com/ayhamDev/Plain" ${Object.entries(qrPreviewProps(state))
+        .filter(([, value]) => value !== undefined)
+        .map(
+          ([key, value]) =>
+            `${key}=${typeof value === 'string' ? JSON.stringify(value) : `{${JSON.stringify(value)}}`}`,
+        )
+        .join(' ')} label="Open the P.UI repository" />`,
   },
   dropzone: {
     defaults: { multiple: true, maxFiles: 5, showFileList: true, disabled: false },

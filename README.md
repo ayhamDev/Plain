@@ -120,6 +120,8 @@ Use the core package for everyday components. Charts, full-calendar scheduling, 
 
 Additional public entry points cover primitives, forms, overlays, navigation, calendar, command, table, List collections, advanced controls, virtualization, typography, i18n, chips, theme, tokens, styling, color generation, and component extension. See the [export map](packages/ui/package.json) and [collection examples](packages/ui/README.md#composable-collections-and-feedback).
 
+[QRCode](packages/ui/README.md#qr-code) is available from `@plain/ui` and `@plain/ui/qr-code`, with default animation, circular layouts, module/finder styles, gradients and center logos. The documentation playground includes a standalone SVG download.
+
 Dependencies are externalized and modules are tree-shakeable. Your imports and bundler determine browser bundle size; installation size is not a bundle-size promise.
 
 ## Customization

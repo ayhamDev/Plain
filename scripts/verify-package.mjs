@@ -283,6 +283,33 @@ for (const directory of [consumer, minimumConsumer]) {
     qr.includes('data-state="ready"') && qr.includes('<path'),
     `React ${peerReact.version} did not encode QRCode during SSR.`,
   );
+  const brandedQR = peerServer.renderToString(
+    peerReact.createElement(peerLibrary.QRCode, {
+      value: 'https://github.com/ayhamDev/Plain',
+      shape: 'circle',
+      moduleShape: 'dots',
+      finderShape: 'rounded',
+      finderCenterShape: 'circle',
+      logo: { src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>' },
+      gradient: {
+        stops: [
+          { offset: 0, color: '#111827' },
+          { offset: 1, color: '#3730a3' },
+        ],
+      },
+      animation: { preset: 'fade', duration: 600 },
+      qrVersion: 7,
+      maskPattern: 3,
+    }),
+  );
+  assert(
+    brandedQR.includes('data-shape="circle"') &&
+      brandedQR.includes('data-level="H"') &&
+      brandedQR.includes('<linearGradient') &&
+      brandedQR.includes('<image') &&
+      brandedQR.includes('data-slot="finder-center"'),
+    `React ${peerReact.version} did not render the customized QR during SSR.`,
+  );
   assert(
     peerServer
       .renderToString(peerReact.createElement(peerLibrary.H1, null, 'Native heading'))

@@ -187,7 +187,7 @@ const fields: DataTableFilterField<Invoice>[] = [
     'qr-code',
     'QR code',
     'Feedback',
-    'Scannable SVG codes generated locally from text, links and Unicode content.',
+    'Animated SVG codes with circular layouts, custom modules, gradients and logos.',
     ['QRCode'],
     '<QRCode value="https://github.com/ayhamDev/Plain" label="Open the P.UI repository" size={192} level="M" margin={4} />',
     [
@@ -201,19 +201,85 @@ const fields: DataTableFilterField<Invoice>[] = [
       p(
         'level',
         'L | M | Q | H',
-        'Error correction level; higher levels reduce content capacity.',
-        'M',
+        'Error correction level. Defaults to H when a logo is supplied, otherwise M; an explicit level wins.',
+        'M / H with logo',
       ),
       p(
         'margin',
         'number',
-        'Quiet-zone width in modules, rounded down and normalized to at least four.',
+        'Quiet-zone width in modules, rounded down and normalized to 4..128.',
         '4',
       ),
       p(
         'foreground / background',
         'CSS color strings',
         'Optional explicit ink/paper colors. Black on white is retained in both themes by default.',
+      ),
+      p(
+        'shape',
+        'square | circle',
+        'Circular presentation keeps the encoded square and its quiet zone inside a round composition.',
+        'square',
+      ),
+      p(
+        'moduleShape',
+        'square | rounded | dots | diamond',
+        'Data-module geometry. Circular codes default to dots; function patterns retain full square modules.',
+        'square / dots in circle',
+      ),
+      p(
+        'moduleScale',
+        'number',
+        'Data-module width relative to one module, normalized to 0.6..1. Smaller modules need more display resolution.',
+        '1',
+      ),
+      p(
+        'finderShape / finderCenterShape',
+        'square | rounded | circle',
+        'Outer finder rings and their centers can be styled separately. Centers inherit the outer shape.',
+        'square / rounded in circle',
+      ),
+      p(
+        'finderColor / finderCenterColor',
+        'CSS color strings',
+        'Independent finder ring/center colors; default to foreground.',
+      ),
+      p(
+        'gradient',
+        'QRCodeGradient',
+        'Linear or radial data-module gradient: type, rotation in degrees, and up to 16 stops with offset (0..1), color and optional opacity. Function patterns retain solid foreground.',
+      ),
+      p(
+        'logo',
+        'QRCodeLogo',
+        'Center image: src, size (matrix fraction 0..0.24; default 0.18), padding (modules 0..4; default 1), background, radius (modules; default 0.5) and crossOrigin. Reserved function cells remain unobstructed.',
+      ),
+      p(
+        'circlePattern / circlePatternColor',
+        'boolean / CSS color string',
+        'Decorative outer modules outside the quiet zone, only for shape="circle". Disable the pattern for a plain round background.',
+        'true / foreground',
+      ),
+      p(
+        'animation',
+        'boolean | QRCodeAnimation',
+        'A one-shot reveal on mount and value changes. Configure preset (reveal/fade), duration and delay in milliseconds; false or duration: 0 disables it. Provider and device motion preferences take precedence.',
+        'true; reveal, 400ms, 0ms delay',
+      ),
+      p(
+        'qrVersion / maskPattern',
+        'number',
+        'Optional encoder version (1..40) and mask (0..7). Insufficient versions report encoding errors. Native SVG version is a separate attribute.',
+      ),
+      p(
+        'renderModule',
+        '(module: QRCodeModule, defaultElement) => ReactNode',
+        'Advanced SVG rendering for each dark non-finder module in matrix coordinates, including isFunction. The default uses aggregated paths; this opt-in hook creates per-module nodes.',
+      ),
+      p(
+        'renderFinder',
+        '(finder: QRCodeFinder, defaultElement) => ReactNode',
+        'Advanced finder SVG in local 0..7 coordinates. Receives corner and matrix position. Custom rendering is clipped to the matrix to protect its surrounding quiet zone.',
       ),
       p(
         'label / description',
@@ -226,10 +292,10 @@ const fields: DataTableFilterField<Invoice>[] = [
         'Receive encoder failures. Empty content shows an empty state without an error callback.',
       ),
     ],
-    'The native SVG has image semantics, an accessible name and description. Include an equivalent visible link or text in the application. Codes keep their orientation in RTL. Empty/oversized values render a text placeholder without a misleading QR pattern.',
+    'The native SVG has image semantics, an accessible name and description. Include an equivalent visible link or text in the application. Codes keep their orientation in RTL. The default animation honors system/reduced/none motion. Empty/oversized values render a text placeholder without a misleading QR pattern.',
     {
       usage:
-        'The value is encoded locally with qrcode; no remote image service is contacted. Supply readable colors and enough display/print size for the encoded content. The four-module quiet zone stays in the SVG geometry. Typed qr-code.foreground/background aliases and qr-code.* slots support local overrides. The example adds editable content and an application-owned standalone SVG download.',
+        'Encoding is local with qrcode. Try shape="circle", moduleShape="rounded", gradient={{ stops: [{ offset: 0, color: "#111827" }, { offset: 1, color: "#3730a3" }] }}, or logo={{ src: "/brand.svg" }}. Circular layouts surround a complete square QR matrix and four-module quiet zone with decorative outer modules; they never crop the encoded corners. Color, module scale, logos and custom rendering affect readability: verify your actual content and intended display/print size. Use an embedded data URL for portable logo downloads. The example exports a static SVG with resolved colors and includes replay controls. Typed qr-code.foreground/background/duration/delay tokens and qr-code.* slots support local overrides; unstyled mode retains complete SVG geometry without default animation classes.',
     },
   ),
   define(
