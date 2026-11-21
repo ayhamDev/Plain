@@ -599,7 +599,7 @@
 }
 
 .ui-toast[data-sonner-toast][data-styled] [data-button],
-.ui-toast[data-sonner-toast][data-styled] [data-close-button] {
+.ui-toast[data-sonner-toast][data-styled] button[data-close-button] {
   border-radius: min(var(--ui-toast-radius, var(--ui-radius)), 6px);
 }
 
@@ -674,8 +674,17 @@
   color: currentColor;
   border: 0;
 }
-.ui-toast[data-sonner-toast][data-styled] [data-close-button]:hover {
-  background: color-mix(in srgb, currentColor 10%, transparent);
+/* Keep this more specific than Sonner's toast:hover + close:hover defaults. */
+.ui-toast[data-sonner-toast][data-styled]:hover button[data-close-button]:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  color: inherit;
+}
+.ui-toast[data-sonner-toast][data-styled] button[data-close-button]:focus-visible {
+  background: transparent;
+  color: inherit;
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 .ui-toast[data-sonner-toast][data-styled][data-invert='true'] [data-action] {
