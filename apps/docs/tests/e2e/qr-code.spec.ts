@@ -7,7 +7,9 @@ import { readFile } from 'node:fs/promises';
 const repository = 'https://github.com/ayhamDev/Plain';
 async function decoded(code: Locator) {
   await code.evaluate(async (node) => {
-    await Promise.all(node.getAnimations({ subtree: true }).map((animation) => animation.finished));
+    await Promise.allSettled(
+      node.getAnimations({ subtree: true }).map((animation) => animation.finished),
+    );
   });
   const png = PNG.sync.read(await code.screenshot());
   return jsQR(new Uint8ClampedArray(png.data), png.width, png.height)?.data ?? null;

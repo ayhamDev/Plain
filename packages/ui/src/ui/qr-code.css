@@ -6,38 +6,48 @@
     block-size: auto;
     forced-color-adjust: none;
   }
-  .ui-qr-code[data-animation='fade'] [data-slot='pattern'] {
-    animation: ui-qr-fade calc(var(--ui-qr-code-duration, 600ms) * var(--ui-motion-scale, 1))
-      var(--ui-ease-out, ease-out) calc(var(--ui-qr-code-delay, 0ms) * var(--ui-motion-scale, 1))
-      both;
+  .ui-qr-code[data-animation='draw'] {
+    --_ui-qr-duration: calc(var(--ui-qr-code-duration, 1000ms) * var(--ui-motion-scale, 1));
+    --_ui-qr-delay: calc(var(--ui-qr-code-delay, 0ms) * var(--ui-motion-scale, 1));
   }
-  .ui-qr-code:is([data-animation='assemble'], [data-animation='reveal']) [data-slot='motion-tile'] {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: ui-qr-tile calc(var(--ui-qr-code-duration, 600ms) * 0.52 * var(--ui-motion-scale, 1))
-      var(--ui-ease-out, ease-out)
-      calc(
-        (
-            var(--ui-qr-code-delay, 0ms) + var(--ui-qr-code-duration, 600ms) * 0.48 *
-              var(--_ui-qr-stage, 0)
-          ) *
-          var(--ui-motion-scale, 1)
-      )
-      both;
+  /* Retire the mask after drawing so the finished modules render at full precision. */
+  .ui-qr-code[data-animation='draw'] [data-slot='pattern'] {
+    animation: ui-qr-finish var(--_ui-qr-duration) steps(1, end) var(--_ui-qr-delay) both;
   }
-  .ui-qr-code:is([data-animation='assemble'], [data-animation='reveal'])
-    [data-slot='motion-anchor'] {
-    animation: ui-qr-fade calc(var(--ui-qr-code-duration, 600ms) * 0.28 * var(--ui-motion-scale, 1))
-      var(--ui-ease-out, ease-out) calc(var(--ui-qr-code-delay, 0ms) * var(--ui-motion-scale, 1))
-      both;
+  .ui-qr-code[data-animation='draw']
+    :is([data-slot='draw-stroke'], [data-slot='draw-anchor'], [data-slot='draw-center']) {
+    stroke-dasharray: 1;
+    animation: ui-qr-write calc(var(--_ui-qr-duration) * 0.5)
+      var(--ui-ease-standard, cubic-bezier(0.2, 0, 0, 1))
+      calc(var(--_ui-qr-delay) + var(--_ui-qr-duration) * (0.14 + 0.36 * var(--_ui-qr-row, 0))) both;
   }
-  .ui-qr-code[data-animation='scan'] [data-slot='scan'] {
-    animation: ui-qr-scan calc(var(--ui-qr-code-duration, 600ms) * var(--ui-motion-scale, 1))
-      var(--ui-ease-standard, ease) calc(var(--ui-qr-code-delay, 0ms) * var(--ui-motion-scale, 1))
-      both;
+  .ui-qr-code[data-animation='draw'] [data-slot='draw-anchor'] {
+    animation-duration: calc(var(--_ui-qr-duration) * 0.3);
+    animation-delay: calc(
+      var(--_ui-qr-delay) + var(--_ui-qr-duration) * 0.04 * var(--_ui-qr-corner)
+    );
+  }
+  .ui-qr-code[data-animation='draw'] [data-slot='draw-center'] {
+    animation-duration: calc(var(--_ui-qr-duration) * 0.16);
+    animation-delay: calc(
+      var(--_ui-qr-delay) + var(--_ui-qr-duration) * (0.18 + 0.04 * var(--_ui-qr-corner))
+    );
+  }
+  /* Complete every custom finder too, independently of its shape or renderer. */
+  .ui-qr-code[data-animation='draw'] [data-slot='draw-complete'] {
+    animation: ui-qr-complete calc(var(--_ui-qr-duration) * 0.01) steps(1, end)
+      calc(var(--_ui-qr-delay) + var(--_ui-qr-duration) * (0.34 + 0.04 * var(--_ui-qr-corner))) both;
   }
 }
-@keyframes ui-qr-fade {
+@keyframes ui-qr-write {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes ui-qr-complete {
   from {
     opacity: 0;
   }
@@ -45,29 +55,23 @@
     opacity: 1;
   }
 }
-@keyframes ui-qr-tile {
-  from {
-    opacity: 0;
-    transform: translateY(0.5px) scale(0.92);
-  }
+@keyframes ui-qr-finish {
   to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-@keyframes ui-qr-scan {
-  from {
-    transform: translateY(calc(var(--_ui-qr-distance) * -1.2));
-  }
-  to {
-    transform: translateY(0);
+    mask: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ui-qr-code [data-slot='pattern'],
-  .ui-qr-code [data-slot='motion-tile'],
-  .ui-qr-code [data-slot='motion-anchor'],
-  .ui-qr-code [data-slot='scan'] {
+  .ui-qr-code[data-animation='draw'] [data-slot='pattern'] {
+    animation: none !important;
+    mask: none;
+  }
+  .ui-qr-code
+    :is(
+      [data-slot='draw-stroke'],
+      [data-slot='draw-anchor'],
+      [data-slot='draw-center'],
+      [data-slot='draw-complete']
+    ) {
     animation: none !important;
   }
 }

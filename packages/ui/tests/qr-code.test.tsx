@@ -11,14 +11,18 @@ import { MotionPolicyProvider } from '../src/ui/motion-policy';
 describe('QRCode', () => {
   it('animates by default, accepts timing overrides and can disable animation', () => {
     const { rerender } = render(<QRCode value="Motion" />);
-    expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'assemble');
-    rerender(<QRCode value="Motion" animation={{ preset: 'fade', duration: 700, delay: 80 }} />);
-    expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'fade');
+    expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'draw');
+    rerender(<QRCode value="Motion" animation={{ preset: 'draw', duration: 700, delay: 80 }} />);
+    expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'draw');
     expect(
       (screen.getByRole('img') as unknown as SVGElement).style.getPropertyValue(
         '--ui-qr-code-duration',
       ),
     ).toBe('700ms');
+    for (const preset of ['assemble', 'scan', 'reveal', 'fade'] as const) {
+      rerender(<QRCode value="Motion" animation={{ preset }} />);
+      expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'draw');
+    }
     rerender(<QRCode value="Motion" animation={{ duration: 0 }} />);
     expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'none');
     rerender(<QRCode value="Motion" animation={false} />);
@@ -49,7 +53,7 @@ describe('QRCode', () => {
     expect(code).toHaveAttribute('data-finder-shape', 'dots');
     expect(code.querySelector('[data-slot="foreground"]')).toHaveAttribute('d', matrix);
     expect(code.querySelector('[data-slot="function"]')).toHaveAttribute('d', functions);
-    expect(code.querySelectorAll('path').length).toBeLessThan(20);
+    expect(code.querySelectorAll('[data-slot="pattern"] path').length).toBeLessThan(20);
     const pattern = code.querySelector('[data-slot="circle"]')!.getAttribute('d');
     rerender(<QRCode value="Round code" shape="circle" size={320} />);
     expect(code.querySelector('[data-slot="circle"]')).toHaveAttribute('d', pattern);
@@ -149,7 +153,9 @@ describe('QRCode', () => {
     const module = vi.fn((_module, element) => element),
       finder = vi.fn((_finder, element) => element);
     const { rerender } = render(<QRCode value="Custom" />);
-    expect(screen.getByRole('img').querySelectorAll('path').length).toBeLessThan(20);
+    expect(
+      screen.getByRole('img').querySelectorAll('[data-slot="pattern"] path').length,
+    ).toBeLessThan(20);
     rerender(<QRCode value="Custom" renderModule={module} renderFinder={finder} />);
     expect(module).toHaveBeenCalledWith(
       expect.objectContaining({ x: expect.any(Number), isFunction: expect.any(Boolean) }),
@@ -229,7 +235,10 @@ describe('QRCode', () => {
       expect(image).toHaveAttribute('data-state', 'ready');
       expect(image).toHaveAttribute('data-level', level);
       expect(image).toHaveAttribute('width', '240');
-      expect(image.querySelector('path')).toHaveAttribute('transform', 'translate(4 4)');
+      expect(image.querySelector('[data-slot="foreground"]')).toHaveAttribute(
+        'transform',
+        'translate(4 4)',
+      );
       const extent = Number(image.getAttribute('viewBox')!.split(' ')[2]);
       expect((extent - 8 - 21) % 4).toBe(0);
     },
@@ -237,10 +246,15 @@ describe('QRCode', () => {
 
   it('updates the pattern when the value changes and allows a larger quiet zone', () => {
     const { rerender } = render(<QRCode value="first value" />);
-    const first = screen.getByRole('img').querySelector('path')!.getAttribute('d');
+    const first = screen
+      .getByRole('img')
+      .querySelector('[data-slot="foreground"]')!
+      .getAttribute('d');
     rerender(<QRCode value="second value" margin={8.9} />);
-    expect(screen.getByRole('img').querySelector('path')!.getAttribute('d')).not.toBe(first);
-    expect(screen.getByRole('img').querySelector('path')).toHaveAttribute(
+    expect(
+      screen.getByRole('img').querySelector('[data-slot="foreground"]')!.getAttribute('d'),
+    ).not.toBe(first);
+    expect(screen.getByRole('img').querySelector('[data-slot="foreground"]')).toHaveAttribute(
       'transform',
       'translate(8 8)',
     );

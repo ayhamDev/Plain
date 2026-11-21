@@ -391,17 +391,21 @@ four-module quiet zone; integrated circles put the margin around the full circul
 silhouette. Defaults keep black ink on white paper in both themes. RTL does not
 mirror the code.
 
-A 600ms tile assembly runs on mount and content changes by default: finder anchors
-appear first, then a bounded grid resolves the stationary pattern. Use
-`animation={{ preset: 'scan', duration: 700, delay: 80 }}` for a soft print-style
-scan, or choose `fade`. The older `reveal` name aliases `assemble`. Use
-`animation={false}` (also `duration: 0`). System reduced-motion preferences and
-provider `reduced`/`none` policies disable it. Timing uses the library easing and
-motion scale, with local `qr-code.duration` and `qr-code.delay` token overrides.
-There is no continuous animation or per-module animation overhead. Assembly uses
-64 mask tiles regardless of matrix density; gradients, custom modules and the
-quiet zone retain their original geometry. Downloaded SVGs remain complete even
-when exported during an animation.
+A 1000ms draw animation runs on mount and content changes by default. The corner
+markers trace into place, then alternating strokes write the pattern like ink.
+The finished code stays still. Set timing with
+`animation={{ preset: 'draw', duration: 900, delay: 80 }}` or disable it with
+`animation={false}` (also `duration: 0`). The previous `assemble`, `scan`, `reveal`
+and `fade` names are compatibility aliases for `draw`; their old effects have
+been removed. System reduced-motion preferences and provider `reduced`/`none`
+policies disable the animation. Timing uses the library easing and motion scale,
+with local `qr-code.duration` and `qr-code.delay` token overrides.
+The SVG mask uses at most 48 writing strokes, even for dense matrices, with no
+per-module animation or JavaScript animation loop. Gradients, custom modules,
+logos and the quiet zone retain their original geometry. Downloaded SVGs remain
+complete even when exported during drawing. The `qr-code.draw-stroke`,
+`draw-anchor`, `draw-center` and `draw-complete` styling slots replace the former
+`motion-tile`, `motion-anchor` and `scan` slots.
 
 ```tsx
 <QRCode

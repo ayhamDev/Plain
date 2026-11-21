@@ -263,8 +263,8 @@ const fields: DataTableFilterField<Invoice>[] = [
       p(
         'animation',
         'boolean | QRCodeAnimation',
-        'A one-shot tile assembly on mount and value changes. Choose assemble, scan or fade; reveal is a legacy alias for assemble. Configure duration/delay in milliseconds. False or duration: 0 disables it. Provider and device motion preferences take precedence.',
-        'true; assemble, 600ms, 0ms delay',
+        'A one-shot draw animation: corner markers trace into place, then alternating strokes write the pattern. Configure duration/delay in milliseconds. Previous preset names now alias draw. False or duration: 0 disables it. Provider and device motion preferences take precedence.',
+        'true; draw, 1000ms, 0ms delay',
       ),
       p(
         'qrVersion / maskPattern',

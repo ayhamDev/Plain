@@ -78,10 +78,10 @@ function Fixture() {
             ? false
             : {
                 preset:
-                  (['assemble', 'scan', 'reveal', 'fade'] as const).find(
+                  (['draw', 'assemble', 'scan', 'reveal', 'fade'] as const).find(
                     (preset) => preset === params.get('animation'),
-                  ) ?? 'assemble',
-                duration: Number(params.get('duration') ?? 600),
+                  ) ?? 'draw',
+                duration: Number(params.get('duration') ?? 1000),
                 delay: Number(params.get('delay') ?? 0),
               }
         }

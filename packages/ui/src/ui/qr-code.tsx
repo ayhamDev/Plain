@@ -34,8 +34,8 @@ export interface QRCodeLogo {
   crossOrigin?: 'anonymous' | 'use-credentials';
 }
 export interface QRCodeAnimation {
-  /** Assemble is the default; reveal remains an alias for the assembly treatment. */
-  preset?: 'assemble' | 'scan' | 'reveal' | 'fade';
+  /** Draw traces the finders and writes the pattern. Older preset names now alias draw. */
+  preset?: 'draw' | 'assemble' | 'scan' | 'reveal' | 'fade';
   /** Milliseconds; zero makes the code immediately visible. */
   duration?: number;
   delay?: number;
@@ -234,17 +234,17 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
     const dataInk = stops.length ? `url(#${id}-gradient)` : ink;
     const settings = typeof animation === 'object' && animation ? animation : {};
     const duration =
-      settings.duration === undefined ? undefined : finite(settings.duration, 600, 0, 10000);
+      settings.duration === undefined ? undefined : finite(settings.duration, 1000, 0, 10000);
     const delay = settings.delay === undefined ? undefined : finite(settings.delay, 0, 0, 10000);
-    const preset = ['assemble', 'scan', 'reveal', 'fade'].includes(settings.preset ?? '')
-      ? settings.preset!
-      : 'assemble';
     const motion =
-      animation !== false && !reduced && encoded.state === 'ready' && duration !== 0
-        ? preset
+      animation !== false && !reduced && !unstyled && encoded.state === 'ready' && duration !== 0
+        ? 'draw'
         : 'none';
-    const assembled = motion === 'assemble' || motion === 'reveal';
-    const masked = assembled || motion === 'scan';
+    const masked = motion === 'draw';
+    const drawOrigin = circular ? padding : offset;
+    const drawSize = extent - drawOrigin * 2;
+    const drawRows = Math.min(48, Math.max(1, Math.ceil(drawSize)));
+    const drawHeight = drawSize / drawRows;
     const stateDescription = t(
       encoded.state === 'empty'
         ? 'qr.emptyDescription'
@@ -269,6 +269,7 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
       { corner: 'top-right', x: encoded.size - 7, y: 0, size: 7 },
       { corner: 'bottom-left', x: 0, y: encoded.size - 7, size: 7 },
     ];
+    const patternKey = JSON.stringify([value, correction, version, mask, circular, decorate]);
     return (
       <svg
         ref={ref}
@@ -360,6 +361,19 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
                   </linearGradient>
                 ))}
               {masked && (
+                <clipPath id={`${id}-draw-field`}>
+                  <path
+                    d={
+                      `M0 0H${extent}V${extent}H0Z` +
+                      corners
+                        .map((finder) => roundedRect(offset + finder.x, offset + finder.y, 7, 0))
+                        .join('')
+                    }
+                    clipRule="evenodd"
+                  />
+                </clipPath>
+              )}
+              {masked && (
                 <mask
                   id={`${id}-reveal`}
                   maskUnits="userSpaceOnUse"
@@ -369,60 +383,59 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
                   height={extent}
                   style={{ maskType: 'luminance' }}
                 >
-                  <g
-                    key={value + correction}
-                    {...styles('qr-code.reveal', '', undefined, unstyled)}
-                  >
-                    {assembled ? (
-                      <>
-                        {Array.from({ length: 64 }, (_, index) => {
-                          const x = index % 8,
-                            y = Math.floor(index / 8);
-                          const stage = ((x + y) / 14) * 0.75 + (((index * 17) % 11) / 11) * 0.25;
-                          return (
-                            <rect
-                              key={index}
-                              x={(x * extent) / 8 - 0.02}
-                              y={(y * extent) / 8 - 0.02}
-                              width={extent / 8 + 0.04}
-                              height={extent / 8 + 0.04}
-                              fill="white"
-                              style={{ '--_ui-qr-stage': stage } as React.CSSProperties}
-                              {...styles('qr-code.motion-tile', '', undefined, unstyled)}
-                            />
-                          );
-                        })}
-                        {corners.map((finder) => (
-                          <rect
-                            key={finder.corner}
-                            x={offset + finder.x}
-                            y={offset + finder.y}
-                            width={7}
-                            height={7}
-                            fill="white"
-                            {...styles('qr-code.motion-anchor', '', undefined, unstyled)}
+                  <g key={patternKey} {...styles('qr-code.reveal', '', undefined, unstyled)}>
+                    <g clipPath={`url(#${id}-draw-field)`} fill="none" stroke="white">
+                      {Array.from({ length: drawRows }, (_, index) => {
+                        const y = drawOrigin + (index + 0.5) * drawHeight;
+                        return (
+                          <path
+                            key={index}
+                            d={`M${index % 2 ? extent - drawOrigin : drawOrigin} ${y}H${index % 2 ? drawOrigin : extent - drawOrigin}`}
+                            pathLength={1}
+                            strokeWidth={drawHeight + 0.02}
+                            strokeLinecap="butt"
+                            style={
+                              {
+                                '--_ui-qr-row': index / Math.max(1, drawRows - 1),
+                              } as React.CSSProperties
+                            }
+                            {...styles('qr-code.draw-stroke', '', undefined, unstyled)}
                           />
-                        ))}
-                      </>
-                    ) : (
-                      <>
-                        <linearGradient id={`${id}-scan`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0" stopColor="white" />
-                          <stop offset="0.666667" stopColor="white" />
-                          <stop offset="0.733333" stopColor="black" />
-                          <stop offset="1" stopColor="black" />
-                        </linearGradient>
-                        <rect
-                          x="0"
-                          y={-extent}
-                          width={extent}
-                          height={extent * 3}
-                          fill={`url(#${id}-scan)`}
-                          style={{ '--_ui-qr-distance': `${extent}px` } as React.CSSProperties}
-                          {...styles('qr-code.scan', '', undefined, unstyled)}
+                        );
+                      })}
+                    </g>
+                    {corners.map((finder, index) => (
+                      <g
+                        key={finder.corner}
+                        transform={`translate(${offset + finder.x} ${offset + finder.y})`}
+                        style={{ '--_ui-qr-corner': index } as React.CSSProperties}
+                      >
+                        <path
+                          d={finderPath(6, selectedFinder, 0.5)}
+                          pathLength={1}
+                          fill="none"
+                          stroke="white"
+                          strokeWidth={1.15}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          {...styles('qr-code.draw-anchor', '', undefined, unstyled)}
                         />
-                      </>
-                    )}
+                        <path
+                          d="M2 3.5H5"
+                          pathLength={1}
+                          fill="none"
+                          stroke="white"
+                          strokeWidth={3}
+                          {...styles('qr-code.draw-center', '', undefined, unstyled)}
+                        />
+                        <rect
+                          width={7}
+                          height={7}
+                          fill="white"
+                          {...styles('qr-code.draw-complete', '', undefined, unstyled)}
+                        />
+                      </g>
+                    ))}
                   </g>
                 </mask>
               )}
@@ -459,7 +472,7 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
               )}
             </defs>
             <g
-              key={value + correction}
+              key={patternKey}
               mask={masked ? `url(#${id}-reveal)` : undefined}
               {...styles('qr-code.pattern', '', undefined, unstyled)}
             >

@@ -5,7 +5,8 @@ import jsQR from 'jsqr';
 const value = 'https://github.com/ayhamDev/Plain';
 async function decode(code: Locator) {
   await code.evaluate(
-    async (node) => await Promise.all(node.getAnimations({ subtree: true }).map((a) => a.finished)),
+    async (node) =>
+      await Promise.allSettled(node.getAnimations({ subtree: true }).map((a) => a.finished)),
   );
   const image = PNG.sync.read(await code.screenshot());
   return jsQR(new Uint8ClampedArray(image.data), image.width, image.height)?.data;
@@ -39,13 +40,13 @@ for (const query of [
     await code.screenshot({ path: info.outputPath('custom-qr.png') });
   });
 }
-test('default assembly replays on value changes and follows live motion preferences', async ({
+test('default drawing replays on value changes and follows live motion preferences', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/tests/fixtures/qr-code.html?duration=1000');
   const code = page.getByRole('img', { name: 'Project QR code' });
-  await expect(code).toHaveAttribute('data-animation', 'assemble');
+  await expect(code).toHaveAttribute('data-animation', 'draw');
   expect(
     await code.evaluate((node) =>
       node.getAnimations({ subtree: true }).some((a) => a.effect?.getTiming().iterations === 1),
@@ -63,21 +64,20 @@ test('default assembly replays on value changes and follows live motion preferen
   await expect(code).toHaveAttribute('data-animation', 'none');
   expect(await decode(code)).toBe('Animated update');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await expect(code).toHaveAttribute('data-animation', 'assemble');
+  await expect(code).toHaveAttribute('data-animation', 'draw');
 });
-test('fade, opt-out and provider policies keep a complete static code', async ({ page }) => {
-  for (const query of ['animation=fade&duration=100', 'static', 'motion=none', 'motion=reduced']) {
+test('opt-out, zero duration, unstyled and provider policies keep a complete static code', async ({
+  page,
+}) => {
+  for (const query of ['static', 'duration=0', 'unstyled', 'motion=none', 'motion=reduced']) {
     await page.goto(`/tests/fixtures/qr-code.html?${query}`);
     const code = page.getByRole('img', { name: 'Project QR code' });
-    await expect(code).toHaveAttribute(
-      'data-animation',
-      query.startsWith('animation') ? 'fade' : 'none',
-    );
+    await expect(code).toHaveAttribute('data-animation', 'none');
     expect(await decode(code)).toBe(value);
   }
 });
 
-for (const preset of ['assemble', 'scan', 'reveal']) {
+for (const preset of ['draw', 'assemble', 'scan', 'reveal', 'fade']) {
   for (const shape of ['square', 'circle']) {
     test(`${preset} ${shape} settles to a decodable code with bounded animation geometry`, async ({
       page,
@@ -86,8 +86,9 @@ for (const preset of ['assemble', 'scan', 'reveal']) {
         `/tests/fixtures/qr-code.html?animation=${preset}&shape=${shape}&gradient=linear&logo&duration=1000`,
       );
       const code = page.getByRole('img', { name: 'Project QR code' });
-      await expect(code).toHaveAttribute('data-animation', preset);
-      expect(await code.locator('rect').count()).toBeLessThanOrEqual(70);
+      await expect(code).toHaveAttribute('data-animation', 'draw');
+      expect(await code.locator('[data-slot="draw-stroke"]').count()).toBeLessThanOrEqual(48);
+      await expect(code.locator('[data-slot="motion-tile"], [data-slot="scan"]')).toHaveCount(0);
       const running = await code.evaluate((node) => {
         const animations = node.getAnimations({ subtree: true });
         animations.forEach((animation) => {
@@ -97,11 +98,13 @@ for (const preset of ['assemble', 'scan', 'reveal']) {
         return animations.length;
       });
       expect(running).toBeGreaterThan(0);
+      await expect(code.locator('[data-slot="pattern"]')).not.toHaveCSS('mask-image', 'none');
       const geometry = await code.locator('[data-slot="foreground"]').getAttribute('d');
       await code.screenshot({ path: info.outputPath('mid-animation.png'), animations: 'allow' });
       await code.evaluate((node) =>
         node.getAnimations({ subtree: true }).forEach((animation) => animation.finish()),
       );
+      await expect(code.locator('[data-slot="pattern"]')).toHaveCSS('mask-image', 'none');
       expect(await decode(code)).toBe(value);
       expect(await code.locator('[data-slot="foreground"]').getAttribute('d')).toBe(geometry);
       await code.screenshot({ path: info.outputPath('settled.png') });
@@ -109,16 +112,18 @@ for (const preset of ['assemble', 'scan', 'reveal']) {
   }
 }
 
-test('dense matrices keep a bounded mask and downloads are complete during a scan', async ({
+test('dense matrices keep a bounded mask and downloads are complete during drawing', async ({
   page,
 }) => {
-  await page.goto('/tests/fixtures/qr-code.html?animation=assemble&version=40');
+  await page.goto('/tests/fixtures/qr-code.html?animation=draw&version=40');
   const dense = page.getByRole('img', { name: 'Project QR code' });
-  expect(await dense.locator('rect').count()).toBeLessThanOrEqual(70);
+  await expect(dense.locator('[data-slot="draw-stroke"]')).toHaveCount(48);
+  expect(
+    await dense.evaluate((node) => node.getAnimations({ subtree: true }).length),
+  ).toBeLessThanOrEqual(58);
   await page.goto('/components/qr-code');
   const preview = page.locator('.component-preview');
-  await preview.getByRole('combobox', { name: 'Animation style', exact: true }).click();
-  await page.getByRole('option', { name: 'Soft scan', exact: true }).click();
+  await preview.getByRole('button', { name: 'Replay animation', exact: true }).click();
   const code = preview.getByRole('img', { name: 'QR code for the entered content' });
   await code.evaluate((node) =>
     node.getAnimations({ subtree: true }).forEach((animation) => {
