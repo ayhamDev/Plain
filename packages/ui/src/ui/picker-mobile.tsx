@@ -50,7 +50,7 @@ export const PickerMobileContent = /* @__PURE__ */ React.forwardRef<
     const descriptionId = React.useId();
     const panelRef = React.useRef<HTMLDivElement>(null);
     React.useImperativeHandle(forwardedRef, () => panelRef.current!);
-    return (
+    return styles.tooltip(
       <SheetContent
         {...props}
         ref={panelRef}
@@ -110,7 +110,8 @@ export const PickerMobileContent = /* @__PURE__ */ React.forwardRef<
         >
           {footer}
         </div>
-      </SheetContent>
+      </SheetContent>,
+      unstyled,
     );
   },
 );

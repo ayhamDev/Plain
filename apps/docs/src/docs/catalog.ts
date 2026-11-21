@@ -602,14 +602,24 @@ export const components: ComponentDefinition[] = [
     'Tooltip',
     'Overlays',
     'A little context for an unfamiliar icon.',
-    ['TooltipProvider', 'Tooltip', 'TooltipTrigger', 'TooltipContent', 'Button'],
-    '<TooltipProvider>\n  <Tooltip>\n    <TooltipTrigger asChild><Button variant="outline">Save</Button></TooltipTrigger>\n    <TooltipContent>Save changes</TooltipContent>\n  </Tooltip>\n</TooltipProvider>',
+    ['Button', 'Badge', 'Input', 'Field'],
+    '<>\n  <Button tooltip="Save your project">Save</Button>\n  <Badge tooltip={{ content: "Only invited people can access this project", side: "bottom", delayDuration: 250 }}>Private</Badge>\n  <Field label="Project name" description="Shown to your team."><Input tooltip="Choose a recognizable name" /></Field>\n</>',
     [
       prop('delayDuration', 'number', 'TooltipProvider delay in milliseconds.', '700'),
+      prop(
+        'tooltip',
+        'ReactNode | TooltipOptions',
+        'Shared by rendered components and triggers. Pass text or { content, side, align, delayDuration, disabled, open, onOpenChange, ...contentProps }. False disables the hint. Native controls, refs and handlers are preserved.',
+      ),
+      prop(
+        'PlainProvider.tooltip',
+        'TooltipProvider options',
+        'Inherited delay and hoverable-content settings; per-component settings take precedence. TooltipProvider also coordinates skip delay between triggers.',
+      ),
       prop('side', 'top | right | bottom | left', 'Placement of TooltipContent.', 'top'),
       ...overlay,
     ],
-    'Opens on hover and keyboard focus. A tooltip supplements an accessible name; do not put essential information or interactive controls in it.',
+    'Opens on hover and keyboard focus, closes on Escape without moving focus, and preserves existing field descriptions. Plain text supplies a missing icon-button name; explicit ARIA names take precedence. Disabled actions have a focusable explanation target. Providers and renderless roots have no DOM anchor: configure their rendered trigger instead. Charts retain their existing data-tooltip API; use Chart or another rendered container for a contextual hint. Keep essential information visible and use a popover for interactive content. The compound TooltipProvider/Tooltip/TooltipTrigger/TooltipContent API remains available.',
   ),
   definition(
     'command',

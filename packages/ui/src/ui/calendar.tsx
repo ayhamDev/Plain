@@ -17,7 +17,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 import { Popover, PopoverTrigger, Sheet, SheetTrigger } from './overlays';
 import { PickerPopoverContent } from './picker-popover';
 import { PickerMobileContent, useCompactPicker } from './picker-mobile';
-export type CalendarProps = DayPickerProps & { localeCode?: string };
+export type CalendarProps = DayPickerProps & PlainStyleProps & { localeCode?: string };
 function CalendarDropdown({
   options = [],
   value,
@@ -82,6 +82,7 @@ export function Calendar({
   components,
   captionLayout = 'dropdown',
   navLayout = 'after',
+  tooltip,
   ...props
 }: CalendarProps & PlainStyleProps) {
   const styles = useStyles();
@@ -118,52 +119,66 @@ export function Calendar({
     (hasYearDropdown
       ? yearMonth(Math.max((props.startMonth ?? today).getFullYear() + 100, displayedYear), 11)
       : undefined);
+  const calendar = (
+    <DayPicker
+      showOutsideDays={showOutsideDays}
+      captionLayout={captionLayout}
+      navLayout={navLayout}
+      dir={dir}
+      locale={locale.startsWith('ar') ? ar : enUS}
+      lang={locale}
+      labels={{
+        labelPrevious: () => language.t('calendar.previous'),
+        labelNext: () => language.t('calendar.next'),
+        labelMonthDropdown: () => language.t('picker.monthDropdown'),
+        labelYearDropdown: () => language.t('picker.yearDropdown'),
+        labelNav: () => language.t('calendar.label'),
+        labelWeekNumberHeader: () => language.t('picker.weekHeader'),
+        labelWeekNumber: (number) => language.t('picker.weekNumber', { number }),
+        labelDayButton: dayLabel,
+        labelGridcell: (date, modifiers) => dayLabel(date, modifiers ?? {}),
+        labelGrid: (date) => formatDate(date, { month: 'long', year: 'numeric' }),
+        labelWeekday: (date) => formatDate(date, { weekday: 'long' }),
+        ...labels,
+      }}
+      formatters={{
+        formatCaption: (date) => formatDate(date, { month: 'long', year: 'numeric' }),
+        formatDay: (date) => formatDate(date, { day: 'numeric' }),
+        formatWeekdayName: (date) =>
+          formatDate(date, { weekday: locale.startsWith('ar') ? 'narrow' : 'short' }),
+        formatMonthDropdown: (date) => formatDate(date, { month: 'long' }),
+        formatYearDropdown: (date) => formatDate(date, { year: 'numeric' }),
+        formatWeekNumber: (number) => numberFormatter(locale).format(number),
+        ...formatters,
+      }}
+      {...styles('calendar.root', 'ui-calendar w-fit max-w-full', className, unstyled)}
+      {...props}
+      components={{ Dropdown: CalendarDropdown, ...components }}
+      startMonth={startMonth}
+      endMonth={endMonth}
+    />
+  );
   return (
     <StyleProvider unstyled={unstyled}>
-      <DayPicker
-        showOutsideDays={showOutsideDays}
-        captionLayout={captionLayout}
-        navLayout={navLayout}
-        dir={dir}
-        locale={locale.startsWith('ar') ? ar : enUS}
-        lang={locale}
-        labels={{
-          labelPrevious: () => language.t('calendar.previous'),
-          labelNext: () => language.t('calendar.next'),
-          labelMonthDropdown: () => language.t('picker.monthDropdown'),
-          labelYearDropdown: () => language.t('picker.yearDropdown'),
-          labelNav: () => language.t('calendar.label'),
-          labelWeekNumberHeader: () => language.t('picker.weekHeader'),
-          labelWeekNumber: (number) => language.t('picker.weekNumber', { number }),
-          labelDayButton: dayLabel,
-          labelGridcell: (date, modifiers) => dayLabel(date, modifiers ?? {}),
-          labelGrid: (date) => formatDate(date, { month: 'long', year: 'numeric' }),
-          labelWeekday: (date) => formatDate(date, { weekday: 'long' }),
-          ...labels,
-        }}
-        formatters={{
-          formatCaption: (date) => formatDate(date, { month: 'long', year: 'numeric' }),
-          formatDay: (date) => formatDate(date, { day: 'numeric' }),
-          formatWeekdayName: (date) =>
-            formatDate(date, { weekday: locale.startsWith('ar') ? 'narrow' : 'short' }),
-          formatMonthDropdown: (date) => formatDate(date, { month: 'long' }),
-          formatYearDropdown: (date) => formatDate(date, { year: 'numeric' }),
-          formatWeekNumber: (number) => numberFormatter(locale).format(number),
-          ...formatters,
-        }}
-        {...styles('calendar.root', 'ui-calendar w-fit max-w-full', className, unstyled)}
-        {...props}
-        components={{ Dropdown: CalendarDropdown, ...components }}
-        startMonth={startMonth}
-        endMonth={endMonth}
-      />
+      {tooltip === undefined
+        ? calendar
+        : styles.tooltip(
+            <div tabIndex={-1} style={{ display: 'inline-block', maxInlineSize: '100%' }}>
+              {calendar}
+            </div>,
+            unstyled,
+            tooltip,
+          )}
     </StyleProvider>
   );
 }
-export interface DatePickerProps extends Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  'value' | 'defaultValue' | 'onChange' | 'children'
-> {
+export interface DatePickerProps
+  extends
+    PlainStyleProps,
+    Omit<
+      React.ButtonHTMLAttributes<HTMLButtonElement>,
+      'value' | 'defaultValue' | 'onChange' | 'children'
+    > {
   value?: Date;
   defaultValue?: Date;
   onValueChange?: (value: Date | undefined) => void;
@@ -271,28 +286,31 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
           : {})}
       >
         <Trigger asChild>
-          <Button
-            ref={buttonRef}
-            variant="outline"
-            {...styles(
-              'date-picker.trigger',
-              cn(
-                'w-full justify-start border-input-border font-normal',
-                !current && 'text-muted-foreground',
-              ),
-              className,
-              unstyled,
-            )}
-            aria-label={props['aria-label'] ?? placeholder}
-            {...props}
-            aria-describedby={[props['aria-describedby'], valueId].filter(Boolean).join(' ')}
-          >
-            <CalendarDays
-              {...styles('date-picker.icon', 'text-muted-foreground', undefined, unstyled)}
-              aria-hidden="true"
-            />
-            {formattedValue}
-          </Button>
+          {styles.tooltip(
+            <Button
+              ref={buttonRef}
+              variant="outline"
+              {...styles(
+                'date-picker.trigger',
+                cn(
+                  'w-full justify-start border-input-border font-normal',
+                  !current && 'text-muted-foreground',
+                ),
+                className,
+                unstyled,
+              )}
+              aria-label={props['aria-label'] ?? placeholder}
+              {...props}
+              aria-describedby={[props['aria-describedby'], valueId].filter(Boolean).join(' ')}
+            >
+              <CalendarDays
+                {...styles('date-picker.icon', 'text-muted-foreground', undefined, unstyled)}
+                aria-hidden="true"
+              />
+              {formattedValue}
+            </Button>,
+            unstyled,
+          )}
         </Trigger>
         <span id={valueId} hidden>
           {formattedValue}

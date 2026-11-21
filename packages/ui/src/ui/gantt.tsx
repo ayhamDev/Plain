@@ -312,293 +312,297 @@ export function GanttChart<T>({
   return (
     <DirectionProvider dir={direction}>
       <StyleProvider unstyled={unstyled} styles={stableStyleOverrides}>
-        <figure
-          aria-label={label ?? t('chart.gantt')}
-          aria-busy={loading || undefined}
-          dir={direction}
-          {...styles('gantt.root', 'ui-gantt', className, unstyled)}
-          data-dragging={!!drag.preview || undefined}
-          {...props}
-        >
-          <span id={instructions} className="ui-visually-hidden">
-            {t('gantt.instructions')}
-          </span>
-          <span role="status" aria-live="polite" className="ui-visually-hidden">
-            {announcement}
-          </span>
-          {loading || !rows.length || !range ? (
-            <EmptyState icon={null} title={t(loading ? 'chart.loading' : 'chart.empty')} />
-          ) : (
-            <>
-              {showToolbar && (
-                <div {...styles('gantt.toolbar', 'ui-gantt-toolbar', undefined, unstyled)}>
-                  <span
-                    {...styles('gantt.range-label', 'ui-gantt-range-label', undefined, unstyled)}
-                  >
-                    {dateText(range.from)} – {dateText(range.to.subtract({ days: 1 }))}
-                  </span>
-                  <div
-                    {...styles(
-                      'gantt.toolbar-actions',
-                      'ui-gantt-toolbar-actions',
-                      undefined,
-                      unstyled,
-                    )}
-                  >
-                    {toolbarActions}
-                    {showTodayButton && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={!todayInRange}
-                        title={!todayInRange ? t('gantt.todayOutside') : undefined}
-                        onClick={() =>
-                          axis.scrollToOffset(
-                            Math.max(
-                              0,
-                              todayIndex * px -
-                                ((viewport.current?.clientWidth ?? 800) - labelWidth) / 2,
-                            ),
-                            { behavior: motion.reduced ? 'auto' : 'smooth' },
-                          )
-                        }
-                      >
-                        {t('calendar.today')}
-                      </Button>
-                    )}
-                    <Select value={scale} onValueChange={changeScale}>
-                      <SelectTrigger aria-label={t('gantt.view')}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {(['day', 'week', 'month'] as const).map((view) => (
-                          <SelectItem key={view} value={view}>
-                            {t(`calendar.${view}`)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-              <div
-                ref={viewport}
-                role="region"
-                tabIndex={0}
-                aria-label={t('table.scrollArea', { label: label ?? t('chart.gantt') })}
-                {...styles('gantt.viewport', 'ui-gantt-scroll', undefined, unstyled)}
-                style={
-                  {
-                    height: viewHeight,
-                    '--ui-gantt-label-width': `${labelWidth}px`,
-                    '--ui-gantt-width': `${width}px`,
-                    '--ui-gantt-bar-height': `${bh}px`,
-                    '--ui-gantt-day-width': `${px}px`,
-                  } as React.CSSProperties
-                }
-              >
-                <div {...styles('gantt.header', 'ui-gantt-header', undefined, unstyled)}>
-                  {showTaskList && <strong>{t('chart.task')}</strong>}
-                  <div {...styles('gantt.axis', 'ui-gantt-axis', undefined, unstyled)}>
-                    {periods
-                      .filter((period) => period.end > visibleStart && period.index < visibleEnd)
-                      .map((period) => (
-                        <span
-                          {...styles('gantt.period', 'ui-gantt-period', undefined, unstyled)}
-                          key={period.index}
-                          style={{
-                            insetInlineStart: period.index * px,
-                            width: (period.end - period.index) * px,
-                          }}
-                        >
-                          <span>
-                            {shortDate(
-                              period.date,
-                              scale === 'month'
-                                ? { year: 'numeric' }
-                                : { month: 'long', year: 'numeric' },
-                            )}
-                          </span>
-                        </span>
-                      ))}
-                    {axisItems.map((item) => {
-                      const tick = ticks[item.index],
-                        isToday = todayInRange && todayIndex >= tick.index && todayIndex < tick.end;
-                      return (
-                        <span
-                          {...styles('gantt.tick', 'ui-gantt-tick', undefined, unstyled)}
-                          key={tick.index}
-                          data-today={(showToday && isToday) || undefined}
-                          data-weekend={
-                            (scale === 'day' &&
-                              highlightWeekends &&
-                              weekendDays.includes(tick.date.dayOfWeek)) ||
-                            undefined
-                          }
-                          title={dateText(tick.date)}
-                          style={{ insetInlineStart: tick.index * px, width: item.size }}
-                        >
-                          {scale === 'day' && (
-                            <small>{shortDate(tick.date, { weekday: 'narrow' })}</small>
-                          )}
-                          <span>
-                            {shortDate(
-                              tick.date,
-                              scale === 'month' ? { month: 'short' } : { day: '2-digit' },
-                            )}
-                          </span>
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div
-                  {...styles('gantt.body', 'ui-gantt-body', undefined, unstyled)}
-                  style={{ height: virtual.getTotalSize(), width: width + labelWidth }}
-                >
-                  <div
-                    {...styles('gantt.grid', 'ui-gantt-grid', undefined, unstyled)}
-                    style={{
-                      insetInlineStart: labelWidth,
-                      width,
-                      backgroundImage: [
-                        scale === 'day' ? tickBackground : undefined,
-                        weekendBackground,
-                      ]
-                        .filter(Boolean)
-                        .join(', '),
-                    }}
-                    aria-hidden="true"
-                  />
-                  {showToday && todayInRange && (
+        {styles.tooltip(
+          <figure
+            aria-label={label ?? t('chart.gantt')}
+            aria-busy={loading || undefined}
+            dir={direction}
+            {...styles('gantt.root', 'ui-gantt', className, unstyled)}
+            data-dragging={!!drag.preview || undefined}
+            {...props}
+          >
+            <span id={instructions} className="ui-visually-hidden">
+              {t('gantt.instructions')}
+            </span>
+            <span role="status" aria-live="polite" className="ui-visually-hidden">
+              {announcement}
+            </span>
+            {loading || !rows.length || !range ? (
+              <EmptyState icon={null} title={t(loading ? 'chart.loading' : 'chart.empty')} />
+            ) : (
+              <>
+                {showToolbar && (
+                  <div {...styles('gantt.toolbar', 'ui-gantt-toolbar', undefined, unstyled)}>
+                    <span
+                      {...styles('gantt.range-label', 'ui-gantt-range-label', undefined, unstyled)}
+                    >
+                      {dateText(range.from)} – {dateText(range.to.subtract({ days: 1 }))}
+                    </span>
                     <div
-                      {...styles('gantt.today', 'ui-gantt-today', undefined, unstyled)}
-                      style={{ insetInlineStart: labelWidth + (todayIndex + 0.5) * px }}
-                      aria-hidden="true"
-                    />
-                  )}
-                  {items.map((item) => {
-                    const row = rows[item.index],
-                      position = layout(row);
-                    return (
-                      <div
-                        {...styles('gantt.row', 'ui-gantt-row', undefined, unstyled)}
-                        key={row.task.id}
-                        style={{
-                          height: rh,
-                          transform: `translateY(${item.start - HEADER_HEIGHT}px)`,
-                        }}
-                      >
-                        {showTaskList && (
-                          <div
-                            {...styles('gantt.label', 'ui-gantt-label', undefined, unstyled)}
-                            title={row.task.label}
-                          >
-                            <div
-                              {...styles(
-                                'gantt.label-content',
-                                'ui-gantt-label-content',
-                                undefined,
-                                unstyled,
-                              )}
-                            >
-                              {renderLabel?.(row.task) ?? row.task.label}
-                            </div>
-                          </div>
-                        )}
-                        <div {...styles('gantt.lane', 'ui-gantt-lane', undefined, unstyled)}>
-                          {position.width > 0 && (
-                            <GanttBar
-                              task={row.task}
-                              position={position}
-                              dateText={dateText}
-                              instructions={instructions}
-                              drag={drag}
-                              onEdit={commit}
-                              onTaskClick={onTaskClick}
-                              renderTask={renderTask}
-                              renderTaskDetails={renderTaskDetails}
-                              showTaskDetails={showTaskDetails}
-                              draggable={draggable}
-                              resizable={resizable}
-                              labelPosition={labelPosition}
-                              dependencies={(row.task.dependencies ?? []).flatMap((id) =>
-                                byId.has(id) ? [byId.get(id)!.task.label] : [],
-                              )}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {showDependencies && (
-                    <svg
                       {...styles(
-                        'gantt.dependencies',
-                        'ui-gantt-dependencies',
+                        'gantt.toolbar-actions',
+                        'ui-gantt-toolbar-actions',
                         undefined,
                         unstyled,
                       )}
-                      style={{ insetInlineStart: labelWidth }}
-                      width={width}
-                      height={virtual.getTotalSize()}
-                      aria-hidden="true"
                     >
-                      <defs>
-                        <marker
-                          id={arrow}
-                          markerWidth="7"
-                          markerHeight="7"
-                          refX="6"
-                          refY="3.5"
-                          orient="auto"
-                          markerUnits="userSpaceOnUse"
+                      {toolbarActions}
+                      {showTodayButton && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={!todayInRange}
+                          title={!todayInRange ? t('gantt.todayOutside') : undefined}
+                          onClick={() =>
+                            axis.scrollToOffset(
+                              Math.max(
+                                0,
+                                todayIndex * px -
+                                  ((viewport.current?.clientWidth ?? 800) - labelWidth) / 2,
+                              ),
+                              { behavior: motion.reduced ? 'auto' : 'smooth' },
+                            )
+                          }
                         >
-                          <path className="ui-gantt-arrowhead" d="M 0 0 L 6 3.5 L 0 7" />
-                        </marker>
-                      </defs>
-                      <g
-                        transform={
-                          direction === 'rtl' ? `translate(${width} 0) scale(-1 1)` : undefined
-                        }
-                      >
-                        {items.flatMap((item) => {
-                          const row = rows[item.index],
-                            target = layout(row);
-                          return (row.task.dependencies ?? []).flatMap((dependency) => {
-                            const sourceItem = visibleIds.get(dependency);
-                            if (!sourceItem || dependency === row.task.id || !target.width)
-                              return [];
-                            const source = layout(rows[sourceItem.index]);
-                            if (!source.width) return [];
-                            return (
-                              <path
-                                key={`${dependency}:${row.task.id}`}
-                                data-source={dependency}
-                                data-target={row.task.id}
-                                markerEnd={`url(#${arrow})`}
-                                d={ganttDependency(
-                                  source.left + source.width + 1,
-                                  sourceItem.start - HEADER_HEIGHT + rh / 2,
-                                  target.left - 4,
-                                  item.start - HEADER_HEIGHT + rh / 2,
-                                  rh,
+                          {t('calendar.today')}
+                        </Button>
+                      )}
+                      <Select value={scale} onValueChange={changeScale}>
+                        <SelectTrigger aria-label={t('gantt.view')}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(['day', 'week', 'month'] as const).map((view) => (
+                            <SelectItem key={view} value={view}>
+                              {t(`calendar.${view}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+                <div
+                  ref={viewport}
+                  role="region"
+                  tabIndex={0}
+                  aria-label={t('table.scrollArea', { label: label ?? t('chart.gantt') })}
+                  {...styles('gantt.viewport', 'ui-gantt-scroll', undefined, unstyled)}
+                  style={
+                    {
+                      height: viewHeight,
+                      '--ui-gantt-label-width': `${labelWidth}px`,
+                      '--ui-gantt-width': `${width}px`,
+                      '--ui-gantt-bar-height': `${bh}px`,
+                      '--ui-gantt-day-width': `${px}px`,
+                    } as React.CSSProperties
+                  }
+                >
+                  <div {...styles('gantt.header', 'ui-gantt-header', undefined, unstyled)}>
+                    {showTaskList && <strong>{t('chart.task')}</strong>}
+                    <div {...styles('gantt.axis', 'ui-gantt-axis', undefined, unstyled)}>
+                      {periods
+                        .filter((period) => period.end > visibleStart && period.index < visibleEnd)
+                        .map((period) => (
+                          <span
+                            {...styles('gantt.period', 'ui-gantt-period', undefined, unstyled)}
+                            key={period.index}
+                            style={{
+                              insetInlineStart: period.index * px,
+                              width: (period.end - period.index) * px,
+                            }}
+                          >
+                            <span>
+                              {shortDate(
+                                period.date,
+                                scale === 'month'
+                                  ? { year: 'numeric' }
+                                  : { month: 'long', year: 'numeric' },
+                              )}
+                            </span>
+                          </span>
+                        ))}
+                      {axisItems.map((item) => {
+                        const tick = ticks[item.index],
+                          isToday =
+                            todayInRange && todayIndex >= tick.index && todayIndex < tick.end;
+                        return (
+                          <span
+                            {...styles('gantt.tick', 'ui-gantt-tick', undefined, unstyled)}
+                            key={tick.index}
+                            data-today={(showToday && isToday) || undefined}
+                            data-weekend={
+                              (scale === 'day' &&
+                                highlightWeekends &&
+                                weekendDays.includes(tick.date.dayOfWeek)) ||
+                              undefined
+                            }
+                            title={dateText(tick.date)}
+                            style={{ insetInlineStart: tick.index * px, width: item.size }}
+                          >
+                            {scale === 'day' && (
+                              <small>{shortDate(tick.date, { weekday: 'narrow' })}</small>
+                            )}
+                            <span>
+                              {shortDate(
+                                tick.date,
+                                scale === 'month' ? { month: 'short' } : { day: '2-digit' },
+                              )}
+                            </span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div
+                    {...styles('gantt.body', 'ui-gantt-body', undefined, unstyled)}
+                    style={{ height: virtual.getTotalSize(), width: width + labelWidth }}
+                  >
+                    <div
+                      {...styles('gantt.grid', 'ui-gantt-grid', undefined, unstyled)}
+                      style={{
+                        insetInlineStart: labelWidth,
+                        width,
+                        backgroundImage: [
+                          scale === 'day' ? tickBackground : undefined,
+                          weekendBackground,
+                        ]
+                          .filter(Boolean)
+                          .join(', '),
+                      }}
+                      aria-hidden="true"
+                    />
+                    {showToday && todayInRange && (
+                      <div
+                        {...styles('gantt.today', 'ui-gantt-today', undefined, unstyled)}
+                        style={{ insetInlineStart: labelWidth + (todayIndex + 0.5) * px }}
+                        aria-hidden="true"
+                      />
+                    )}
+                    {items.map((item) => {
+                      const row = rows[item.index],
+                        position = layout(row);
+                      return (
+                        <div
+                          {...styles('gantt.row', 'ui-gantt-row', undefined, unstyled)}
+                          key={row.task.id}
+                          style={{
+                            height: rh,
+                            transform: `translateY(${item.start - HEADER_HEIGHT}px)`,
+                          }}
+                        >
+                          {showTaskList && (
+                            <div
+                              {...styles('gantt.label', 'ui-gantt-label', undefined, unstyled)}
+                              title={row.task.label}
+                            >
+                              <div
+                                {...styles(
+                                  'gantt.label-content',
+                                  'ui-gantt-label-content',
+                                  undefined,
+                                  unstyled,
+                                )}
+                              >
+                                {renderLabel?.(row.task) ?? row.task.label}
+                              </div>
+                            </div>
+                          )}
+                          <div {...styles('gantt.lane', 'ui-gantt-lane', undefined, unstyled)}>
+                            {position.width > 0 && (
+                              <GanttBar
+                                task={row.task}
+                                position={position}
+                                dateText={dateText}
+                                instructions={instructions}
+                                drag={drag}
+                                onEdit={commit}
+                                onTaskClick={onTaskClick}
+                                renderTask={renderTask}
+                                renderTaskDetails={renderTaskDetails}
+                                showTaskDetails={showTaskDetails}
+                                draggable={draggable}
+                                resizable={resizable}
+                                labelPosition={labelPosition}
+                                dependencies={(row.task.dependencies ?? []).flatMap((id) =>
+                                  byId.has(id) ? [byId.get(id)!.task.label] : [],
                                 )}
                               />
-                            );
-                          });
-                        })}
-                      </g>
-                    </svg>
-                  )}
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {showDependencies && (
+                      <svg
+                        {...styles(
+                          'gantt.dependencies',
+                          'ui-gantt-dependencies',
+                          undefined,
+                          unstyled,
+                        )}
+                        style={{ insetInlineStart: labelWidth }}
+                        width={width}
+                        height={virtual.getTotalSize()}
+                        aria-hidden="true"
+                      >
+                        <defs>
+                          <marker
+                            id={arrow}
+                            markerWidth="7"
+                            markerHeight="7"
+                            refX="6"
+                            refY="3.5"
+                            orient="auto"
+                            markerUnits="userSpaceOnUse"
+                          >
+                            <path className="ui-gantt-arrowhead" d="M 0 0 L 6 3.5 L 0 7" />
+                          </marker>
+                        </defs>
+                        <g
+                          transform={
+                            direction === 'rtl' ? `translate(${width} 0) scale(-1 1)` : undefined
+                          }
+                        >
+                          {items.flatMap((item) => {
+                            const row = rows[item.index],
+                              target = layout(row);
+                            return (row.task.dependencies ?? []).flatMap((dependency) => {
+                              const sourceItem = visibleIds.get(dependency);
+                              if (!sourceItem || dependency === row.task.id || !target.width)
+                                return [];
+                              const source = layout(rows[sourceItem.index]);
+                              if (!source.width) return [];
+                              return (
+                                <path
+                                  key={`${dependency}:${row.task.id}`}
+                                  data-source={dependency}
+                                  data-target={row.task.id}
+                                  markerEnd={`url(#${arrow})`}
+                                  d={ganttDependency(
+                                    source.left + source.width + 1,
+                                    sourceItem.start - HEADER_HEIGHT + rh / 2,
+                                    target.left - 4,
+                                    item.start - HEADER_HEIGHT + rh / 2,
+                                    rh,
+                                  )}
+                                />
+                              );
+                            });
+                          })}
+                        </g>
+                      </svg>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
-          {dataTable !== false && (
-            <GanttDataTable rows={rows} label={label} presentation={dataTable} />
-          )}
-        </figure>
+              </>
+            )}
+            {dataTable !== false && (
+              <GanttDataTable rows={rows} label={label} presentation={dataTable} />
+            )}
+          </figure>,
+          unstyled,
+        )}
       </StyleProvider>
     </DirectionProvider>
   );

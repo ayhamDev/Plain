@@ -165,29 +165,32 @@ export const NumberInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Nu
             />
           </button>
         )}
-        <input
-          ref={input}
-          type="number"
-          aria-label={t('input.number')}
-          value={value}
-          min={lower}
-          max={upper}
-          step={step}
-          disabled={disabled}
-          readOnly={readOnly}
-          {...styles('number-input.input', 'ui-advanced-input', className, unstyled)}
-          {...props}
-          onChange={(event) => {
-            const next = event.currentTarget.valueAsNumber;
-            setValue(Number.isFinite(next) ? next : '');
-            onChange?.(event);
-          }}
-          onBlur={(event) => {
-            onBlur?.(event);
-            if (!event.defaultPrevented && value !== '' && value !== clamp(value))
-              changeInput(input.current, String(clamp(value)));
-          }}
-        />
+        {styles.tooltip(
+          <input
+            ref={input}
+            type="number"
+            aria-label={t('input.number')}
+            value={value}
+            min={lower}
+            max={upper}
+            step={step}
+            disabled={disabled}
+            readOnly={readOnly}
+            {...styles('number-input.input', 'ui-advanced-input', className, unstyled)}
+            {...props}
+            onChange={(event) => {
+              const next = event.currentTarget.valueAsNumber;
+              setValue(Number.isFinite(next) ? next : '');
+              onChange?.(event);
+            }}
+            onBlur={(event) => {
+              onBlur?.(event);
+              if (!event.defaultPrevented && value !== '' && value !== clamp(value))
+                changeInput(input.current, String(clamp(value)));
+            }}
+          />,
+          unstyled,
+        )}
         {showControls && (
           <button
             type="button"
@@ -254,20 +257,23 @@ export const SearchInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Se
           {...styles('search-input.icon', 'ui-control-icon', undefined, unstyled)}
           aria-hidden="true"
         />
-        <input
-          ref={input}
-          type="search"
-          aria-label={t('common.search')}
-          value={value}
-          disabled={disabled}
-          readOnly={readOnly}
-          {...styles('search-input.input', 'ui-advanced-input', className, unstyled)}
-          {...props}
-          onChange={(event) => {
-            setValue(event.currentTarget.value);
-            onChange?.(event);
-          }}
-        />
+        {styles.tooltip(
+          <input
+            ref={input}
+            type="search"
+            aria-label={t('common.search')}
+            value={value}
+            disabled={disabled}
+            readOnly={readOnly}
+            {...styles('search-input.input', 'ui-advanced-input', className, unstyled)}
+            {...props}
+            onChange={(event) => {
+              setValue(event.currentTarget.value);
+              onChange?.(event);
+            }}
+          />,
+          unstyled,
+        )}
         <button
           type="button"
           aria-label={clearLabelProp ?? t('input.clear')}
@@ -333,20 +339,23 @@ export const PasswordInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, 
         {...styles('password-input.root', 'ui-input-control', undefined, unstyled)}
         data-disabled={disabled || undefined}
       >
-        <input
-          ref={input}
-          type={visible ? 'text' : 'password'}
-          aria-label={t('input.password')}
-          autoComplete="current-password"
-          value={value}
-          disabled={disabled}
-          {...styles('password-input.input', 'ui-advanced-input', className, unstyled)}
-          {...props}
-          onChange={(event) => {
-            setValue(event.currentTarget.value);
-            onChange?.(event);
-          }}
-        />
+        {styles.tooltip(
+          <input
+            ref={input}
+            type={visible ? 'text' : 'password'}
+            aria-label={t('input.password')}
+            autoComplete="current-password"
+            value={value}
+            disabled={disabled}
+            {...styles('password-input.input', 'ui-advanced-input', className, unstyled)}
+            {...props}
+            onChange={(event) => {
+              setValue(event.currentTarget.value);
+              onChange?.(event);
+            }}
+          />,
+          unstyled,
+        )}
         <button
           type="button"
           disabled={disabled}
@@ -409,6 +418,7 @@ export const PinInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, PinIn
       onBlur,
       onSelect,
       onPaste,
+      tooltip,
       ...props
     },
     ref,
@@ -425,8 +435,9 @@ export const PinInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, PinIn
     const [focused, setFocused] = React.useState(false);
     const [cursor, setCursor] = React.useState(0);
     useFormReset(input, reset);
-    return (
+    return styles.tooltip(
       <div
+        tabIndex={tooltip === undefined ? undefined : disabled ? 0 : -1}
         {...styles('pin-input.root', 'ui-pin-input', undefined, unstyled)}
         data-disabled={disabled || undefined}
         style={
@@ -444,58 +455,63 @@ export const PinInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, PinIn
             </span>
           ))}
         </div>
-        <input
-          ref={input}
-          type={masked ? 'password' : 'text'}
-          aria-label={t('input.pin')}
-          inputMode={numeric ? 'numeric' : 'text'}
-          autoComplete="one-time-code"
-          pattern={numeric ? `[0-9]{${size}}` : undefined}
-          maxLength={size}
-          value={value}
-          disabled={disabled}
-          readOnly={readOnly}
-          {...styles('pin-input.input', 'ui-pin-native', className, unstyled)}
-          style={style}
-          {...props}
-          onChange={(event) => {
-            const next = clean(event.currentTarget.value);
-            event.currentTarget.value = next;
-            setValue(next);
-            setCursor(event.currentTarget.selectionStart ?? next.length);
-            onChange?.(event);
-            if (next.length === size && next !== value) onComplete?.(next);
-          }}
-          onFocus={(event) => {
-            setFocused(true);
-            setCursor(event.currentTarget.selectionStart ?? value.length);
-            onFocus?.(event);
-          }}
-          onBlur={(event) => {
-            setFocused(false);
-            onBlur?.(event);
-          }}
-          onSelect={(event) => {
-            setCursor(event.currentTarget.selectionStart ?? value.length);
-            onSelect?.(event);
-          }}
-          onPaste={(event) => {
-            onPaste?.(event);
-            if (event.defaultPrevented || disabled || readOnly) return;
-            const inserted = numeric
-              ? event.clipboardData.getData('text').replace(/[^0-9]/g, '')
-              : event.clipboardData.getData('text');
-            const start = event.currentTarget.selectionStart ?? value.length;
-            const end = event.currentTarget.selectionEnd ?? start;
-            const next = clean(value.slice(0, start) + inserted + value.slice(end));
-            event.preventDefault();
-            changeInput(input.current, next);
-            const position = Math.min(size, start + inserted.length);
-            input.current?.setSelectionRange(position, position);
-            setCursor(position);
-          }}
-        />
-      </div>
+        {styles.tooltip(
+          <input
+            ref={input}
+            type={masked ? 'password' : 'text'}
+            aria-label={t('input.pin')}
+            inputMode={numeric ? 'numeric' : 'text'}
+            autoComplete="one-time-code"
+            pattern={numeric ? `[0-9]{${size}}` : undefined}
+            maxLength={size}
+            value={value}
+            disabled={disabled}
+            readOnly={readOnly}
+            {...styles('pin-input.input', 'ui-pin-native', className, unstyled)}
+            style={style}
+            {...props}
+            onChange={(event) => {
+              const next = clean(event.currentTarget.value);
+              event.currentTarget.value = next;
+              setValue(next);
+              setCursor(event.currentTarget.selectionStart ?? next.length);
+              onChange?.(event);
+              if (next.length === size && next !== value) onComplete?.(next);
+            }}
+            onFocus={(event) => {
+              setFocused(true);
+              setCursor(event.currentTarget.selectionStart ?? value.length);
+              onFocus?.(event);
+            }}
+            onBlur={(event) => {
+              setFocused(false);
+              onBlur?.(event);
+            }}
+            onSelect={(event) => {
+              setCursor(event.currentTarget.selectionStart ?? value.length);
+              onSelect?.(event);
+            }}
+            onPaste={(event) => {
+              onPaste?.(event);
+              if (event.defaultPrevented || disabled || readOnly) return;
+              const inserted = numeric
+                ? event.clipboardData.getData('text').replace(/[^0-9]/g, '')
+                : event.clipboardData.getData('text');
+              const start = event.currentTarget.selectionStart ?? value.length;
+              const end = event.currentTarget.selectionEnd ?? start;
+              const next = clean(value.slice(0, start) + inserted + value.slice(end));
+              event.preventDefault();
+              changeInput(input.current, next);
+              const position = Math.min(size, start + inserted.length);
+              input.current?.setSelectionRange(position, position);
+              setCursor(position);
+            }}
+          />,
+          unstyled,
+        )}
+      </div>,
+      unstyled,
+      tooltip,
     );
   },
 );
@@ -603,6 +619,7 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
       unstyled,
       disabled,
       onChange,
+      tooltip,
       ...props
     },
     ref,
@@ -634,8 +651,9 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
       assignFiles(input.current, controlled === undefined ? next : files);
       setFiles(next);
     };
-    return (
+    return styles.tooltip(
       <div
+        tabIndex={tooltip === undefined ? undefined : disabled ? 0 : -1}
         {...styles('file-upload.root', 'ui-file-upload', undefined, unstyled)}
         data-dragging={dragging || undefined}
         data-disabled={disabled || undefined}
@@ -667,20 +685,23 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
             {...styles('file-upload.icon', 'ui-control-icon', undefined, unstyled)}
             aria-hidden="true"
           />
-          <input
-            ref={input}
-            type="file"
-            aria-label={t('file.upload')}
-            accept={accept}
-            multiple={multiple}
-            disabled={disabled}
-            {...styles('file-upload.input', 'ui-file-upload-input', className, unstyled)}
-            {...props}
-            onChange={(event) => {
-              receive(Array.from(event.currentTarget.files ?? []));
-              onChange?.(event);
-            }}
-          />
+          {styles.tooltip(
+            <input
+              ref={input}
+              type="file"
+              aria-label={t('file.upload')}
+              accept={accept}
+              multiple={multiple}
+              disabled={disabled}
+              {...styles('file-upload.input', 'ui-file-upload-input', className, unstyled)}
+              {...props}
+              onChange={(event) => {
+                receive(Array.from(event.currentTarget.files ?? []));
+                onChange?.(event);
+              }}
+            />,
+            unstyled,
+          )}
         </div>
         {!!files.length && (
           <ul
@@ -733,7 +754,9 @@ export const FileUpload = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Fil
             ))}
           </ul>
         )}
-      </div>
+      </div>,
+      unstyled,
+      tooltip,
     );
   },
 );
@@ -779,6 +802,7 @@ export const Dropzone = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Dropz
       onChange,
       'aria-describedby': describedBy,
       'aria-invalid': ariaInvalid,
+      tooltip,
       ...props
     },
     ref,
@@ -831,8 +855,9 @@ export const Dropzone = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Dropz
       Array.from(event.dataTransfer.types).includes('Files');
     const hint = description === undefined ? t('file.browse') : description;
     const state = { files, rejections, dragging, disabled };
-    return (
+    return styles.tooltip(
       <div
+        tabIndex={tooltip === undefined ? undefined : disabled ? 0 : -1}
         {...styles('dropzone.root', 'ui-dropzone', undefined, unstyled)}
         dir={direction}
         style={Object.fromEntries(
@@ -873,28 +898,31 @@ export const Dropzone = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Dropz
               receive(Array.from(event.dataTransfer.files));
           }}
         >
-          <input
-            ref={input}
-            type="file"
-            aria-label={t('file.upload')}
-            accept={accept}
-            multiple={multiple}
-            disabled={disabled}
-            {...styles('dropzone.input', 'ui-dropzone-input', className, unstyled)}
-            style={style}
-            {...props}
-            aria-invalid={rejections.length ? true : ariaInvalid}
-            aria-describedby={
-              [describedBy, hint ? `${id}-hint` : '', rejections.length ? `${id}-errors` : '']
-                .filter(Boolean)
-                .join(' ') || undefined
-            }
-            onChange={(event) => {
-              onChange?.(event);
-              if (event.defaultPrevented || disabled) assignFiles(input.current, files);
-              else receive(Array.from(event.currentTarget.files ?? []));
-            }}
-          />
+          {styles.tooltip(
+            <input
+              ref={input}
+              type="file"
+              aria-label={t('file.upload')}
+              accept={accept}
+              multiple={multiple}
+              disabled={disabled}
+              {...styles('dropzone.input', 'ui-dropzone-input', className, unstyled)}
+              style={style}
+              {...props}
+              aria-invalid={rejections.length ? true : ariaInvalid}
+              aria-describedby={
+                [describedBy, hint ? `${id}-hint` : '', rejections.length ? `${id}-errors` : '']
+                  .filter(Boolean)
+                  .join(' ') || undefined
+              }
+              onChange={(event) => {
+                onChange?.(event);
+                if (event.defaultPrevented || disabled) assignFiles(input.current, files);
+                else receive(Array.from(event.currentTarget.files ?? []));
+              }}
+            />,
+            unstyled,
+          )}
           <div {...styles('dropzone.content', 'ui-dropzone-content', undefined, unstyled)}>
             {children !== undefined ? (
               typeof children === 'function' ? (
@@ -1014,7 +1042,9 @@ export const Dropzone = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Dropz
             { count: files.length },
           )}
         </div>
-      </div>
+      </div>,
+      unstyled,
+      tooltip,
     );
   },
 );
@@ -1069,40 +1099,43 @@ export const Rating = /* @__PURE__ */ React.forwardRef<HTMLDivElement, RatingPro
     useFormReset(root, reset, form);
     return (
       <div {...styles('rating.wrapper', 'ui-rating-wrapper', undefined, unstyled)}>
-        <RadioGroup.Root
-          ref={root}
-          dir={direction}
-          orientation="horizontal"
-          aria-label={t('rating.title')}
-          value={value ? String(value) : ''}
-          disabled={disabled}
-          required={required}
-          form={form}
-          {...styles('rating.root', 'ui-rating', className, unstyled)}
-          {...props}
-          onValueChange={(next) => {
-            if (!readOnly) setValue(Number(next));
-          }}
-        >
-          {Array.from({ length: limit }, (_, index) => (
-            <RadioGroup.Item
-              key={index}
-              value={String(index + 1)}
-              aria-label={
-                getLabelProp?.(index + 1, limit) ??
-                t('rating.label', { value: index + 1, max: limit })
-              }
-              tabIndex={readOnly ? -1 : undefined}
-              data-filled={index < value || undefined}
-              {...styles('rating.item', 'ui-rating-item', undefined, unstyled)}
-            >
-              <Star
-                {...styles('rating.icon', 'ui-rating-icon', undefined, unstyled)}
-                aria-hidden="true"
-              />
-            </RadioGroup.Item>
-          ))}
-        </RadioGroup.Root>
+        {styles.tooltip(
+          <RadioGroup.Root
+            ref={root}
+            dir={direction}
+            orientation="horizontal"
+            aria-label={t('rating.title')}
+            value={value ? String(value) : ''}
+            disabled={disabled}
+            required={required}
+            form={form}
+            {...styles('rating.root', 'ui-rating', className, unstyled)}
+            {...props}
+            onValueChange={(next) => {
+              if (!readOnly) setValue(Number(next));
+            }}
+          >
+            {Array.from({ length: limit }, (_, index) => (
+              <RadioGroup.Item
+                key={index}
+                value={String(index + 1)}
+                aria-label={
+                  getLabelProp?.(index + 1, limit) ??
+                  t('rating.label', { value: index + 1, max: limit })
+                }
+                tabIndex={readOnly ? -1 : undefined}
+                data-filled={index < value || undefined}
+                {...styles('rating.item', 'ui-rating-item', undefined, unstyled)}
+              >
+                <Star
+                  {...styles('rating.icon', 'ui-rating-icon', undefined, unstyled)}
+                  aria-hidden="true"
+                />
+              </RadioGroup.Item>
+            ))}
+          </RadioGroup.Root>,
+          unstyled,
+        )}
         {name && <input type="hidden" name={name} form={form} value={value} disabled={disabled} />}
         {allowClear && !readOnly && (
           <button
@@ -1218,41 +1251,44 @@ export const TagsInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Tags
             )}
           </span>
         ))}
-        <input
-          ref={input}
-          type="text"
-          aria-label={t('input.tags')}
-          form={form}
-          value={draft}
-          required={required && !tags.length}
-          disabled={disabled}
-          readOnly={readOnly}
-          {...styles('tags-input.input', 'ui-tags-native', className, unstyled)}
-          {...props}
-          onChange={(event) => {
-            setDraft(event.currentTarget.value);
-            onChange?.(event);
-          }}
-          onBlur={(event) => {
-            onBlur?.(event);
-            if (addOnBlur && !event.defaultPrevented) add();
-          }}
-          onKeyDown={(event) => {
-            onKeyDown?.(event);
-            if (event.defaultPrevented || event.nativeEvent.isComposing || disabled || readOnly)
-              return;
-            if (delimiters.includes(event.key)) {
-              event.preventDefault();
-              add();
-            } else if (event.key === 'Escape' && draft) {
-              event.preventDefault();
-              setDraft('');
-            } else if (event.key === 'Backspace' && !draft && tags.length) {
-              event.preventDefault();
-              setTags(tags.slice(0, -1));
-            }
-          }}
-        />
+        {styles.tooltip(
+          <input
+            ref={input}
+            type="text"
+            aria-label={t('input.tags')}
+            form={form}
+            value={draft}
+            required={required && !tags.length}
+            disabled={disabled}
+            readOnly={readOnly}
+            {...styles('tags-input.input', 'ui-tags-native', className, unstyled)}
+            {...props}
+            onChange={(event) => {
+              setDraft(event.currentTarget.value);
+              onChange?.(event);
+            }}
+            onBlur={(event) => {
+              onBlur?.(event);
+              if (addOnBlur && !event.defaultPrevented) add();
+            }}
+            onKeyDown={(event) => {
+              onKeyDown?.(event);
+              if (event.defaultPrevented || event.nativeEvent.isComposing || disabled || readOnly)
+                return;
+              if (delimiters.includes(event.key)) {
+                event.preventDefault();
+                add();
+              } else if (event.key === 'Escape' && draft) {
+                event.preventDefault();
+                setDraft('');
+              } else if (event.key === 'Backspace' && !draft && tags.length) {
+                event.preventDefault();
+                setTags(tags.slice(0, -1));
+              }
+            }}
+          />,
+          unstyled,
+        )}
       </div>
     );
   },
@@ -1429,74 +1465,85 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
                 {selectionSummary}
               </span>
             )}
-            <input
-              ref={input}
-              id={id}
-              type="text"
-              role="combobox"
-              aria-label={t('select.options')}
-              aria-autocomplete="list"
-              aria-expanded={open && !disabled && !readOnly}
-              aria-controls={open ? listId : undefined}
-              aria-activedescendant={open && activeValue ? optionId(activeValue) : undefined}
-              value={query}
-              form={form}
-              required={required && !values.length}
-              disabled={disabled}
-              readOnly={readOnly}
-              {...styles('multi-select.input', 'ui-tags-native', className, unstyled)}
-              {...props}
-              placeholder={
-                selectionDisplay === 'summary' && values.length
-                  ? selectionSummary
-                  : props.placeholder
-              }
-              aria-describedby={
-                [
-                  props['aria-describedby'],
-                  selectionDisplay === 'summary' && values.length ? summaryId : undefined,
-                ]
-                  .filter(Boolean)
-                  .join(' ') || undefined
-              }
-              onFocus={(event) => {
-                onFocus?.(event);
-                if (!event.defaultPrevented && !readOnly) setOpen(true);
-              }}
-              onChange={(event) => {
-                setQuery(event.currentTarget.value);
-                setActive(null);
-                setOpen(true);
-                onChange?.(event);
-              }}
-              onKeyDown={(event) => {
-                onKeyDown?.(event);
-                if (event.defaultPrevented || event.nativeEvent.isComposing || readOnly || disabled)
-                  return;
-                if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-                  event.preventDefault();
-                  const index = enabled.findIndex((option) => option.value === activeValue);
-                  const next = !open
-                    ? event.key === 'ArrowDown'
-                      ? 0
-                      : enabled.length - 1
-                    : Math.max(
-                        0,
-                        Math.min(enabled.length - 1, index + (event.key === 'ArrowDown' ? 1 : -1)),
-                      );
-                  setActive(enabled[next]?.value ?? null);
+            {styles.tooltip(
+              <input
+                ref={input}
+                id={id}
+                type="text"
+                role="combobox"
+                aria-label={t('select.options')}
+                aria-autocomplete="list"
+                aria-expanded={open && !disabled && !readOnly}
+                aria-controls={open ? listId : undefined}
+                aria-activedescendant={open && activeValue ? optionId(activeValue) : undefined}
+                value={query}
+                form={form}
+                required={required && !values.length}
+                disabled={disabled}
+                readOnly={readOnly}
+                {...styles('multi-select.input', 'ui-tags-native', className, unstyled)}
+                {...props}
+                placeholder={
+                  selectionDisplay === 'summary' && values.length
+                    ? selectionSummary
+                    : props.placeholder
+                }
+                aria-describedby={
+                  [
+                    props['aria-describedby'],
+                    selectionDisplay === 'summary' && values.length ? summaryId : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(' ') || undefined
+                }
+                onFocus={(event) => {
+                  onFocus?.(event);
+                  if (!event.defaultPrevented && !readOnly) setOpen(true);
+                }}
+                onChange={(event) => {
+                  setQuery(event.currentTarget.value);
+                  setActive(null);
                   setOpen(true);
-                } else if ((event.key === 'Enter' || (event.key === ' ' && !query)) && open) {
-                  event.preventDefault();
-                  if (activeValue) toggle(activeValue);
-                } else if (event.key === 'Escape') {
-                  event.preventDefault();
-                  setOpen(false);
-                } else if (event.key === 'Tab') setOpen(false);
-                else if (event.key === 'Backspace' && !query && values.length)
-                  setValues(values.slice(0, -1));
-              }}
-            />
+                  onChange?.(event);
+                }}
+                onKeyDown={(event) => {
+                  onKeyDown?.(event);
+                  if (
+                    event.defaultPrevented ||
+                    event.nativeEvent.isComposing ||
+                    readOnly ||
+                    disabled
+                  )
+                    return;
+                  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    const index = enabled.findIndex((option) => option.value === activeValue);
+                    const next = !open
+                      ? event.key === 'ArrowDown'
+                        ? 0
+                        : enabled.length - 1
+                      : Math.max(
+                          0,
+                          Math.min(
+                            enabled.length - 1,
+                            index + (event.key === 'ArrowDown' ? 1 : -1),
+                          ),
+                        );
+                    setActive(enabled[next]?.value ?? null);
+                    setOpen(true);
+                  } else if ((event.key === 'Enter' || (event.key === ' ' && !query)) && open) {
+                    event.preventDefault();
+                    if (activeValue) toggle(activeValue);
+                  } else if (event.key === 'Escape') {
+                    event.preventDefault();
+                    setOpen(false);
+                  } else if (event.key === 'Tab') setOpen(false);
+                  else if (event.key === 'Backspace' && !query && values.length)
+                    setValues(values.slice(0, -1));
+                }}
+              />,
+              unstyled,
+            )}
             <button
               type="button"
               tabIndex={-1}
@@ -1593,22 +1640,39 @@ export const Menubar = /* @__PURE__ */ React.forwardRef<HTMLDivElement, MenubarP
     const direction = useDirection(dir);
     return (
       <StyleProvider unstyled={unstyled}>
-        <MenubarPrimitive.Root
-          ref={ref}
-          dir={direction}
-          {...styles('menubar.root', 'ui-menubar', className, unstyled)}
-          {...props}
-        >
-          {children}
-        </MenubarPrimitive.Root>
+        {styles.tooltip(
+          <MenubarPrimitive.Root
+            ref={ref}
+            dir={direction}
+            {...styles('menubar.root', 'ui-menubar', className, unstyled)}
+            {...props}
+          >
+            {children}
+          </MenubarPrimitive.Root>,
+          unstyled,
+        )}
       </StyleProvider>
     );
   },
 );
 Menubar.displayName = 'Menubar';
 export const MenubarMenu = MenubarPrimitive.Menu;
-export const MenubarGroup = MenubarPrimitive.Group;
-export const MenubarRadioGroup = MenubarPrimitive.RadioGroup;
+export const MenubarGroup = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof MenubarPrimitive.Group>,
+  React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Group> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<MenubarPrimitive.Group {...props} ref={ref} />, unstyled);
+});
+MenubarGroup.displayName = 'MenubarGroup';
+export const MenubarRadioGroup = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof MenubarPrimitive.RadioGroup>,
+  React.ComponentPropsWithoutRef<typeof MenubarPrimitive.RadioGroup> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<MenubarPrimitive.RadioGroup {...props} ref={ref} />, unstyled);
+});
+MenubarRadioGroup.displayName = 'MenubarRadioGroup';
 export const MenubarSub = MenubarPrimitive.Sub;
 export const MenubarTrigger = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof MenubarPrimitive.Trigger>,
@@ -1616,12 +1680,13 @@ export const MenubarTrigger = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <MenubarPrimitive.Trigger
       ref={ref}
       {...styles('menubar.trigger', 'ui-menubar-trigger', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 MenubarTrigger.displayName = 'MenubarTrigger';
@@ -1635,16 +1700,19 @@ export const MenubarContent = /* @__PURE__ */ React.forwardRef<
   return (
     <StyleProvider unstyled={unstyled}>
       <MenubarPrimitive.Portal container={container}>
-        <MenubarPrimitive.Content
-          ref={ref}
-          align="start"
-          sideOffset={4}
-          collisionPadding={8}
-          {...styles('menubar.content', 'ui-menu-content', className, unstyled)}
-          {...props}
-        >
-          {children}
-        </MenubarPrimitive.Content>
+        {styles.tooltip(
+          <MenubarPrimitive.Content
+            ref={ref}
+            align="start"
+            sideOffset={4}
+            collisionPadding={8}
+            {...styles('menubar.content', 'ui-menu-content', className, unstyled)}
+            {...props}
+          >
+            {children}
+          </MenubarPrimitive.Content>,
+          unstyled,
+        )}
       </MenubarPrimitive.Portal>
     </StyleProvider>
   );
@@ -1657,7 +1725,7 @@ export const MenubarItem = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, inset, shortcut, children, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <MenubarPrimitive.Item
       ref={ref}
       data-inset={inset || undefined}
@@ -1670,7 +1738,8 @@ export const MenubarItem = /* @__PURE__ */ React.forwardRef<
           {shortcut}
         </kbd>
       )}
-    </MenubarPrimitive.Item>
+    </MenubarPrimitive.Item>,
+    unstyled,
   );
 });
 MenubarItem.displayName = 'MenubarItem';
@@ -1680,7 +1749,7 @@ export const MenubarCheckboxItem = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <MenubarPrimitive.CheckboxItem
       ref={ref}
       {...styles('menubar.checkbox-item', 'ui-menu-item ui-menu-choice', className, unstyled)}
@@ -1692,7 +1761,8 @@ export const MenubarCheckboxItem = /* @__PURE__ */ React.forwardRef<
         <Check size={16} aria-hidden="true" />
       </MenubarPrimitive.ItemIndicator>
       {children}
-    </MenubarPrimitive.CheckboxItem>
+    </MenubarPrimitive.CheckboxItem>,
+    unstyled,
   );
 });
 MenubarCheckboxItem.displayName = 'MenubarCheckboxItem';
@@ -1702,7 +1772,7 @@ export const MenubarRadioItem = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <MenubarPrimitive.RadioItem
       ref={ref}
       {...styles('menubar.radio-item', 'ui-menu-item ui-menu-choice', className, unstyled)}
@@ -1714,7 +1784,8 @@ export const MenubarRadioItem = /* @__PURE__ */ React.forwardRef<
         <Circle size={8} fill="currentColor" aria-hidden="true" />
       </MenubarPrimitive.ItemIndicator>
       {children}
-    </MenubarPrimitive.RadioItem>
+    </MenubarPrimitive.RadioItem>,
+    unstyled,
   );
 });
 MenubarRadioItem.displayName = 'MenubarRadioItem';
@@ -1724,12 +1795,13 @@ export const MenubarLabel = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <MenubarPrimitive.Label
       ref={ref}
       {...styles('menubar.label', 'ui-menu-label', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 MenubarLabel.displayName = 'MenubarLabel';
@@ -1739,12 +1811,13 @@ export const MenubarSeparator = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <MenubarPrimitive.Separator
       ref={ref}
       {...styles('menubar.separator', 'ui-menu-separator', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 MenubarSeparator.displayName = 'MenubarSeparator';
@@ -1754,7 +1827,7 @@ export const MenubarSubTrigger = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <MenubarPrimitive.SubTrigger
       ref={ref}
       {...styles('menubar.sub-trigger', 'ui-menu-item ui-menu-sub-trigger', className, unstyled)}
@@ -1765,7 +1838,8 @@ export const MenubarSubTrigger = /* @__PURE__ */ React.forwardRef<
         {...styles('menubar.sub-icon', 'ui-menu-sub-icon', undefined, unstyled)}
         aria-hidden="true"
       />
-    </MenubarPrimitive.SubTrigger>
+    </MenubarPrimitive.SubTrigger>,
+    unstyled,
   );
 });
 MenubarSubTrigger.displayName = 'MenubarSubTrigger';
@@ -1778,12 +1852,15 @@ export const MenubarSubContent = /* @__PURE__ */ React.forwardRef<
   const container = usePortalContainer();
   return (
     <MenubarPrimitive.Portal container={container}>
-      <MenubarPrimitive.SubContent
-        ref={ref}
-        collisionPadding={8}
-        {...styles('menubar.sub-content', 'ui-menu-content', className, unstyled)}
-        {...props}
-      />
+      {styles.tooltip(
+        <MenubarPrimitive.SubContent
+          ref={ref}
+          collisionPadding={8}
+          {...styles('menubar.sub-content', 'ui-menu-content', className, unstyled)}
+          {...props}
+        />,
+        unstyled,
+      )}
     </MenubarPrimitive.Portal>
   );
 });
@@ -1804,8 +1881,22 @@ export function ContextMenu({
     </StyleProvider>
   );
 }
-export const ContextMenuGroup = ContextPrimitive.Group;
-export const ContextMenuRadioGroup = ContextPrimitive.RadioGroup;
+export const ContextMenuGroup = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof ContextPrimitive.Group>,
+  React.ComponentPropsWithoutRef<typeof ContextPrimitive.Group> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<ContextPrimitive.Group {...props} ref={ref} />, unstyled);
+});
+ContextMenuGroup.displayName = 'ContextMenuGroup';
+export const ContextMenuRadioGroup = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof ContextPrimitive.RadioGroup>,
+  React.ComponentPropsWithoutRef<typeof ContextPrimitive.RadioGroup> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<ContextPrimitive.RadioGroup {...props} ref={ref} />, unstyled);
+});
+ContextMenuRadioGroup.displayName = 'ContextMenuRadioGroup';
 export const ContextMenuSub = ContextPrimitive.Sub;
 export const ContextMenuTrigger = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof ContextPrimitive.Trigger>,
@@ -1813,7 +1904,7 @@ export const ContextMenuTrigger = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, disabled, onKeyDown, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <ContextPrimitive.Trigger
       ref={ref}
       disabled={disabled}
@@ -1837,7 +1928,8 @@ export const ContextMenuTrigger = /* @__PURE__ */ React.forwardRef<
           );
         }
       }}
-    />
+    />,
+    unstyled,
   );
 });
 ContextMenuTrigger.displayName = 'ContextMenuTrigger';
@@ -1851,14 +1943,17 @@ export const ContextMenuContent = /* @__PURE__ */ React.forwardRef<
   return (
     <StyleProvider unstyled={unstyled}>
       <ContextPrimitive.Portal container={container}>
-        <ContextPrimitive.Content
-          ref={ref}
-          collisionPadding={8}
-          {...styles('context-menu.content', 'ui-menu-content', className, unstyled)}
-          {...props}
-        >
-          {children}
-        </ContextPrimitive.Content>
+        {styles.tooltip(
+          <ContextPrimitive.Content
+            ref={ref}
+            collisionPadding={8}
+            {...styles('context-menu.content', 'ui-menu-content', className, unstyled)}
+            {...props}
+          >
+            {children}
+          </ContextPrimitive.Content>,
+          unstyled,
+        )}
       </ContextPrimitive.Portal>
     </StyleProvider>
   );
@@ -1871,7 +1966,7 @@ export const ContextMenuItem = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, inset, shortcut, children, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <ContextPrimitive.Item
       ref={ref}
       data-inset={inset || undefined}
@@ -1884,7 +1979,8 @@ export const ContextMenuItem = /* @__PURE__ */ React.forwardRef<
           {shortcut}
         </kbd>
       )}
-    </ContextPrimitive.Item>
+    </ContextPrimitive.Item>,
+    unstyled,
   );
 });
 ContextMenuItem.displayName = 'ContextMenuItem';
@@ -1894,7 +1990,7 @@ export const ContextMenuCheckboxItem = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <ContextPrimitive.CheckboxItem
       ref={ref}
       {...styles('context-menu.checkbox-item', 'ui-menu-item ui-menu-choice', className, unstyled)}
@@ -1906,7 +2002,8 @@ export const ContextMenuCheckboxItem = /* @__PURE__ */ React.forwardRef<
         <Check size={16} aria-hidden="true" />
       </ContextPrimitive.ItemIndicator>
       {children}
-    </ContextPrimitive.CheckboxItem>
+    </ContextPrimitive.CheckboxItem>,
+    unstyled,
   );
 });
 ContextMenuCheckboxItem.displayName = 'ContextMenuCheckboxItem';
@@ -1916,7 +2013,7 @@ export const ContextMenuRadioItem = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <ContextPrimitive.RadioItem
       ref={ref}
       {...styles('context-menu.radio-item', 'ui-menu-item ui-menu-choice', className, unstyled)}
@@ -1928,7 +2025,8 @@ export const ContextMenuRadioItem = /* @__PURE__ */ React.forwardRef<
         <Circle size={8} fill="currentColor" aria-hidden="true" />
       </ContextPrimitive.ItemIndicator>
       {children}
-    </ContextPrimitive.RadioItem>
+    </ContextPrimitive.RadioItem>,
+    unstyled,
   );
 });
 ContextMenuRadioItem.displayName = 'ContextMenuRadioItem';
@@ -1938,12 +2036,13 @@ export const ContextMenuLabel = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <ContextPrimitive.Label
       ref={ref}
       {...styles('context-menu.label', 'ui-menu-label', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 ContextMenuLabel.displayName = 'ContextMenuLabel';
@@ -1953,12 +2052,13 @@ export const ContextMenuSeparator = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <ContextPrimitive.Separator
       ref={ref}
       {...styles('context-menu.separator', 'ui-menu-separator', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 ContextMenuSeparator.displayName = 'ContextMenuSeparator';
@@ -1968,7 +2068,7 @@ export const ContextMenuSubTrigger = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, children, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <ContextPrimitive.SubTrigger
       ref={ref}
       {...styles(
@@ -1984,7 +2084,8 @@ export const ContextMenuSubTrigger = /* @__PURE__ */ React.forwardRef<
         {...styles('context-menu.sub-icon', 'ui-menu-sub-icon', undefined, unstyled)}
         aria-hidden="true"
       />
-    </ContextPrimitive.SubTrigger>
+    </ContextPrimitive.SubTrigger>,
+    unstyled,
   );
 });
 ContextMenuSubTrigger.displayName = 'ContextMenuSubTrigger';
@@ -1997,12 +2098,15 @@ export const ContextMenuSubContent = /* @__PURE__ */ React.forwardRef<
   const container = usePortalContainer();
   return (
     <ContextPrimitive.Portal container={container}>
-      <ContextPrimitive.SubContent
-        ref={ref}
-        collisionPadding={8}
-        {...styles('context-menu.sub-content', 'ui-menu-content', className, unstyled)}
-        {...props}
-      />
+      {styles.tooltip(
+        <ContextPrimitive.SubContent
+          ref={ref}
+          collisionPadding={8}
+          {...styles('context-menu.sub-content', 'ui-menu-content', className, unstyled)}
+          {...props}
+        />,
+        unstyled,
+      )}
     </ContextPrimitive.Portal>
   );
 });
@@ -2027,12 +2131,13 @@ export const HoverCardTrigger = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <HoverPrimitive.Trigger
       ref={ref}
       {...styles('hover-card.trigger', 'ui-hover-card-trigger', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 HoverCardTrigger.displayName = 'HoverCardTrigger';
@@ -2046,14 +2151,17 @@ export const HoverCardContent = /* @__PURE__ */ React.forwardRef<
   const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
   return (
     <HoverPrimitive.Portal container={container}>
-      <HoverPrimitive.Content
-        ref={ref}
-        dir={direction}
-        sideOffset={8}
-        collisionPadding={8}
-        {...styles('hover-card.content', 'ui-hover-card-content', className, unstyled)}
-        {...props}
-      />
+      {styles.tooltip(
+        <HoverPrimitive.Content
+          ref={ref}
+          dir={direction}
+          sideOffset={8}
+          collisionPadding={8}
+          {...styles('hover-card.content', 'ui-hover-card-content', className, unstyled)}
+          {...props}
+        />,
+        unstyled,
+      )}
     </HoverPrimitive.Portal>
   );
 });
@@ -2089,7 +2197,7 @@ export const TimelineItem = /* @__PURE__ */ React.forwardRef<HTMLLIElement, Time
   ) => {
     const styles = useStyles();
 
-    return (
+    return styles.tooltip(
       <li
         ref={ref}
         data-state={status}
@@ -2126,7 +2234,8 @@ export const TimelineItem = /* @__PURE__ */ React.forwardRef<HTMLLIElement, Time
           )}
           {children}
         </div>
-      </li>
+      </li>,
+      unstyled,
     );
   },
 );
@@ -2141,14 +2250,17 @@ export const Timeline = /* @__PURE__ */ React.forwardRef<HTMLOListElement, Timel
 
     return (
       <StyleProvider unstyled={unstyled}>
-        <ol
-          ref={ref}
-          aria-label={t('activity.label')}
-          {...styles('timeline.root', 'ui-timeline', className, unstyled)}
-          {...props}
-        >
-          {items ? items.map(({ id, ...item }) => <TimelineItem key={id} {...item} />) : children}
-        </ol>
+        {styles.tooltip(
+          <ol
+            ref={ref}
+            aria-label={t('activity.label')}
+            {...styles('timeline.root', 'ui-timeline', className, unstyled)}
+            {...props}
+          >
+            {items ? items.map(({ id, ...item }) => <TimelineItem key={id} {...item} />) : children}
+          </ol>,
+          unstyled,
+        )}
       </StyleProvider>
     );
   },
@@ -2191,7 +2303,7 @@ export const Banner = /* @__PURE__ */ React.forwardRef<HTMLDivElement, BannerPro
 
     const [open, setOpen] = useValue(controlled, defaultOpen, onOpenChange);
     if (!open) return null;
-    return (
+    return styles.tooltip(
       <div
         ref={ref}
         role={variant === 'danger' || variant === 'warning' ? 'alert' : 'status'}
@@ -2245,7 +2357,8 @@ export const Banner = /* @__PURE__ */ React.forwardRef<HTMLDivElement, BannerPro
             />
           </button>
         )}
-      </div>
+      </div>,
+      unstyled,
     );
   },
 );
@@ -2259,7 +2372,7 @@ export const LoadingOverlay = /* @__PURE__ */ React.forwardRef<HTMLDivElement, L
   ({ visible = true, label: labelProp, children, className, unstyled, ...props }, ref) => {
     const styles = useStyles();
     const { t } = useTranslation();
-    return (
+    return styles.tooltip(
       <div
         ref={ref}
         aria-busy={visible}
@@ -2293,7 +2406,8 @@ export const LoadingOverlay = /* @__PURE__ */ React.forwardRef<HTMLDivElement, L
             </span>
           </div>
         )}
-      </div>
+      </div>,
+      unstyled,
     );
   },
 );

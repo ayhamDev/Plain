@@ -41,7 +41,7 @@ export const DataTableSearch = /* @__PURE__ */ React.forwardRef(function DataTab
   const styles = useStyles();
   const { t } = useTranslation();
   const query = tableQuery(table.state.globalFilter);
-  return (
+  return styles.tooltip(
     <SearchInput
       ref={ref}
       aria-label={placeholder ?? t('table.search')}
@@ -55,7 +55,8 @@ export const DataTableSearch = /* @__PURE__ */ React.forwardRef(function DataTab
         table.setPageIndex(0);
         onValueChange?.(search);
       }}
-    />
+    />,
+    unstyled,
   );
 }) as <T extends RowData>(
   props: DataTableSearchProps<T> & React.RefAttributes<HTMLInputElement>,
@@ -83,7 +84,7 @@ export const DataTableSort = /* @__PURE__ */ React.forwardRef(function DataTable
           ...styles('data-table.sort-panel', 'ui-table-sort-panel', undefined, unstyled),
           align: 'end',
         }}
-        trigger={
+        trigger={styles.tooltip(
           <Button
             variant="outline"
             ref={ref}
@@ -101,8 +102,9 @@ export const DataTableSort = /* @__PURE__ */ React.forwardRef(function DataTable
                 {numberFormatter(locale).format(sorting.length)}
               </span>
             )}
-          </Button>
-        }
+          </Button>,
+          unstyled,
+        )}
       >
         <strong>{t('table.sortOrder')}</strong>
         {sorting.map((rule, i) => (
@@ -182,19 +184,22 @@ export const DataTableColumns = /* @__PURE__ */ React.forwardRef(function DataTa
     <StyleProvider unstyled={unstyled}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            ref={ref}
-            {...styles('data-table.columns', '', className, unstyled)}
-            {...props}
-          >
-            {children ?? (
-              <>
-                <SlidersHorizontal size={14} aria-hidden="true" />
-                {t('table.columns')}
-              </>
-            )}
-          </Button>
+          {styles.tooltip(
+            <Button
+              variant="outline"
+              ref={ref}
+              {...styles('data-table.columns', '', className, unstyled)}
+              {...props}
+            >
+              {children ?? (
+                <>
+                  <SlidersHorizontal size={14} aria-hidden="true" />
+                  {t('table.columns')}
+                </>
+              )}
+            </Button>,
+            unstyled,
+          )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align={align}>
           {table
@@ -243,7 +248,7 @@ export const DataTableReset = /* @__PURE__ */ React.forwardRef(function DataTabl
   const query = tableQuery(table.state.globalFilter);
   if (!alwaysVisible && !query.search && !query.filters.length && !table.state.columnFilters.length)
     return null;
-  return (
+  return styles.tooltip(
     <Button
       variant="ghost"
       ref={ref}
@@ -264,7 +269,8 @@ export const DataTableReset = /* @__PURE__ */ React.forwardRef(function DataTabl
           {t('common.reset')}
         </>
       )}
-    </Button>
+    </Button>,
+    unstyled,
   );
 }) as <T extends RowData>(
   props: DataTableResetProps<T> & React.RefAttributes<HTMLButtonElement>,
@@ -287,40 +293,43 @@ export const DataTableActiveFilters = /* @__PURE__ */ React.forwardRef(
     if (!active.length) return null;
     return (
       <StyleProvider unstyled={unstyled}>
-        <div
-          ref={ref}
-          {...styles('data-table.active-filters', 'ui-table-active-filters', className, unstyled)}
-          {...props}
-        >
-          {active.map((rule) => (
-            <Button
-              size="sm"
-              variant="ghost"
-              key={rule.id}
-              aria-label={t('table.removeFilter')}
-              onClick={() => {
-                table.setGlobalFilter({
-                  ...query,
-                  filters: query.filters.filter((item) => item.id !== rule.id),
-                });
-                table.setPageIndex(0);
-              }}
-            >
-              {fields.find((field) => field.id === rule.field)?.label ?? rule.field}{' '}
-              {t(`filter.${rule.operator}`)}{' '}
-              {filterSummary(
-                fields.find((field) => field.id === rule.field) ?? {
-                  id: rule.field,
-                  label: rule.field,
-                },
-                rule,
-                [t('common.no'), t('common.yes')],
-                locale,
-              )}
-              <X size={12} aria-hidden="true" />
-            </Button>
-          ))}
-        </div>
+        {styles.tooltip(
+          <div
+            ref={ref}
+            {...styles('data-table.active-filters', 'ui-table-active-filters', className, unstyled)}
+            {...props}
+          >
+            {active.map((rule) => (
+              <Button
+                size="sm"
+                variant="ghost"
+                key={rule.id}
+                aria-label={t('table.removeFilter')}
+                onClick={() => {
+                  table.setGlobalFilter({
+                    ...query,
+                    filters: query.filters.filter((item) => item.id !== rule.id),
+                  });
+                  table.setPageIndex(0);
+                }}
+              >
+                {fields.find((field) => field.id === rule.field)?.label ?? rule.field}{' '}
+                {t(`filter.${rule.operator}`)}{' '}
+                {filterSummary(
+                  fields.find((field) => field.id === rule.field) ?? {
+                    id: rule.field,
+                    label: rule.field,
+                  },
+                  rule,
+                  [t('common.no'), t('common.yes')],
+                  locale,
+                )}
+                <X size={12} aria-hidden="true" />
+              </Button>
+            ))}
+          </div>,
+          unstyled,
+        )}
       </StyleProvider>
     );
   },
@@ -328,7 +337,10 @@ export const DataTableActiveFilters = /* @__PURE__ */ React.forwardRef(
   props: DataTableActiveFiltersProps<T> & React.RefAttributes<HTMLDivElement>,
 ) => React.ReactElement | null;
 
-export interface DataTableFieldFilterProps<T extends RowData> {
+export interface DataTableFieldFilterProps<T extends RowData> extends Pick<
+  PlainStyleProps,
+  'tooltip'
+> {
   table: DataTableInstance<T>;
   field: DataTableFilterField<T>;
   presentation?: TableMenuPresentation;
@@ -337,11 +349,13 @@ export function DataTableFieldFilter<T extends RowData>({
   table,
   field,
   presentation,
+  tooltip,
 }: DataTableFieldFilterProps<T>) {
   const styles = useStyles();
   const query = tableQuery(table.state.globalFilter);
   return (
     <DataTableSimpleFilter
+      tooltip={tooltip}
       className={styles('data-table.field-filter', 'ui-table-field-filter').className}
       field={field}
       presentation={presentation}
@@ -388,7 +402,7 @@ export const DataTableSelectionToggle = /* @__PURE__ */ React.forwardRef(
     const styles = useStyles();
     const { t } = useTranslation();
     const selecting = mode === 'selection';
-    return (
+    return styles.tooltip(
       <Button
         variant="outline"
         ref={ref}
@@ -404,7 +418,8 @@ export const DataTableSelectionToggle = /* @__PURE__ */ React.forwardRef(
         }}
       >
         {children ?? t(selecting ? 'common.done' : 'collection.select')}
-      </Button>
+      </Button>,
+      unstyled,
     );
   },
 ) as <T extends RowData>(
@@ -426,29 +441,32 @@ export const DataTableSelectionActions = /* @__PURE__ */ React.forwardRef(
     if (!selected) return null;
     return (
       <StyleProvider unstyled={unstyled}>
-        <div
-          ref={ref}
-          {...styles(
-            'data-table.selection-actions',
-            'ui-table-selection-actions',
-            className,
-            unstyled,
-          )}
-          role="region"
-          aria-label={t('table.selectedActions')}
-          {...props}
-        >
-          <span>{t('collection.selected', { count: selected })}</span>
-          {children}
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={t('table.clearSelection')}
-            onClick={() => table.resetRowSelection(true)}
+        {styles.tooltip(
+          <div
+            ref={ref}
+            {...styles(
+              'data-table.selection-actions',
+              'ui-table-selection-actions',
+              className,
+              unstyled,
+            )}
+            role="region"
+            aria-label={t('table.selectedActions')}
+            {...props}
           >
-            <X size={14} aria-hidden="true" />
-          </Button>
-        </div>
+            <span>{t('collection.selected', { count: selected })}</span>
+            {children}
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t('table.clearSelection')}
+              onClick={() => table.resetRowSelection(true)}
+            >
+              <X size={14} aria-hidden="true" />
+            </Button>
+          </div>,
+          unstyled,
+        )}
       </StyleProvider>
     );
   },

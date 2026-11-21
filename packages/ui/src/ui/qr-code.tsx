@@ -270,7 +270,7 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
       { corner: 'bottom-left', x: 0, y: encoded.size - 7, size: 7 },
     ];
     const patternKey = JSON.stringify([value, correction, version, mask, circular, decorate]);
-    return (
+    return styles.tooltip(
       <svg
         ref={ref}
         xmlns="http://www.w3.org/2000/svg"
@@ -608,7 +608,8 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
             {t(encoded.state === 'empty' ? 'qr.empty' : 'qr.error')}
           </text>
         )}
-      </svg>
+      </svg>,
+      unstyled,
     );
   },
 );

@@ -100,21 +100,24 @@ export const Resizable = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Resiza
     return (
       <StyleProvider unstyled={unstyled}>
         <ResizableContext.Provider value={containerWidth}>
-          <Group
-            elementRef={assignElement}
-            defaultLayout={saved.defaultLayout ?? defaultLayout}
-            onLayoutChanged={(layout, meta) => {
-              saved.onLayoutChanged(layout, meta);
-              onLayoutChanged?.(layout, meta);
-            }}
-            orientation={narrow && mobileOrientation ? mobileOrientation : orientation}
-            resizeTargetMinimumSize={{ coarse: 32, fine: 12 }}
-            dir={direction}
-            {...styles('resizable.root', 'ui-split-pane', className, unstyled)}
-            {...props}
-          >
-            {scope.children}
-          </Group>
+          {styles.tooltip(
+            <Group
+              elementRef={assignElement}
+              defaultLayout={saved.defaultLayout ?? defaultLayout}
+              onLayoutChanged={(layout, meta) => {
+                saved.onLayoutChanged(layout, meta);
+                onLayoutChanged?.(layout, meta);
+              }}
+              orientation={narrow && mobileOrientation ? mobileOrientation : orientation}
+              resizeTargetMinimumSize={{ coarse: 32, fine: 12 }}
+              dir={direction}
+              {...styles('resizable.root', 'ui-split-pane', className, unstyled)}
+              {...props}
+            >
+              {scope.children}
+            </Group>,
+            unstyled,
+          )}
         </ResizableContext.Provider>
       </StyleProvider>
     );
@@ -206,28 +209,31 @@ export const ResizablePanel = /* @__PURE__ */ React.forwardRef<HTMLDivElement, R
     };
     return (
       <>
-        <Panel
-          elementRef={assignElement}
-          {...styles('resizable.panel', 'ui-split-pane-panel', className, unstyled)}
-          {...props}
-          panelRef={assignHandle}
-          collapsible={props.collapsible || collapseAt !== undefined || open !== undefined}
-          onResize={(size, id, previous) => {
-            onResize?.(size, id, previous);
-            const collapsed = handle?.isCollapsed();
-            if (collapsed === undefined) return;
-            if (
-              !compact &&
-              open !== undefined &&
-              wasCollapsed.current !== undefined &&
-              collapsed !== wasCollapsed.current
-            )
-              onOpenChange?.(!collapsed);
-            wasCollapsed.current = collapsed;
-          }}
-        >
-          {!compact && scope.children}
-        </Panel>
+        {styles.tooltip(
+          <Panel
+            elementRef={assignElement}
+            {...styles('resizable.panel', 'ui-split-pane-panel', className, unstyled)}
+            {...props}
+            panelRef={assignHandle}
+            collapsible={props.collapsible || collapseAt !== undefined || open !== undefined}
+            onResize={(size, id, previous) => {
+              onResize?.(size, id, previous);
+              const collapsed = handle?.isCollapsed();
+              if (collapsed === undefined) return;
+              if (
+                !compact &&
+                open !== undefined &&
+                wasCollapsed.current !== undefined &&
+                collapsed !== wasCollapsed.current
+              )
+                onOpenChange?.(!collapsed);
+              wasCollapsed.current = collapsed;
+            }}
+          >
+            {!compact && scope.children}
+          </Panel>,
+          unstyled,
+        )}
         {compact && adaptTo !== 'hidden' && (
           <Sheet
             {...sheetProps}
@@ -255,7 +261,7 @@ export const ResizableHandle = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, withHandle = false, children, ...props }, ref) => {
   const styles = useStyles();
   const { t } = useTranslation();
-  return (
+  return styles.tooltip(
     <Separator
       elementRef={ref}
       aria-label={t('panel.resizePanels')}
@@ -269,7 +275,8 @@ export const ResizableHandle = /* @__PURE__ */ React.forwardRef<
             aria-hidden="true"
           />
         ))}
-    </Separator>
+    </Separator>,
+    unstyled,
   );
 });
 ResizableHandle.displayName = 'ResizableHandle';

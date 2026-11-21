@@ -188,23 +188,26 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
         <StyleProvider unstyled={unstyled}>
           <Sheet open={isMobile && mobileOpen} onOpenChange={setMobileOpen}>
             <LayoutPresence asChild presence={presence ?? false}>
-              <div
-                ref={providerRef}
-                dir={direction}
-                {...styles('sidebar.provider', 'ui-sidebar-provider', className, unstyled)}
-                data-sidebar-state={collapsed ? 'collapsed' : 'expanded'}
-                data-mobile={isMobile}
-                style={
-                  {
-                    ...(width ? { '--ui-sidebar-width': width } : {}),
-                    ...(collapsedWidth ? { '--ui-sidebar-collapsed-width': collapsedWidth } : {}),
-                    ...style,
-                  } as React.CSSProperties
-                }
-                {...props}
-              >
-                {children}
-              </div>
+              {styles.tooltip(
+                <div
+                  ref={providerRef}
+                  dir={direction}
+                  {...styles('sidebar.provider', 'ui-sidebar-provider', className, unstyled)}
+                  data-sidebar-state={collapsed ? 'collapsed' : 'expanded'}
+                  data-mobile={isMobile}
+                  style={
+                    {
+                      ...(width ? { '--ui-sidebar-width': width } : {}),
+                      ...(collapsedWidth ? { '--ui-sidebar-collapsed-width': collapsedWidth } : {}),
+                      ...style,
+                    } as React.CSSProperties
+                  }
+                  {...props}
+                >
+                  {children}
+                </div>,
+                unstyled,
+              )}
             </LayoutPresence>
           </Sheet>
         </StyleProvider>
@@ -250,72 +253,83 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
       return (
         <StyleProvider unstyled={unstyled}>
           <LayoutPresence asChild presence={presence ?? false}>
-            <SheetContent
-              ref={ref as React.Ref<HTMLDivElement>}
-              side={side}
-              dir={direction}
-              id={id ?? contentId}
-              showClose={false}
-              aria-describedby={undefined}
-              {...styles('sidebar.root', 'ui-sidebar ui-sidebar-mobile', className, unstyled)}
-              data-sidebar-state="expanded"
-              {...props}
-              style={{
-                ...variables,
-                ...(!(unstyled ?? styles.unstyled)
-                  ? {
-                      width: 'var(--ui-sidebar-mobile-width, 288px)',
-                      maxWidth: 'calc(100vw - 32px)',
-                      borderWidth: 'var(--ui-sidebar-border-width, 0px)',
-                      borderRadius: 'var(--ui-sidebar-radius, 0px)',
-                      background:
-                        'var(--ui-sidebar-background, var(--ui-surface-low, var(--ui-background)))',
-                      color: 'var(--ui-sidebar-foreground, var(--ui-foreground))',
-                      paddingBlockStart: 'max(56px, calc(env(safe-area-inset-top) + 48px))',
-                      paddingBlockEnd: 'max(16px, env(safe-area-inset-bottom))',
-                      paddingLeft: 'max(8px, env(safe-area-inset-left))',
-                      paddingRight: 'max(8px, env(safe-area-inset-right))',
-                    }
-                  : {}),
-                ...props.style,
-              }}
-            >
-              <SheetTitle {...styles('sidebar.title', 'ui-visually-hidden', undefined, unstyled)}>
-                {label}
-              </SheetTitle>
-              <SheetClose
-                aria-label={t('navigation.close')}
-                title={t('navigation.close')}
-                {...styles('sidebar.close', 'ui-sidebar-close', undefined, unstyled)}
+            {styles.tooltip(
+              <SheetContent
+                ref={ref as React.Ref<HTMLDivElement>}
+                side={side}
+                dir={direction}
+                id={id ?? contentId}
+                showClose={false}
+                aria-describedby={undefined}
+                {...styles('sidebar.root', 'ui-sidebar ui-sidebar-mobile', className, unstyled)}
+                data-sidebar-state="expanded"
+                {...props}
+                style={{
+                  ...variables,
+                  ...(!(unstyled ?? styles.unstyled)
+                    ? {
+                        width: 'var(--ui-sidebar-mobile-width, 288px)',
+                        maxWidth: 'calc(100vw - 32px)',
+                        borderWidth: 'var(--ui-sidebar-border-width, 0px)',
+                        borderRadius: 'var(--ui-sidebar-radius, 0px)',
+                        background:
+                          'var(--ui-sidebar-background, var(--ui-surface-low, var(--ui-background)))',
+                        color: 'var(--ui-sidebar-foreground, var(--ui-foreground))',
+                        paddingBlockStart: 'max(56px, calc(env(safe-area-inset-top) + 48px))',
+                        paddingBlockEnd: 'max(16px, env(safe-area-inset-bottom))',
+                        paddingLeft: 'max(8px, env(safe-area-inset-left))',
+                        paddingRight: 'max(8px, env(safe-area-inset-right))',
+                      }
+                    : {}),
+                  ...props.style,
+                }}
               >
-                <X
-                  {...styles('sidebar.close-icon', 'ui-sidebar-trigger-icon', undefined, unstyled)}
-                  aria-hidden="true"
-                />
-              </SheetClose>
-              {children}
-            </SheetContent>
+                <SheetTitle {...styles('sidebar.title', 'ui-visually-hidden', undefined, unstyled)}>
+                  {label}
+                </SheetTitle>
+                <SheetClose
+                  aria-label={t('navigation.close')}
+                  title={t('navigation.close')}
+                  {...styles('sidebar.close', 'ui-sidebar-close', undefined, unstyled)}
+                >
+                  <X
+                    {...styles(
+                      'sidebar.close-icon',
+                      'ui-sidebar-trigger-icon',
+                      undefined,
+                      unstyled,
+                    )}
+                    aria-hidden="true"
+                  />
+                </SheetClose>
+                {children}
+              </SheetContent>,
+              unstyled,
+            )}
           </LayoutPresence>
         </StyleProvider>
       );
     return (
       <StyleProvider unstyled={unstyled}>
         <LayoutPresence asChild presence={presence ?? false}>
-          <aside
-            ref={ref}
-            dir={direction}
-            id={id ?? contentId}
-            aria-label={label}
-            {...styles('sidebar.root', 'ui-sidebar ui-sidebar-desktop', className, unstyled)}
-            data-state={collapsed && collapsible !== 'none' ? 'collapsed' : 'expanded'}
-            data-side={side}
-            data-variant={variant}
-            data-collapsible={collapsible}
-            inert={inertAttribute(collapsed && collapsible === 'offcanvas')}
-            {...props}
-          >
-            {children}
-          </aside>
+          {styles.tooltip(
+            <aside
+              ref={ref}
+              dir={direction}
+              id={id ?? contentId}
+              aria-label={label}
+              {...styles('sidebar.root', 'ui-sidebar ui-sidebar-desktop', className, unstyled)}
+              data-state={collapsed && collapsible !== 'none' ? 'collapsed' : 'expanded'}
+              data-side={side}
+              data-variant={variant}
+              data-collapsible={collapsible}
+              inert={inertAttribute(collapsed && collapsible === 'offcanvas')}
+              {...props}
+            >
+              {children}
+            </aside>,
+            unstyled,
+          )}
         </LayoutPresence>
       </StyleProvider>
     );
@@ -330,7 +344,7 @@ export const SidebarTrigger = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   const { t } = useTranslation();
   const { isMobile, mobileOpen, collapsed, contentId, toggle, collapsible } = useSidebar();
-  const trigger = (
+  const trigger = styles.tooltip(
     <button
       ref={ref}
       type="button"
@@ -356,7 +370,8 @@ export const SidebarTrigger = /* @__PURE__ */ React.forwardRef<
           aria-hidden="true"
         />
       )}
-    </button>
+    </button>,
+    unstyled,
   );
   return isMobile ? <SheetTrigger asChild>{trigger}</SheetTrigger> : trigger;
 });
@@ -374,32 +389,35 @@ export const SidebarHeader = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Si
     const compact = context?.collapsed && !context.isMobile && context.collapsible === 'icon';
     return (
       <LayoutPresence asChild presence={presence ?? false}>
-        <div
-          ref={ref}
-          {...styles('sidebar.header', 'ui-sidebar-header', className, unstyled)}
-          {...props}
-        >
-          {collapsedContent === undefined ? (
-            children
-          ) : (
-            <div className="ui-sidebar-section-swap">
-              <div
-                data-expanded-content=""
-                aria-hidden={compact || undefined}
-                inert={inertAttribute(!!compact)}
-              >
-                {children}
+        {styles.tooltip(
+          <div
+            ref={ref}
+            {...styles('sidebar.header', 'ui-sidebar-header', className, unstyled)}
+            {...props}
+          >
+            {collapsedContent === undefined ? (
+              children
+            ) : (
+              <div className="ui-sidebar-section-swap">
+                <div
+                  data-expanded-content=""
+                  aria-hidden={compact || undefined}
+                  inert={inertAttribute(!!compact)}
+                >
+                  {children}
+                </div>
+                <div
+                  data-collapsed-content=""
+                  aria-hidden={!compact || undefined}
+                  inert={inertAttribute(!compact)}
+                >
+                  {collapsedContent}
+                </div>
               </div>
-              <div
-                data-collapsed-content=""
-                aria-hidden={!compact || undefined}
-                inert={inertAttribute(!compact)}
-              >
-                {collapsedContent}
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>,
+          unstyled,
+        )}
       </LayoutPresence>
     );
   },
@@ -412,32 +430,35 @@ export const SidebarFooter = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Si
     const compact = context?.collapsed && !context.isMobile && context.collapsible === 'icon';
     return (
       <LayoutPresence asChild presence={presence ?? false}>
-        <div
-          ref={ref}
-          {...styles('sidebar.footer', 'ui-sidebar-footer', className, unstyled)}
-          {...props}
-        >
-          {collapsedContent === undefined ? (
-            children
-          ) : (
-            <div className="ui-sidebar-section-swap">
-              <div
-                data-expanded-content=""
-                aria-hidden={compact || undefined}
-                inert={inertAttribute(!!compact)}
-              >
-                {children}
+        {styles.tooltip(
+          <div
+            ref={ref}
+            {...styles('sidebar.footer', 'ui-sidebar-footer', className, unstyled)}
+            {...props}
+          >
+            {collapsedContent === undefined ? (
+              children
+            ) : (
+              <div className="ui-sidebar-section-swap">
+                <div
+                  data-expanded-content=""
+                  aria-hidden={compact || undefined}
+                  inert={inertAttribute(!!compact)}
+                >
+                  {children}
+                </div>
+                <div
+                  data-collapsed-content=""
+                  aria-hidden={!compact || undefined}
+                  inert={inertAttribute(!compact)}
+                >
+                  {collapsedContent}
+                </div>
               </div>
-              <div
-                data-collapsed-content=""
-                aria-hidden={!compact || undefined}
-                inert={inertAttribute(!compact)}
-              >
-                {collapsedContent}
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>,
+          unstyled,
+        )}
       </LayoutPresence>
     );
   },
@@ -450,14 +471,15 @@ export const SidebarContent = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   const { t } = useTranslation();
   const scope = useLayoutPresence(children, presence, ref);
-  return (
+  return styles.tooltip(
     <nav
       ref={scope.ref}
       children={scope.children}
       aria-label={t('navigation.sidebar')}
       {...styles('sidebar.content', 'ui-sidebar-content', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarContent.displayName = 'SidebarContent';
@@ -472,22 +494,25 @@ export const SidebarGroup = /* @__PURE__ */ React.forwardRef<HTMLElement, Sideba
     const id = React.useId();
     return (
       <LayoutPresence asChild presence={presence ?? false}>
-        <section
-          ref={ref}
-          aria-labelledby={label ? id : undefined}
-          {...styles('sidebar.group', 'ui-sidebar-group', className, unstyled)}
-          {...props}
-        >
-          {label && (
-            <h2
-              id={id}
-              {...styles('sidebar.group-label', 'ui-sidebar-group-label', undefined, unstyled)}
-            >
-              {label}
-            </h2>
-          )}
-          {children}
-        </section>
+        {styles.tooltip(
+          <section
+            ref={ref}
+            aria-labelledby={label ? id : undefined}
+            {...styles('sidebar.group', 'ui-sidebar-group', className, unstyled)}
+            {...props}
+          >
+            {label && (
+              <h2
+                id={id}
+                {...styles('sidebar.group-label', 'ui-sidebar-group-label', undefined, unstyled)}
+              >
+                {label}
+              </h2>
+            )}
+            {children}
+          </section>,
+          unstyled,
+        )}
       </LayoutPresence>
     );
   },
@@ -500,13 +525,14 @@ export const SidebarMenu = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   const scope = useLayoutPresence(children, presence, ref);
 
-  return (
+  return styles.tooltip(
     <ul
       ref={scope.ref}
       children={scope.children}
       {...styles('sidebar.menu', 'ui-sidebar-menu', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarMenu.displayName = 'SidebarMenu';
@@ -516,12 +542,13 @@ export const SidebarMenuItem = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <li
       ref={ref}
       {...styles('sidebar.menu-item', 'ui-sidebar-menu-item', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarMenuItem.displayName = 'SidebarMenuItem';
@@ -558,7 +585,7 @@ export const SidebarItem = /* @__PURE__ */ React.forwardRef<HTMLButtonElement, S
     const Element = asChild ? Slot.Root : 'button';
     const accessibleLabel = label ?? (typeof children === 'string' ? children : undefined);
     const fallbackIcon = !icon && accessibleLabel?.slice(0, 1).toLocaleUpperCase();
-    return (
+    return styles.tooltip(
       <Element
         ref={ref}
         type={asChild ? undefined : 'button'}
@@ -611,7 +638,8 @@ export const SidebarItem = /* @__PURE__ */ React.forwardRef<HTMLButtonElement, S
             </span>
           </>
         )}
-      </Element>
+      </Element>,
+      unstyled,
     );
   },
 );
@@ -623,12 +651,13 @@ export const SidebarGroupLabel = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <h2
       ref={ref}
       {...styles('sidebar.group-label', 'ui-sidebar-group-label', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarGroupLabel.displayName = 'SidebarGroupLabel';
@@ -638,12 +667,13 @@ export const SidebarGroupContent = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <div
       ref={ref}
       {...styles('sidebar.group-content', 'ui-sidebar-group-content', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarGroupContent.displayName = 'SidebarGroupContent';
@@ -653,7 +683,7 @@ export const SidebarGroupAction = /* @__PURE__ */ React.forwardRef<
 >(({ asChild, className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <Button
       ref={ref}
       asChild={asChild}
@@ -661,7 +691,8 @@ export const SidebarGroupAction = /* @__PURE__ */ React.forwardRef<
       variant="ghost"
       {...styles('sidebar.group-action', 'ui-sidebar-group-action', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarGroupAction.displayName = 'SidebarGroupAction';
@@ -672,7 +703,7 @@ export const SidebarMenuAction = /* @__PURE__ */ React.forwardRef<
 >(({ asChild, showOnHover = false, className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <Button
       ref={ref}
       asChild={asChild}
@@ -681,7 +712,8 @@ export const SidebarMenuAction = /* @__PURE__ */ React.forwardRef<
       data-hover-only={showOnHover || undefined}
       {...styles('sidebar.menu-action', 'ui-sidebar-menu-action', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarMenuAction.displayName = 'SidebarMenuAction';
@@ -691,12 +723,13 @@ export const SidebarMenuBadge = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <span
       ref={ref}
       {...styles('sidebar.menu-badge', 'ui-sidebar-menu-badge', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarMenuBadge.displayName = 'SidebarMenuBadge';
@@ -706,12 +739,13 @@ export const SidebarMenuSub = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <ul
       ref={ref}
       {...styles('sidebar.menu-sub', 'ui-sidebar-menu-sub', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarMenuSub.displayName = 'SidebarMenuSub';
@@ -722,12 +756,12 @@ export const SidebarMenuSubButton = /* @__PURE__ */ React.forwardRef<
 >(({ className, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <SidebarItem
       ref={ref}
       {...props}
       {...styles('sidebar.sub-button', 'ui-sidebar-sub-button', className, props.unstyled)}
-    />
+    />,
   );
 });
 SidebarMenuSubButton.displayName = 'SidebarMenuSubButton';
@@ -739,7 +773,7 @@ export const SidebarInput = /* @__PURE__ */ React.forwardRef<
   const sidebar = React.useContext(SidebarContext);
   const compact = !!sidebar?.collapsed && !sidebar.isMobile && sidebar.collapsible === 'icon';
 
-  return (
+  return styles.tooltip(
     <Input
       ref={ref}
       {...styles('sidebar.input', 'ui-sidebar-input', className, unstyled)}
@@ -747,7 +781,8 @@ export const SidebarInput = /* @__PURE__ */ React.forwardRef<
       aria-hidden={compact || undefined}
       unstyled={unstyled}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarInput.displayName = 'SidebarInput';
@@ -757,12 +792,13 @@ export const SidebarSeparator = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <hr
       ref={ref}
       {...styles('sidebar.separator', 'ui-sidebar-separator', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarSeparator.displayName = 'SidebarSeparator';
@@ -773,7 +809,7 @@ export const SidebarRail = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   const { t } = useTranslation();
   const { toggle, collapsed, contentId, collapsible, isMobile } = useSidebar();
-  return (
+  return styles.tooltip(
     <button
       ref={ref}
       type="button"
@@ -788,7 +824,8 @@ export const SidebarRail = /* @__PURE__ */ React.forwardRef<
         onClick?.(event);
         if (!event.defaultPrevented) toggle();
       }}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarRail.displayName = 'SidebarRail';
@@ -800,13 +837,14 @@ export const SidebarInset = /* @__PURE__ */ React.forwardRef<
   const scope = useLayoutPresence(children, presence, ref, asChild);
 
   const Element = asChild ? Slot.Root : 'main';
-  return (
+  return styles.tooltip(
     <Element
       ref={scope.ref}
       children={scope.children}
       {...styles('sidebar.inset', 'ui-sidebar-inset', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SidebarInset.displayName = 'SidebarInset';
@@ -846,40 +884,43 @@ export const AppShell = /* @__PURE__ */ React.forwardRef<HTMLDivElement, AppShel
     const skipLinkLabel = skipLinkLabelProp ?? t('navigation.skip');
     return (
       <StyleProvider unstyled={unstyled}>
-        <div
-          ref={ref}
-          {...styles('app-shell.root', 'ui-app-shell', className, unstyled)}
-          {...props}
-        >
-          <a
-            href={`#${mainId}`}
-            {...styles('app-shell.skip-link', 'ui-skip-link', undefined, unstyled)}
+        {styles.tooltip(
+          <div
+            ref={ref}
+            {...styles('app-shell.root', 'ui-app-shell', className, unstyled)}
+            {...props}
           >
-            {skipLinkLabel}
-          </a>
-          {sidebar}
-          <div {...styles('app-shell.body', 'ui-app-shell-body', undefined, unstyled)}>
-            {header && (
-              <header {...styles('app-shell.header', 'ui-app-shell-header', undefined, unstyled)}>
-                {header}
-              </header>
-            )}
-            <main
-              ref={scope.ref}
-              id={mainId}
-              tabIndex={-1}
-              {...styles('app-shell.main', 'ui-app-shell-main', undefined, unstyled)}
+            <a
+              href={`#${mainId}`}
+              {...styles('app-shell.skip-link', 'ui-skip-link', undefined, unstyled)}
             >
-              {scope.children}
-            </main>
-            {footer && (
-              <footer {...styles('app-shell.footer', 'ui-app-shell-footer', undefined, unstyled)}>
-                {footer}
-              </footer>
-            )}
-            {bottomNavigation}
-          </div>
-        </div>
+              {skipLinkLabel}
+            </a>
+            {sidebar}
+            <div {...styles('app-shell.body', 'ui-app-shell-body', undefined, unstyled)}>
+              {header && (
+                <header {...styles('app-shell.header', 'ui-app-shell-header', undefined, unstyled)}>
+                  {header}
+                </header>
+              )}
+              <main
+                ref={scope.ref}
+                id={mainId}
+                tabIndex={-1}
+                {...styles('app-shell.main', 'ui-app-shell-main', undefined, unstyled)}
+              >
+                {scope.children}
+              </main>
+              {footer && (
+                <footer {...styles('app-shell.footer', 'ui-app-shell-footer', undefined, unstyled)}>
+                  {footer}
+                </footer>
+              )}
+              {bottomNavigation}
+            </div>
+          </div>,
+          unstyled,
+        )}
       </StyleProvider>
     );
   },
@@ -932,119 +973,122 @@ export const NavigationRail = /* @__PURE__ */ React.forwardRef<HTMLElement, Navi
     useSelectionIndicator(list, '[aria-current="page"]', !(unstyled ?? styles.unstyled));
     return (
       <TooltipProvider delayDuration={300}>
-        <nav
-          ref={ref}
-          dir={direction}
-          aria-label={t('navigation.primary')}
-          data-side={side}
-          data-variant={variant}
-          data-hide-on-mobile={hideOnMobile}
-          {...styles('navigation-rail.root', 'ui-navigation-rail', className, unstyled)}
-          style={{ ...(width !== undefined ? { width } : {}), ...style }}
-          {...props}
-        >
-          {header && (
-            <div
-              {...styles(
-                'navigation-rail.header',
-                'ui-navigation-rail-header',
-                undefined,
-                unstyled,
-              )}
-            >
-              {header}
-            </div>
-          )}
-          <div
-            ref={list}
-            {...styles('navigation-rail.items', 'ui-navigation-rail-items', undefined, unstyled)}
+        {styles.tooltip(
+          <nav
+            ref={ref}
+            dir={direction}
+            aria-label={t('navigation.primary')}
+            data-side={side}
+            data-variant={variant}
+            data-hide-on-mobile={hideOnMobile}
+            {...styles('navigation-rail.root', 'ui-navigation-rail', className, unstyled)}
+            style={{ ...(width !== undefined ? { width } : {}), ...style }}
+            {...props}
           >
-            {items.map((item) => {
-              const Element = item.href ? 'a' : 'button';
-              return (
-                <Tooltip key={item.value}>
-                  <TooltipTrigger asChild>
-                    <Element
-                      type={item.href ? undefined : 'button'}
-                      href={item.disabled ? undefined : item.href}
-                      disabled={item.href ? undefined : item.disabled}
-                      tabIndex={item.disabled ? -1 : undefined}
-                      aria-disabled={item.disabled || undefined}
-                      aria-label={item.label}
-                      aria-current={current === item.value ? 'page' : undefined}
-                      {...styles(
-                        'navigation-rail.item',
-                        'ui-navigation-rail-item',
-                        undefined,
-                        unstyled,
-                      )}
-                      onClick={(event) => {
-                        if (item.disabled) {
-                          event.preventDefault();
-                          return;
-                        }
-                        if (value === undefined) setLocal(item.value);
-                        onValueChange?.(item.value);
-                      }}
-                    >
-                      <span
+            {header && (
+              <div
+                {...styles(
+                  'navigation-rail.header',
+                  'ui-navigation-rail-header',
+                  undefined,
+                  unstyled,
+                )}
+              >
+                {header}
+              </div>
+            )}
+            <div
+              ref={list}
+              {...styles('navigation-rail.items', 'ui-navigation-rail-items', undefined, unstyled)}
+            >
+              {items.map((item) => {
+                const Element = item.href ? 'a' : 'button';
+                return (
+                  <Tooltip key={item.value}>
+                    <TooltipTrigger asChild>
+                      <Element
+                        type={item.href ? undefined : 'button'}
+                        href={item.disabled ? undefined : item.href}
+                        disabled={item.href ? undefined : item.disabled}
+                        tabIndex={item.disabled ? -1 : undefined}
+                        aria-disabled={item.disabled || undefined}
+                        aria-label={item.label}
+                        aria-current={current === item.value ? 'page' : undefined}
                         {...styles(
-                          'navigation-rail.icon',
-                          'ui-navigation-rail-icon',
+                          'navigation-rail.item',
+                          'ui-navigation-rail-item',
                           undefined,
                           unstyled,
                         )}
-                        aria-hidden="true"
+                        onClick={(event) => {
+                          if (item.disabled) {
+                            event.preventDefault();
+                            return;
+                          }
+                          if (value === undefined) setLocal(item.value);
+                          onValueChange?.(item.value);
+                        }}
                       >
-                        {item.renderIcon?.(current === item.value) ??
-                          item.icon ??
-                          item.label.slice(0, 1)}
-                      </span>
-                      {item.badge != null && (
                         <span
                           {...styles(
-                            'navigation-rail.badge',
-                            'ui-navigation-rail-badge',
+                            'navigation-rail.icon',
+                            'ui-navigation-rail-icon',
                             undefined,
                             unstyled,
                           )}
+                          aria-hidden="true"
                         >
-                          {item.badge}
+                          {item.renderIcon?.(current === item.value) ??
+                            item.icon ??
+                            item.label.slice(0, 1)}
                         </span>
-                      )}
-                    </Element>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side={(side === 'start') === (direction === 'ltr') ? 'right' : 'left'}
-                  >
-                    {item.label}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-            <span
-              aria-hidden="true"
-              {...styles(
-                'navigation-rail.indicator',
-                'ui-selection-indicator',
-                undefined,
-                unstyled,
-              )}
-            />
-          </div>
-          {footer && (
-            <div
-              {...styles(
-                'navigation-rail.footer',
-                'ui-navigation-rail-footer',
-                undefined,
-                unstyled,
-              )}
-            >
-              {footer}
+                        {item.badge != null && (
+                          <span
+                            {...styles(
+                              'navigation-rail.badge',
+                              'ui-navigation-rail-badge',
+                              undefined,
+                              unstyled,
+                            )}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                      </Element>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side={(side === 'start') === (direction === 'ltr') ? 'right' : 'left'}
+                    >
+                      {item.label}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+              <span
+                aria-hidden="true"
+                {...styles(
+                  'navigation-rail.indicator',
+                  'ui-selection-indicator',
+                  undefined,
+                  unstyled,
+                )}
+              />
             </div>
-          )}
-        </nav>
+            {footer && (
+              <div
+                {...styles(
+                  'navigation-rail.footer',
+                  'ui-navigation-rail-footer',
+                  undefined,
+                  unstyled,
+                )}
+              >
+                {footer}
+              </div>
+            )}
+          </nav>,
+          unstyled,
+        )}
       </TooltipProvider>
     );
   },
@@ -1114,7 +1158,7 @@ export const BottomNavigation = /* @__PURE__ */ React.forwardRef<
     const [local, setLocal] = React.useState(defaultValue ?? items[0]?.value ?? '');
     const current = value ?? local;
     const { t } = useTranslation();
-    return (
+    return styles.tooltip(
       <nav
         ref={root}
         aria-label={t('navigation.primary')}
@@ -1190,7 +1234,8 @@ export const BottomNavigation = /* @__PURE__ */ React.forwardRef<
           aria-hidden="true"
           {...styles('bottom-navigation.indicator', 'ui-selection-indicator', undefined, unstyled)}
         />
-      </nav>
+      </nav>,
+      unstyled,
     );
   },
 );
@@ -1255,7 +1300,7 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
       0,
       steps.findIndex((step) => step.value === current),
     );
-    return (
+    return styles.tooltip(
       <nav
         ref={ref}
         dir={direction}
@@ -1380,7 +1425,8 @@ export const Stepper = /* @__PURE__ */ React.forwardRef<HTMLElement, StepperProp
             {renderContent(steps[active], active)}
           </div>
         )}
-      </nav>
+      </nav>,
+      unstyled,
     );
   },
 );
@@ -1416,7 +1462,7 @@ export const SegmentedControl = /* @__PURE__ */ React.forwardRef<
       '[role="radio"][data-state="checked"]',
       animated && !(unstyled ?? styles.unstyled),
     );
-    return (
+    return styles.tooltip(
       <RadioGroup.Root
         ref={root}
         dir={direction}
@@ -1453,7 +1499,8 @@ export const SegmentedControl = /* @__PURE__ */ React.forwardRef<
           aria-hidden="true"
           {...styles('segmented-control.indicator', 'ui-selection-indicator', undefined, unstyled)}
         />
-      </RadioGroup.Root>
+      </RadioGroup.Root>,
+      unstyled,
     );
   },
 );
@@ -1625,7 +1672,7 @@ export const TreeView = /* @__PURE__ */ React.forwardRef<HTMLUListElement, TreeV
           </li>
         );
       });
-    return (
+    return styles.tooltip(
       <ul
         ref={ref}
         role="tree"
@@ -1699,7 +1746,8 @@ export const TreeView = /* @__PURE__ */ React.forwardRef<HTMLUListElement, TreeV
         }}
       >
         {renderNodes(nodes, 1)}
-      </ul>
+      </ul>,
+      unstyled,
     );
   },
 );

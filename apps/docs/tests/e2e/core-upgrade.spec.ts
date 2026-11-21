@@ -62,7 +62,7 @@ async function setOverride(page: Page, editor: Locator, token: string, value: st
   const advanced = editor.getByRole('button', { name: 'Advanced', exact: true });
   if ((await advanced.getAttribute('aria-expanded')) !== 'true') await advanced.click();
   await editor.getByRole('combobox', { name: 'Token', exact: true }).click();
-  await page.getByRole('combobox', { name: 'Find a token...', exact: true }).fill(token);
+  await page.getByPlaceholder('Find a token...', { exact: true }).fill(token);
   await page.getByRole('option', { name: token, exact: true }).click();
   await editor.getByRole('textbox', { name: 'CSS value', exact: true }).fill(value);
   await editor.getByRole('button', { name: 'Apply', exact: true }).click();
@@ -231,7 +231,7 @@ async function openPreviewPanel(
 }
 
 for (const mode of ['light', 'dark'] as const) {
-  test(`toast uses its surface and an accessible close button in ${mode} mode`, async ({
+  test(`toast uses its inverted surface and an accessible close button in ${mode} mode`, async ({
     page,
   }) => {
     await initialize(page, mode);
@@ -242,11 +242,11 @@ for (const mode of ['light', 'dark'] as const) {
     await expect(toast).toBeVisible();
     await toast.hover();
     await expect(toast.getByRole('button', { name: 'Close', exact: true })).toBeVisible();
-    await expect(toast).toHaveAttribute('data-invert', 'false');
+    await expect(toast).toHaveAttribute('data-invert', 'true');
     const colors = await resolvedColors(toast);
     expect(colors.background[3]).toBe(255);
     expect(contrast(colors.background, colors.foreground)).toBeGreaterThanOrEqual(4.5);
-    if (mode === 'light') expect(luminance(colors.background)).toBeGreaterThan(0.7);
+    if (mode === 'dark') expect(luminance(colors.background)).toBeGreaterThan(0.7);
     else expect(luminance(colors.background)).toBeLessThan(0.1);
     const description = await resolvedColors(toast.locator('[data-description]'));
     expect(contrast(colors.background, description.foreground)).toBeGreaterThanOrEqual(4.5);

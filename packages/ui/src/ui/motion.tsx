@@ -55,7 +55,7 @@ export const Motion = React.forwardRef<HTMLDivElement, MotionProps>(
     const styles = useStyles();
     const { enabled } = useMotionSettings();
     const variants = motionPresets[preset];
-    return (
+    return styles.tooltip(
       <m.div
         ref={ref}
         {...styles('motion.root', '', className, unstyled)}
@@ -64,7 +64,8 @@ export const Motion = React.forwardRef<HTMLDivElement, MotionProps>(
         exit={enabled ? (exit ?? variants.exit) : undefined}
         transition={enabled ? transition : { duration: 0 }}
         {...props}
-      />
+      />,
+      unstyled,
     );
   },
 );

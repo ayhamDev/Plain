@@ -35,6 +35,60 @@ focus outline remains visible and uses `input.focus` or `select.focus`; error
 styling and explicitly chosen contrast variants remain available. Filled, ghost
 and theme-borderless fields do not gain a border when focused.
 
+## Tooltips on components
+
+Add `tooltip` to a rendered component or compound trigger for the same P.UI
+tooltip used by the composable API. No extra provider is required.
+
+```tsx
+import { Button, Badge, Input, PlainProvider } from '@plain/ui';
+
+<PlainProvider tooltip={{ delayDuration: 350, disableHoverableContent: false }}>
+  <Button size="icon" aria-label="Save project" tooltip="Save project">
+    <SaveIcon aria-hidden="true" />
+  </Button>
+  <Badge tooltip={{ content: 'Only invited team members can open this project', side: 'right' }}>
+    Private
+  </Badge>
+  <Input aria-label="Project name" tooltip="Shown in your workspace" />
+  <Button disabled tooltip="Choose a file before uploading">
+    Upload
+  </Button>
+</PlainProvider>;
+```
+
+Use a string or React node, or a `TooltipOptions` object with `content`, `side`,
+`align`, offsets, collision settings, `delayDuration`, `disableHoverableContent`,
+`open`, `defaultOpen`, `onOpenChange`, `className`, `style`, and `unstyled`.
+Use `false`, `null`, an empty string, or `{ content, disabled: true }` to disable
+the hint. `PlainProvider.tooltip` sets inherited defaults; `TooltipProvider`
+also coordinates the skip-delay period between neighboring triggers. Existing
+`Tooltip`, `TooltipTrigger` and `TooltipContent` composition remains available.
+
+Hints open on pointer hover or keyboard focus, remain hoverable, and dismiss with
+Escape. Existing names and descriptions are retained. Explicitly label icon
+buttons with `aria-label`; plain tooltip text supplies a fallback for unnamed
+icons, and `label` supplies that fallback when the content is rich. Disabled
+controls retain their native disabled state and gain a focusable explanation
+wrapper. Plain noninteractive targets gain a keyboard tab stop while enabled.
+Use visible text for instructions or information that must be available on touch
+devices; tooltips do not open from touch taps. Tooltip content should be
+noninteractive; use a Popover for actions and links.
+
+The prop supports controls, typography, layout and collection surfaces, and
+rendered compound parts. On logical providers/roots without an element, place it
+on the trigger, such as `DialogTrigger`, `SelectTrigger` or `TabsTrigger`.
+For chart families whose `tooltip` already configures plotted values, that API
+is preserved; attach a contextual hint to `Chart` or a surrounding `Box`.
+Structural chart axes, `SelectValue`, and `Toaster` are not tooltip targets.
+
+The optional tooltip engine loads separately. Loading it preserves the existing
+control, native refs, handlers, values and form attributes. If the optional module
+fails to load, the control remains usable. Components without a
+configured tooltip keep their usual markup. Tooltip content follows the nearest
+theme portal and uses the `tooltip.content`, `tooltip.arrow` and
+`tooltip.disabled-trigger` styling slots plus the existing tooltip tokens.
+
 ## Global localization
 
 Configure language once on `PlainProvider`. All built-in text uses the same

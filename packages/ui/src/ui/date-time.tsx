@@ -494,6 +494,7 @@ function TemporalInput({
     onPaste,
     onDrop,
     'aria-describedby': describedBy,
+    tooltip,
     ...props
   } = allProps;
   const styles = useStyles();
@@ -732,303 +733,316 @@ function TemporalInput({
           : {})}
       >
         <FieldAnchor {...(compact ? {} : { asChild: true })}>
-          <div
-            ref={fieldRef}
-            {...(kind === 'time'
-              ? styles('time-picker.root', 'ui-temporal', undefined, unstyled)
-              : styles('date-time-picker.root', 'ui-temporal', undefined, unstyled))}
-            dir={direction}
-            data-disabled={disabled ? '' : undefined}
-          >
+          {styles.tooltip(
             <div
-              {...styles('temporal.field', 'ui-temporal-field', undefined, unstyled)}
-              data-picker-only={pickerOnly || undefined}
+              tabIndex={tooltip === undefined ? undefined : disabled ? 0 : -1}
+              ref={fieldRef}
+              {...(kind === 'time'
+                ? styles('time-picker.root', 'ui-temporal', undefined, unstyled)
+                : styles('date-time-picker.root', 'ui-temporal', undefined, unstyled))}
+              dir={direction}
+              data-disabled={disabled ? '' : undefined}
             >
-              <input
-                {...styles('temporal.input', 'ui-temporal-input', className, unstyled)}
-                {...props}
-                ref={inputRef}
-                type={kind}
-                data-custom-picker=""
-                data-calendar={kind === 'datetime-local' && showCalendar ? '' : undefined}
-                value={current ?? ''}
-                min={wallValue(min, kind)}
-                max={wallValue(max, kind)}
-                step={
-                  props.step ??
-                  (current?.includes('.')
-                    ? 0.001
-                    : current && current.length > (kind === 'time' ? 5 : 16)
-                      ? 1
-                      : 60)
-                }
-                required={props.required ?? props['aria-required'] === true}
-                disabled={disabled}
-                readOnly={readOnly}
-                inputMode={pickerOnly ? 'none' : props.inputMode}
-                aria-label={
-                  props['aria-label'] ??
-                  (props['aria-labelledby']
-                    ? undefined
-                    : language.t(kind === 'time' ? 'picker.time' : 'picker.dateTime'))
-                }
-                aria-haspopup={props['aria-haspopup'] ?? (pickerOnly ? 'dialog' : undefined)}
-                aria-controls={pickerOnly && open ? panelId : props['aria-controls']}
-                aria-readonly={pickerOnly || readOnly ? true : props['aria-readonly']}
-                title={props.title ?? (pickerOnly ? formatted : undefined)}
-                lang={props.lang ?? locale}
-                dir={direction}
-                aria-invalid={props['aria-invalid'] || invalid || undefined}
-                aria-describedby={
-                  [describedBy, current ? formatId : undefined].filter(Boolean).join(' ') ||
-                  undefined
-                }
-                onChange={(event) => {
-                  onChange?.(event);
-                  if (!event.defaultPrevented && !disabled && !readOnly)
-                    change(wallValue(event.currentTarget.value, kind));
-                }}
-                onPointerDown={(event) => {
-                  onPointerDown?.(event);
-                  // Keep native constraint validation, but suppress native segmented
-                  // editing and the software keyboard in the default picker mode.
-                  if (pickerOnly && !event.defaultPrevented && !disabled && !readOnly)
-                    event.preventDefault();
-                }}
-                onClick={(event) => {
-                  onClick?.(event);
-                  if (pickerOnly && !event.defaultPrevented && !disabled && !readOnly) {
-                    event.preventDefault();
-                    setPickerOpen(true);
-                  }
-                }}
-                onBeforeInput={(event) => {
-                  onBeforeInput?.(event);
-                  if (pickerOnly) event.preventDefault();
-                }}
-                onPaste={(event) => {
-                  onPaste?.(event);
-                  if (pickerOnly) event.preventDefault();
-                }}
-                onDrop={(event) => {
-                  onDrop?.(event);
-                  if (pickerOnly) event.preventDefault();
-                }}
-                onKeyDown={(event) => {
-                  onKeyDown?.(event);
-                  if (event.defaultPrevented || disabled || readOnly) return;
-                  if (
-                    clearable &&
-                    (event.ctrlKey || event.metaKey) &&
-                    ['Backspace', 'Delete'].includes(event.key)
-                  ) {
-                    event.preventDefault();
-                    clear();
-                  }
-                  if (
-                    canPick &&
-                    ((event.altKey && event.key === 'ArrowDown') ||
-                      (pickerOnly &&
-                        ['Enter', ' ', 'ArrowDown', 'ArrowUp', 'F4'].includes(event.key)))
-                  ) {
-                    event.preventDefault();
-                    setPickerOpen(true);
-                    return;
-                  }
-                  if (
-                    pickerOnly &&
-                    !event.ctrlKey &&
-                    !event.metaKey &&
-                    (event.key.length === 1 ||
-                      [
-                        'Backspace',
-                        'Delete',
-                        'ArrowLeft',
-                        'ArrowRight',
-                        'Home',
-                        'End',
-                        'PageUp',
-                        'PageDown',
-                      ].includes(event.key))
-                  )
-                    event.preventDefault();
-                }}
-              />
-              {pickerOnly && (
-                <span
-                  {...styles('temporal.display', 'ui-temporal-display', undefined, unstyled)}
-                  data-placeholder={!current || undefined}
-                  aria-hidden="true"
-                >
-                  {formatted || props.placeholder || (kind === 'time' ? timeLabel : calendarLabel)}
-                </span>
-              )}
-            </div>
-            <span id={formatId} style={visuallyHidden}>
-              {formatted}
-            </span>
-            {canPick && (
-              <>
-                <Trigger asChild>
-                  <button
-                    type="button"
-                    {...styles(
-                      'temporal.calendar-trigger',
-                      'ui-temporal-action',
-                      undefined,
-                      unstyled,
-                    )}
-                    disabled={disabled || readOnly}
-                    aria-label={kind === 'time' ? timeLabel : calendarLabel}
-                    title={kind === 'time' ? timeLabel : calendarLabel}
-                  >
-                    {kind === 'time' ? (
-                      <Clock3 size={16} aria-hidden="true" />
-                    ) : (
-                      <CalendarDays size={16} aria-hidden="true" />
-                    )}
-                  </button>
-                </Trigger>
-                {compact ? (
-                  <PickerMobileContent
-                    temporal
-                    data-phase={kind === 'time' ? 'time' : mobileStep}
-                    id={panelId}
-                    ref={mobilePanelRef}
-                    className="ui-temporal-sheet"
-                    dir={direction}
-                    unstyled={unstyled}
-                    returnFocusRef={inputRef}
-                    title={
-                      kind === 'time' || mobileStep === 'time'
-                        ? timeLabel
-                        : language.t('picker.chooseDate')
+              <div
+                {...styles('temporal.field', 'ui-temporal-field', undefined, unstyled)}
+                data-picker-only={pickerOnly || undefined}
+              >
+                {styles.tooltip(
+                  <input
+                    {...styles('temporal.input', 'ui-temporal-input', className, unstyled)}
+                    {...props}
+                    ref={inputRef}
+                    type={kind}
+                    data-custom-picker=""
+                    data-calendar={kind === 'datetime-local' && showCalendar ? '' : undefined}
+                    value={current ?? ''}
+                    min={wallValue(min, kind)}
+                    max={wallValue(max, kind)}
+                    step={
+                      props.step ??
+                      (current?.includes('.')
+                        ? 0.001
+                        : current && current.length > (kind === 'time' ? 5 : 16)
+                          ? 1
+                          : 60)
                     }
-                    description={
-                      kind === 'time' || mobileStep === 'time'
-                        ? wheel
-                          ? language.t('picker.wheelHint')
-                          : undefined
-                        : language.t('picker.dateTimeHint')
-                    }
-                    summary={
-                      kind === 'datetime-local' && selected
-                        ? dateFormatter(locale, {
-                            calendar: 'gregory',
-                            weekday: 'short',
-                            month: 'long',
-                            day: 'numeric',
-                            year: 'numeric',
-                          }).format(selected)
-                        : undefined
-                    }
-                    steps={
-                      kind === 'datetime-local' && (
-                        <ol
-                          {...styles('picker.steps', 'ui-picker-steps', undefined, unstyled)}
-                          aria-label={language.t('picker.step', {
-                            current: numberFormatter(locale).format(mobileStep === 'date' ? 1 : 2),
-                            total: numberFormatter(locale).format(2),
-                          })}
-                        >
-                          <li aria-current={mobileStep === 'date' ? 'step' : undefined}>
-                            <span>{numberFormatter(locale).format(1)}</span>
-                            {language.t('picker.date')}
-                          </li>
-                          <li aria-current={mobileStep === 'time' ? 'step' : undefined}>
-                            <span>{numberFormatter(locale).format(2)}</span>
-                            {language.t('picker.time')}
-                          </li>
-                        </ol>
-                      )
-                    }
-                    footer={
-                      kind === 'time' ? (
-                        <Button onClick={() => setPickerOpen(false, true)}>
-                          {language.t('common.done')}
-                        </Button>
-                      ) : mobileStep === 'date' ? (
-                        <>
-                          <Button variant="ghost" onClick={() => setPickerOpen(false)}>
-                            {language.t('common.cancel')}
-                          </Button>
-                          <Button
-                            disabled={!selected || dateMatchModifiers(selected, unavailable)}
-                            onClick={() => setMobileStep('time')}
-                          >
-                            {language.t('common.next')}
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button
-                            variant="ghost"
-                            onClick={() => {
-                              timeActions.current?.commit();
-                              setMobileStep('date');
-                            }}
-                          >
-                            {language.t('common.back')}
-                          </Button>
-                          <Button disabled={!validDraft(mobileDraft)} onClick={finishMobile}>
-                            {language.t('common.done')}
-                          </Button>
-                        </>
-                      )
-                    }
-                  >
-                    {pickerContent}
-                  </PickerMobileContent>
-                ) : (
-                  <PickerPopoverContent
-                    anchorRef={fieldRef}
-                    align="start"
-                    {...popoverProps}
-                    {...styles(
-                      'temporal.content',
-                      kind === 'time'
-                        ? 'ui-temporal-content ui-time-content'
-                        : 'ui-temporal-content',
-                      popoverProps?.className,
-                      unstyled,
-                    )}
-                    id={panelId}
-                    dir={direction}
+                    required={props.required ?? props['aria-required'] === true}
+                    disabled={disabled}
+                    readOnly={readOnly}
+                    inputMode={pickerOnly ? 'none' : props.inputMode}
                     aria-label={
-                      popoverProps?.['aria-label'] ?? (kind === 'time' ? timeLabel : calendarLabel)
+                      props['aria-label'] ??
+                      (props['aria-labelledby']
+                        ? undefined
+                        : language.t(kind === 'time' ? 'picker.time' : 'picker.dateTime'))
                     }
-                    onCloseAutoFocus={(event) => {
-                      popoverProps?.onCloseAutoFocus?.(event);
-                      if (!event.defaultPrevented) restoreFocus(event);
+                    aria-haspopup={props['aria-haspopup'] ?? (pickerOnly ? 'dialog' : undefined)}
+                    aria-controls={pickerOnly && open ? panelId : props['aria-controls']}
+                    aria-readonly={pickerOnly || readOnly ? true : props['aria-readonly']}
+                    title={props.title ?? (pickerOnly ? formatted : undefined)}
+                    lang={props.lang ?? locale}
+                    dir={direction}
+                    aria-invalid={props['aria-invalid'] || invalid || undefined}
+                    aria-describedby={
+                      [describedBy, current ? formatId : undefined].filter(Boolean).join(' ') ||
+                      undefined
+                    }
+                    onChange={(event) => {
+                      onChange?.(event);
+                      if (!event.defaultPrevented && !disabled && !readOnly)
+                        change(wallValue(event.currentTarget.value, kind));
                     }}
-                    onInteractOutside={(event) => {
-                      popoverProps?.onInteractOutside?.(event);
+                    onPointerDown={(event) => {
+                      onPointerDown?.(event);
+                      // Keep native constraint validation, but suppress native segmented
+                      // editing and the software keyboard in the default picker mode.
+                      if (pickerOnly && !event.defaultPrevented && !disabled && !readOnly)
+                        event.preventDefault();
+                    }}
+                    onClick={(event) => {
+                      onClick?.(event);
+                      if (pickerOnly && !event.defaultPrevented && !disabled && !readOnly) {
+                        event.preventDefault();
+                        setPickerOpen(true);
+                      }
+                    }}
+                    onBeforeInput={(event) => {
+                      onBeforeInput?.(event);
+                      if (pickerOnly) event.preventDefault();
+                    }}
+                    onPaste={(event) => {
+                      onPaste?.(event);
+                      if (pickerOnly) event.preventDefault();
+                    }}
+                    onDrop={(event) => {
+                      onDrop?.(event);
+                      if (pickerOnly) event.preventDefault();
+                    }}
+                    onKeyDown={(event) => {
+                      onKeyDown?.(event);
+                      if (event.defaultPrevented || disabled || readOnly) return;
                       if (
-                        !event.defaultPrevented &&
-                        fieldRef.current?.contains(event.target as Node)
+                        clearable &&
+                        (event.ctrlKey || event.metaKey) &&
+                        ['Backspace', 'Delete'].includes(event.key)
+                      ) {
+                        event.preventDefault();
+                        clear();
+                      }
+                      if (
+                        canPick &&
+                        ((event.altKey && event.key === 'ArrowDown') ||
+                          (pickerOnly &&
+                            ['Enter', ' ', 'ArrowDown', 'ArrowUp', 'F4'].includes(event.key)))
+                      ) {
+                        event.preventDefault();
+                        setPickerOpen(true);
+                        return;
+                      }
+                      if (
+                        pickerOnly &&
+                        !event.ctrlKey &&
+                        !event.metaKey &&
+                        (event.key.length === 1 ||
+                          [
+                            'Backspace',
+                            'Delete',
+                            'ArrowLeft',
+                            'ArrowRight',
+                            'Home',
+                            'End',
+                            'PageUp',
+                            'PageDown',
+                          ].includes(event.key))
                       )
                         event.preventDefault();
                     }}
-                  >
-                    {pickerContent}
-                    {done}
-                  </PickerPopoverContent>
+                  />,
+                  unstyled,
                 )}
-              </>
-            )}
-            {clearable && current && (
-              <button
-                type="button"
-                {...styles('temporal.clear', 'ui-temporal-action', undefined, unstyled)}
-                disabled={disabled || readOnly}
-                onClick={clear}
-                aria-label={clearLabel}
-                title={clearLabel}
-              >
-                <X size={16} aria-hidden="true" />
-              </button>
-            )}
-          </div>
+                {pickerOnly && (
+                  <span
+                    {...styles('temporal.display', 'ui-temporal-display', undefined, unstyled)}
+                    data-placeholder={!current || undefined}
+                    aria-hidden="true"
+                  >
+                    {formatted ||
+                      props.placeholder ||
+                      (kind === 'time' ? timeLabel : calendarLabel)}
+                  </span>
+                )}
+              </div>
+              <span id={formatId} style={visuallyHidden}>
+                {formatted}
+              </span>
+              {canPick && (
+                <>
+                  <Trigger asChild>
+                    <button
+                      type="button"
+                      {...styles(
+                        'temporal.calendar-trigger',
+                        'ui-temporal-action',
+                        undefined,
+                        unstyled,
+                      )}
+                      disabled={disabled || readOnly}
+                      aria-label={kind === 'time' ? timeLabel : calendarLabel}
+                      title={kind === 'time' ? timeLabel : calendarLabel}
+                    >
+                      {kind === 'time' ? (
+                        <Clock3 size={16} aria-hidden="true" />
+                      ) : (
+                        <CalendarDays size={16} aria-hidden="true" />
+                      )}
+                    </button>
+                  </Trigger>
+                  {compact ? (
+                    <PickerMobileContent
+                      temporal
+                      data-phase={kind === 'time' ? 'time' : mobileStep}
+                      id={panelId}
+                      ref={mobilePanelRef}
+                      className="ui-temporal-sheet"
+                      dir={direction}
+                      unstyled={unstyled}
+                      returnFocusRef={inputRef}
+                      title={
+                        kind === 'time' || mobileStep === 'time'
+                          ? timeLabel
+                          : language.t('picker.chooseDate')
+                      }
+                      description={
+                        kind === 'time' || mobileStep === 'time'
+                          ? wheel
+                            ? language.t('picker.wheelHint')
+                            : undefined
+                          : language.t('picker.dateTimeHint')
+                      }
+                      summary={
+                        kind === 'datetime-local' && selected
+                          ? dateFormatter(locale, {
+                              calendar: 'gregory',
+                              weekday: 'short',
+                              month: 'long',
+                              day: 'numeric',
+                              year: 'numeric',
+                            }).format(selected)
+                          : undefined
+                      }
+                      steps={
+                        kind === 'datetime-local' && (
+                          <ol
+                            {...styles('picker.steps', 'ui-picker-steps', undefined, unstyled)}
+                            aria-label={language.t('picker.step', {
+                              current: numberFormatter(locale).format(
+                                mobileStep === 'date' ? 1 : 2,
+                              ),
+                              total: numberFormatter(locale).format(2),
+                            })}
+                          >
+                            <li aria-current={mobileStep === 'date' ? 'step' : undefined}>
+                              <span>{numberFormatter(locale).format(1)}</span>
+                              {language.t('picker.date')}
+                            </li>
+                            <li aria-current={mobileStep === 'time' ? 'step' : undefined}>
+                              <span>{numberFormatter(locale).format(2)}</span>
+                              {language.t('picker.time')}
+                            </li>
+                          </ol>
+                        )
+                      }
+                      footer={
+                        kind === 'time' ? (
+                          <Button onClick={() => setPickerOpen(false, true)}>
+                            {language.t('common.done')}
+                          </Button>
+                        ) : mobileStep === 'date' ? (
+                          <>
+                            <Button variant="ghost" onClick={() => setPickerOpen(false)}>
+                              {language.t('common.cancel')}
+                            </Button>
+                            <Button
+                              disabled={!selected || dateMatchModifiers(selected, unavailable)}
+                              onClick={() => setMobileStep('time')}
+                            >
+                              {language.t('common.next')}
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                timeActions.current?.commit();
+                                setMobileStep('date');
+                              }}
+                            >
+                              {language.t('common.back')}
+                            </Button>
+                            <Button disabled={!validDraft(mobileDraft)} onClick={finishMobile}>
+                              {language.t('common.done')}
+                            </Button>
+                          </>
+                        )
+                      }
+                    >
+                      {pickerContent}
+                    </PickerMobileContent>
+                  ) : (
+                    <PickerPopoverContent
+                      anchorRef={fieldRef}
+                      align="start"
+                      {...popoverProps}
+                      {...styles(
+                        'temporal.content',
+                        kind === 'time'
+                          ? 'ui-temporal-content ui-time-content'
+                          : 'ui-temporal-content',
+                        popoverProps?.className,
+                        unstyled,
+                      )}
+                      id={panelId}
+                      dir={direction}
+                      aria-label={
+                        popoverProps?.['aria-label'] ??
+                        (kind === 'time' ? timeLabel : calendarLabel)
+                      }
+                      onCloseAutoFocus={(event) => {
+                        popoverProps?.onCloseAutoFocus?.(event);
+                        if (!event.defaultPrevented) restoreFocus(event);
+                      }}
+                      onInteractOutside={(event) => {
+                        popoverProps?.onInteractOutside?.(event);
+                        if (
+                          !event.defaultPrevented &&
+                          fieldRef.current?.contains(event.target as Node)
+                        )
+                          event.preventDefault();
+                      }}
+                    >
+                      {pickerContent}
+                      {done}
+                    </PickerPopoverContent>
+                  )}
+                </>
+              )}
+              {clearable && current && (
+                <button
+                  type="button"
+                  {...styles('temporal.clear', 'ui-temporal-action', undefined, unstyled)}
+                  disabled={disabled || readOnly}
+                  onClick={clear}
+                  aria-label={clearLabel}
+                  title={clearLabel}
+                >
+                  <X size={16} aria-hidden="true" />
+                </button>
+              )}
+            </div>,
+            unstyled,
+            tooltip,
+          )}
         </FieldAnchor>
       </PickerRoot>
     </StyleProvider>
@@ -1119,19 +1133,22 @@ function WallRange({
           >
             {fromLabel}
           </label>
-          <Picker
-            {...props}
-            ref={inputRef}
-            id={baseId}
-            name={fromName ?? (name ? `${name}[from]` : undefined)}
-            dir={direction}
-            value={from}
-            min={wallValue(min, kind)}
-            max={ordered ? earlier(wallValue(max, kind), to) : wallValue(max, kind)}
-            aria-labelledby={[labelledBy, `${baseId}-from-label`].filter(Boolean).join(' ')}
-            aria-label={label ? `${label} ${fromLabel}` : undefined}
-            onValueChange={(next) => update('from', next)}
-          />
+          {styles.tooltip(
+            <Picker
+              {...props}
+              ref={inputRef}
+              id={baseId}
+              name={fromName ?? (name ? `${name}[from]` : undefined)}
+              dir={direction}
+              value={from}
+              min={wallValue(min, kind)}
+              max={ordered ? earlier(wallValue(max, kind), to) : wallValue(max, kind)}
+              aria-labelledby={[labelledBy, `${baseId}-from-label`].filter(Boolean).join(' ')}
+              aria-label={label ? `${label} ${fromLabel}` : undefined}
+              onValueChange={(next) => update('from', next)}
+            />,
+            unstyled,
+          )}
         </div>
         <div {...styles('temporal.range-part', 'ui-temporal-range-part', undefined, unstyled)}>
           <label
@@ -1141,18 +1158,21 @@ function WallRange({
           >
             {toLabel}
           </label>
-          <Picker
-            {...props}
-            id={`${baseId}-to`}
-            name={toName ?? (name ? `${name}[to]` : undefined)}
-            dir={direction}
-            value={to}
-            min={ordered ? later(wallValue(min, kind), from) : wallValue(min, kind)}
-            max={wallValue(max, kind)}
-            aria-labelledby={[labelledBy, `${baseId}-to-label`].filter(Boolean).join(' ')}
-            aria-label={label ? `${label} ${toLabel}` : undefined}
-            onValueChange={(next) => update('to', next)}
-          />
+          {styles.tooltip(
+            <Picker
+              {...props}
+              id={`${baseId}-to`}
+              name={toName ?? (name ? `${name}[to]` : undefined)}
+              dir={direction}
+              value={to}
+              min={ordered ? later(wallValue(min, kind), from) : wallValue(min, kind)}
+              max={wallValue(max, kind)}
+              aria-labelledby={[labelledBy, `${baseId}-to-label`].filter(Boolean).join(' ')}
+              aria-label={label ? `${label} ${toLabel}` : undefined}
+              onValueChange={(next) => update('to', next)}
+            />,
+            unstyled,
+          )}
         </div>
       </div>
     </StyleProvider>
@@ -1343,36 +1363,44 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
             : {})}
         >
           <Trigger asChild>
-            <button
-              {...styles('date-range-picker.trigger', 'ui-date-range-trigger', className, unstyled)}
-              {...props}
-              ref={buttonRef}
-              type="button"
-              disabled={disabled}
-              aria-readonly={readOnly || undefined}
-              aria-required={isRequired || undefined}
-              aria-invalid={props['aria-invalid'] || invalid || undefined}
-              aria-describedby={[props['aria-describedby'], valueId].filter(Boolean).join(' ')}
-              onKeyDown={(event) => {
-                onKeyDown?.(event);
-                if (event.defaultPrevented || disabled || readOnly) return;
-                if (clearable && ['Backspace', 'Delete'].includes(event.key)) {
-                  event.preventDefault();
-                  clear();
-                }
-                if (event.altKey && event.key === 'ArrowDown') {
-                  event.preventDefault();
-                  setPickerOpen(true);
-                }
-              }}
-            >
-              <CalendarDays size={16} aria-hidden="true" />
-              <span
-                {...styles('date-range-picker.value', 'ui-date-range-value', undefined, unstyled)}
+            {styles.tooltip(
+              <button
+                {...styles(
+                  'date-range-picker.trigger',
+                  'ui-date-range-trigger',
+                  className,
+                  unstyled,
+                )}
+                {...props}
+                ref={buttonRef}
+                type="button"
+                disabled={disabled}
+                aria-readonly={readOnly || undefined}
+                aria-required={isRequired || undefined}
+                aria-invalid={props['aria-invalid'] || invalid || undefined}
+                aria-describedby={[props['aria-describedby'], valueId].filter(Boolean).join(' ')}
+                onKeyDown={(event) => {
+                  onKeyDown?.(event);
+                  if (event.defaultPrevented || disabled || readOnly) return;
+                  if (clearable && ['Backspace', 'Delete'].includes(event.key)) {
+                    event.preventDefault();
+                    clear();
+                  }
+                  if (event.altKey && event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    setPickerOpen(true);
+                  }
+                }}
               >
-                {formatted}
-              </span>
-            </button>
+                <CalendarDays size={16} aria-hidden="true" />
+                <span
+                  {...styles('date-range-picker.value', 'ui-date-range-value', undefined, unstyled)}
+                >
+                  {formatted}
+                </span>
+              </button>,
+              unstyled,
+            )}
           </Trigger>
           <span id={valueId} style={visuallyHidden}>
             {formatted}

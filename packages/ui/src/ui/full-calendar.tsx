@@ -937,210 +937,218 @@ function CalendarComponent<T = Record<string, unknown>>(
   );
   return (
     <StyleProvider unstyled={unstyled}>
-      <div
-        ref={(element) => {
-          root.current = element;
-          if (typeof containerRef === 'function') containerRef(element);
-          else if (containerRef) containerRef.current = element;
-        }}
-        dir={direction}
-        {...styles('full-calendar.root', 'ui-full-calendar', className, unstyled)}
-        role="region"
-        aria-label={t('calendar.label')}
-        {...props}
-        data-view={activeView}
-        data-mobile={compact || undefined}
-        data-disabled={disabled || undefined}
-        style={style}
-      >
-        {toolbar === undefined ? (
-          <div {...styles('full-calendar.toolbar', 'ui-calendar-toolbar', undefined, unstyled)}>
-            <div
-              {...styles('full-calendar.navigation', 'ui-calendar-navigation', undefined, unstyled)}
-            >
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={disabled}
-                title={labels.previous ?? t('calendar.previous')}
-                aria-label={labels.previous ?? t('calendar.previous')}
-                onClick={api.prev}
+      {styles.tooltip(
+        <div
+          ref={(element) => {
+            root.current = element;
+            if (typeof containerRef === 'function') containerRef(element);
+            else if (containerRef) containerRef.current = element;
+          }}
+          dir={direction}
+          {...styles('full-calendar.root', 'ui-full-calendar', className, unstyled)}
+          role="region"
+          aria-label={t('calendar.label')}
+          {...props}
+          data-view={activeView}
+          data-mobile={compact || undefined}
+          data-disabled={disabled || undefined}
+          style={style}
+        >
+          {toolbar === undefined ? (
+            <div {...styles('full-calendar.toolbar', 'ui-calendar-toolbar', undefined, unstyled)}>
+              <div
+                {...styles(
+                  'full-calendar.navigation',
+                  'ui-calendar-navigation',
+                  undefined,
+                  unstyled,
+                )}
               >
-                {direction === 'rtl' ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={disabled}
-                title={labels.next ?? t('calendar.next')}
-                aria-label={labels.next ?? t('calendar.next')}
-                onClick={api.next}
-              >
-                {direction === 'rtl' ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-              </Button>
-              <Button variant="outline" size="sm" disabled={disabled} onClick={api.today}>
-                {labels.today ?? t('calendar.today')}
-              </Button>
-            </div>
-            <h2
-              {...styles('full-calendar.title', 'ui-calendar-title', undefined, unstyled)}
-              aria-live="polite"
-            >
-              {title}
-            </h2>
-            <div {...styles('full-calendar.tools', 'ui-calendar-tools', undefined, unstyled)}>
-              <Select
-                value={activeView}
-                disabled={disabled}
-                onValueChange={(value) => changeView(value as FullCalendarView)}
-              >
-                <SelectTrigger aria-label={t('calendar.view')}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {views.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {labels[value] ?? t(`calendar.${value}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {printable && (
                 <Button
                   variant="ghost"
                   size="icon"
                   disabled={disabled}
-                  title={labels.print ?? t('calendar.print')}
-                  aria-label={labels.print ?? t('calendar.print')}
-                  onClick={print}
+                  tooltip={labels.previous ?? t('calendar.previous')}
+                  aria-label={labels.previous ?? t('calendar.previous')}
+                  onClick={api.prev}
                 >
-                  <Printer size={17} aria-hidden="true" />
+                  {direction === 'rtl' ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
                 </Button>
-              )}
-              {toolbarActions}
-            </div>
-          </div>
-        ) : typeof toolbar === 'function' ? (
-          toolbar(api, context)
-        ) : (
-          toolbar
-        )}
-        {compact && (activeView === 'week' || activeView === 'agenda') && (
-          <div
-            {...styles('full-calendar.day-strip', 'ui-calendar-day-strip', undefined, unstyled)}
-            role="group"
-            aria-label={t('picker.chooseDate')}
-          >
-            {days.map((day) => (
-              <Button
-                key={day.toString()}
-                variant={day.toString() === chosen ? 'primary' : 'ghost'}
-                disabled={disabled}
-                aria-pressed={day.toString() === chosen}
-                onClick={() => setChosen(day.toString())}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={disabled}
+                  tooltip={labels.next ?? t('calendar.next')}
+                  aria-label={labels.next ?? t('calendar.next')}
+                  onClick={api.next}
+                >
+                  {direction === 'rtl' ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
+                </Button>
+                <Button variant="outline" size="sm" disabled={disabled} onClick={api.today}>
+                  {labels.today ?? t('calendar.today')}
+                </Button>
+              </div>
+              <h2
+                {...styles('full-calendar.title', 'ui-calendar-title', undefined, unstyled)}
+                aria-live="polite"
               >
-                <span>{dateLabel(day, locale, { weekday: 'narrow' })}</span>
-                <span>{dateLabel(day, locale, { day: 'numeric' })}</span>
-              </Button>
-            ))}
-          </div>
-        )}
-        {activeView === 'month'
-          ? monthGrid()
-          : activeView === 'agenda'
-            ? agenda(compact ? [Temporal.PlainDate.from(chosen)] : days)
-            : timeGrid()}
-        {activeView === 'month' && (compact || expandedDay) && (
-          <div
-            {...styles(
-              'full-calendar.selected-agenda',
-              'ui-calendar-selected-agenda',
-              undefined,
-              unstyled,
-            )}
-          >
-            {agenda([Temporal.PlainDate.from(expandedDay ?? chosen)])}
-          </div>
-        )}
-        {selectable && compact && (
-          <div
-            {...styles('full-calendar.mobile-add', 'ui-calendar-mobile-add', undefined, unstyled)}
-          >
-            <Button
-              variant="outline"
-              disabled={disabled}
-              onClick={() =>
-                onSlotSelect?.({
-                  ...dayRange(Temporal.PlainDate.from(chosen)),
-                  allDay: true,
-                  view: activeView,
-                })
-              }
-            >
-              <Plus size={16} />
-              {labels.addEvent ?? t('calendar.addEvent')}
-            </Button>
-          </div>
-        )}
-        {printSnapshot &&
-          typeof document !== 'undefined' &&
-          createPortal(
-            <div
-              {...printProps}
-              className={['ui-calendar-print', printProps?.className].filter(Boolean).join(' ')}
-              dir={direction}
-              aria-hidden="true"
-              style={{
-                ...tokensToStyle({ ...lightTokens, ...componentTokenAliases }),
-                ...printProps?.style,
-              }}
-            >
-              {renderPrint ? (
-                renderPrint(printSnapshot)
-              ) : (
-                <>
-                  {printHeader}
-                  <h1>{printSnapshot.title}</h1>
-                  <p>{printSnapshot.timeZone}</p>
-                  {printMode === 'calendar' && activeView === 'month' ? (
-                    monthGrid(true)
-                  ) : (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t('calendar.event')}</TableHead>
-                          <TableHead>{t('calendar.start')}</TableHead>
-                          <TableHead>{t('calendar.end')}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {printSnapshot.events.map((event) => {
-                          const span = eventSpan(event, timeZone);
-                          const format = span?.allDay
-                            ? { dateStyle: 'medium' as const }
-                            : { dateStyle: 'medium' as const, timeStyle: 'short' as const };
-                          return (
-                            <TableRow key={event.id}>
-                              <TableCell>{event.title}</TableCell>
-                              <TableCell>
-                                {span ? wallLabel(span.start, locale, format) : ''}
-                              </TableCell>
-                              <TableCell>
-                                {span ? wallLabel(span.end, locale, format) : ''}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  )}
-                  {printFooter}
-                </>
-              )}
-            </div>,
-            document.body,
+                {title}
+              </h2>
+              <div {...styles('full-calendar.tools', 'ui-calendar-tools', undefined, unstyled)}>
+                <Select
+                  value={activeView}
+                  disabled={disabled}
+                  onValueChange={(value) => changeView(value as FullCalendarView)}
+                >
+                  <SelectTrigger aria-label={t('calendar.view')}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {views.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {labels[value] ?? t(`calendar.${value}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {printable && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={disabled}
+                    tooltip={labels.print ?? t('calendar.print')}
+                    aria-label={labels.print ?? t('calendar.print')}
+                    onClick={print}
+                  >
+                    <Printer size={17} aria-hidden="true" />
+                  </Button>
+                )}
+                {toolbarActions}
+              </div>
+            </div>
+          ) : typeof toolbar === 'function' ? (
+            toolbar(api, context)
+          ) : (
+            toolbar
           )}
-      </div>
+          {compact && (activeView === 'week' || activeView === 'agenda') && (
+            <div
+              {...styles('full-calendar.day-strip', 'ui-calendar-day-strip', undefined, unstyled)}
+              role="group"
+              aria-label={t('picker.chooseDate')}
+            >
+              {days.map((day) => (
+                <Button
+                  key={day.toString()}
+                  variant={day.toString() === chosen ? 'primary' : 'ghost'}
+                  disabled={disabled}
+                  aria-pressed={day.toString() === chosen}
+                  onClick={() => setChosen(day.toString())}
+                >
+                  <span>{dateLabel(day, locale, { weekday: 'narrow' })}</span>
+                  <span>{dateLabel(day, locale, { day: 'numeric' })}</span>
+                </Button>
+              ))}
+            </div>
+          )}
+          {activeView === 'month'
+            ? monthGrid()
+            : activeView === 'agenda'
+              ? agenda(compact ? [Temporal.PlainDate.from(chosen)] : days)
+              : timeGrid()}
+          {activeView === 'month' && (compact || expandedDay) && (
+            <div
+              {...styles(
+                'full-calendar.selected-agenda',
+                'ui-calendar-selected-agenda',
+                undefined,
+                unstyled,
+              )}
+            >
+              {agenda([Temporal.PlainDate.from(expandedDay ?? chosen)])}
+            </div>
+          )}
+          {selectable && compact && (
+            <div
+              {...styles('full-calendar.mobile-add', 'ui-calendar-mobile-add', undefined, unstyled)}
+            >
+              <Button
+                variant="outline"
+                disabled={disabled}
+                onClick={() =>
+                  onSlotSelect?.({
+                    ...dayRange(Temporal.PlainDate.from(chosen)),
+                    allDay: true,
+                    view: activeView,
+                  })
+                }
+              >
+                <Plus size={16} />
+                {labels.addEvent ?? t('calendar.addEvent')}
+              </Button>
+            </div>
+          )}
+          {printSnapshot &&
+            typeof document !== 'undefined' &&
+            createPortal(
+              <div
+                {...printProps}
+                className={['ui-calendar-print', printProps?.className].filter(Boolean).join(' ')}
+                dir={direction}
+                aria-hidden="true"
+                style={{
+                  ...tokensToStyle({ ...lightTokens, ...componentTokenAliases }),
+                  ...printProps?.style,
+                }}
+              >
+                {renderPrint ? (
+                  renderPrint(printSnapshot)
+                ) : (
+                  <>
+                    {printHeader}
+                    <h1>{printSnapshot.title}</h1>
+                    <p>{printSnapshot.timeZone}</p>
+                    {printMode === 'calendar' && activeView === 'month' ? (
+                      monthGrid(true)
+                    ) : (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>{t('calendar.event')}</TableHead>
+                            <TableHead>{t('calendar.start')}</TableHead>
+                            <TableHead>{t('calendar.end')}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {printSnapshot.events.map((event) => {
+                            const span = eventSpan(event, timeZone);
+                            const format = span?.allDay
+                              ? { dateStyle: 'medium' as const }
+                              : { dateStyle: 'medium' as const, timeStyle: 'short' as const };
+                            return (
+                              <TableRow key={event.id}>
+                                <TableCell>{event.title}</TableCell>
+                                <TableCell>
+                                  {span ? wallLabel(span.start, locale, format) : ''}
+                                </TableCell>
+                                <TableCell>
+                                  {span ? wallLabel(span.end, locale, format) : ''}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    )}
+                    {printFooter}
+                  </>
+                )}
+              </div>,
+              document.body,
+            )}
+        </div>,
+        unstyled,
+      )}
     </StyleProvider>
   );
 }

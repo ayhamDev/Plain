@@ -60,6 +60,7 @@ export function SearchView({
   unstyled,
   contentProps,
   popoverProps,
+  tooltip,
 }: SearchViewProps) {
   const styles = useStyles();
   const { t } = useTranslation();
@@ -130,7 +131,9 @@ export function SearchView({
     <StyleProvider unstyled={unstyled}>
       {variant === 'docked' ? (
         <Popover open={open} onOpenChange={changeOpen}>
-          <PopoverTrigger asChild>{triggerNode}</PopoverTrigger>
+          <PopoverTrigger asChild tooltip={tooltip}>
+            {triggerNode}
+          </PopoverTrigger>
           <PopoverContent
             align="start"
             aria-label={label ?? t('search.title')}
@@ -147,7 +150,9 @@ export function SearchView({
         </Popover>
       ) : (
         <Dialog open={open} onOpenChange={changeOpen}>
-          <DialogTrigger asChild>{triggerNode}</DialogTrigger>
+          <DialogTrigger asChild tooltip={tooltip}>
+            {triggerNode}
+          </DialogTrigger>
           <DialogContent
             showClose={false}
             aria-describedby={undefined}

@@ -252,102 +252,109 @@ export const Chart = /* @__PURE__ */ React.forwardRef<HTMLElement, ChartProps>(
       <StyleProvider unstyled={unstyled}>
         <DirectionProvider dir={direction}>
           <ChartContext.Provider value={context}>
-            <figure
-              {...styles('chart.root', 'ui-chart', className, unstyled)}
-              {...props}
-              ref={ref}
-              style={{ minWidth: 0, margin: 0, ...style }}
-              dir={direction}
-              aria-label={props['aria-label'] ?? (props['aria-labelledby'] ? undefined : label)}
-              aria-describedby={
-                [
-                  describedBy,
-                  description ? descriptionId : undefined,
-                  hasTable ? tableId : undefined,
-                ]
-                  .filter(Boolean)
-                  .join(' ') || undefined
-              }
-              aria-busy={loading || undefined}
-              data-state={loading ? 'loading' : empty ? 'empty' : 'ready'}
-              data-motion={context.animate ? 'enabled' : 'disabled'}
-            >
-              {caption && (
-                <figcaption {...styles('chart.caption', 'ui-chart-caption', undefined, unstyled)}>
-                  {caption}
-                </figcaption>
-              )}
-              {description && (
-                <p id={descriptionId} style={hiddenStyle}>
-                  {description}
-                </p>
-              )}
-              <div
-                {...styles('chart.viewport', 'ui-chart-viewport', undefined, unstyled)}
-                style={{ width: '100%', minWidth: 0, height }}
+            {styles.tooltip(
+              <figure
+                {...styles('chart.root', 'ui-chart', className, unstyled)}
+                {...props}
+                ref={ref}
+                style={{ minWidth: 0, margin: 0, ...style }}
+                dir={direction}
+                aria-label={props['aria-label'] ?? (props['aria-labelledby'] ? undefined : label)}
+                aria-describedby={
+                  [
+                    describedBy,
+                    description ? descriptionId : undefined,
+                    hasTable ? tableId : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(' ') || undefined
+                }
+                aria-busy={loading || undefined}
+                data-state={loading ? 'loading' : empty ? 'empty' : 'ready'}
+                data-motion={context.animate ? 'enabled' : 'disabled'}
               >
-                {loading || empty ? (
-                  <div
-                    {...styles('chart.status', 'ui-chart-status', undefined, unstyled)}
-                    role="status"
-                    aria-live="polite"
-                  >
-                    {loading && <LoaderCircle size={18} aria-hidden="true" />}
-                    <span>{loading ? loadingLabel : emptyLabel}</span>
-                  </div>
-                ) : (
-                  <ResponsiveContainer
-                    width="100%"
-                    height="100%"
-                    minWidth={0}
-                    initialDimension={{
-                      width: 640,
-                      height: typeof height === 'number' ? height : 300,
-                    }}
-                  >
-                    {children}
-                  </ResponsiveContainer>
+                {caption && (
+                  <figcaption {...styles('chart.caption', 'ui-chart-caption', undefined, unstyled)}>
+                    {caption}
+                  </figcaption>
                 )}
-              </div>
-              {hasTable && (
+                {description && (
+                  <p id={descriptionId} style={hiddenStyle}>
+                    {description}
+                  </p>
+                )}
                 <div
-                  {...styles('chart.data', 'ui-chart-data', undefined, unstyled)}
-                  style={dataTable === 'sr-only' ? hiddenStyle : undefined}
+                  {...styles('chart.viewport', 'ui-chart-viewport', undefined, unstyled)}
+                  style={{ width: '100%', minWidth: 0, height }}
                 >
-                  <Table
-                    id={tableId}
-                    {...styles('chart.table', 'ui-chart-table', undefined, unstyled)}
-                  >
-                    <TableCaption>{tableLabel ?? language.t('chart.data', { label })}</TableCaption>
-                    <TableHeader>
-                      <TableRow>
-                        {tableColumns.map((column) => (
-                          <TableHead key={column.key} scope="col">
-                            {column.label ?? column.key}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {data!.map((row, index) => (
-                        <TableRow key={index}>
-                          {tableColumns.map((column) => {
-                            const value = column.accessor ? column.accessor(row) : row[column.key];
-                            return (
-                              <TableCell key={column.key}>
-                                {column.format
-                                  ? column.format(value, row)
-                                  : formatValue(value, locale)}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  {loading || empty ? (
+                    <div
+                      {...styles('chart.status', 'ui-chart-status', undefined, unstyled)}
+                      role="status"
+                      aria-live="polite"
+                    >
+                      {loading && <LoaderCircle size={18} aria-hidden="true" />}
+                      <span>{loading ? loadingLabel : emptyLabel}</span>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer
+                      width="100%"
+                      height="100%"
+                      minWidth={0}
+                      initialDimension={{
+                        width: 640,
+                        height: typeof height === 'number' ? height : 300,
+                      }}
+                    >
+                      {children}
+                    </ResponsiveContainer>
+                  )}
                 </div>
-              )}
-            </figure>
+                {hasTable && (
+                  <div
+                    {...styles('chart.data', 'ui-chart-data', undefined, unstyled)}
+                    style={dataTable === 'sr-only' ? hiddenStyle : undefined}
+                  >
+                    <Table
+                      id={tableId}
+                      {...styles('chart.table', 'ui-chart-table', undefined, unstyled)}
+                    >
+                      <TableCaption>
+                        {tableLabel ?? language.t('chart.data', { label })}
+                      </TableCaption>
+                      <TableHeader>
+                        <TableRow>
+                          {tableColumns.map((column) => (
+                            <TableHead key={column.key} scope="col">
+                              {column.label ?? column.key}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {data!.map((row, index) => (
+                          <TableRow key={index}>
+                            {tableColumns.map((column) => {
+                              const value = column.accessor
+                                ? column.accessor(row)
+                                : row[column.key];
+                              return (
+                                <TableCell key={column.key}>
+                                  {column.format
+                                    ? column.format(value, row)
+                                    : formatValue(value, locale)}
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </figure>,
+              unstyled,
+            )}
           </ChartContext.Provider>
         </DirectionProvider>
       </StyleProvider>
@@ -356,7 +363,11 @@ export const Chart = /* @__PURE__ */ React.forwardRef<HTMLElement, ChartProps>(
 );
 Chart.displayName = 'Chart';
 
-export function ChartGrid({ className, unstyled, ...props }: CartesianGridProps & PlainStyleProps) {
+export function ChartGrid({
+  className,
+  unstyled,
+  ...props
+}: CartesianGridProps & Omit<PlainStyleProps, 'tooltip'>) {
   const styles = useStyles();
   return (
     <CartesianGrid
@@ -369,7 +380,11 @@ export function ChartGrid({ className, unstyled, ...props }: CartesianGridProps 
   );
 }
 
-export function ChartXAxis({ className, unstyled, ...props }: XAxisProps & PlainStyleProps) {
+export function ChartXAxis({
+  className,
+  unstyled,
+  ...props
+}: XAxisProps & Omit<PlainStyleProps, 'tooltip'>) {
   const styles = useStyles();
   const dir = useDirection();
   return (
@@ -386,7 +401,11 @@ export function ChartXAxis({ className, unstyled, ...props }: XAxisProps & Plain
   );
 }
 
-export function ChartYAxis({ className, unstyled, ...props }: YAxisProps & PlainStyleProps) {
+export function ChartYAxis({
+  className,
+  unstyled,
+  ...props
+}: YAxisProps & Omit<PlainStyleProps, 'tooltip'>) {
   const styles = useStyles();
   const dir = useDirection();
   return (
@@ -623,7 +642,7 @@ type EngineChartProps = Omit<
   'data' | 'children' | 'width' | 'height' | 'responsive'
 >;
 
-export interface CartesianChartProps extends Omit<ChartProps, 'children' | 'data'> {
+export interface CartesianChartProps extends Omit<ChartProps, 'children' | 'data' | 'tooltip'> {
   data: readonly ChartDatum[];
   /** Categorical axis key. Defaults to name. */
   index?: string;
@@ -790,7 +809,7 @@ export const LineChart = /* @__PURE__ */ React.forwardRef<HTMLElement, LineChart
 );
 LineChart.displayName = 'LineChart';
 
-export interface DonutChartProps extends Omit<ChartProps, 'children' | 'data'> {
+export interface DonutChartProps extends Omit<ChartProps, 'children' | 'data' | 'tooltip'> {
   data: readonly ChartDatum[];
   nameKey?: string;
   valueKey?: string;
@@ -904,7 +923,7 @@ export const PieChart = React.forwardRef<HTMLElement, DonutChartProps>((props, r
   <DonutChart innerRadius={0} ref={ref} {...props} />
 ));
 PieChart.displayName = 'PieChart';
-export interface RadarChartProps extends Omit<ChartProps, 'children' | 'data'> {
+export interface RadarChartProps extends Omit<ChartProps, 'children' | 'data' | 'tooltip'> {
   data: readonly ChartDatum[];
   index?: string;
   series: readonly ChartSeries[];
@@ -978,7 +997,7 @@ export const RadarChart = React.forwardRef<HTMLElement, RadarChartProps>(
   },
 );
 RadarChart.displayName = 'RadarChart';
-export interface ScatterChartProps extends Omit<ChartProps, 'children' | 'data'> {
+export interface ScatterChartProps extends Omit<ChartProps, 'children' | 'data' | 'tooltip'> {
   data: readonly ChartDatum[];
   xKey: string;
   yKey: string;

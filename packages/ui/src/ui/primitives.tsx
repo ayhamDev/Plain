@@ -81,7 +81,7 @@ export const Button = /* @__PURE__ */ React.forwardRef<
             },
           })
         : children;
-    return (
+    return styles.tooltip(
       <Component
         ref={ref}
         type={asChild ? undefined : type}
@@ -119,7 +119,8 @@ export const Button = /* @__PURE__ */ React.forwardRef<
             {children}
           </>
         )}
-      </Component>
+      </Component>,
+      unstyled,
     );
   },
 );
@@ -142,16 +143,20 @@ export const badgeVariants = /* @__PURE__ */ cva(
   },
 );
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
+  extends
+    React.HTMLAttributes<HTMLSpanElement>,
+    VariantProps<typeof badgeVariants>,
+    PlainStyleProps {}
 export function Badge({ className, variant, unstyled, ...props }: BadgeProps & PlainStyleProps) {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <span
       data-variant={variant === null ? undefined : (variant ?? 'default')}
       {...styles('badge.root', badgeVariants({ variant }), className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export interface CardProps
@@ -185,21 +190,24 @@ export const Card = /* @__PURE__ */ Object.assign(
 
       return (
         <StyleProvider unstyled={unstyled}>
-          <Element
-            ref={scope.ref}
-            children={scope.children}
-            data-variant={variant}
-            data-size={size}
-            data-interactive={interactive || undefined}
-            data-selected={selected || undefined}
-            {...styles(
-              'card.root',
-              'ui-card rounded-[var(--ui-card-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-card-border,var(--ui-border))] bg-[color-mix(in_srgb,var(--ui-card-foreground,var(--ui-foreground))_var(--_ui-card-state-opacity,0%),var(--ui-card-background,var(--ui-surface)))] text-[var(--ui-card-foreground,var(--ui-foreground))]',
-              className,
-              unstyled,
-            )}
-            {...props}
-          />
+          {styles.tooltip(
+            <Element
+              ref={scope.ref}
+              children={scope.children}
+              data-variant={variant}
+              data-size={size}
+              data-interactive={interactive || undefined}
+              data-selected={selected || undefined}
+              {...styles(
+                'card.root',
+                'ui-card rounded-[var(--ui-card-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-card-border,var(--ui-border))] bg-[color-mix(in_srgb,var(--ui-card-foreground,var(--ui-foreground))_var(--_ui-card-state-opacity,0%),var(--ui-card-background,var(--ui-surface)))] text-[var(--ui-card-foreground,var(--ui-foreground))]',
+                className,
+                unstyled,
+              )}
+              {...props}
+            />,
+            unstyled,
+          )}
         </StyleProvider>
       );
     },
@@ -214,13 +222,14 @@ export const CardHeader = /* @__PURE__ */ Object.assign(
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref);
 
-    return (
+    return styles.tooltip(
       <div
         ref={scope.ref}
         children={scope.children}
         {...styles('card.header', 'ui-card-header flex flex-col gap-1.5', className, unstyled)}
         {...props}
-      />
+      />,
+      unstyled,
     );
   }),
   { displayName: 'CardHeader' },
@@ -232,11 +241,12 @@ export function CardTitle({
 }: React.ComponentProps<'h3'> & PlainStyleProps) {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <h3
       {...styles('card.title', 'text-base font-semibold leading-6', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export function CardDescription({
@@ -246,7 +256,7 @@ export function CardDescription({
 }: React.ComponentProps<'p'> & PlainStyleProps) {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <p
       {...styles(
         'card.description',
@@ -255,7 +265,8 @@ export function CardDescription({
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export const CardContent = /* @__PURE__ */ Object.assign(
@@ -266,13 +277,14 @@ export const CardContent = /* @__PURE__ */ Object.assign(
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref);
 
-    return (
+    return styles.tooltip(
       <div
         ref={scope.ref}
         children={scope.children}
         {...styles('card.content', 'ui-card-content', className, unstyled)}
         {...props}
-      />
+      />,
+      unstyled,
     );
   }),
   { displayName: 'CardContent' },
@@ -285,7 +297,7 @@ export const CardFooter = /* @__PURE__ */ Object.assign(
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref);
 
-    return (
+    return styles.tooltip(
       <div
         ref={scope.ref}
         children={scope.children}
@@ -296,7 +308,8 @@ export const CardFooter = /* @__PURE__ */ Object.assign(
           unstyled,
         )}
         {...props}
-      />
+      />,
+      unstyled,
     );
   }),
   { displayName: 'CardFooter' },
@@ -310,7 +323,7 @@ export const Avatar = /* @__PURE__ */ React.forwardRef<
 >(({ className, size = 'md', unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <AvatarPrimitive.Root
       ref={ref}
       {...styles(
@@ -323,7 +336,8 @@ export const Avatar = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 Avatar.displayName = 'Avatar';
@@ -333,12 +347,13 @@ export const AvatarImage = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <AvatarPrimitive.Image
       ref={ref}
       {...styles('avatar.image', 'size-full object-cover', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 AvatarImage.displayName = 'AvatarImage';
@@ -348,7 +363,7 @@ export const AvatarFallback = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <AvatarPrimitive.Fallback
       ref={ref}
       {...styles(
@@ -358,11 +373,12 @@ export const AvatarFallback = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 AvatarFallback.displayName = 'AvatarFallback';
-export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface AlertProps extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps {
   variant?: 'info' | 'success' | 'warning' | 'destructive';
   icon?: React.ReactNode;
   appearance?: 'subtle' | 'outlined' | 'filled';
@@ -393,33 +409,39 @@ export function Alert({
         : Info;
   return (
     <StyleProvider unstyled={unstyled}>
-      <div
-        role="alert"
-        data-variant={variant}
-        data-appearance={appearance}
-        {...styles('alert.root', 'ui-alert', className, unstyled)}
-        {...props}
-      >
-        {icon !== null && (
-          <span {...styles('alert.icon', 'ui-alert-icon', undefined, unstyled)} aria-hidden="true">
-            {icon ?? <Icon />}
-          </span>
-        )}
-        <div {...styles('alert.content', 'min-w-0 flex-1', undefined, unstyled)}>{children}</div>
-        {action && (
-          <div {...styles('alert.action', 'ui-alert-action', undefined, unstyled)}>{action}</div>
-        )}
-        {onDismiss && (
-          <button
-            type="button"
-            aria-label={dismissLabel ?? t('common.close')}
-            onClick={onDismiss}
-            {...styles('alert.close', 'ui-alert-close', undefined, unstyled)}
-          >
-            <X aria-hidden="true" />
-          </button>
-        )}
-      </div>
+      {styles.tooltip(
+        <div
+          role="alert"
+          data-variant={variant}
+          data-appearance={appearance}
+          {...styles('alert.root', 'ui-alert', className, unstyled)}
+          {...props}
+        >
+          {icon !== null && (
+            <span
+              {...styles('alert.icon', 'ui-alert-icon', undefined, unstyled)}
+              aria-hidden="true"
+            >
+              {icon ?? <Icon />}
+            </span>
+          )}
+          <div {...styles('alert.content', 'min-w-0 flex-1', undefined, unstyled)}>{children}</div>
+          {action && (
+            <div {...styles('alert.action', 'ui-alert-action', undefined, unstyled)}>{action}</div>
+          )}
+          {onDismiss && (
+            <button
+              type="button"
+              aria-label={dismissLabel ?? t('common.close')}
+              onClick={onDismiss}
+              {...styles('alert.close', 'ui-alert-close', undefined, unstyled)}
+            >
+              <X aria-hidden="true" />
+            </button>
+          )}
+        </div>,
+        unstyled,
+      )}
     </StyleProvider>
   );
 }
@@ -430,7 +452,10 @@ export function AlertTitle({
 }: React.ComponentProps<'h3'> & PlainStyleProps) {
   const styles = useStyles();
 
-  return <h3 {...styles('alert.title', 'font-medium leading-6', className, unstyled)} {...props} />;
+  return styles.tooltip(
+    <h3 {...styles('alert.title', 'font-medium leading-6', className, unstyled)} {...props} />,
+    unstyled,
+  );
 }
 export function AlertDescription({
   className,
@@ -439,7 +464,7 @@ export function AlertDescription({
 }: React.ComponentProps<'div'> & PlainStyleProps) {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <div
       {...styles(
         'alert.description',
@@ -448,7 +473,8 @@ export function AlertDescription({
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export const Separator = /* @__PURE__ */ React.forwardRef<
@@ -457,7 +483,7 @@ export const Separator = /* @__PURE__ */ React.forwardRef<
 >(({ className, orientation = 'horizontal', decorative = true, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <SeparatorPrimitive.Root
       ref={ref}
       decorative={decorative}
@@ -469,7 +495,8 @@ export const Separator = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 Separator.displayName = 'Separator';
@@ -533,61 +560,64 @@ export const Progress = /* @__PURE__ */ Object.assign(
       );
       return (
         <>
-          <ProgressPrimitive.Root
-            ref={ref}
-            dir={direction}
-            value={safeValue}
-            max={safeMax}
-            {...(parts
-              ? {
-                  'aria-valuetext': parts
-                    .map((part) => `${part.label}: ${formatted(part.value)}`)
-                    .join('; '),
-                }
-              : {})}
-            data-segmented={!!parts || undefined}
-            {...styles(
-              'progress.root',
-              cn(
-                'ui-progress relative w-full overflow-hidden rounded-full bg-muted',
-                { sm: 'h-1', md: 'h-2', lg: 'h-3' }[size],
-              ),
-              className,
-              unstyled,
-            )}
-            {...props}
-          >
-            {parts ? (
-              parts.map((part) => (
-                <span
-                  key={part.id}
-                  aria-hidden="true"
-                  title={`${part.label}: ${formatted(part.value)}`}
-                  {...styles('progress.segment', 'ui-progress-segment', undefined, unstyled)}
+          {styles.tooltip(
+            <ProgressPrimitive.Root
+              ref={ref}
+              dir={direction}
+              value={safeValue}
+              max={safeMax}
+              {...(parts
+                ? {
+                    'aria-valuetext': parts
+                      .map((part) => `${part.label}: ${formatted(part.value)}`)
+                      .join('; '),
+                  }
+                : {})}
+              data-segmented={!!parts || undefined}
+              {...styles(
+                'progress.root',
+                cn(
+                  'ui-progress relative w-full overflow-hidden rounded-full bg-muted',
+                  { sm: 'h-1', md: 'h-2', lg: 'h-3' }[size],
+                ),
+                className,
+                unstyled,
+              )}
+              {...props}
+            >
+              {parts ? (
+                parts.map((part) => (
+                  <span
+                    key={part.id}
+                    aria-hidden="true"
+                    title={`${part.label}: ${formatted(part.value)}`}
+                    {...styles('progress.segment', 'ui-progress-segment', undefined, unstyled)}
+                    style={{
+                      width: `${(part.value / scale / denominator) * 100}%`,
+                      backgroundColor: part.color,
+                    }}
+                  />
+                ))
+              ) : (
+                <ProgressPrimitive.Indicator
+                  {...styles(
+                    'progress.indicator',
+                    cn(
+                      'ui-progress-indicator h-full rounded-full bg-accent',
+                      safeValue === null && 'ui-progress-indeterminate',
+                    ),
+                    undefined,
+                    unstyled,
+                  )}
                   style={{
-                    width: `${(part.value / scale / denominator) * 100}%`,
-                    backgroundColor: part.color,
+                    width: safeValue === null ? '40%' : `${(safeValue / safeMax) * 100}%`,
+                    marginInlineStart: 0,
                   }}
                 />
-              ))
-            ) : (
-              <ProgressPrimitive.Indicator
-                {...styles(
-                  'progress.indicator',
-                  cn(
-                    'ui-progress-indicator h-full rounded-full bg-accent',
-                    safeValue === null && 'ui-progress-indeterminate',
-                  ),
-                  undefined,
-                  unstyled,
-                )}
-                style={{
-                  width: safeValue === null ? '40%' : `${(safeValue / safeMax) * 100}%`,
-                  marginInlineStart: 0,
-                }}
-              />
-            )}
-          </ProgressPrimitive.Root>
+              )}
+            </ProgressPrimitive.Root>,
+            unstyled,
+          )}
           {parts && showLegend && (
             <ul {...styles('progress.legend', 'ui-progress-legend', undefined, unstyled)}>
               {parts.map((part) => (
@@ -615,7 +645,7 @@ export const Skeleton = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <div
       ref={ref}
       aria-hidden="true"
@@ -626,7 +656,8 @@ export const Skeleton = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 Skeleton.displayName = 'Skeleton';
@@ -642,7 +673,7 @@ export function Spinner({
   const styles = useStyles();
   const { t } = useTranslation();
   const label = labelProp ?? t('common.loading');
-  return (
+  return styles.tooltip(
     <span
       role="status"
       {...styles(
@@ -658,19 +689,23 @@ export function Spinner({
         aria-hidden="true"
       />
       <span {...styles('spinner.label', 'sr-only', undefined, unstyled)}>{label}</span>
-    </span>
+    </span>,
+    unstyled,
   );
 }
 export type AspectRatioProps = React.ComponentPropsWithoutRef<typeof AspectRatioPrimitive.Root> &
-  LayoutPresenceProps;
+  LayoutPresenceProps &
+  PlainStyleProps;
 export const AspectRatio = /* @__PURE__ */ Object.assign(
   /* @__PURE__ */ React.forwardRef<HTMLDivElement, AspectRatioProps>(
-    ({ presence, children, asChild, ...props }, ref) => {
+    ({ presence, children, asChild, unstyled, ...props }, ref) => {
+      const styles = useStyles();
       const scope = useLayoutPresence(children, presence, ref, asChild);
-      return (
+      return styles.tooltip(
         <AspectRatioPrimitive.Root {...props} asChild={asChild} ref={scope.ref}>
           {scope.children}
-        </AspectRatioPrimitive.Root>
+        </AspectRatioPrimitive.Root>,
+        unstyled,
       );
     },
   ),
@@ -683,7 +718,7 @@ export function Kbd({
 }: React.ComponentProps<'kbd'> & PlainStyleProps) {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <kbd
       {...styles(
         'kbd.root',
@@ -692,7 +727,8 @@ export function Kbd({
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 
@@ -739,39 +775,42 @@ export const EmptyState = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Empty
 
     return (
       <StyleProvider unstyled={unstyled}>
-        <div
-          ref={ref}
-          {...styles('empty-state.root', 'ui-empty-state', className, unstyled)}
-          data-align={align}
-          data-orientation={orientation}
-          data-size={size}
-          data-variant={variant}
-          {...props}
-        >
-          {children ?? (
-            <>
-              {media !== undefined ? (
-                media != null && media !== false ? (
-                  <EmptyStateMedia>{media}</EmptyStateMedia>
-                ) : null
-              ) : icon !== null && icon !== false ? (
-                <EmptyStateIcon>{icon ?? <Inbox size={22} aria-hidden="true" />}</EmptyStateIcon>
-              ) : null}
-              <EmptyStateContent>
-                {title != null && <EmptyStateTitle>{title}</EmptyStateTitle>}
-                {description != null && (
-                  <EmptyStateDescription>{description}</EmptyStateDescription>
-                )}
-                {resolvedActions != null && resolvedActions !== false && (
-                  <EmptyStateActions>{resolvedActions}</EmptyStateActions>
-                )}
-                {footer != null && footer !== false && (
-                  <EmptyStateFooter>{footer}</EmptyStateFooter>
-                )}
-              </EmptyStateContent>
-            </>
-          )}
-        </div>
+        {styles.tooltip(
+          <div
+            ref={ref}
+            {...styles('empty-state.root', 'ui-empty-state', className, unstyled)}
+            data-align={align}
+            data-orientation={orientation}
+            data-size={size}
+            data-variant={variant}
+            {...props}
+          >
+            {children ?? (
+              <>
+                {media !== undefined ? (
+                  media != null && media !== false ? (
+                    <EmptyStateMedia>{media}</EmptyStateMedia>
+                  ) : null
+                ) : icon !== null && icon !== false ? (
+                  <EmptyStateIcon>{icon ?? <Inbox size={22} aria-hidden="true" />}</EmptyStateIcon>
+                ) : null}
+                <EmptyStateContent>
+                  {title != null && <EmptyStateTitle>{title}</EmptyStateTitle>}
+                  {description != null && (
+                    <EmptyStateDescription>{description}</EmptyStateDescription>
+                  )}
+                  {resolvedActions != null && resolvedActions !== false && (
+                    <EmptyStateActions>{resolvedActions}</EmptyStateActions>
+                  )}
+                  {footer != null && footer !== false && (
+                    <EmptyStateFooter>{footer}</EmptyStateFooter>
+                  )}
+                </EmptyStateContent>
+              </>
+            )}
+          </div>,
+          unstyled,
+        )}
       </StyleProvider>
     );
   },
@@ -788,14 +827,15 @@ export const EmptyStateMedia = /* @__PURE__ */ React.forwardRef<
   EmptyStateMediaProps
 >(({ className, unstyled, variant = 'plain', shape = 'rounded', ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <div
       ref={ref}
       {...styles('empty-state.media', 'ui-empty-state-media', className, unstyled)}
       data-variant={variant}
       data-shape={shape}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 EmptyStateMedia.displayName = 'EmptyStateMedia';
@@ -805,12 +845,13 @@ export const EmptyStateIcon = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <div
       ref={ref}
       {...styles('empty-state.icon-wrapper', 'ui-empty-state-icon', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 EmptyStateIcon.displayName = 'EmptyStateIcon';
@@ -820,12 +861,13 @@ export const EmptyStateContent = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <div
       ref={ref}
       {...styles('empty-state.content', 'ui-empty-state-content', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 EmptyStateContent.displayName = 'EmptyStateContent';
@@ -836,12 +878,13 @@ export const EmptyStateTitle = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   const Element = asChild ? Slot.Root : 'h3';
 
-  return (
+  return styles.tooltip(
     <Element
       ref={ref}
       {...styles('empty-state.title', 'ui-empty-state-title', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 EmptyStateTitle.displayName = 'EmptyStateTitle';
@@ -852,12 +895,13 @@ export const EmptyStateDescription = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   const Element = asChild ? Slot.Root : 'p';
 
-  return (
+  return styles.tooltip(
     <Element
       ref={ref}
       {...styles('empty-state.description', 'ui-empty-state-description', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 EmptyStateDescription.displayName = 'EmptyStateDescription';
@@ -872,7 +916,7 @@ export const EmptyStateActions = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, layout = 'row', align = 'inherit', ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <div
       ref={ref}
       {...styles(
@@ -884,7 +928,8 @@ export const EmptyStateActions = /* @__PURE__ */ React.forwardRef<
       data-layout={layout}
       data-align={align}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 EmptyStateActions.displayName = 'EmptyStateActions';
@@ -893,12 +938,13 @@ export const EmptyStateFooter = /* @__PURE__ */ React.forwardRef<
   React.HTMLAttributes<HTMLDivElement> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <div
       ref={ref}
       {...styles('empty-state.footer', 'ui-empty-state-footer', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 EmptyStateFooter.displayName = 'EmptyStateFooter';

@@ -49,21 +49,24 @@ function typography<T extends TypographyTag>(tag: T) {
     const { tone, size, weight, align, wrap, truncate, className, unstyled, style, ...props } =
       allProps;
     const styles = useStyles();
-    return React.createElement(tag, {
-      ...styles('typography.root', 'ui-typography', className, unstyled),
-      'data-element': tag,
-      'data-tone': tone,
-      'data-truncate': truncate || undefined,
-      style: {
-        ...(size ? { '--ui-text-size': `${sizes[size]}px` } : {}),
-        ...(weight ? { fontWeight: weights[weight] } : {}),
-        ...(align ? { textAlign: align } : {}),
-        ...(wrap ? { textWrap: wrap } : {}),
-        ...style,
-      } as React.CSSProperties,
-      ...props,
-      ref,
-    });
+    return styles.tooltip(
+      React.createElement(tag, {
+        ...styles('typography.root', 'ui-typography', className, unstyled),
+        'data-element': tag,
+        'data-tone': tone,
+        'data-truncate': truncate || undefined,
+        style: {
+          ...(size ? { '--ui-text-size': `${sizes[size]}px` } : {}),
+          ...(weight ? { fontWeight: weights[weight] } : {}),
+          ...(align ? { textAlign: align } : {}),
+          ...(wrap ? { textWrap: wrap } : {}),
+          ...style,
+        } as React.CSSProperties,
+        ...props,
+        ref,
+      }),
+      unstyled,
+    );
   });
   Component.displayName =
     tag === 'blockquote' ? 'Blockquote' : tag.charAt(0).toUpperCase() + tag.slice(1);

@@ -333,25 +333,28 @@ export function KanbanBoard<T>(props: KanbanBoardProps<T>) {
           },
         }}
       >
-        <div
-          ref={board}
-          role="region"
-          aria-label={label ?? t('kanban.label')}
-          dir={direction}
-          {...styles('kanban.root', 'ui-kanban-board', className, unstyled)}
-          {...native}
-          style={
-            {
-              '--ui-kanban-column-width':
-                typeof columnWidth === 'number' ? `${columnWidth}px` : columnWidth,
-              ...native.style,
-            } as React.CSSProperties
-          }
-        >
-          {columns.map((column) => (
-            <KanbanLane key={column.id} column={column} props={props} move={move} />
-          ))}
-        </div>
+        {styles.tooltip(
+          <div
+            ref={board}
+            role="region"
+            aria-label={label ?? t('kanban.label')}
+            dir={direction}
+            {...styles('kanban.root', 'ui-kanban-board', className, unstyled)}
+            {...native}
+            style={
+              {
+                '--ui-kanban-column-width':
+                  typeof columnWidth === 'number' ? `${columnWidth}px` : columnWidth,
+                ...native.style,
+              } as React.CSSProperties
+            }
+          >
+            {columns.map((column) => (
+              <KanbanLane key={column.id} column={column} props={props} move={move} />
+            ))}
+          </div>,
+          unstyled,
+        )}
         <DragOverlay>
           {activeItem && activeColumn ? (
             <div {...styles('kanban.card', 'ui-kanban-overlay', undefined, unstyled)}>

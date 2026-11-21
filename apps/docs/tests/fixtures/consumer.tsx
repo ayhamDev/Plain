@@ -40,8 +40,10 @@ import {
   EmptyStateActions,
   type DataTableColumn,
   type ComponentStyles,
+  type TooltipOptions,
 } from '@plain/ui';
 import { Button as ModularButton } from '@plain/ui/primitives';
+import { TooltipProvider as ModularTooltipProvider, type TooltipValue } from '@plain/ui/overlays';
 import { Dropzone as ModularDropzone } from '@plain/ui/advanced';
 import { QRCode as ModularQRCode, type QRCodeProps } from '@plain/ui/qr-code';
 import { TimePicker as ModularTimePicker, type TimePickerMode } from '@plain/ui/date-time';
@@ -62,6 +64,14 @@ const anchorRef = createRef<HTMLAnchorElement>();
 const quoteRef = createRef<HTMLQuoteElement>();
 const calendarRef = createRef<FullCalendarRef>();
 const RoundSwitch = extendComponent(Switch, { tokens: { 'switch.radius': '999px' } });
+const tooltip: TooltipOptions = {
+  content: 'Project context',
+  side: 'right',
+  collisionPadding: 12,
+  delayDuration: 200,
+  'data-purpose': 'context',
+};
+const disabledTooltip: TooltipValue = false;
 
 export function ConsumerApp() {
   const [date, setDate] = useState<Date>();
@@ -81,12 +91,19 @@ export function ConsumerApp() {
       styles={styles}
       tokens={{ radius: '8px' }}
       persist={false}
+      tooltip={{ delayDuration: 350 }}
     >
       <ThemeScope
         locale="fr-FR"
         messages={{ 'common.done': 'Terminé' }}
         tokens={{ accent: '#1d4ed8' }}
       >
+        <ModularTooltipProvider skipDelayDuration={200}>
+          <Button tooltip={tooltip}>Project context</Button>
+          <ModularButton tooltip={disabledTooltip}>No tooltip</ModularButton>
+          <ModularTableSearch table={table} tooltip="Search the records" />
+          <ModularTableSort table={table} tooltip={{ content: 'Reorder records', align: 'end' }} />
+        </ModularTooltipProvider>
         <H1 size="2xl">Project workspace</H1>
         <Stack
           presence={{
@@ -101,7 +118,7 @@ export function ConsumerApp() {
         >
           <Box key="project">Project content</Box>
         </Stack>
-        <LayoutPresence asChild>
+        <LayoutPresence asChild tooltip="Workspace navigation">
           <ul>
             <li key="navigation">Custom container</li>
           </ul>

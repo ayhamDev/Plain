@@ -23,19 +23,27 @@ import { useElasticScroll, type ElasticScrollOptions, type RefreshState } from '
 import { useScrollAreaElastic } from './scroll-area-elastic';
 import { useSelectionIndicator } from './selection-indicator';
 import { LayoutPresence, useLayoutPresence, type LayoutPresenceProps } from './layout-presence';
-export const Accordion = AccordionPrimitive.Root;
+export const Accordion = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Root> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<AccordionPrimitive.Root {...props} ref={ref} />, unstyled);
+});
+Accordion.displayName = 'Accordion';
 export const AccordionItem = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <AccordionPrimitive.Item
       ref={ref}
       {...styles('accordion.item', 'border-b border-border last:border-b-0', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 AccordionItem.displayName = 'AccordionItem';
@@ -47,27 +55,30 @@ export const AccordionTrigger = /* @__PURE__ */ React.forwardRef<
 
   return (
     <AccordionPrimitive.Header {...styles('accordion.header', 'flex', undefined, unstyled)}>
-      <AccordionPrimitive.Trigger
-        ref={ref}
-        {...styles(
-          'accordion.trigger',
-          'ui-interactive group flex min-h-12 flex-1 items-center justify-between gap-4 py-4 text-start text-sm font-medium hover:text-accent disabled:opacity-45',
-          className,
-          unstyled,
-        )}
-        {...props}
-      >
-        {children}
-        <ChevronDown
+      {styles.tooltip(
+        <AccordionPrimitive.Trigger
+          ref={ref}
           {...styles(
-            'accordion.icon',
-            'ui-motion-transform size-4 shrink-0 text-muted-foreground group-data-[state=open]:rotate-180',
-            undefined,
+            'accordion.trigger',
+            'ui-interactive group flex min-h-12 flex-1 items-center justify-between gap-4 py-4 text-start text-sm font-medium hover:text-accent disabled:opacity-45',
+            className,
             unstyled,
           )}
-          aria-hidden="true"
-        />
-      </AccordionPrimitive.Trigger>
+          {...props}
+        >
+          {children}
+          <ChevronDown
+            {...styles(
+              'accordion.icon',
+              'ui-motion-transform size-4 shrink-0 text-muted-foreground group-data-[state=open]:rotate-180',
+              undefined,
+              unstyled,
+            )}
+            aria-hidden="true"
+          />
+        </AccordionPrimitive.Trigger>,
+        unstyled,
+      )}
     </AccordionPrimitive.Header>
   );
 });
@@ -80,7 +91,7 @@ export const AccordionContent = /* @__PURE__ */ React.forwardRef<
 >(({ className, children, unstyled, presence, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <AccordionPrimitive.Content
       ref={ref}
       {...styles('accordion.content', 'ui-accordion overflow-hidden', className, unstyled)}
@@ -98,11 +109,19 @@ export const AccordionContent = /* @__PURE__ */ React.forwardRef<
           {children}
         </div>
       </LayoutPresence>
-    </AccordionPrimitive.Content>
+    </AccordionPrimitive.Content>,
+    unstyled,
   );
 });
 AccordionContent.displayName = 'AccordionContent';
-export const Tabs = TabsPrimitive.Root;
+export const Tabs = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<TabsPrimitive.Root {...props} ref={ref} />, unstyled);
+});
+Tabs.displayName = 'Tabs';
 export interface TabsListProps
   extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>, PlainStyleProps {
   variant?: 'segmented' | 'underline';
@@ -143,7 +162,7 @@ export const TabsList = /* @__PURE__ */ React.forwardRef<
       scrollable,
     );
 
-    return (
+    return styles.tooltip(
       <TabsPrimitive.List
         ref={root}
         data-variant={variant}
@@ -177,7 +196,8 @@ export const TabsList = /* @__PURE__ */ React.forwardRef<
           aria-hidden="true"
           {...styles('tabs.indicator', 'ui-selection-indicator', undefined, unstyled)}
         />
-      </TabsPrimitive.List>
+      </TabsPrimitive.List>,
+      unstyled,
     );
   },
 );
@@ -188,7 +208,7 @@ export const TabsTrigger = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <TabsPrimitive.Trigger
       ref={ref}
       {...styles(
@@ -198,7 +218,8 @@ export const TabsTrigger = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 TabsTrigger.displayName = 'TabsTrigger';
@@ -211,14 +232,15 @@ export const TabsContent = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   const scope = useLayoutPresence(children, presence, ref, asChild);
 
-  return (
+  return styles.tooltip(
     <TabsPrimitive.Content
       ref={scope.ref}
       children={scope.children}
       asChild={asChild}
       {...styles('tabs.content', 'ui-tab-panel mt-4 outline-offset-4', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 TabsContent.displayName = 'TabsContent';
@@ -233,14 +255,17 @@ export const Collapsible = /* @__PURE__ */ React.forwardRef<
 
   return (
     <StyleProvider unstyled={unstyled}>
-      <CollapsiblePrimitive.Root
-        ref={scope.ref}
-        asChild={asChild}
-        {...styles('collapsible.root', '', className, unstyled)}
-        {...props}
-      >
-        {scope.children}
-      </CollapsiblePrimitive.Root>
+      {styles.tooltip(
+        <CollapsiblePrimitive.Root
+          ref={scope.ref}
+          asChild={asChild}
+          {...styles('collapsible.root', '', className, unstyled)}
+          {...props}
+        >
+          {scope.children}
+        </CollapsiblePrimitive.Root>,
+        unstyled,
+      )}
     </StyleProvider>
   );
 });
@@ -251,12 +276,13 @@ export const CollapsibleTrigger = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <CollapsiblePrimitive.Trigger
       ref={ref}
       {...styles('collapsible.trigger', 'ui-interactive', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 CollapsibleTrigger.displayName = 'CollapsibleTrigger';
@@ -269,14 +295,15 @@ export const CollapsibleContent = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   const scope = useLayoutPresence(children, presence, ref, asChild);
 
-  return (
+  return styles.tooltip(
     <CollapsiblePrimitive.Content
       ref={scope.ref}
       children={scope.children}
       asChild={asChild}
       {...styles('collapsible.content', 'ui-collapsible overflow-hidden', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 CollapsibleContent.displayName = 'CollapsibleContent';
@@ -375,7 +402,7 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
       ...nativeViewportProps
     } = viewportProps;
     const onElasticWheel = useScrollAreaElastic(viewport, !!elastic, orientation, direction);
-    return (
+    return styles.tooltip(
       <ScrollAreaPrimitive.Root
         ref={ref}
         dir={direction}
@@ -496,7 +523,8 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
             )}
           </div>
         )}
-      </ScrollAreaPrimitive.Root>
+      </ScrollAreaPrimitive.Root>,
+      unstyled,
     );
   },
 );
@@ -528,7 +556,7 @@ export const ScrollBar = /* @__PURE__ */ React.forwardRef<
   ) => {
     const styles = useStyles();
 
-    return (
+    return styles.tooltip(
       <ScrollAreaPrimitive.ScrollAreaScrollbar
         ref={ref}
         orientation={orientation}
@@ -561,7 +589,8 @@ export const ScrollBar = /* @__PURE__ */ React.forwardRef<
             unstyled,
           )}
         />
-      </ScrollAreaPrimitive.ScrollAreaScrollbar>
+      </ScrollAreaPrimitive.ScrollAreaScrollbar>,
+      unstyled,
     );
   },
 );
@@ -573,12 +602,13 @@ export function Breadcrumb({
 }: React.ComponentProps<'nav'> & PlainStyleProps) {
   const styles = useStyles();
   const { t } = useTranslation();
-  return (
+  return styles.tooltip(
     <nav
       aria-label={t('navigation.breadcrumb')}
       {...styles('breadcrumb.root', 'text-sm text-muted-foreground', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export function BreadcrumbList({
@@ -588,11 +618,12 @@ export function BreadcrumbList({
 }: React.ComponentProps<'ol'> & PlainStyleProps) {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <ol
       {...styles('breadcrumb.list', 'flex flex-wrap items-center gap-2', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export function BreadcrumbItem({
@@ -602,11 +633,12 @@ export function BreadcrumbItem({
 }: React.ComponentProps<'li'> & PlainStyleProps) {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <li
       {...styles('breadcrumb.item', 'inline-flex items-center gap-2', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export const BreadcrumbLink = /* @__PURE__ */ React.forwardRef<
@@ -615,7 +647,7 @@ export const BreadcrumbLink = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <a
       ref={ref}
       {...styles(
@@ -625,7 +657,8 @@ export const BreadcrumbLink = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 BreadcrumbLink.displayName = 'BreadcrumbLink';
@@ -636,12 +669,13 @@ export function BreadcrumbPage({
 }: React.ComponentProps<'span'> & PlainStyleProps) {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <span
       aria-current="page"
       {...styles('breadcrumb.page', 'font-medium text-foreground', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export function BreadcrumbSeparator({ children, ...props }: React.ComponentProps<'li'>) {
@@ -651,18 +685,32 @@ export function BreadcrumbSeparator({ children, ...props }: React.ComponentProps
     </li>
   );
 }
-export function BreadcrumbEllipsis() {
+export function BreadcrumbEllipsis({
+  className,
+  unstyled,
+  ...props
+}: React.ComponentProps<'span'> & PlainStyleProps) {
   const { t } = useTranslation();
-  return (
+  const styles = useStyles();
+  return styles.tooltip(
     <span
-      className="flex size-5 items-center justify-center"
+      {...styles(
+        'breadcrumb.ellipsis',
+        'flex size-5 items-center justify-center',
+        className,
+        unstyled,
+      )}
       aria-label={t('navigation.moreLevels')}
+      role="img"
+      {...props}
     >
       <MoreHorizontal className="size-4" aria-hidden="true" />
-    </span>
+    </span>,
+    unstyled,
   );
 }
-export interface PaginationProps extends Omit<React.HTMLAttributes<HTMLElement>, 'onChange'> {
+export interface PaginationProps
+  extends Omit<React.HTMLAttributes<HTMLElement>, 'onChange'>, PlainStyleProps {
   page: number;
   pageCount: number;
   onPageChange: (page: number) => void;
@@ -685,56 +733,59 @@ export function Pagination({
   const sorted = [...pages].sort((a, b) => a - b);
   return (
     <StyleProvider unstyled={unstyled}>
-      <nav
-        aria-label={t('navigation.pagination')}
-        {...styles('pagination.root', 'flex flex-wrap items-center gap-1', className, unstyled)}
-        {...props}
-      >
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t('table.previousPage')}
-          disabled={current === 1}
-          onClick={() => onPageChange(current - 1)}
+      {styles.tooltip(
+        <nav
+          aria-label={t('navigation.pagination')}
+          {...styles('pagination.root', 'flex flex-wrap items-center gap-1', className, unstyled)}
+          {...props}
         >
-          <ChevronLeft className="rtl:rotate-180" aria-hidden="true" />
-        </Button>
-        {sorted.map((p, i) => (
-          <React.Fragment key={p}>
-            {i > 0 && p - sorted[i - 1] > 1 && (
-              <span
-                aria-hidden="true"
-                {...styles(
-                  'pagination.ellipsis',
-                  'flex size-9 items-center justify-center text-muted-foreground',
-                  undefined,
-                  unstyled,
-                )}
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t('table.previousPage')}
+            disabled={current === 1}
+            onClick={() => onPageChange(current - 1)}
+          >
+            <ChevronLeft className="rtl:rotate-180" aria-hidden="true" />
+          </Button>
+          {sorted.map((p, i) => (
+            <React.Fragment key={p}>
+              {i > 0 && p - sorted[i - 1] > 1 && (
+                <span
+                  aria-hidden="true"
+                  {...styles(
+                    'pagination.ellipsis',
+                    'flex size-9 items-center justify-center text-muted-foreground',
+                    undefined,
+                    unstyled,
+                  )}
+                >
+                  <MoreHorizontal {...styles('pagination.icon', 'size-4', undefined, unstyled)} />
+                </span>
+              )}
+              <Button
+                variant={p === current ? 'outline' : 'ghost'}
+                size="icon"
+                aria-label={t('table.pageLabel', { label: t('table.page'), page: p })}
+                aria-current={p === current ? 'page' : undefined}
+                onClick={() => onPageChange(p)}
               >
-                <MoreHorizontal {...styles('pagination.icon', 'size-4', undefined, unstyled)} />
-              </span>
-            )}
-            <Button
-              variant={p === current ? 'outline' : 'ghost'}
-              size="icon"
-              aria-label={t('table.pageLabel', { label: t('table.page'), page: p })}
-              aria-current={p === current ? 'page' : undefined}
-              onClick={() => onPageChange(p)}
-            >
-              {numberFormatter(locale).format(p)}
-            </Button>
-          </React.Fragment>
-        ))}
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t('table.nextPage')}
-          disabled={current === count}
-          onClick={() => onPageChange(current + 1)}
-        >
-          <ChevronRight className="rtl:rotate-180" aria-hidden="true" />
-        </Button>
-      </nav>
+                {numberFormatter(locale).format(p)}
+              </Button>
+            </React.Fragment>
+          ))}
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t('table.nextPage')}
+            disabled={current === count}
+            onClick={() => onPageChange(current + 1)}
+          >
+            <ChevronRight className="rtl:rotate-180" aria-hidden="true" />
+          </Button>
+        </nav>,
+        unstyled,
+      )}
     </StyleProvider>
   );
 }
@@ -744,7 +795,7 @@ export const NavigationMenu = /* @__PURE__ */ React.forwardRef<
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <NavigationPrimitive.Root
       ref={ref}
       {...styles(
@@ -773,7 +824,8 @@ export const NavigationMenu = /* @__PURE__ */ React.forwardRef<
           )}
         />
       </div>
-    </NavigationPrimitive.Root>
+    </NavigationPrimitive.Root>,
+    unstyled,
   );
 });
 NavigationMenu.displayName = 'NavigationMenu';
@@ -783,23 +835,31 @@ export const NavigationMenuList = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <NavigationPrimitive.List
       ref={ref}
       {...styles('navigation-menu.list', 'flex items-center gap-1', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 NavigationMenuList.displayName = 'NavigationMenuList';
-export const NavigationMenuItem = NavigationPrimitive.Item;
+export const NavigationMenuItem = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof NavigationPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof NavigationPrimitive.Item> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<NavigationPrimitive.Item {...props} ref={ref} />, unstyled);
+});
+NavigationMenuItem.displayName = 'NavigationMenuItem';
 export const NavigationMenuLink = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof NavigationPrimitive.Link>,
   React.ComponentPropsWithoutRef<typeof NavigationPrimitive.Link> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <NavigationPrimitive.Link
       ref={ref}
       {...styles(
@@ -809,7 +869,8 @@ export const NavigationMenuLink = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 NavigationMenuLink.displayName = 'NavigationMenuLink';
@@ -819,7 +880,7 @@ export const NavigationMenuTrigger = /* @__PURE__ */ React.forwardRef<
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <NavigationPrimitive.Trigger
       ref={ref}
       {...styles(
@@ -840,7 +901,8 @@ export const NavigationMenuTrigger = /* @__PURE__ */ React.forwardRef<
         )}
         aria-hidden="true"
       />
-    </NavigationPrimitive.Trigger>
+    </NavigationPrimitive.Trigger>,
+    unstyled,
   );
 });
 NavigationMenuTrigger.displayName = 'NavigationMenuTrigger';
@@ -850,7 +912,7 @@ export const NavigationMenuContent = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
 
-  return (
+  return styles.tooltip(
     <NavigationPrimitive.Content
       ref={ref}
       {...styles(
@@ -860,7 +922,8 @@ export const NavigationMenuContent = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 NavigationMenuContent.displayName = 'NavigationMenuContent';

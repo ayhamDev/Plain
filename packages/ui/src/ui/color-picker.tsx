@@ -182,35 +182,38 @@ export const ColorPicker = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Co
                 />
               </Button>
             </PopoverTrigger>
-            <Input
-              ref={input}
-              {...props}
-              disabled={disabled}
-              readOnly={readOnly}
-              spellCheck={false}
-              aria-invalid={props['aria-invalid'] || !!(draft && !hex(draft)) || undefined}
-              value={draft}
-              {...styles(
-                'color-picker.input',
-                'ui-color-hex flex-1 border-0 bg-transparent px-2 shadow-none focus-visible:outline-none',
-                undefined,
-                unstyled,
-              )}
-              aria-label={props['aria-label'] ?? t('color.hex')}
-              maxLength={7}
-              onChange={(event) => {
-                onChange?.(event);
-                if (event.defaultPrevented || disabled || readOnly) return;
-                const next = event.target.value;
-                setDraft(next);
-                const valid = hex(next);
-                if (valid) commit(valid, pendingHSV.current);
-              }}
-              onBlur={(event) => {
-                onBlur?.(event);
-                if (hex(draft)) setDraft(color);
-              }}
-            />
+            {styles.tooltip(
+              <Input
+                ref={input}
+                {...props}
+                disabled={disabled}
+                readOnly={readOnly}
+                spellCheck={false}
+                aria-invalid={props['aria-invalid'] || !!(draft && !hex(draft)) || undefined}
+                value={draft}
+                {...styles(
+                  'color-picker.input',
+                  'ui-color-hex flex-1 border-0 bg-transparent px-2 shadow-none focus-visible:outline-none',
+                  undefined,
+                  unstyled,
+                )}
+                aria-label={props['aria-label'] ?? t('color.hex')}
+                maxLength={7}
+                onChange={(event) => {
+                  onChange?.(event);
+                  if (event.defaultPrevented || disabled || readOnly) return;
+                  const next = event.target.value;
+                  setDraft(next);
+                  const valid = hex(next);
+                  if (valid) commit(valid, pendingHSV.current);
+                }}
+                onBlur={(event) => {
+                  onBlur?.(event);
+                  if (hex(draft)) setDraft(color);
+                }}
+              />,
+              unstyled,
+            )}
           </div>
           <PopoverContent
             aria-label={pickerLabel}

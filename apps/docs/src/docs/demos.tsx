@@ -22,6 +22,7 @@ import * as UI from '@plain/ui';
 const ExtendedExamples = React.lazy(() => import('./ExtendedExamples'));
 const SheetExample = React.lazy(() => import('./examples/SheetExample'));
 const RefinementExample = React.lazy(() => import('./examples/RefinementExample'));
+const TooltipPropExample = React.lazy(() => import('./examples/TooltipPropExample'));
 import { DepartmentSelect, PersonAvatar } from './showcase';
 
 export type Invoice = {
@@ -541,14 +542,9 @@ export function ComponentExample({ slug }: { slug: string }) {
       );
     case 'tooltip':
       return (
-        <UI.Tooltip>
-          <UI.TooltipTrigger asChild>
-            <UI.Button variant="outline" size="icon" aria-label="Project settings">
-              <Settings aria-hidden="true" />
-            </UI.Button>
-          </UI.TooltipTrigger>
-          <UI.TooltipContent>Project settings</UI.TooltipContent>
-        </UI.Tooltip>
+        <React.Suspense fallback={<UI.Spinner />}>
+          <TooltipPropExample />
+        </React.Suspense>
       );
     case 'command':
       return (

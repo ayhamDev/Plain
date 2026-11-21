@@ -23,7 +23,7 @@ export type InputProps = React.InputHTMLAttributes<HTMLInputElement> &
 export const Input = /* @__PURE__ */ React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type = 'text', unstyled, variant = 'outlined', ...props }, ref) => {
     const styles = useStyles();
-    return (
+    return styles.tooltip(
       <input
         ref={ref}
         type={type}
@@ -40,7 +40,8 @@ export const Input = /* @__PURE__ */ React.forwardRef<HTMLInputElement, InputPro
           unstyled,
         )}
         {...props}
-      />
+      />,
+      unstyled,
     );
   },
 );
@@ -50,7 +51,7 @@ export const Textarea = /* @__PURE__ */ React.forwardRef<
   React.TextareaHTMLAttributes<HTMLTextAreaElement> & PlainStyleProps & { variant?: InputVariant }
 >(({ className, rows = 3, variant = 'outlined', unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <textarea
       ref={ref}
       rows={rows}
@@ -68,7 +69,8 @@ export const Textarea = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 Textarea.displayName = 'Textarea';
@@ -77,7 +79,7 @@ export const Label = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <LabelPrimitive.Root
       ref={ref}
       {...styles(
@@ -87,11 +89,13 @@ export const Label = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 Label.displayName = 'Label';
-export interface FieldProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
+export interface FieldProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'>, PlainStyleProps {
   label: string;
   description?: string;
   error?: string;
@@ -123,7 +127,7 @@ export function Field({
     [children.props['aria-describedby'], description ? descriptionId : '', error ? errorId : '']
       .filter(Boolean)
       .join(' ') || undefined;
-  return (
+  return styles.tooltip(
     <div {...styles('field.root', 'flex flex-col gap-2', className, unstyled)} {...props}>
       <Label id={`${id}-label`} htmlFor={id}>
         {label}
@@ -167,7 +171,8 @@ export function Field({
           {error}
         </p>
       )}
-    </div>
+    </div>,
+    unstyled,
   );
 }
 export const Checkbox = /* @__PURE__ */ React.forwardRef<
@@ -175,7 +180,7 @@ export const Checkbox = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <CheckboxPrimitive.Root
       ref={ref}
       {...styles(
@@ -214,7 +219,8 @@ export const Checkbox = /* @__PURE__ */ React.forwardRef<
           aria-hidden="true"
         />
       </CheckboxPrimitive.Indicator>
-    </CheckboxPrimitive.Root>
+    </CheckboxPrimitive.Root>,
+    unstyled,
   );
 });
 Checkbox.displayName = 'Checkbox';
@@ -224,7 +230,7 @@ export const Switch = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
   const dir = useDirection(props.dir === 'rtl' || props.dir === 'ltr' ? props.dir : undefined);
-  return (
+  return styles.tooltip(
     <SwitchPrimitive.Root
       ref={ref}
       dir={dir}
@@ -244,7 +250,8 @@ export const Switch = /* @__PURE__ */ React.forwardRef<
           unstyled,
         )}
       />
-    </SwitchPrimitive.Root>
+    </SwitchPrimitive.Root>,
+    unstyled,
   );
 });
 Switch.displayName = 'Switch';
@@ -253,12 +260,13 @@ export const RadioGroup = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof RadioPrimitive.Root> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <RadioPrimitive.Root
       ref={ref}
       {...styles('radio-group.root', 'grid gap-3', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 RadioGroup.displayName = 'RadioGroup';
@@ -267,7 +275,7 @@ export const RadioGroupItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof RadioPrimitive.Item> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <RadioPrimitive.Item
       ref={ref}
       {...styles(
@@ -290,11 +298,13 @@ export const RadioGroupItem = /* @__PURE__ */ React.forwardRef<
           {...styles('radio-group.dot', 'size-2.5 rounded-full bg-current', undefined, unstyled)}
         />
       </RadioPrimitive.Indicator>
-    </RadioPrimitive.Item>
+    </RadioPrimitive.Item>,
+    unstyled,
   );
 });
 RadioGroupItem.displayName = 'RadioGroupItem';
-export interface SliderProps extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> {
+export interface SliderProps
+  extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>, PlainStyleProps {
   thumbLabels?: string[];
 }
 export const Slider = /* @__PURE__ */ React.forwardRef<
@@ -304,7 +314,7 @@ export const Slider = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   const { t } = useTranslation();
   const values = props.value ?? props.defaultValue ?? [0];
-  return (
+  return styles.tooltip(
     <SliderPrimitive.Root
       ref={ref}
       {...styles(
@@ -348,7 +358,8 @@ export const Slider = /* @__PURE__ */ React.forwardRef<
           )}
         />
       ))}
-    </SliderPrimitive.Root>
+    </SliderPrimitive.Root>,
+    unstyled,
   );
 });
 Slider.displayName = 'Slider';
@@ -372,14 +383,21 @@ export function Select({
     />
   );
 }
-export const SelectGroup = SelectPrimitive.Group;
+export const SelectGroup = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Group>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Group> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<SelectPrimitive.Group {...props} ref={ref} />, unstyled);
+});
+SelectGroup.displayName = 'SelectGroup';
 export const SelectValue = SelectPrimitive.Value;
 export const SelectTrigger = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & PlainStyleProps
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <SelectPrimitive.Trigger
       ref={ref}
       {...styles(
@@ -400,7 +418,8 @@ export const SelectTrigger = /* @__PURE__ */ React.forwardRef<
           aria-hidden="true"
         />
       </SelectPrimitive.Icon>
-    </SelectPrimitive.Trigger>
+    </SelectPrimitive.Trigger>,
+    unstyled,
   );
 });
 SelectTrigger.displayName = 'SelectTrigger';
@@ -411,32 +430,35 @@ export const SelectContent = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   return (
     <SelectPrimitive.Portal container={usePortalContainer()}>
-      <SelectPrimitive.Content
-        ref={ref}
-        position={position}
-        sideOffset={sideOffset}
-        {...styles(
-          'select.content',
-          'ui-popup z-[var(--ui-layer-dropdown)] max-h-[var(--radix-select-content-available-height)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))]',
-          className,
-          unstyled,
-        )}
-        {...props}
-      >
-        <SelectPrimitive.ScrollUpButton
-          {...styles('select.scroll-up', 'flex justify-center py-1', undefined, unstyled)}
+      {styles.tooltip(
+        <SelectPrimitive.Content
+          ref={ref}
+          position={position}
+          sideOffset={sideOffset}
+          {...styles(
+            'select.content',
+            'ui-popup z-[var(--ui-layer-dropdown)] max-h-[var(--radix-select-content-available-height)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))]',
+            className,
+            unstyled,
+          )}
+          {...props}
         >
-          <ChevronUp {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
-        </SelectPrimitive.ScrollUpButton>
-        <SelectPrimitive.Viewport {...styles('select.viewport', 'p-1', undefined, unstyled)}>
-          {children}
-        </SelectPrimitive.Viewport>
-        <SelectPrimitive.ScrollDownButton
-          {...styles('select.scroll-down', 'flex justify-center py-1', undefined, unstyled)}
-        >
-          <ChevronDown {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
-        </SelectPrimitive.ScrollDownButton>
-      </SelectPrimitive.Content>
+          <SelectPrimitive.ScrollUpButton
+            {...styles('select.scroll-up', 'flex justify-center py-1', undefined, unstyled)}
+          >
+            <ChevronUp {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
+          </SelectPrimitive.ScrollUpButton>
+          <SelectPrimitive.Viewport {...styles('select.viewport', 'p-1', undefined, unstyled)}>
+            {children}
+          </SelectPrimitive.Viewport>
+          <SelectPrimitive.ScrollDownButton
+            {...styles('select.scroll-down', 'flex justify-center py-1', undefined, unstyled)}
+          >
+            <ChevronDown {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
+          </SelectPrimitive.ScrollDownButton>
+        </SelectPrimitive.Content>,
+        unstyled,
+      )}
     </SelectPrimitive.Portal>
   );
 });
@@ -446,7 +468,7 @@ export const SelectItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item> & PlainStyleProps
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <SelectPrimitive.Item
       ref={ref}
       {...styles(
@@ -463,7 +485,8 @@ export const SelectItem = /* @__PURE__ */ React.forwardRef<
       >
         <Check {...styles('select.icon', 'size-4', undefined, unstyled)} aria-hidden="true" />
       </SelectPrimitive.ItemIndicator>
-    </SelectPrimitive.Item>
+    </SelectPrimitive.Item>,
+    unstyled,
   );
 });
 SelectItem.displayName = 'SelectItem';
@@ -472,7 +495,7 @@ export const SelectLabel = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <SelectPrimitive.Label
       ref={ref}
       {...styles(
@@ -482,7 +505,8 @@ export const SelectLabel = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SelectLabel.displayName = 'SelectLabel';
@@ -491,12 +515,13 @@ export const SelectSeparator = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <SelectPrimitive.Separator
       ref={ref}
       {...styles('select.separator', 'my-1 h-px bg-border', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SelectSeparator.displayName = 'SelectSeparator';
@@ -517,12 +542,13 @@ export const Toggle = /* @__PURE__ */ React.forwardRef<
     PlainStyleProps
 >(({ className, variant, size, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <TogglePrimitive.Root
       ref={ref}
       {...styles('toggle.root', toggleVariants({ variant, size }), className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 Toggle.displayName = 'Toggle';
@@ -531,12 +557,13 @@ export const ToggleGroup = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ToggleGroupPrimitive.Root> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <ToggleGroupPrimitive.Root
       ref={ref}
       {...styles('toggle-group.root', 'inline-flex items-center gap-1', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 ToggleGroup.displayName = 'ToggleGroup';
@@ -547,12 +574,13 @@ export const ToggleGroupItem = /* @__PURE__ */ React.forwardRef<
     PlainStyleProps
 >(({ className, variant, size, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <ToggleGroupPrimitive.Item
       ref={ref}
       {...styles('toggle-group.item', toggleVariants({ variant, size }), className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 ToggleGroupItem.displayName = 'ToggleGroupItem';

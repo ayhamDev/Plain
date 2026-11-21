@@ -54,7 +54,7 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
     const active =
       selected ?? (group && value !== undefined ? group.values.includes(value) : local);
     const blocked = disabled || group?.disabled;
-    const button = (
+    const button = styles.tooltip(
       <button
         ref={ref}
         type="button"
@@ -77,7 +77,8 @@ export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
           (showCheck && active && behavior === 'selection' ? <Check aria-hidden="true" /> : null)}
         <span {...styles('chip.label', 'ui-chip-label', undefined, unstyled)}>{children}</span>
         {endIcon}
-      </button>
+      </button>,
+      unstyled,
     );
     return onRemove ? (
       <span {...styles('chip.container', 'ui-chip-container', undefined, unstyled)}>
@@ -142,41 +143,44 @@ export const ChipGroup = React.forwardRef<HTMLDivElement, ChipGroupProps>(
     return (
       <StyleProvider unstyled={unstyled}>
         <ChipContext.Provider value={{ values, change, disabled }}>
-          <div
-            ref={ref}
-            role="group"
-            dir={direction}
-            {...styles('chip-group.root', 'ui-chip-group', className, unstyled)}
-            {...props}
-            onKeyDown={(event) => {
-              onKeyDown?.(event);
-              if (
-                event.defaultPrevented ||
-                !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)
-              )
-                return;
-              const buttons = Array.from(
-                event.currentTarget.querySelectorAll<HTMLButtonElement>(
-                  'button[aria-pressed]:not(:disabled)',
-                ),
-              );
-              const index = buttons.indexOf(event.target as HTMLButtonElement);
-              if (index < 0 || !buttons.length) return;
-              event.preventDefault();
-              const next =
-                event.key === 'Home'
-                  ? 0
-                  : event.key === 'End'
-                    ? buttons.length - 1
-                    : (index +
-                        ((event.key === 'ArrowRight') === (direction !== 'rtl') ? 1 : -1) +
-                        buttons.length) %
-                      buttons.length;
-              buttons[next]?.focus();
-            }}
-          >
-            {children}
-          </div>
+          {styles.tooltip(
+            <div
+              ref={ref}
+              role="group"
+              dir={direction}
+              {...styles('chip-group.root', 'ui-chip-group', className, unstyled)}
+              {...props}
+              onKeyDown={(event) => {
+                onKeyDown?.(event);
+                if (
+                  event.defaultPrevented ||
+                  !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)
+                )
+                  return;
+                const buttons = Array.from(
+                  event.currentTarget.querySelectorAll<HTMLButtonElement>(
+                    'button[aria-pressed]:not(:disabled)',
+                  ),
+                );
+                const index = buttons.indexOf(event.target as HTMLButtonElement);
+                if (index < 0 || !buttons.length) return;
+                event.preventDefault();
+                const next =
+                  event.key === 'Home'
+                    ? 0
+                    : event.key === 'End'
+                      ? buttons.length - 1
+                      : (index +
+                          ((event.key === 'ArrowRight') === (direction !== 'rtl') ? 1 : -1) +
+                          buttons.length) %
+                        buttons.length;
+                buttons[next]?.focus();
+              }}
+            >
+              {children}
+            </div>,
+            unstyled,
+          )}
         </ChipContext.Provider>
       </StyleProvider>
     );

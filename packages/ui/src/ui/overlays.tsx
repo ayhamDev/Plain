@@ -13,7 +13,6 @@ import {
   Dialog as DialogPrimitive,
   AlertDialog as AlertDialogPrimitive,
   Popover as PopoverPrimitive,
-  Tooltip as TooltipPrimitive,
   DropdownMenu as DropdownPrimitive,
   Slot,
 } from 'radix-ui';
@@ -27,8 +26,22 @@ import { useMotionSettings } from './motion-policy';
 import { PanelOverflowFill } from './panel-overflow';
 import { PanelDragSurface, usePanelTouchGestures } from './panel-gestures';
 export const Dialog = DialogPrimitive.Root;
-export const DialogTrigger = DialogPrimitive.Trigger;
-export const DialogClose = DialogPrimitive.Close;
+export const DialogTrigger = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Trigger> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<DialogPrimitive.Trigger {...props} ref={ref} />, unstyled);
+});
+DialogTrigger.displayName = 'DialogTrigger';
+export const DialogClose = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Close>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Close> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<DialogPrimitive.Close {...props} ref={ref} />, unstyled);
+});
+DialogClose.displayName = 'DialogClose';
 export function DialogPortal(props: React.ComponentProps<typeof DialogPrimitive.Portal>) {
   const container = usePortalContainer();
   return <DialogPrimitive.Portal container={container} {...props} />;
@@ -38,7 +51,7 @@ export const DialogOverlay = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <DialogPrimitive.Overlay
       ref={ref}
       {...styles(
@@ -48,7 +61,8 @@ export const DialogOverlay = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 DialogOverlay.displayName = 'DialogOverlay';
@@ -64,34 +78,40 @@ export const DialogContent = /* @__PURE__ */ React.forwardRef<
   return (
     <DialogPortal>
       <DialogOverlay unstyled={unstyled} />
-      <DialogPrimitive.Content
-        ref={ref}
-        {...styles(
-          'dialog.content',
-          cn(
-            'ui-dialog fixed top-1/2 left-1/2 z-[var(--ui-layer-dialog)] max-h-[calc(100dvh-32px)] w-[calc(100%-32px)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto overscroll-contain rounded-[var(--ui-dialog-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-dialog-border,var(--ui-border))] bg-[var(--ui-dialog-background,var(--ui-surface))] p-5 text-[var(--ui-dialog-foreground,var(--ui-foreground))] shadow-[var(--ui-dialog-shadow,var(--ui-shadow))] sm:p-6',
-            showClose && '[&_[data-slot=header]]:pe-8',
-          ),
-          className,
-          unstyled,
-        )}
-        {...props}
-      >
-        {children}
-        {showClose && (
-          <DialogClose
-            {...styles(
-              'dialog.close',
-              'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
-              undefined,
-              unstyled,
-            )}
-            aria-label={t('dialog.close')}
-          >
-            <X {...styles('dialog.close-icon', 'size-4', undefined, unstyled)} aria-hidden="true" />
-          </DialogClose>
-        )}
-      </DialogPrimitive.Content>
+      {styles.tooltip(
+        <DialogPrimitive.Content
+          ref={ref}
+          {...styles(
+            'dialog.content',
+            cn(
+              'ui-dialog fixed top-1/2 left-1/2 z-[var(--ui-layer-dialog)] max-h-[calc(100dvh-32px)] w-[calc(100%-32px)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto overscroll-contain rounded-[var(--ui-dialog-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-dialog-border,var(--ui-border))] bg-[var(--ui-dialog-background,var(--ui-surface))] p-5 text-[var(--ui-dialog-foreground,var(--ui-foreground))] shadow-[var(--ui-dialog-shadow,var(--ui-shadow))] sm:p-6',
+              showClose && '[&_[data-slot=header]]:pe-8',
+            ),
+            className,
+            unstyled,
+          )}
+          {...props}
+        >
+          {children}
+          {showClose && (
+            <DialogClose
+              {...styles(
+                'dialog.close',
+                'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
+                undefined,
+                unstyled,
+              )}
+              aria-label={t('dialog.close')}
+            >
+              <X
+                {...styles('dialog.close-icon', 'size-4', undefined, unstyled)}
+                aria-hidden="true"
+              />
+            </DialogClose>
+          )}
+        </DialogPrimitive.Content>,
+        unstyled,
+      )}
     </DialogPortal>
   );
 });
@@ -102,11 +122,12 @@ export function DialogHeader({
   ...props
 }: React.ComponentProps<'div'> & PlainStyleProps) {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <div
       {...styles('dialog.header', 'mb-5 flex flex-col gap-1.5 text-start', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export function DialogFooter({
@@ -115,7 +136,7 @@ export function DialogFooter({
   ...props
 }: React.ComponentProps<'div'> & PlainStyleProps) {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <div
       {...styles(
         'dialog.footer',
@@ -124,7 +145,8 @@ export function DialogFooter({
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export const DialogTitle = /* @__PURE__ */ React.forwardRef<
@@ -132,12 +154,13 @@ export const DialogTitle = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <DialogPrimitive.Title
       ref={ref}
       {...styles('dialog.title', 'text-lg font-semibold leading-7', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 DialogTitle.displayName = 'DialogTitle';
@@ -146,7 +169,7 @@ export const DialogDescription = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <DialogPrimitive.Description
       ref={ref}
       {...styles(
@@ -156,7 +179,8 @@ export const DialogDescription = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 DialogDescription.displayName = 'DialogDescription';
@@ -262,8 +286,22 @@ export function Sheet(props: SheetProps) {
 export function Drawer(props: DrawerProps) {
   return <PanelRoot defaultSide="bottom" {...props} />;
 }
-export const SheetTrigger = Vaul.Trigger;
-export const SheetClose = Vaul.Close;
+export const SheetTrigger = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof Vaul.Trigger>,
+  React.ComponentPropsWithoutRef<typeof Vaul.Trigger> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<Vaul.Trigger {...props} ref={ref} />, unstyled);
+});
+SheetTrigger.displayName = 'SheetTrigger';
+export const SheetClose = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof Vaul.Close>,
+  React.ComponentPropsWithoutRef<typeof Vaul.Close> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<Vaul.Close {...props} ref={ref} />, unstyled);
+});
+SheetClose.displayName = 'SheetClose';
 export const SheetTitle = DialogTitle;
 export const SheetDescription = DialogDescription;
 export const SheetHeader = DialogHeader;
@@ -278,7 +316,7 @@ export const SheetOverlay = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
   const motion = useMotionSettings();
-  return (
+  return styles.tooltip(
     <Vaul.Overlay
       ref={ref}
       data-ui-motion={motion.reduced ? 'reduced' : undefined}
@@ -289,7 +327,8 @@ export const SheetOverlay = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SheetOverlay.displayName = 'SheetOverlay';
@@ -301,7 +340,7 @@ export const SheetHandle = /* @__PURE__ */ React.forwardRef<
   const context = React.useContext(PanelContext);
   const { t } = useTranslation();
   const keyboardInteractive = context?.hasSnapPoints && !preventCycle;
-  return (
+  return styles.tooltip(
     <Vaul.Handle
       ref={ref}
       preventCycle={preventCycle}
@@ -322,7 +361,8 @@ export const SheetHandle = /* @__PURE__ */ React.forwardRef<
       }}
       {...styles('sheet.handle', 'ui-panel-handle mb-5 shrink-0', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 SheetHandle.displayName = 'SheetHandle';
@@ -381,75 +421,78 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
         <SheetPortal>
           {overlay && <SheetOverlay unstyled={unstyled} {...overlayProps} />}
           <Slot.Root ref={setPanel}>
-            <Vaul.Content
-              ref={ref}
-              asChild
-              {...styles(
-                'sheet.content',
-                cn(
-                  'ui-panel fixed z-[var(--ui-layer-dialog)] min-w-0 overflow-x-hidden overflow-y-auto overscroll-contain border-[length:var(--ui-border-width,1px)] border-[var(--ui-sheet-border,var(--ui-border))] bg-[var(--ui-sheet-background,var(--ui-surface))] p-5 text-[var(--ui-sheet-foreground,var(--ui-foreground))] shadow-[var(--ui-sheet-shadow,var(--ui-shadow))] outline-none sm:p-6',
-                  vertical
-                    ? cn(
-                        'ui-drawer inset-x-0',
-                        context?.hasSnapPoints ? 'h-dvh max-h-none' : 'max-h-[90dvh]',
-                        resolvedSide === 'bottom'
-                          ? 'bottom-0 rounded-t-[var(--ui-sheet-radius,var(--ui-radius))] pb-[max(1.5rem,env(safe-area-inset-bottom))]'
-                          : 'top-0 rounded-b-[var(--ui-sheet-radius,var(--ui-radius))] pt-[max(1.5rem,env(safe-area-inset-top))]',
-                      )
-                    : cn(
-                        'ui-sheet inset-y-0 h-dvh',
-                        context?.hasSnapPoints ? 'w-screen' : 'w-[min(400px,calc(100%-24px))]',
-                        resolvedSide === 'left' ? 'left-0' : 'right-0',
-                      ),
-                  showClose && '[&_[data-slot=header]]:pe-8',
-                ),
-                className,
-                unstyled,
-              )}
-              dir={textDirection}
-              data-side={resolvedSide}
-              data-variant={context?.variant ?? 'attached'}
-              data-size={context?.size ?? 'md'}
-              style={
-                {
-                  '--ui-panel-gap': `${context?.gap ?? 12}px`,
-                  ...((maxWidth ?? context?.maxWidth) != null
-                    ? { maxWidth: maxWidth ?? context?.maxWidth }
-                    : {}),
-                  ...style,
-                } as React.CSSProperties
-              }
-              data-ui-motion={motion.reduced ? 'reduced' : undefined}
-              {...props}
-            >
-              <PanelDragSurface
-                asChild={asChild}
-                touchGesture={touchGesture}
-                consumerHandlers={{ onPointerDown, onPointerMove, onPointerUp, onPointerCancel }}
-              >
-                {(showHandle ?? vertical) &&
-                  !React.Children.toArray(children).some(
-                    (child) => React.isValidElement(child) && child.type === SheetHandle,
-                  ) && <SheetHandle />}
-                {children}
-                {showClose && (
-                  <SheetClose
-                    {...styles(
-                      'sheet.close',
-                      'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
-                      undefined,
-                      unstyled,
-                    )}
-                    aria-label={t('panel.close')}
-                  >
-                    <X
-                      {...styles('sheet.close-icon', 'size-4', undefined, unstyled)}
-                      aria-hidden="true"
-                    />
-                  </SheetClose>
+            {styles.tooltip(
+              <Vaul.Content
+                ref={ref}
+                asChild
+                {...styles(
+                  'sheet.content',
+                  cn(
+                    'ui-panel fixed z-[var(--ui-layer-dialog)] min-w-0 overflow-x-hidden overflow-y-auto overscroll-contain border-[length:var(--ui-border-width,1px)] border-[var(--ui-sheet-border,var(--ui-border))] bg-[var(--ui-sheet-background,var(--ui-surface))] p-5 text-[var(--ui-sheet-foreground,var(--ui-foreground))] shadow-[var(--ui-sheet-shadow,var(--ui-shadow))] outline-none sm:p-6',
+                    vertical
+                      ? cn(
+                          'ui-drawer inset-x-0',
+                          context?.hasSnapPoints ? 'h-dvh max-h-none' : 'max-h-[90dvh]',
+                          resolvedSide === 'bottom'
+                            ? 'bottom-0 rounded-t-[var(--ui-sheet-radius,var(--ui-radius))] pb-[max(1.5rem,env(safe-area-inset-bottom))]'
+                            : 'top-0 rounded-b-[var(--ui-sheet-radius,var(--ui-radius))] pt-[max(1.5rem,env(safe-area-inset-top))]',
+                        )
+                      : cn(
+                          'ui-sheet inset-y-0 h-dvh',
+                          context?.hasSnapPoints ? 'w-screen' : 'w-[min(400px,calc(100%-24px))]',
+                          resolvedSide === 'left' ? 'left-0' : 'right-0',
+                        ),
+                    showClose && '[&_[data-slot=header]]:pe-8',
+                  ),
+                  className,
+                  unstyled,
                 )}
-              </PanelDragSurface>
-            </Vaul.Content>
+                dir={textDirection}
+                data-side={resolvedSide}
+                data-variant={context?.variant ?? 'attached'}
+                data-size={context?.size ?? 'md'}
+                style={
+                  {
+                    '--ui-panel-gap': `${context?.gap ?? 12}px`,
+                    ...((maxWidth ?? context?.maxWidth) != null
+                      ? { maxWidth: maxWidth ?? context?.maxWidth }
+                      : {}),
+                    ...style,
+                  } as React.CSSProperties
+                }
+                data-ui-motion={motion.reduced ? 'reduced' : undefined}
+                {...props}
+              >
+                <PanelDragSurface
+                  asChild={asChild}
+                  touchGesture={touchGesture}
+                  consumerHandlers={{ onPointerDown, onPointerMove, onPointerUp, onPointerCancel }}
+                >
+                  {(showHandle ?? vertical) &&
+                    !React.Children.toArray(children).some(
+                      (child) => React.isValidElement(child) && child.type === SheetHandle,
+                    ) && <SheetHandle />}
+                  {children}
+                  {showClose && (
+                    <SheetClose
+                      {...styles(
+                        'sheet.close',
+                        'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
+                        undefined,
+                        unstyled,
+                      )}
+                      aria-label={t('panel.close')}
+                    >
+                      <X
+                        {...styles('sheet.close-icon', 'size-4', undefined, unstyled)}
+                        aria-hidden="true"
+                      />
+                    </SheetClose>
+                  )}
+                </PanelDragSurface>
+              </Vaul.Content>,
+              unstyled,
+            )}
           </Slot.Root>
         </SheetPortal>
         {panel?.parentElement &&
@@ -480,7 +523,14 @@ export const DrawerContent = /* @__PURE__ */ React.forwardRef<
 >((props, ref) => <SheetContent ref={ref} {...props} />);
 DrawerContent.displayName = 'DrawerContent';
 export const AlertDialog = AlertDialogPrimitive.Root;
-export const AlertDialogTrigger = AlertDialogPrimitive.Trigger;
+export const AlertDialogTrigger = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof AlertDialogPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Trigger> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<AlertDialogPrimitive.Trigger {...props} ref={ref} />, unstyled);
+});
+AlertDialogTrigger.displayName = 'AlertDialogTrigger';
 export const AlertDialogContent = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content> & PlainStyleProps
@@ -496,16 +546,19 @@ export const AlertDialogContent = /* @__PURE__ */ React.forwardRef<
           unstyled,
         )}
       />
-      <AlertDialogPrimitive.Content
-        ref={ref}
-        {...styles(
-          'alert-dialog.content',
-          'ui-dialog fixed top-1/2 left-1/2 z-[var(--ui-layer-dialog)] max-h-[calc(100dvh-32px)] w-[calc(100%-32px)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto overscroll-contain rounded-[var(--ui-dialog-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-dialog-border,var(--ui-border))] bg-[var(--ui-dialog-background,var(--ui-surface))] p-5 text-[var(--ui-dialog-foreground,var(--ui-foreground))] shadow-[var(--ui-dialog-shadow,var(--ui-shadow))] sm:p-6',
-          className,
-          unstyled,
-        )}
-        {...props}
-      />
+      {styles.tooltip(
+        <AlertDialogPrimitive.Content
+          ref={ref}
+          {...styles(
+            'alert-dialog.content',
+            'ui-dialog fixed top-1/2 left-1/2 z-[var(--ui-layer-dialog)] max-h-[calc(100dvh-32px)] w-[calc(100%-32px)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto overscroll-contain rounded-[var(--ui-dialog-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-dialog-border,var(--ui-border))] bg-[var(--ui-dialog-background,var(--ui-surface))] p-5 text-[var(--ui-dialog-foreground,var(--ui-foreground))] shadow-[var(--ui-dialog-shadow,var(--ui-shadow))] sm:p-6',
+            className,
+            unstyled,
+          )}
+          {...props}
+        />,
+        unstyled,
+      )}
     </AlertDialogPrimitive.Portal>
   );
 });
@@ -515,12 +568,13 @@ export const AlertDialogTitle = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Title> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <AlertDialogPrimitive.Title
       ref={ref}
       {...styles('alert-dialog.title', 'mb-2 text-lg font-semibold', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 AlertDialogTitle.displayName = 'AlertDialogTitle';
@@ -529,7 +583,7 @@ export const AlertDialogDescription = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Description> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <AlertDialogPrimitive.Description
       ref={ref}
       {...styles(
@@ -539,7 +593,8 @@ export const AlertDialogDescription = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 AlertDialogDescription.displayName = 'AlertDialogDescription';
@@ -548,12 +603,13 @@ export const AlertDialogAction = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Action> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <AlertDialogPrimitive.Action
       ref={ref}
       {...styles('alert-dialog.action', buttonVariants(), className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 AlertDialogAction.displayName = 'AlertDialogAction';
@@ -562,7 +618,7 @@ export const AlertDialogCancel = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Cancel> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <AlertDialogPrimitive.Cancel
       ref={ref}
       {...styles(
@@ -572,14 +628,36 @@ export const AlertDialogCancel = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 AlertDialogCancel.displayName = 'AlertDialogCancel';
 export const Popover = PopoverPrimitive.Root;
-export const PopoverTrigger = PopoverPrimitive.Trigger;
-export const PopoverAnchor = PopoverPrimitive.Anchor;
-export const PopoverClose = PopoverPrimitive.Close;
+export const PopoverTrigger = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof PopoverPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Trigger> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<PopoverPrimitive.Trigger {...props} ref={ref} />, unstyled);
+});
+PopoverTrigger.displayName = 'PopoverTrigger';
+export const PopoverAnchor = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof PopoverPrimitive.Anchor>,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Anchor> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<PopoverPrimitive.Anchor {...props} ref={ref} />, unstyled);
+});
+PopoverAnchor.displayName = 'PopoverAnchor';
+export const PopoverClose = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof PopoverPrimitive.Close>,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Close> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<PopoverPrimitive.Close {...props} ref={ref} />, unstyled);
+});
+PopoverClose.displayName = 'PopoverClose';
 export const PopoverContent = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof PopoverPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content> & PlainStyleProps
@@ -599,60 +677,36 @@ export const PopoverContent = /* @__PURE__ */ React.forwardRef<
     const styles = useStyles();
     return (
       <PopoverPrimitive.Portal container={usePortalContainer()}>
-        <PopoverPrimitive.Content
-          ref={ref}
-          align={align}
-          sideOffset={sideOffset}
-          collisionPadding={collisionPadding}
-          sticky={sticky}
-          {...styles(
-            'popover.content',
-            'ui-popup z-[var(--ui-layer-dropdown)] max-w-[min(calc(100vw-32px),var(--radix-popover-content-available-width))] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto overscroll-contain rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] p-4 text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))] outline-none',
-            className,
-            unstyled,
-          )}
-          {...props}
-        />
+        {styles.tooltip(
+          <PopoverPrimitive.Content
+            ref={ref}
+            align={align}
+            sideOffset={sideOffset}
+            collisionPadding={collisionPadding}
+            sticky={sticky}
+            {...styles(
+              'popover.content',
+              'ui-popup z-[var(--ui-layer-dropdown)] max-w-[min(calc(100vw-32px),var(--radix-popover-content-available-width))] max-h-[var(--radix-popover-content-available-height)] overflow-y-auto overscroll-contain rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] p-4 text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))] outline-none',
+              className,
+              unstyled,
+            )}
+            {...props}
+          />,
+          unstyled,
+        )}
       </PopoverPrimitive.Portal>
     );
   },
 );
 PopoverContent.displayName = 'PopoverContent';
-export const TooltipProvider = TooltipPrimitive.Provider;
-export const Tooltip = TooltipPrimitive.Root;
-export const TooltipTrigger = TooltipPrimitive.Trigger;
-export const TooltipContent = /* @__PURE__ */ React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content> & PlainStyleProps
->(({ className, sideOffset = 6, children, unstyled, ...props }, ref) => {
-  const styles = useStyles();
-  return (
-    <TooltipPrimitive.Portal container={usePortalContainer()}>
-      <TooltipPrimitive.Content
-        ref={ref}
-        sideOffset={sideOffset}
-        {...styles(
-          'tooltip.content',
-          'ui-popup z-[var(--ui-layer-dropdown)] max-w-64 rounded-[var(--ui-tooltip-radius,var(--ui-radius))] bg-[var(--ui-tooltip-background,var(--ui-foreground))] px-3 py-2 text-xs leading-5 text-[var(--ui-tooltip-foreground,var(--ui-background))] shadow-popover',
-          className,
-          unstyled,
-        )}
-        {...props}
-      >
-        {children}
-        <TooltipPrimitive.Arrow
-          {...styles(
-            'tooltip.arrow',
-            'fill-[var(--ui-tooltip-background,var(--ui-foreground))]',
-            undefined,
-            unstyled,
-          )}
-        />
-      </TooltipPrimitive.Content>
-    </TooltipPrimitive.Portal>
-  );
-});
-TooltipContent.displayName = 'TooltipContent';
+export { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from './tooltip';
+export type {
+  TooltipOptions,
+  TooltipValue,
+  TooltipProps,
+  TooltipContentProps,
+  TooltipProviderProps,
+} from './tooltip';
 export function DropdownMenu({
   modal = false,
   open,
@@ -675,10 +729,31 @@ export function DropdownMenu({
     />
   );
 }
-export const DropdownMenuTrigger = DropdownPrimitive.Trigger;
-export const DropdownMenuGroup = DropdownPrimitive.Group;
+export const DropdownMenuTrigger = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof DropdownPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof DropdownPrimitive.Trigger> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<DropdownPrimitive.Trigger {...props} ref={ref} />, unstyled);
+});
+DropdownMenuTrigger.displayName = 'DropdownMenuTrigger';
+export const DropdownMenuGroup = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof DropdownPrimitive.Group>,
+  React.ComponentPropsWithoutRef<typeof DropdownPrimitive.Group> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<DropdownPrimitive.Group {...props} ref={ref} />, unstyled);
+});
+DropdownMenuGroup.displayName = 'DropdownMenuGroup';
 export const DropdownMenuSub = DropdownPrimitive.Sub;
-export const DropdownMenuRadioGroup = DropdownPrimitive.RadioGroup;
+export const DropdownMenuRadioGroup = /* @__PURE__ */ React.forwardRef<
+  React.ElementRef<typeof DropdownPrimitive.RadioGroup>,
+  React.ComponentPropsWithoutRef<typeof DropdownPrimitive.RadioGroup> & PlainStyleProps
+>(({ unstyled, ...props }, ref) => {
+  const styles = useStyles();
+  return styles.tooltip(<DropdownPrimitive.RadioGroup {...props} ref={ref} />, unstyled);
+});
+DropdownMenuRadioGroup.displayName = 'DropdownMenuRadioGroup';
 const menuContent =
   'ui-popup z-[var(--ui-layer-dropdown)] min-w-44 max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] p-1 text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))]';
 const menuItem =
@@ -690,12 +765,15 @@ export const DropdownMenuContent = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   return (
     <DropdownPrimitive.Portal container={usePortalContainer()}>
-      <DropdownPrimitive.Content
-        ref={ref}
-        sideOffset={sideOffset}
-        {...styles('dropdown-menu.content', menuContent, className, unstyled)}
-        {...props}
-      />
+      {styles.tooltip(
+        <DropdownPrimitive.Content
+          ref={ref}
+          sideOffset={sideOffset}
+          {...styles('dropdown-menu.content', menuContent, className, unstyled)}
+          {...props}
+        />,
+        unstyled,
+      )}
     </DropdownPrimitive.Portal>
   );
 });
@@ -708,7 +786,7 @@ export const DropdownMenuItem = /* @__PURE__ */ React.forwardRef<
     PlainStyleProps
 >(({ className, destructive, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <DropdownPrimitive.Item
       ref={ref}
       {...styles(
@@ -721,7 +799,8 @@ export const DropdownMenuItem = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 DropdownMenuItem.displayName = 'DropdownMenuItem';
@@ -730,7 +809,7 @@ export const DropdownMenuCheckboxItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownPrimitive.CheckboxItem> & PlainStyleProps
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <DropdownPrimitive.CheckboxItem
       ref={ref}
       {...styles('dropdown-menu.checkbox-item', cn(menuItem, 'ps-8'), className, unstyled)}
@@ -745,7 +824,8 @@ export const DropdownMenuCheckboxItem = /* @__PURE__ */ React.forwardRef<
         </DropdownPrimitive.ItemIndicator>
       </span>
       {children}
-    </DropdownPrimitive.CheckboxItem>
+    </DropdownPrimitive.CheckboxItem>,
+    unstyled,
   );
 });
 DropdownMenuCheckboxItem.displayName = 'DropdownMenuCheckboxItem';
@@ -754,7 +834,7 @@ export const DropdownMenuRadioItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownPrimitive.RadioItem> & PlainStyleProps
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <DropdownPrimitive.RadioItem
       ref={ref}
       {...styles('dropdown-menu.radio-item', cn(menuItem, 'ps-8'), className, unstyled)}
@@ -769,7 +849,8 @@ export const DropdownMenuRadioItem = /* @__PURE__ */ React.forwardRef<
         </DropdownPrimitive.ItemIndicator>
       </span>
       {children}
-    </DropdownPrimitive.RadioItem>
+    </DropdownPrimitive.RadioItem>,
+    unstyled,
   );
 });
 DropdownMenuRadioItem.displayName = 'DropdownMenuRadioItem';
@@ -778,7 +859,7 @@ export const DropdownMenuLabel = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownPrimitive.Label> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <DropdownPrimitive.Label
       ref={ref}
       {...styles(
@@ -788,7 +869,8 @@ export const DropdownMenuLabel = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 DropdownMenuLabel.displayName = 'DropdownMenuLabel';
@@ -797,12 +879,13 @@ export const DropdownMenuSeparator = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownPrimitive.Separator> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <DropdownPrimitive.Separator
       ref={ref}
       {...styles('dropdown-menu.separator', 'my-1 h-px bg-border', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 DropdownMenuSeparator.displayName = 'DropdownMenuSeparator';
@@ -811,7 +894,7 @@ export const DropdownMenuSubTrigger = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownPrimitive.SubTrigger> & PlainStyleProps
 >(({ className, children, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <DropdownPrimitive.SubTrigger
       ref={ref}
       {...styles('dropdown-menu.sub-trigger', menuItem, className, unstyled)}
@@ -822,7 +905,8 @@ export const DropdownMenuSubTrigger = /* @__PURE__ */ React.forwardRef<
         {...styles('dropdown-menu.submenu-icon', 'ms-auto rtl:rotate-180', undefined, unstyled)}
         aria-hidden="true"
       />
-    </DropdownPrimitive.SubTrigger>
+    </DropdownPrimitive.SubTrigger>,
+    unstyled,
   );
 });
 DropdownMenuSubTrigger.displayName = 'DropdownMenuSubTrigger';
@@ -833,14 +917,17 @@ export const DropdownMenuSubContent = /* @__PURE__ */ React.forwardRef<
   const styles = useStyles();
   return (
     <DropdownPrimitive.Portal container={usePortalContainer()}>
-      <DropdownPrimitive.SubContent
-        ref={ref}
-        collisionPadding={8}
-        avoidCollisions={avoidCollisions}
-        data-collision-aware={avoidCollisions || undefined}
-        {...styles('dropdown-menu.content', cn(menuContent, 'ui-submenu'), className, unstyled)}
-        {...props}
-      />
+      {styles.tooltip(
+        <DropdownPrimitive.SubContent
+          ref={ref}
+          collisionPadding={8}
+          avoidCollisions={avoidCollisions}
+          data-collision-aware={avoidCollisions || undefined}
+          {...styles('dropdown-menu.content', cn(menuContent, 'ui-submenu'), className, unstyled)}
+          {...props}
+        />,
+        unstyled,
+      )}
     </DropdownPrimitive.Portal>
   );
 });
@@ -851,7 +938,7 @@ export function DropdownMenuShortcut({
   ...props
 }: React.ComponentProps<'span'> & PlainStyleProps) {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <span
       {...styles(
         'dropdown-menu.shortcut',
@@ -860,10 +947,11 @@ export function DropdownMenuShortcut({
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
-export type ToasterProps = SonnerToasterProps & PlainStyleProps;
+export type ToasterProps = SonnerToasterProps & Omit<PlainStyleProps, 'tooltip'>;
 export function Toaster({
   toastOptions,
   unstyled,

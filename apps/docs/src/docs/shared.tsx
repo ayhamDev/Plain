@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Check, Copy, Code2, Download } from 'lucide-react';
-import { Button, Tooltip, TooltipTrigger, TooltipContent, toast } from '@plain/ui';
+import { Button, toast } from '@plain/ui';
 
 export function IconButton({
   label,
@@ -8,14 +8,9 @@ export function IconButton({
   ...props
 }: React.ComponentProps<typeof Button> & { label: string }) {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={label} {...props}>
-          {children}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
+    <Button variant="ghost" size="icon" aria-label={label} tooltip={label} {...props}>
+      {children}
+    </Button>
   );
 }
 export function CopyButton({

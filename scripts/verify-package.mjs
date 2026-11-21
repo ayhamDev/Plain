@@ -133,6 +133,21 @@ const builds = Array.isArray(built) ? built : [built];
 const chunks = builds
   .flatMap((output) => output.output)
   .filter((output) => output.type === 'chunk');
+function eagerChunks(chunks) {
+  const byName = new Map(chunks.map((chunk) => [chunk.fileName, chunk]));
+  const visited = new Set();
+  const visit = (chunk) => {
+    if (visited.has(chunk.fileName)) return;
+    visited.add(chunk.fileName);
+    for (const dependency of chunk.imports) {
+      const imported = byName.get(dependency.replace(/^\.\//, ''));
+      if (imported) visit(imported);
+    }
+  };
+  chunks.filter((chunk) => chunk.isEntry).forEach(visit);
+  return chunks.filter((chunk) => visited.has(chunk.fileName));
+}
+const buttonEagerChunks = eagerChunks(chunks);
 const modules = chunks.flatMap((chunk) =>
   Object.keys(chunk.modules).filter((id) => chunk.modules[id].renderedLength > 0),
 );
@@ -151,7 +166,21 @@ for (const heavy of [
   '/qrcode/',
 ])
   assert(!modules.some((id) => id.includes(heavy)), `Button bundle retained ${heavy}`);
-const bundle = chunks.map((chunk) => chunk.code).join('\n');
+const bundle = buttonEagerChunks.map((chunk) => chunk.code).join('\n');
+const buttonDeferredGzipBytes = gzipSync(
+  chunks
+    .filter((chunk) => !buttonEagerChunks.includes(chunk))
+    .map((chunk) => chunk.code)
+    .join('\n'),
+).length;
+assert(
+  !buttonEagerChunks.some((chunk) =>
+    Object.keys(chunk.modules).some(
+      (id) => id.includes('/react-tooltip/') || id.includes('/tooltip-runtime.'),
+    ),
+  ),
+  'Button eagerly retained the optional tooltip engine',
+);
 const gzipBytes = gzipSync(bundle).length;
 assert(gzipBytes < 25000, `Button bundle exceeded 25 kB gzip: ${gzipBytes}`);
 assert(
@@ -187,7 +216,22 @@ for (const heavy of [
   '@tanstack',
 ])
   assert(!layoutModules.some((id) => id.includes(heavy)), `Layout bundle retained ${heavy}`);
-const layoutGzipBytes = gzipSync(layoutChunks.map((chunk) => chunk.code).join('\n')).length;
+const layoutEagerChunks = eagerChunks(layoutChunks);
+const layoutGzipBytes = gzipSync(layoutEagerChunks.map((chunk) => chunk.code).join('\n')).length;
+const layoutDeferredGzipBytes = gzipSync(
+  layoutChunks
+    .filter((chunk) => !layoutEagerChunks.includes(chunk))
+    .map((chunk) => chunk.code)
+    .join('\n'),
+).length;
+assert(
+  !layoutEagerChunks.some((chunk) =>
+    Object.keys(chunk.modules).some(
+      (id) => id.includes('/react-tooltip/') || id.includes('/tooltip-runtime.'),
+    ),
+  ),
+  'Layout eagerly retained the optional tooltip engine',
+);
 assert(layoutGzipBytes < 25000, `Layout bundle exceeds the 25kB gzip budget: ${layoutGzipBytes}`);
 const { createElement } = require('react');
 const { renderToString } = require('react-dom/server');
@@ -275,6 +319,32 @@ for (const directory of [consumer, minimumConsumer]) {
     range.includes('value="2026-11-20"') && range.includes('value="2026-11-23"'),
     `React ${peerReact.version} omitted server date range form values.`,
   );
+  const tooltip = peerServer.renderToString(
+    peerReact.createElement(
+      peerLibrary.PlainProvider,
+      { persist: false, tooltip: { delayDuration: 200 } },
+      peerReact.createElement(
+        peerLibrary.Button,
+        {
+          type: 'submit',
+          name: 'action',
+          value: 'save',
+          tooltip: { content: 'Save project', side: 'right' },
+        },
+        peerReact.createElement('svg', { 'aria-hidden': true }),
+      ),
+    ),
+  );
+  assert(
+    tooltip.includes('aria-label="Save project"') &&
+      tooltip.includes('type="submit"') &&
+      tooltip.includes('name="action"'),
+    `React ${peerReact.version} lost native tooltip trigger attributes during SSR.`,
+  );
+  assert(
+    !/\btooltip=/.test(tooltip) && !tooltip.includes('role="tooltip"'),
+    `React ${peerReact.version} leaked tooltip configuration into server markup.`,
+  );
   const qr = peerServer.renderToString(
     peerReact.createElement(peerLibrary.QRCode, { value: 'https://github.com/ayhamDev/Plain' }),
   );
@@ -326,6 +396,8 @@ console.log(
       compiledCompositions: compositionExamples.length,
       buttonGzipBytes: gzipBytes,
       layoutGzipBytes,
+      buttonDeferredGzipBytes,
+      layoutDeferredGzipBytes,
       heavyFeaturesExcluded: true,
       ssr: true,
       ssrReactVersions: ['18.3.1', '19.3.0'],

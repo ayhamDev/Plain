@@ -61,14 +61,15 @@ export const Box = /* @__PURE__ */ React.forwardRef<HTMLDivElement, BoxProps>(
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
-    return (
+    return styles.tooltip(
       <Element
         ref={scope.ref}
         children={scope.children}
         {...styles('box.root', 'ui-box', className, unstyled)}
         style={{ ...variables('padding', padding, 0, space), ...style }}
         {...props}
-      />
+      />,
+      unstyled,
     );
   },
 );
@@ -115,14 +116,15 @@ export const Flex = /* @__PURE__ */ React.forwardRef<HTMLDivElement, FlexProps>(
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
-    return (
+    return styles.tooltip(
       <Element
         ref={scope.ref}
         children={scope.children}
         {...styles('flex.root', 'ui-box ui-flex', className, unstyled)}
         style={{ ...flexVariables({ padding, gap, direction, align, justify, wrap }), ...style }}
         {...props}
-      />
+      />,
+      unstyled,
     );
   },
 );
@@ -150,7 +152,7 @@ export const Stack = /* @__PURE__ */ React.forwardRef<HTMLDivElement, StackProps
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
-    return (
+    return styles.tooltip(
       <Element
         ref={scope.ref}
         children={scope.children}
@@ -160,7 +162,8 @@ export const Stack = /* @__PURE__ */ React.forwardRef<HTMLDivElement, StackProps
           ...style,
         }}
         {...props}
-      />
+      />,
+      unstyled,
     );
   },
 );
@@ -188,7 +191,7 @@ export const Inline = /* @__PURE__ */ React.forwardRef<HTMLDivElement, InlinePro
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
-    return (
+    return styles.tooltip(
       <Element
         ref={scope.ref}
         children={scope.children}
@@ -198,7 +201,8 @@ export const Inline = /* @__PURE__ */ React.forwardRef<HTMLDivElement, InlinePro
           ...style,
         }}
         {...props}
-      />
+      />,
+      unstyled,
     );
   },
 );
@@ -240,7 +244,7 @@ export const Grid = /* @__PURE__ */ React.forwardRef<HTMLDivElement, GridProps>(
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
-    return (
+    return styles.tooltip(
       <Element
         ref={scope.ref}
         children={scope.children}
@@ -260,7 +264,8 @@ export const Grid = /* @__PURE__ */ React.forwardRef<HTMLDivElement, GridProps>(
           ...style,
         }}
         {...props}
-      />
+      />,
+      unstyled,
     );
   },
 );
@@ -289,7 +294,7 @@ export const Container = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Contai
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
-    return (
+    return styles.tooltip(
       <Element
         ref={scope.ref}
         children={scope.children}
@@ -303,7 +308,8 @@ export const Container = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Contai
           } as React.CSSProperties
         }
         {...props}
-      />
+      />,
+      unstyled,
     );
   },
 );
@@ -317,7 +323,7 @@ export const Center = /* @__PURE__ */ React.forwardRef<HTMLDivElement, CenterPro
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
-    return (
+    return styles.tooltip(
       <Element
         ref={scope.ref}
         children={scope.children}
@@ -325,7 +331,8 @@ export const Center = /* @__PURE__ */ React.forwardRef<HTMLDivElement, CenterPro
         data-inline={inline || undefined}
         style={{ ...variables('padding', padding, 0, space), ...style }}
         {...props}
-      />
+      />,
+      unstyled,
     );
   },
 );
@@ -340,7 +347,7 @@ export const Spacer = /* @__PURE__ */ React.forwardRef<HTMLDivElement, SpacerPro
   ({ size, axis = 'vertical', className, style, unstyled, presence, children, ...props }, ref) => {
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref);
-    return (
+    return styles.tooltip(
       <div
         ref={scope.ref}
         children={scope.children}
@@ -350,7 +357,8 @@ export const Spacer = /* @__PURE__ */ React.forwardRef<HTMLDivElement, SpacerPro
         data-flex={size === undefined || undefined}
         style={{ ...variables('space', size, 0, space), ...style }}
         {...props}
-      />
+      />,
+      unstyled,
     );
   },
 );
@@ -377,7 +385,7 @@ export const Masonry = /* @__PURE__ */ React.forwardRef<HTMLDivElement, MasonryP
   ) => {
     const styles = useStyles();
     const scope = useLayoutPresence(children, presence, ref);
-    return (
+    return styles.tooltip(
       <div
         ref={scope.ref}
         {...styles('masonry.root', 'ui-box ui-masonry', className, unstyled)}
@@ -398,7 +406,8 @@ export const Masonry = /* @__PURE__ */ React.forwardRef<HTMLDivElement, MasonryP
               <div {...styles('masonry.item', 'ui-masonry-item', undefined, unstyled)}>{child}</div>
             ),
         )}
-      </div>
+      </div>,
+      unstyled,
     );
   },
 );

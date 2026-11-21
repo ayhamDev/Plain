@@ -180,16 +180,19 @@ export const Table = /* @__PURE__ */ React.forwardRef<HTMLTableElement, TablePro
               bar.scrollLeft = event.currentTarget.scrollLeft;
           }}
         >
-          <table
-            ref={tableRef}
-            {...styles(
-              'table.root',
-              'w-full caption-bottom bg-[var(--ui-table-background)] text-sm text-[var(--ui-table-foreground)]',
-              className,
-              unstyled,
-            )}
-            {...props}
-          />
+          {styles.tooltip(
+            <table
+              ref={tableRef}
+              {...styles(
+                'table.root',
+                'w-full caption-bottom bg-[var(--ui-table-background)] text-sm text-[var(--ui-table-foreground)]',
+                className,
+                unstyled,
+              )}
+              {...props}
+            />,
+            unstyled,
+          )}
         </div>
         {stickyScrollbar && scrollable && (
           <div
@@ -219,7 +222,7 @@ export const TableHeader = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, presence, children, ...props }, ref) => {
   const styles = useStyles();
   const scope = useLayoutPresence(children, presence, ref);
-  return (
+  return styles.tooltip(
     <thead
       ref={scope.ref}
       children={scope.children}
@@ -230,7 +233,8 @@ export const TableHeader = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 TableHeader.displayName = 'TableHeader';
@@ -240,13 +244,14 @@ export const TableBody = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, presence, children, ...props }, ref) => {
   const styles = useStyles();
   const scope = useLayoutPresence(children, presence, ref);
-  return (
+  return styles.tooltip(
     <tbody
       ref={scope.ref}
       children={scope.children}
       {...styles('table.body', '[&_tr:last-child]:border-0', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 TableBody.displayName = 'TableBody';
@@ -256,7 +261,7 @@ export const TableFooter = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, presence, children, ...props }, ref) => {
   const styles = useStyles();
   const scope = useLayoutPresence(children, presence, ref);
-  return (
+  return styles.tooltip(
     <tfoot
       ref={scope.ref}
       children={scope.children}
@@ -267,7 +272,8 @@ export const TableFooter = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 TableFooter.displayName = 'TableFooter';
@@ -277,7 +283,7 @@ export function TableRow({
   ...props
 }: React.ComponentProps<'tr'> & PlainStyleProps) {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <tr
       {...styles(
         'table.row',
@@ -286,7 +292,8 @@ export function TableRow({
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export function TableHead({
@@ -296,7 +303,7 @@ export function TableHead({
   ...props
 }: React.ComponentProps<'th'> & PlainStyleProps) {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <th
       scope={scope}
       {...styles(
@@ -306,7 +313,8 @@ export function TableHead({
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export function TableCell({
@@ -315,7 +323,10 @@ export function TableCell({
   ...props
 }: React.ComponentProps<'td'> & PlainStyleProps) {
   const styles = useStyles();
-  return <td {...styles('table.cell', 'px-4 py-3 align-middle', className, unstyled)} {...props} />;
+  return styles.tooltip(
+    <td {...styles('table.cell', 'px-4 py-3 align-middle', className, unstyled)} {...props} />,
+    unstyled,
+  );
 }
 export function TableCaption({
   className,
@@ -323,10 +334,11 @@ export function TableCaption({
   ...props
 }: React.ComponentProps<'caption'> & PlainStyleProps) {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <caption
       {...styles('table.caption', 'mt-4 text-sm text-muted-foreground', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }

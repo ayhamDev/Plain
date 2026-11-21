@@ -154,6 +154,7 @@ export function DataTableSimpleFilter<T>({
   onRemove,
   presentation,
   className,
+  tooltip,
 }: {
   field: DataTableFilterField<T>;
   rule?: DataTableFilter;
@@ -161,6 +162,7 @@ export function DataTableSimpleFilter<T>({
   onRemove: () => void;
   presentation?: TableMenuPresentation;
   className?: string;
+  tooltip?: import('./tooltip-types').TooltipValue;
 }) {
   const { t, locale } = useTranslation();
   const styles = useStyles();
@@ -177,6 +179,7 @@ export function DataTableSimpleFilter<T>({
       contentProps={styles('data-table.simple-filter', 'ui-table-simple-filter')}
       trigger={
         <Chip
+          tooltip={tooltip}
           className={className}
           behavior="action"
           selected={!!summary || (!!rule && ['empty', 'notEmpty'].includes(rule.operator))}

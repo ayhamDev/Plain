@@ -177,7 +177,7 @@ function VirtualListInner<T>(
   });
   const visible = virtualizer.getVirtualItems();
   const fallback = !viewport.mounted || !visible.length;
-  return (
+  return styles.tooltip(
     <div
       ref={viewport.element}
       role="list"
@@ -246,7 +246,8 @@ function VirtualListInner<T>(
               ))}
         </div>
       )}
-    </div>
+    </div>,
+    unstyled,
   );
 }
 export const VirtualList = /* @__PURE__ */ React.forwardRef(VirtualListInner) as <T>(
@@ -325,7 +326,7 @@ function VirtualGridInner<T>(
       {renderItem(item, index)}
     </div>
   );
-  return (
+  return styles.tooltip(
     <div
       ref={viewport.element}
       role="list"
@@ -371,7 +372,8 @@ function VirtualGridInner<T>(
               )}
         </div>
       )}
-    </div>
+    </div>,
+    unstyled,
   );
 }
 export const VirtualGrid = /* @__PURE__ */ React.forwardRef(VirtualGridInner) as <T>(
@@ -428,7 +430,7 @@ function VirtualMasonryInner<T>(
   // Engine lanes determine geometry; source order remains the reading and focus order.
   const visible = [...virtualizer.getVirtualItems()].sort((a, b) => a.index - b.index);
   const fallback = !viewport.mounted || !visible.length;
-  return (
+  return styles.tooltip(
     <div
       ref={viewport.element}
       role="list"
@@ -499,7 +501,8 @@ function VirtualMasonryInner<T>(
               ))}
         </div>
       )}
-    </div>
+    </div>,
+    unstyled,
   );
 }
 export const VirtualMasonry = /* @__PURE__ */ React.forwardRef(VirtualMasonryInner) as <T>(

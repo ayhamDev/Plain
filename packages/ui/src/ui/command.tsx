@@ -12,7 +12,7 @@ export const Command = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
   const { t } = useTranslation();
-  return (
+  return styles.tooltip(
     <CommandPrimitive
       ref={ref}
       label={props['aria-label'] ?? t('search.title')}
@@ -23,7 +23,8 @@ export const Command = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 Command.displayName = 'Command';
@@ -46,17 +47,20 @@ export const CommandInput = /* @__PURE__ */ React.forwardRef<
         )}
         aria-hidden="true"
       />
-      <CommandPrimitive.Input
-        ref={ref}
-        placeholder={t('common.search')}
-        {...styles(
-          'command.input',
-          'h-11 w-full min-w-0 bg-transparent text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:opacity-50',
-          className,
-          unstyled,
-        )}
-        {...props}
-      />
+      {styles.tooltip(
+        <CommandPrimitive.Input
+          ref={ref}
+          placeholder={t('common.search')}
+          {...styles(
+            'command.input',
+            'h-11 w-full min-w-0 bg-transparent text-sm placeholder:text-muted-foreground focus-visible:outline-none disabled:opacity-50',
+            className,
+            unstyled,
+          )}
+          {...props}
+        />,
+        unstyled,
+      )}
     </div>
   );
 });
@@ -67,7 +71,7 @@ export const CommandList = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
   const { t } = useTranslation();
-  return (
+  return styles.tooltip(
     <CommandPrimitive.List
       ref={ref}
       label={props['aria-label'] ?? t('search.results')}
@@ -78,7 +82,8 @@ export const CommandList = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 CommandList.displayName = 'CommandList';
@@ -87,7 +92,7 @@ export const CommandEmpty = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <CommandPrimitive.Empty
       ref={ref}
       {...styles(
@@ -97,7 +102,8 @@ export const CommandEmpty = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 CommandEmpty.displayName = 'CommandEmpty';
@@ -106,7 +112,7 @@ export const CommandGroup = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <CommandPrimitive.Group
       ref={ref}
       {...styles(
@@ -116,7 +122,8 @@ export const CommandGroup = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 CommandGroup.displayName = 'CommandGroup';
@@ -125,7 +132,7 @@ export const CommandItem = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <CommandPrimitive.Item
       ref={ref}
       {...styles(
@@ -135,7 +142,8 @@ export const CommandItem = /* @__PURE__ */ React.forwardRef<
         unstyled,
       )}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 CommandItem.displayName = 'CommandItem';
@@ -144,14 +152,15 @@ export const CommandSeparator = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator> & PlainStyleProps
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <CommandPrimitive.Separator
       ref={ref}
       role="presentation"
       aria-hidden="true"
       {...styles('command.separator', 'my-1 h-px bg-border', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 });
 CommandSeparator.displayName = 'CommandSeparator';
@@ -161,11 +170,12 @@ export function CommandShortcut({
   ...props
 }: React.ComponentProps<'span'> & PlainStyleProps) {
   const styles = useStyles();
-  return (
+  return styles.tooltip(
     <span
       {...styles('command.shortcut', 'ms-auto text-xs text-muted-foreground', className, unstyled)}
       {...props}
-    />
+    />,
+    unstyled,
   );
 }
 export interface ComboboxOption {
@@ -175,10 +185,13 @@ export interface ComboboxOption {
   keywords?: string[];
   description?: string;
 }
-export interface ComboboxProps extends Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  'value' | 'defaultValue' | 'onChange' | 'children'
-> {
+export interface ComboboxProps
+  extends
+    PlainStyleProps,
+    Omit<
+      React.ButtonHTMLAttributes<HTMLButtonElement>,
+      'value' | 'defaultValue' | 'onChange' | 'children'
+    > {
   options: ComboboxOption[];
   value?: string;
   defaultValue?: string;
@@ -222,30 +235,33 @@ export const Combobox = /* @__PURE__ */ React.forwardRef<
     <StyleProvider unstyled={unstyled}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button
-            ref={ref}
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            aria-haspopup="listbox"
-            aria-label={props['aria-label'] ?? placeholder}
-            {...styles(
-              'combobox.root',
-              cn(
-                'w-full justify-between border-input-border font-normal',
-                !selected && 'text-muted-foreground',
-              ),
-              className,
-              unstyled,
-            )}
-            {...props}
-          >
-            {selected?.label ?? placeholder}
-            <ChevronsUpDown
-              {...styles('combobox.icon', 'opacity-60', undefined, unstyled)}
-              aria-hidden="true"
-            />
-          </Button>
+          {styles.tooltip(
+            <Button
+              ref={ref}
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              aria-haspopup="listbox"
+              aria-label={props['aria-label'] ?? placeholder}
+              {...styles(
+                'combobox.root',
+                cn(
+                  'w-full justify-between border-input-border font-normal',
+                  !selected && 'text-muted-foreground',
+                ),
+                className,
+                unstyled,
+              )}
+              {...props}
+            >
+              {selected?.label ?? placeholder}
+              <ChevronsUpDown
+                {...styles('combobox.icon', 'opacity-60', undefined, unstyled)}
+                aria-hidden="true"
+              />
+            </Button>,
+            unstyled,
+          )}
         </PopoverTrigger>
         <PopoverContent
           align="start"

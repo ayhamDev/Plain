@@ -2,6 +2,9 @@ import * as React from 'react';
 import { Direction } from 'radix-ui';
 import { ThemeProvider, type ThemeSettings } from './theme';
 import { cn } from './utils';
+import { wrapTooltip } from './tooltip-prop';
+import { TooltipProviderScope, type TooltipProviderProps } from './tooltip-provider';
+import type { TooltipProps, TooltipValue } from './tooltip-types';
 import {
   LanguageProvider,
   languageDirection,
@@ -18,7 +21,7 @@ import {
 export type { ThemeToken, ThemeTokens } from './token-contract';
 
 export type TextDirection = 'ltr' | 'rtl';
-export interface PlainStyleProps {
+export interface PlainStyleProps extends TooltipProps {
   unstyled?: boolean;
 }
 /** @deprecated Use the corresponding resizable.* styling slots. */
@@ -87,7 +90,16 @@ export function useStyles() {
       className: cn((unstyled ?? context.unstyled) ? undefined : defaults, override, className),
     };
   };
-  return Object.assign(styles, { unstyled: context.unstyled });
+  return Object.assign(styles, {
+    unstyled: context.unstyled,
+    tooltip: <P,>(element: React.ReactElement<P>, unstyled?: boolean, value?: TooltipValue) =>
+      wrapTooltip(
+        element,
+        unstyled ?? context.unstyled,
+        value,
+        styles('tooltip.disabled-trigger', '', undefined, unstyled),
+      ),
+  });
 }
 
 export function DirectionProvider({
@@ -108,6 +120,7 @@ export function usePortalContainer() {
   return React.useContext(PortalContainerContext);
 }
 export interface PlainProviderProps extends LanguageProviderProps {
+  tooltip?: Omit<TooltipProviderProps, 'children'>;
   theme?: Partial<ThemeSettings>;
   tokens?: ThemeTokens;
   styles?: ComponentStyles;
@@ -125,6 +138,7 @@ export function PlainProvider({
   tokens,
   styles,
   unstyled,
+  tooltip,
   persist = true,
 }: PlainProviderProps) {
   const inheritedDirection = useDirection();
@@ -140,7 +154,7 @@ export function PlainProvider({
       <ThemeProvider defaultSettings={theme} persist={persist} tokens={tokens}>
         <TokenOverridesProvider tokens={tokens}>
           <StyleProvider styles={styles} unstyled={unstyled}>
-            {children}
+            <TooltipProviderScope options={tooltip}>{children}</TooltipProviderScope>
           </StyleProvider>
         </TokenOverridesProvider>
       </ThemeProvider>

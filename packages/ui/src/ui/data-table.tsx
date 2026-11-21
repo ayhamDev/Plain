@@ -281,11 +281,12 @@ export function DataTableFilters<T extends RowData>({
   table,
   fields,
   presentation,
+  tooltip,
 }: {
   table: DataTableInstance<T>;
   fields: readonly DataTableFilterField<T>[];
   presentation?: TableMenuPresentation;
-}) {
+} & Pick<PlainStyleProps, 'tooltip'>) {
   const styles = useStyles();
   const { t, locale } = useTranslation();
   const query = tableQuery(table.state.globalFilter);
@@ -321,7 +322,7 @@ export function DataTableFilters<T extends RowData>({
       presentation={presentation}
       contentProps={styles('data-table.filter-panel', 'ui-table-filter-panel')}
       trigger={
-        <Button variant="outline">
+        <Button variant="outline" tooltip={tooltip}>
           <Filter size={14} aria-hidden="true" />
           {t('table.filters')}
           {query.filters.filter(isActiveTableFilter).length > 0 && (
@@ -437,6 +438,7 @@ export function DataTableToolbar<T extends RowData>({
   columnControls = true,
   showReset = true,
   toolbarActions,
+  tooltip,
 }: Pick<
   DataTableViewProps<T>,
   | 'table'
@@ -450,6 +452,7 @@ export function DataTableToolbar<T extends RowData>({
   | 'columnControls'
   | 'showReset'
   | 'toolbarActions'
+  | 'tooltip'
 >) {
   const styles = useStyles();
   const query = tableQuery(table.state.globalFilter);
@@ -466,7 +469,7 @@ export function DataTableToolbar<T extends RowData>({
     !hasReset
   )
     return null;
-  return (
+  return styles.tooltip(
     <div {...styles('data-table.toolbar', 'ui-table-toolbar')}>
       {searchable && <DataTableSearch table={table} placeholder={searchPlaceholder} />}
       {filterable &&
@@ -492,7 +495,9 @@ export function DataTableToolbar<T extends RowData>({
       {filterable && filterMode === 'advanced' && (
         <DataTableActiveFilters table={table} fields={filterFields} />
       )}
-    </div>
+    </div>,
+    undefined,
+    tooltip,
   );
 }
 export function DataTablePagination<T extends RowData>({
@@ -503,9 +508,17 @@ export function DataTablePagination<T extends RowData>({
   showPageSize = true,
   showPageJump = true,
   showSummary = true,
+  tooltip,
 }: Pick<
   DataTableViewProps<T>,
-  'table' | 'pageSizes' | 'selectable' | 'loading' | 'showPageSize' | 'showPageJump' | 'showSummary'
+  | 'table'
+  | 'pageSizes'
+  | 'selectable'
+  | 'loading'
+  | 'showPageSize'
+  | 'showPageJump'
+  | 'showSummary'
+  | 'tooltip'
 >) {
   const styles = useStyles();
   const { t, locale } = useTranslation();
@@ -554,7 +567,7 @@ export function DataTablePagination<T extends RowData>({
       direction === 'rtl' ? ChevronFirst : ChevronLast,
     ],
   ] as const;
-  return (
+  return styles.tooltip(
     <div {...styles('data-table.pagination', 'ui-table-pagination')}>
       {showSummary && (
         <span role="status" dir="auto" {...styles('data-table.status', 'ui-table-status')}>
@@ -618,13 +631,15 @@ export function DataTablePagination<T extends RowData>({
             disabled={loading || unavailable}
             onClick={click}
             aria-label={label}
-            title={label}
+            tooltip={label}
           >
             <Icon size={16} aria-hidden="true" />
           </Button>
         ))}
       </div>
-    </div>
+    </div>,
+    undefined,
+    tooltip,
   );
 }
 export function DataTableView<T extends RowData>({
@@ -717,236 +732,244 @@ export function DataTableView<T extends RowData>({
   };
   return (
     <StyleProvider unstyled={unstyled}>
-      <div
-        data-mode={selectable ? 'selection' : 'browse'}
-        {...styles('data-table.root', 'ui-data-table', className, unstyled)}
-        {...props}
-      >
-        {showToolbar &&
-          (toolbar === undefined ? (
-            <DataTableToolbar
-              table={table}
-              searchable={searchable}
-              showReset={showReset}
-              searchPlaceholder={searchPlaceholder}
-              filterFields={filterFields}
-              filterMode={filterMode}
-              filterable={filterable}
-              sortable={sortable}
-              filterPresentation={filterPresentation}
-              columnControls={columnControls}
-              toolbarActions={
-                toolbarActions || modeControl ? (
-                  <>
-                    {toolbarActions}
-                    {modeControl}
-                  </>
-                ) : undefined
-              }
-            />
-          ) : typeof toolbar === 'function' ? (
-            toolbar(table)
-          ) : (
-            toolbar
-          ))}
+      {styles.tooltip(
         <div
-          {...styles(
-            'data-table.table-wrapper',
-            'ui-table-frame overflow-hidden rounded-ui border',
-            undefined,
-            unstyled,
-          )}
+          data-mode={selectable ? 'selection' : 'browse'}
+          {...styles('data-table.root', 'ui-data-table', className, unstyled)}
+          {...props}
         >
-          <Table
-            aria-label={caption ?? t('table.label')}
-            stickyHeader={stickyHeader}
-            stickyHeaderOffset={stickyHeaderOffset}
-            stickyScrollbar={stickyScrollbar}
-            stickyScrollbarOffset={stickyFooterOffset}
-            scrollHeight={scrollHeight}
-            aria-busy={loading || undefined}
-            style={
-              table.getIsSomeColumnsPinned()
-                ? {
-                    width: table.getTotalSize() + Number(selectable) * 48,
-                    minWidth: table.getTotalSize() + Number(selectable) * 48,
-                    tableLayout: 'fixed',
-                  }
-                : undefined
-            }
-          >
-            <TableHeader>
-              {table.getHeaderGroups().map((group) => (
-                <TableRow key={group.id}>
-                  {selectable && (
-                    <TableHead {...styles('data-table.selection-cell', 'ui-table-selection-cell')}>
-                      <Checkbox
-                        aria-label={t('table.selectPage')}
-                        disabled={loading || !rows.length}
-                        checked={
-                          (
-                            pagination
-                              ? table.getIsAllPageRowsSelected()
-                              : table.getIsAllRowsSelected()
-                          )
-                            ? true
-                            : (
-                                  pagination
-                                    ? table.getIsSomePageRowsSelected()
-                                    : table.getIsSomeRowsSelected()
-                                )
-                              ? 'indeterminate'
-                              : false
-                        }
-                        onCheckedChange={(checked) =>
-                          pagination
-                            ? table.toggleAllPageRowsSelected(!!checked)
-                            : table.toggleAllRowsSelected(!!checked)
-                        }
-                      />
-                    </TableHead>
-                  )}
-                  {group.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      colSpan={header.colSpan}
-                      style={pinnedStyle(header.column)}
-                      aria-sort={
-                        header.column.getIsSorted() === 'asc'
-                          ? 'ascending'
-                          : header.column.getIsSorted() === 'desc'
-                            ? 'descending'
-                            : header.column.getCanSort()
-                              ? 'none'
-                              : undefined
-                      }
-                    >
-                      {header.isPlaceholder ? null : sortable && header.column.getCanSort() ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={loading}
-                          onClick={header.column.getToggleSortingHandler()}
-                          {...styles(
-                            'data-table.sort',
-                            '-ms-3 text-xs text-muted-foreground',
-                            undefined,
-                            unstyled,
-                          )}
-                        >
-                          <table.FlexRender header={header} />
-                          {header.column.getIsSorted() === 'asc' ? (
-                            <ArrowUp size={14} />
-                          ) : header.column.getIsSorted() === 'desc' ? (
-                            <ArrowDown size={14} />
-                          ) : (
-                            <ArrowUpDown size={12} />
-                          )}
-                          {header.column.getIsSorted() && table.state.sorting.length > 1 && (
-                            <span {...styles('data-table.count', 'ui-table-count')}>
-                              {header.column.getSortIndex() + 1}
-                            </span>
-                          )}
-                        </Button>
-                      ) : (
-                        <table.FlexRender header={header} />
-                      )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={columnCount}>
-                    <div {...styles('data-table.loading', 'ui-table-loading')}>
-                      <Spinner label={t('common.loading')} />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : rows.length ? (
-                rows.map((row) => (
-                  <React.Fragment key={row.id}>
-                    <TableRow data-selected={row.getIsSelected() || undefined} {...rowProps?.(row)}>
-                      {selectable && (
-                        <TableCell
-                          {...styles('data-table.selection-cell', 'ui-table-selection-cell')}
-                        >
-                          <RowSelection row={row} />
-                        </TableCell>
-                      )}
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} style={pinnedStyle(cell.column)}>
-                          <table.FlexRender cell={cell} />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                    {renderDetail && (
-                      <TableRow>
-                        <TableCell colSpan={columnCount}>{renderDetail(row)}</TableCell>
-                      </TableRow>
-                    )}
-                  </React.Fragment>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columnCount}>
-                    {renderEmpty ?? (
-                      <EmptyState
-                        title={emptyTitle ?? t('common.noResults')}
-                        description={t('table.empty')}
-                        action={
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              table.setGlobalFilter(emptyTableQuery);
-                              table.resetColumnFilters(true);
-                              table.setPageIndex(0);
-                            }}
-                          >
-                            {t('table.clearFilters')}
-                          </Button>
-                        }
-                      />
-                    )}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        {!!selected && selectionActions && (
-          <DataTableSelectionActions table={table}>
-            {selectionActions(table)}
-          </DataTableSelectionActions>
-        )}
-        {(footer != null || (footer === undefined && pagination && showPagination)) && (
+          {showToolbar &&
+            (toolbar === undefined ? (
+              <DataTableToolbar
+                table={table}
+                searchable={searchable}
+                showReset={showReset}
+                searchPlaceholder={searchPlaceholder}
+                filterFields={filterFields}
+                filterMode={filterMode}
+                filterable={filterable}
+                sortable={sortable}
+                filterPresentation={filterPresentation}
+                columnControls={columnControls}
+                toolbarActions={
+                  toolbarActions || modeControl ? (
+                    <>
+                      {toolbarActions}
+                      {modeControl}
+                    </>
+                  ) : undefined
+                }
+              />
+            ) : typeof toolbar === 'function' ? (
+              toolbar(table)
+            ) : (
+              toolbar
+            ))}
           <div
-            {...styles('data-table.footer', 'ui-data-table-footer')}
-            data-sticky={stickyFooter || undefined}
-            style={{ bottom: stickyFooterOffset ?? 0 }}
+            {...styles(
+              'data-table.table-wrapper',
+              'ui-table-frame overflow-hidden rounded-ui border',
+              undefined,
+              unstyled,
+            )}
           >
-            {footer === undefined
-              ? pagination &&
-                showPagination && (
-                  <DataTablePagination
-                    table={table}
-                    pageSizes={pageSizes}
-                    selectable={selectable}
-                    loading={loading}
-                    showPageSize={showPageSize}
-                    showPageJump={showPageJump}
-                    showSummary={showSummary}
-                  />
-                )
-              : typeof footer === 'function'
-                ? footer(table)
-                : footer}
+            <Table
+              aria-label={caption ?? t('table.label')}
+              stickyHeader={stickyHeader}
+              stickyHeaderOffset={stickyHeaderOffset}
+              stickyScrollbar={stickyScrollbar}
+              stickyScrollbarOffset={stickyFooterOffset}
+              scrollHeight={scrollHeight}
+              aria-busy={loading || undefined}
+              style={
+                table.getIsSomeColumnsPinned()
+                  ? {
+                      width: table.getTotalSize() + Number(selectable) * 48,
+                      minWidth: table.getTotalSize() + Number(selectable) * 48,
+                      tableLayout: 'fixed',
+                    }
+                  : undefined
+              }
+            >
+              <TableHeader>
+                {table.getHeaderGroups().map((group) => (
+                  <TableRow key={group.id}>
+                    {selectable && (
+                      <TableHead
+                        {...styles('data-table.selection-cell', 'ui-table-selection-cell')}
+                      >
+                        <Checkbox
+                          aria-label={t('table.selectPage')}
+                          disabled={loading || !rows.length}
+                          checked={
+                            (
+                              pagination
+                                ? table.getIsAllPageRowsSelected()
+                                : table.getIsAllRowsSelected()
+                            )
+                              ? true
+                              : (
+                                    pagination
+                                      ? table.getIsSomePageRowsSelected()
+                                      : table.getIsSomeRowsSelected()
+                                  )
+                                ? 'indeterminate'
+                                : false
+                          }
+                          onCheckedChange={(checked) =>
+                            pagination
+                              ? table.toggleAllPageRowsSelected(!!checked)
+                              : table.toggleAllRowsSelected(!!checked)
+                          }
+                        />
+                      </TableHead>
+                    )}
+                    {group.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        colSpan={header.colSpan}
+                        style={pinnedStyle(header.column)}
+                        aria-sort={
+                          header.column.getIsSorted() === 'asc'
+                            ? 'ascending'
+                            : header.column.getIsSorted() === 'desc'
+                              ? 'descending'
+                              : header.column.getCanSort()
+                                ? 'none'
+                                : undefined
+                        }
+                      >
+                        {header.isPlaceholder ? null : sortable && header.column.getCanSort() ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={loading}
+                            onClick={header.column.getToggleSortingHandler()}
+                            {...styles(
+                              'data-table.sort',
+                              '-ms-3 text-xs text-muted-foreground',
+                              undefined,
+                              unstyled,
+                            )}
+                          >
+                            <table.FlexRender header={header} />
+                            {header.column.getIsSorted() === 'asc' ? (
+                              <ArrowUp size={14} />
+                            ) : header.column.getIsSorted() === 'desc' ? (
+                              <ArrowDown size={14} />
+                            ) : (
+                              <ArrowUpDown size={12} />
+                            )}
+                            {header.column.getIsSorted() && table.state.sorting.length > 1 && (
+                              <span {...styles('data-table.count', 'ui-table-count')}>
+                                {header.column.getSortIndex() + 1}
+                              </span>
+                            )}
+                          </Button>
+                        ) : (
+                          <table.FlexRender header={header} />
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={columnCount}>
+                      <div {...styles('data-table.loading', 'ui-table-loading')}>
+                        <Spinner label={t('common.loading')} />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : rows.length ? (
+                  rows.map((row) => (
+                    <React.Fragment key={row.id}>
+                      <TableRow
+                        data-selected={row.getIsSelected() || undefined}
+                        {...rowProps?.(row)}
+                      >
+                        {selectable && (
+                          <TableCell
+                            {...styles('data-table.selection-cell', 'ui-table-selection-cell')}
+                          >
+                            <RowSelection row={row} />
+                          </TableCell>
+                        )}
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id} style={pinnedStyle(cell.column)}>
+                            <table.FlexRender cell={cell} />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                      {renderDetail && (
+                        <TableRow>
+                          <TableCell colSpan={columnCount}>{renderDetail(row)}</TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columnCount}>
+                      {renderEmpty ?? (
+                        <EmptyState
+                          title={emptyTitle ?? t('common.noResults')}
+                          description={t('table.empty')}
+                          action={
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                table.setGlobalFilter(emptyTableQuery);
+                                table.resetColumnFilters(true);
+                                table.setPageIndex(0);
+                              }}
+                            >
+                              {t('table.clearFilters')}
+                            </Button>
+                          }
+                        />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </div>
-        )}
-      </div>
+          {!!selected && selectionActions && (
+            <DataTableSelectionActions table={table}>
+              {selectionActions(table)}
+            </DataTableSelectionActions>
+          )}
+          {(footer != null || (footer === undefined && pagination && showPagination)) && (
+            <div
+              {...styles('data-table.footer', 'ui-data-table-footer')}
+              data-sticky={stickyFooter || undefined}
+              style={{ bottom: stickyFooterOffset ?? 0 }}
+            >
+              {footer === undefined
+                ? pagination &&
+                  showPagination && (
+                    <DataTablePagination
+                      table={table}
+                      pageSizes={pageSizes}
+                      selectable={selectable}
+                      loading={loading}
+                      showPageSize={showPageSize}
+                      showPageJump={showPageJump}
+                      showSummary={showSummary}
+                    />
+                  )
+                : typeof footer === 'function'
+                  ? footer(table)
+                  : footer}
+            </div>
+          )}
+        </div>,
+        unstyled,
+      )}
     </StyleProvider>
   );
 }

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Slot } from 'radix-ui';
 import { useMotionSettings } from './motion-policy';
+import { useStyles, type PlainStyleProps } from './styling';
 
 export interface LayoutPresenceOptions {
   /** Animate children on first mount. Defaults to true. */
@@ -384,18 +385,21 @@ export function useLayoutPresence<T extends HTMLElement>(
 }
 
 export type LayoutPresenceContainerProps = React.HTMLAttributes<HTMLDivElement> &
-  LayoutPresenceProps & { asChild?: boolean };
+  LayoutPresenceProps &
+  PlainStyleProps & { asChild?: boolean };
 /** Give any native/ref-forwarding container the same keyed-child behavior. */
 export const LayoutPresence = /* @__PURE__ */ React.forwardRef<
   HTMLDivElement,
   LayoutPresenceContainerProps
->(({ children, presence = true, asChild, ...props }, ref) => {
+>(({ children, presence = true, asChild, unstyled, ...props }, ref) => {
+  const styles = useStyles();
   const scope = useLayoutPresence(children, presence, ref, asChild);
   const Element = asChild ? Slot.Root : 'div';
-  return (
+  return styles.tooltip(
     <Element {...props} ref={scope.ref}>
       {scope.children}
-    </Element>
+    </Element>,
+    unstyled,
   );
 });
 LayoutPresence.displayName = 'LayoutPresence';

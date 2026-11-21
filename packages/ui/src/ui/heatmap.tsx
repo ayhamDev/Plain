@@ -89,164 +89,169 @@ export const HeatmapChart = React.forwardRef<HTMLElement, HeatmapChartProps>(
       `color-mix(in srgb, var(--ui-chart-1, var(--ui-accent)) ${Math.round(Math.max(0, Math.min(1, bounds[1] === bounds[0] ? 1 : (value - bounds[0]) / (bounds[1] - bounds[0]))) * 45 + 10)}%, var(--ui-surface))`;
     return (
       <StyleProvider unstyled={unstyled}>
-        <figure
-          ref={ref}
-          dir={direction}
-          aria-label={label ?? t('chart.heatmap')}
-          aria-busy={loading || undefined}
-          {...styles('heatmap.root', 'ui-heatmap', className, unstyled)}
-          {...props}
-        >
-          {loading || !index.size ? (
-            <EmptyState icon={null} title={t(loading ? 'chart.loading' : 'chart.empty')} />
-          ) : (
-            <div className="ui-heatmap-scroll">
-              <div
-                role={onCellClick ? 'grid' : 'table'}
-                aria-label={label ?? t('chart.heatmap')}
-                className="ui-heatmap-grid"
-                style={
-                  {
-                    '--ui-heatmap-size': `${Math.max(24, cellSize)}px`,
-                    '--ui-heatmap-columns': x.length,
-                    '--ui-heatmap-label-width': `${Math.max(48, labelWidth)}px`,
-                  } as React.CSSProperties
-                }
-                onKeyDown={(event) => {
-                  if (
-                    !onCellClick ||
-                    !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(
-                      event.key,
+        {styles.tooltip(
+          <figure
+            ref={ref}
+            dir={direction}
+            aria-label={label ?? t('chart.heatmap')}
+            aria-busy={loading || undefined}
+            {...styles('heatmap.root', 'ui-heatmap', className, unstyled)}
+            {...props}
+          >
+            {loading || !index.size ? (
+              <EmptyState icon={null} title={t(loading ? 'chart.loading' : 'chart.empty')} />
+            ) : (
+              <div className="ui-heatmap-scroll">
+                <div
+                  role={onCellClick ? 'grid' : 'table'}
+                  aria-label={label ?? t('chart.heatmap')}
+                  className="ui-heatmap-grid"
+                  style={
+                    {
+                      '--ui-heatmap-size': `${Math.max(24, cellSize)}px`,
+                      '--ui-heatmap-columns': x.length,
+                      '--ui-heatmap-label-width': `${Math.max(48, labelWidth)}px`,
+                    } as React.CSSProperties
+                  }
+                  onKeyDown={(event) => {
+                    if (
+                      !onCellClick ||
+                      !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(
+                        event.key,
+                      )
                     )
-                  )
-                    return;
-                  const target = (event.target as HTMLElement).closest<HTMLButtonElement>(
-                    '[data-heatmap-index]',
-                  );
-                  if (!target) return;
-                  event.preventDefault();
-                  const i = Number(target.dataset.heatmapIndex);
-                  let next =
-                    event.key === 'Home'
-                      ? Math.floor(i / x.length) * x.length
-                      : event.key === 'End'
-                        ? Math.min(
-                            x.length * y.length - 1,
-                            Math.floor(i / x.length) * x.length + x.length - 1,
-                          )
-                        : i +
-                          (event.key === 'ArrowUp'
-                            ? -x.length
-                            : event.key === 'ArrowDown'
-                              ? x.length
-                              : (event.key === 'ArrowRight') === (direction !== 'rtl')
-                                ? 1
-                                : -1);
-                  next = Math.max(0, Math.min(x.length * y.length - 1, next));
-                  setFocused(next);
-                  event.currentTarget
-                    .querySelector<HTMLButtonElement>(`[data-heatmap-index="${next}"]`)
-                    ?.focus();
-                }}
-              >
-                <div role="row" className="ui-heatmap-row">
-                  <span role="columnheader" />
-                  {x.map((column) => (
-                    <span role="columnheader" key={column}>
-                      {formatX(column)}
-                    </span>
+                      return;
+                    const target = (event.target as HTMLElement).closest<HTMLButtonElement>(
+                      '[data-heatmap-index]',
+                    );
+                    if (!target) return;
+                    event.preventDefault();
+                    const i = Number(target.dataset.heatmapIndex);
+                    let next =
+                      event.key === 'Home'
+                        ? Math.floor(i / x.length) * x.length
+                        : event.key === 'End'
+                          ? Math.min(
+                              x.length * y.length - 1,
+                              Math.floor(i / x.length) * x.length + x.length - 1,
+                            )
+                          : i +
+                            (event.key === 'ArrowUp'
+                              ? -x.length
+                              : event.key === 'ArrowDown'
+                                ? x.length
+                                : (event.key === 'ArrowRight') === (direction !== 'rtl')
+                                  ? 1
+                                  : -1);
+                    next = Math.max(0, Math.min(x.length * y.length - 1, next));
+                    setFocused(next);
+                    event.currentTarget
+                      .querySelector<HTMLButtonElement>(`[data-heatmap-index="${next}"]`)
+                      ?.focus();
+                  }}
+                >
+                  <div role="row" className="ui-heatmap-row">
+                    <span role="columnheader" />
+                    {x.map((column) => (
+                      <span role="columnheader" key={column}>
+                        {formatX(column)}
+                      </span>
+                    ))}
+                  </div>
+                  {y.map((row, ri) => (
+                    <div role="row" key={row} className="ui-heatmap-row">
+                      <span role="rowheader">{formatY(row)}</span>
+                      {x.map((column, ci) => {
+                        const cell = index.get(row)?.get(column),
+                          value = cell?.value,
+                          i = ri * x.length + ci;
+                        const text = `${formatY(row)}, ${formatX(column)}: ${value === undefined ? t('chart.empty') : format(value)}`;
+                        return (
+                          <div
+                            role={onCellClick ? 'gridcell' : 'cell'}
+                            key={column}
+                            aria-label={onCellClick ? undefined : text}
+                          >
+                            {onCellClick ? (
+                              <button
+                                type="button"
+                                aria-disabled={!cell || undefined}
+                                tabIndex={activeIndex === i ? 0 : -1}
+                                data-heatmap-index={i}
+                                onFocus={() => setFocused(i)}
+                                aria-label={text}
+                                title={text}
+                                className="ui-heatmap-cell"
+                                style={{
+                                  background:
+                                    value === undefined ? 'var(--ui-muted)' : color(value),
+                                }}
+                                onClick={() => {
+                                  if (cell) onCellClick(cell);
+                                }}
+                              >
+                                {showValues && value !== undefined ? format(value) : null}
+                              </button>
+                            ) : (
+                              <span
+                                title={text}
+                                className="ui-heatmap-cell"
+                                style={{
+                                  background:
+                                    value === undefined ? 'var(--ui-muted)' : color(value),
+                                }}
+                              >
+                                {showValues && value !== undefined ? format(value) : null}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   ))}
                 </div>
-                {y.map((row, ri) => (
-                  <div role="row" key={row} className="ui-heatmap-row">
-                    <span role="rowheader">{formatY(row)}</span>
-                    {x.map((column, ci) => {
-                      const cell = index.get(row)?.get(column),
-                        value = cell?.value,
-                        i = ri * x.length + ci;
-                      const text = `${formatY(row)}, ${formatX(column)}: ${value === undefined ? t('chart.empty') : format(value)}`;
-                      return (
-                        <div
-                          role={onCellClick ? 'gridcell' : 'cell'}
-                          key={column}
-                          aria-label={onCellClick ? undefined : text}
-                        >
-                          {onCellClick ? (
-                            <button
-                              type="button"
-                              aria-disabled={!cell || undefined}
-                              tabIndex={activeIndex === i ? 0 : -1}
-                              data-heatmap-index={i}
-                              onFocus={() => setFocused(i)}
-                              aria-label={text}
-                              title={text}
-                              className="ui-heatmap-cell"
-                              style={{
-                                background: value === undefined ? 'var(--ui-muted)' : color(value),
-                              }}
-                              onClick={() => {
-                                if (cell) onCellClick(cell);
-                              }}
-                            >
-                              {showValues && value !== undefined ? format(value) : null}
-                            </button>
-                          ) : (
-                            <span
-                              title={text}
-                              className="ui-heatmap-cell"
-                              style={{
-                                background: value === undefined ? 'var(--ui-muted)' : color(value),
-                              }}
-                            >
-                              {showValues && value !== undefined ? format(value) : null}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
               </div>
-            </div>
-          )}
-          {legend && index.size > 0 && (
-            <figcaption className="ui-heatmap-legend">
-              <span>{format(bounds[0])}</span>
-              {Array.from({ length: 5 }, (_, i) => (
-                <i
-                  key={i}
-                  style={{ background: color(bounds[0] + ((bounds[1] - bounds[0]) * i) / 4) }}
-                  aria-hidden="true"
-                />
-              ))}
-              <span>{format(bounds[1])}</span>
-            </figcaption>
-          )}
-          {dataTable !== false && (
-            <div className={dataTable === 'sr-only' ? 'ui-visually-hidden' : undefined}>
-              <Table aria-label={t('chart.data', { label: label ?? t('chart.heatmap') })}>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('chart.row')}</TableHead>
-                    <TableHead>{t('chart.column')}</TableHead>
-                    <TableHead>{t('chart.value')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data
-                    .filter((d) => Number.isFinite(d.value))
-                    .map((cell, i) => (
-                      <TableRow key={i}>
-                        <TableCell>{formatY(cell.y)}</TableCell>
-                        <TableCell>{formatX(cell.x)}</TableCell>
-                        <TableCell>{format(cell.value)}</TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </figure>
+            )}
+            {legend && index.size > 0 && (
+              <figcaption className="ui-heatmap-legend">
+                <span>{format(bounds[0])}</span>
+                {Array.from({ length: 5 }, (_, i) => (
+                  <i
+                    key={i}
+                    style={{ background: color(bounds[0] + ((bounds[1] - bounds[0]) * i) / 4) }}
+                    aria-hidden="true"
+                  />
+                ))}
+                <span>{format(bounds[1])}</span>
+              </figcaption>
+            )}
+            {dataTable !== false && (
+              <div className={dataTable === 'sr-only' ? 'ui-visually-hidden' : undefined}>
+                <Table aria-label={t('chart.data', { label: label ?? t('chart.heatmap') })}>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('chart.row')}</TableHead>
+                      <TableHead>{t('chart.column')}</TableHead>
+                      <TableHead>{t('chart.value')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {data
+                      .filter((d) => Number.isFinite(d.value))
+                      .map((cell, i) => (
+                        <TableRow key={i}>
+                          <TableCell>{formatY(cell.y)}</TableCell>
+                          <TableCell>{formatX(cell.x)}</TableCell>
+                          <TableCell>{format(cell.value)}</TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </figure>,
+          unstyled,
+        )}
       </StyleProvider>
     );
   },
