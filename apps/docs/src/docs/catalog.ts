@@ -761,7 +761,7 @@ export const components: ComponentDefinition[] = [
       prop(
         'filterMode',
         'advanced | simple',
-        'Rule editor or configured field chips with active values.',
+        'Advanced mode shows a rule editor and removable active-filter badges. Simple mode shows active values in the field buttons without a duplicate badge row.',
         'advanced',
       ),
       prop(

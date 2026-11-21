@@ -208,6 +208,9 @@ hides only the built-in pagination UI, preserving paginated rows and external
 page controls. `pagination={false}` instead displays all rows. Existing
 `DataTableToolbar` can also be placed outside the view as one complete toolbar.
 `DataTableFieldFilter table={table} field={field}` binds a single simple filter.
+With `filterMode="simple"`, active values appear in the field buttons without an
+additional badge row. Advanced mode keeps its removable active-filter badges.
+Explicitly composed `DataTableActiveFilters` remains available for custom layouts.
 Configure the same filter fields on `useDataTable` and the filter controls for
 client filtering. For remote data, pass `useRemoteDataTable(...).table`; its
 controlled query, sorting, paging and transport remain the source of truth.

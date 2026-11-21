@@ -489,7 +489,9 @@ export function DataTableToolbar<T extends RowData>({
         {columnControls && <DataTableColumns table={table} />}
         {toolbarActions}
       </div>
-      {filterable && <DataTableActiveFilters table={table} fields={filterFields} />}
+      {filterable && filterMode === 'advanced' && (
+        <DataTableActiveFilters table={table} fields={filterFields} />
+      )}
     </div>
   );
 }
