@@ -1,17 +1,13 @@
 import * as React from 'react';
 import { Slot } from 'radix-ui';
-import {
-  Group,
-  Panel,
-  Separator,
-  useDefaultLayout,
-  usePanelCallbackRef,
-  type PanelImperativeHandle,
-} from 'react-resizable-panels';
-import { Sheet, SheetContent, SheetTitle } from './overlays';
-import { GripVertical } from 'lucide-react';
-import { useTranslation } from './i18n';
-import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
+import { useStyles, type PlainStyleProps } from './styling';
+import { useLayoutPresence, type LayoutPresenceProps } from './layout-presence';
+export {
+  LayoutPresence,
+  type LayoutPresenceOptions,
+  type LayoutPresenceProps,
+  type LayoutPresenceContainerProps,
+} from './layout-presence';
 
 export type LayoutBreakpoint = 'base' | 'sm' | 'md' | 'lg';
 export type ResponsiveValue<T> = T | Partial<Record<LayoutBreakpoint, T>>;
@@ -54,18 +50,21 @@ function justification(value: LayoutJustification) {
       : value;
 }
 
-export interface BoxProps extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps {
+export interface BoxProps
+  extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps, LayoutPresenceProps {
   asChild?: boolean;
   padding?: ResponsiveValue<LayoutSpace>;
 }
 
 export const Box = /* @__PURE__ */ React.forwardRef<HTMLDivElement, BoxProps>(
-  ({ asChild, padding, style, className, unstyled, ...props }, ref) => {
+  ({ asChild, padding, style, className, unstyled, presence, children, ...props }, ref) => {
     const styles = useStyles();
+    const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
     return (
       <Element
-        ref={ref}
+        ref={scope.ref}
+        children={scope.children}
         {...styles('box.root', 'ui-box', className, unstyled)}
         style={{ ...variables('padding', padding, 0, space), ...style }}
         {...props}
@@ -107,15 +106,19 @@ export const Flex = /* @__PURE__ */ React.forwardRef<HTMLDivElement, FlexProps>(
       className,
       style,
       unstyled,
+      presence,
+      children,
       ...props
     },
     ref,
   ) => {
     const styles = useStyles();
+    const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
     return (
       <Element
-        ref={ref}
+        ref={scope.ref}
+        children={scope.children}
         {...styles('flex.root', 'ui-box ui-flex', className, unstyled)}
         style={{ ...flexVariables({ padding, gap, direction, align, justify, wrap }), ...style }}
         {...props}
@@ -127,12 +130,30 @@ Flex.displayName = 'Flex';
 
 export type StackProps = Omit<FlexProps, 'direction'>;
 export const Stack = /* @__PURE__ */ React.forwardRef<HTMLDivElement, StackProps>(
-  ({ padding, gap, align, justify, wrap, asChild, className, style, unstyled, ...props }, ref) => {
+  (
+    {
+      padding,
+      gap,
+      align,
+      justify,
+      wrap,
+      asChild,
+      className,
+      style,
+      unstyled,
+      presence,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     const styles = useStyles();
+    const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
     return (
       <Element
-        ref={ref}
+        ref={scope.ref}
+        children={scope.children}
         {...styles('stack.root', 'ui-box ui-flex', className, unstyled)}
         style={{
           ...flexVariables({ padding, gap, align, justify, wrap, direction: 'column' }),
@@ -158,15 +179,19 @@ export const Inline = /* @__PURE__ */ React.forwardRef<HTMLDivElement, InlinePro
       className,
       style,
       unstyled,
+      presence,
+      children,
       ...props
     },
     ref,
   ) => {
     const styles = useStyles();
+    const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
     return (
       <Element
-        ref={ref}
+        ref={scope.ref}
+        children={scope.children}
         {...styles('inline.root', 'ui-box ui-flex', className, unstyled)}
         style={{
           ...flexVariables({ padding, gap, align, justify, wrap, direction: 'row' }),
@@ -206,15 +231,19 @@ export const Grid = /* @__PURE__ */ React.forwardRef<HTMLDivElement, GridProps>(
       className,
       style,
       unstyled,
+      presence,
+      children,
       ...props
     },
     ref,
   ) => {
     const styles = useStyles();
+    const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
     return (
       <Element
-        ref={ref}
+        ref={scope.ref}
+        children={scope.children}
         {...styles('grid.root', 'ui-box ui-grid', className, unstyled)}
         style={{
           ...variables('padding', padding, 0, space),
@@ -251,15 +280,19 @@ export const Container = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Contai
       className,
       style,
       unstyled,
+      presence,
+      children,
       ...props
     },
     ref,
   ) => {
     const styles = useStyles();
+    const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
     return (
       <Element
-        ref={ref}
+        ref={scope.ref}
+        children={scope.children}
         {...styles('container.root', 'ui-box ui-container', className, unstyled)}
         style={
           {
@@ -280,12 +313,14 @@ export interface CenterProps extends BoxProps {
   inline?: boolean;
 }
 export const Center = /* @__PURE__ */ React.forwardRef<HTMLDivElement, CenterProps>(
-  ({ inline, padding, asChild, className, style, unstyled, ...props }, ref) => {
+  ({ inline, padding, asChild, className, style, unstyled, presence, children, ...props }, ref) => {
     const styles = useStyles();
+    const scope = useLayoutPresence(children, presence, ref, asChild);
     const Element = asChild ? Slot.Root : 'div';
     return (
       <Element
-        ref={ref}
+        ref={scope.ref}
+        children={scope.children}
         {...styles('center.root', 'ui-box ui-center', className, unstyled)}
         data-inline={inline || undefined}
         style={{ ...variables('padding', padding, 0, space), ...style }}
@@ -296,16 +331,19 @@ export const Center = /* @__PURE__ */ React.forwardRef<HTMLDivElement, CenterPro
 );
 Center.displayName = 'Center';
 
-export interface SpacerProps extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps {
+export interface SpacerProps
+  extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps, LayoutPresenceProps {
   size?: ResponsiveValue<LayoutSpace>;
   axis?: 'horizontal' | 'vertical';
 }
 export const Spacer = /* @__PURE__ */ React.forwardRef<HTMLDivElement, SpacerProps>(
-  ({ size, axis = 'vertical', className, style, unstyled, ...props }, ref) => {
+  ({ size, axis = 'vertical', className, style, unstyled, presence, children, ...props }, ref) => {
     const styles = useStyles();
+    const scope = useLayoutPresence(children, presence, ref);
     return (
       <div
-        ref={ref}
+        ref={scope.ref}
+        children={scope.children}
         aria-hidden="true"
         {...styles('spacer.root', 'ui-spacer', className, unstyled)}
         data-axis={axis}
@@ -332,14 +370,16 @@ export const Masonry = /* @__PURE__ */ React.forwardRef<HTMLDivElement, MasonryP
       className,
       style,
       unstyled,
+      presence,
       ...props
     },
     ref,
   ) => {
     const styles = useStyles();
+    const scope = useLayoutPresence(children, presence, ref);
     return (
       <div
-        ref={ref}
+        ref={scope.ref}
         {...styles('masonry.root', 'ui-box ui-masonry', className, unstyled)}
         style={{
           ...variables('padding', padding, 0, space),
@@ -352,7 +392,7 @@ export const Masonry = /* @__PURE__ */ React.forwardRef<HTMLDivElement, MasonryP
         {...props}
       >
         {React.Children.map(
-          children,
+          scope.children,
           (child) =>
             child != null && (
               <div {...styles('masonry.item', 'ui-masonry-item', undefined, unstyled)}>{child}</div>
@@ -364,245 +404,4 @@ export const Masonry = /* @__PURE__ */ React.forwardRef<HTMLDivElement, MasonryP
 );
 Masonry.displayName = 'Masonry';
 
-const ResizableContext = React.createContext(0);
-export type ResizableProps = Omit<React.ComponentProps<typeof Group>, 'elementRef'> &
-  PlainStyleProps & {
-    mobileOrientation?: 'horizontal' | 'vertical' | false;
-    mobileBreakpoint?: number;
-    storageKey?: string;
-    storage?: Pick<Storage, 'getItem' | 'setItem'>;
-  };
-export { useGroupRef, usePanelRef, useDefaultLayout } from 'react-resizable-panels';
-export const Resizable = /* @__PURE__ */ React.forwardRef<HTMLDivElement, ResizableProps>(
-  (
-    {
-      className,
-      unstyled,
-      dir,
-      children,
-      orientation = 'horizontal',
-      mobileOrientation = 'vertical',
-      mobileBreakpoint = 520,
-      storageKey,
-      storage,
-      defaultLayout,
-      onLayoutChanged,
-      ...props
-    },
-    ref,
-  ) => {
-    const styles = useStyles();
-    const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
-    const generatedId = React.useId();
-    const persistence = React.useMemo(
-      () =>
-        storage ?? {
-          getItem: (key: string) => {
-            try {
-              return storageKey && typeof window !== 'undefined'
-                ? window.localStorage.getItem(key)
-                : null;
-            } catch {
-              return null;
-            }
-          },
-          setItem: (key: string, value: string) => {
-            try {
-              if (storageKey && typeof window !== 'undefined')
-                window.localStorage.setItem(key, value);
-            } catch {
-              /* Storage may be unavailable in private browsing. */
-            }
-          },
-        },
-      [storage, storageKey],
-    );
-    const saved = useDefaultLayout({
-      id: storageKey ?? generatedId,
-      storage: persistence,
-      onlySaveAfterUserInteractions: true,
-    });
-    const element = React.useRef<HTMLDivElement>(null);
-    React.useImperativeHandle(ref, () => element.current!);
-    const [containerWidth, setWidth] = React.useState(0);
-    const narrow = containerWidth > 0 && containerWidth < mobileBreakpoint;
-    React.useEffect(() => {
-      if (!element.current) return;
-      const root = element.current;
-      const update = () => {
-        if (root.clientWidth > 0) setWidth(root.clientWidth);
-      };
-      update();
-      const observer = new ResizeObserver(update);
-      observer.observe(root);
-      return () => observer.disconnect();
-    }, [mobileOrientation, mobileBreakpoint]);
-    return (
-      <StyleProvider unstyled={unstyled}>
-        <ResizableContext.Provider value={containerWidth}>
-          <Group
-            elementRef={element}
-            defaultLayout={saved.defaultLayout ?? defaultLayout}
-            onLayoutChanged={(layout, meta) => {
-              saved.onLayoutChanged(layout, meta);
-              onLayoutChanged?.(layout, meta);
-            }}
-            orientation={narrow && mobileOrientation ? mobileOrientation : orientation}
-            resizeTargetMinimumSize={{ coarse: 32, fine: 12 }}
-            dir={direction}
-            {...styles('resizable.root', 'ui-split-pane', className, unstyled)}
-            {...props}
-          >
-            {children}
-          </Group>
-        </ResizableContext.Provider>
-      </StyleProvider>
-    );
-  },
-);
-Resizable.displayName = 'Resizable';
-
-export type ResizablePanelProps = Omit<React.ComponentProps<typeof Panel>, 'elementRef'> &
-  PlainStyleProps & {
-    collapseAt?: number;
-    adaptTo?: 'hidden' | 'docked' | 'floating';
-    open?: boolean;
-    defaultOpen?: boolean;
-    onOpenChange?: (open: boolean) => void;
-    overlayTitle?: string;
-    sheetProps?: Partial<
-      Pick<
-        React.ComponentProps<typeof Sheet>,
-        | 'side'
-        | 'mobileSide'
-        | 'mobileBreakpoint'
-        | 'size'
-        | 'gap'
-        | 'dismissible'
-        | 'modal'
-        | 'handleOnly'
-      >
-    >;
-    contentProps?: React.ComponentProps<typeof SheetContent>;
-  };
-export const ResizablePanel = /* @__PURE__ */ React.forwardRef<HTMLDivElement, ResizablePanelProps>(
-  (
-    {
-      className,
-      unstyled,
-      collapseAt,
-      adaptTo = 'hidden',
-      open,
-      defaultOpen = false,
-      onOpenChange,
-      overlayTitle,
-      sheetProps,
-      contentProps,
-      panelRef,
-      onResize,
-      children,
-      ...props
-    },
-    ref,
-  ) => {
-    const styles = useStyles();
-    const { t } = useTranslation();
-    const width = React.useContext(ResizableContext);
-    const compact = collapseAt !== undefined && width > 0 && width < collapseAt;
-    const [localOpen, setOpen] = React.useState(defaultOpen);
-    const overlayOpen = open ?? localOpen;
-    const [handle, setHandle] = usePanelCallbackRef();
-    const wasCollapsed = React.useRef<boolean | undefined>(undefined);
-    const assignHandle = React.useCallback(
-      (value: PanelImperativeHandle | null) => {
-        setHandle(value);
-        if (typeof panelRef === 'function') return panelRef(value);
-        if (panelRef) panelRef.current = value;
-      },
-      [panelRef, setHandle],
-    );
-    React.useEffect(() => {
-      if (!handle || (open === undefined && collapseAt === undefined)) return;
-      if (compact || open === false) handle.collapse();
-      else handle.expand();
-    }, [compact, open, collapseAt, handle]);
-    const change = (next: boolean) => {
-      if (open === undefined) setOpen(next);
-      onOpenChange?.(next);
-    };
-    return (
-      <>
-        <Panel
-          elementRef={ref}
-          {...styles('resizable.panel', 'ui-split-pane-panel', className, unstyled)}
-          {...props}
-          panelRef={assignHandle}
-          collapsible={props.collapsible || collapseAt !== undefined || open !== undefined}
-          onResize={(size, id, previous) => {
-            onResize?.(size, id, previous);
-            const collapsed = handle?.isCollapsed();
-            if (collapsed === undefined) return;
-            if (
-              !compact &&
-              open !== undefined &&
-              wasCollapsed.current !== undefined &&
-              collapsed !== wasCollapsed.current
-            )
-              onOpenChange?.(!collapsed);
-            wasCollapsed.current = collapsed;
-          }}
-        >
-          {!compact && children}
-        </Panel>
-        {compact && adaptTo !== 'hidden' && (
-          <Sheet
-            {...sheetProps}
-            open={overlayOpen}
-            onOpenChange={change}
-            variant={adaptTo === 'floating' ? 'floating' : 'attached'}
-          >
-            <SheetContent {...contentProps} unstyled={unstyled}>
-              <SheetTitle>{overlayTitle ?? t('navigation.label')}</SheetTitle>
-              {children}
-            </SheetContent>
-          </Sheet>
-        )}
-      </>
-    );
-  },
-);
-ResizablePanel.displayName = 'ResizablePanel';
-
-export type ResizableHandleProps = Omit<React.ComponentProps<typeof Separator>, 'elementRef'> &
-  PlainStyleProps & { withHandle?: boolean };
-export const ResizableHandle = /* @__PURE__ */ React.forwardRef<
-  HTMLDivElement,
-  ResizableHandleProps
->(({ className, unstyled, withHandle = false, children, ...props }, ref) => {
-  const styles = useStyles();
-  const { t } = useTranslation();
-  return (
-    <Separator
-      elementRef={ref}
-      aria-label={t('panel.resizePanels')}
-      {...styles('resizable.handle', 'ui-split-pane-handle ui-edge-handle', className, unstyled)}
-      {...props}
-    >
-      {children ??
-        (withHandle && (
-          <GripVertical
-            {...styles('resizable.icon', 'ui-split-pane-icon', undefined, unstyled)}
-            aria-hidden="true"
-          />
-        ))}
-    </Separator>
-  );
-});
-ResizableHandle.displayName = 'ResizableHandle';
-/** @deprecated Use Resizable, ResizablePanel and ResizableHandle. */
-export const SplitPane = Resizable;
-export const SplitPanePanel = ResizablePanel;
-export const SplitPaneHandle = ResizableHandle;
-export type SplitPaneProps = ResizableProps;
-export type SplitPanePanelProps = ResizablePanelProps;
-export type SplitPaneHandleProps = ResizableHandleProps;
+export * from './resizable';

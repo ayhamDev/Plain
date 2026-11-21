@@ -72,6 +72,10 @@ await writeFile(
 await copyFile(resolve('apps/docs/tests/fixtures/consumer.tsx'), join(consumer, 'consumer.tsx'));
 await writeFile(join(consumer, 'button-only.ts'), "export { Button } from '@plain/ui';\n");
 await writeFile(
+  join(consumer, 'layout-only.ts'),
+  "export { Stack, Grid, LayoutPresence } from '@plain/ui/layout';\n",
+);
+await writeFile(
   join(consumer, 'tsconfig.json'),
   JSON.stringify({
     compilerOptions: {
@@ -150,10 +154,41 @@ for (const heavy of [
 const bundle = chunks.map((chunk) => chunk.code).join('\n');
 const gzipBytes = gzipSync(bundle).length;
 assert(gzipBytes < 25000, `Button bundle exceeded 25 kB gzip: ${gzipBytes}`);
+assert(
+  !modules.some((id) => id.includes('/layout-presence.')),
+  'Button bundle retained layout presence',
+);
 const library = await import(
   pathToFileURL(join(consumer, 'node_modules/@plain/ui/dist/ui/index.js')).href
 );
 const require = createRequire(join(consumer, 'package.json'));
+const layoutBuild = await build({
+  configFile: false,
+  root: consumer,
+  logLevel: 'error',
+  build: {
+    write: false,
+    minify: true,
+    lib: { entry: join(consumer, 'layout-only.ts'), formats: ['es'] },
+    rolldownOptions: { external: (id) => /^(react|react-dom)(\/|$)/.test(id) },
+  },
+});
+const layoutChunks = (Array.isArray(layoutBuild) ? layoutBuild : [layoutBuild])
+  .flatMap((output) => output.output)
+  .filter((output) => output.type === 'chunk');
+const layoutModules = layoutChunks.flatMap((chunk) =>
+  Object.keys(chunk.modules).filter((id) => chunk.modules[id].renderedLength > 0),
+);
+for (const heavy of [
+  '/motion/',
+  'framer-motion',
+  'react-resizable-panels',
+  'recharts',
+  '@tanstack',
+])
+  assert(!layoutModules.some((id) => id.includes(heavy)), `Layout bundle retained ${heavy}`);
+const layoutGzipBytes = gzipSync(layoutChunks.map((chunk) => chunk.code).join('\n')).length;
+assert(layoutGzipBytes < 25000, `Layout bundle exceeds the 25kB gzip budget: ${layoutGzipBytes}`);
 const { createElement } = require('react');
 const { renderToString } = require('react-dom/server');
 assert(
@@ -203,6 +238,17 @@ for (const directory of [consumer, minimumConsumer]) {
   );
   assert(markup.includes(' inert=""'), `React ${peerReact.version} dropped the inert attribute.`);
   assert(markup.includes('aria-hidden="true"'));
+  const presence = peerServer.renderToString(
+    peerReact.createElement(
+      peerLibrary.Stack,
+      { presence: true },
+      peerReact.createElement('p', { key: 'content' }, 'Visible layout'),
+    ),
+  );
+  assert(
+    presence.includes('Visible layout') && !presence.includes('opacity:0'),
+    `React ${peerReact.version} hid the server layout.`,
+  );
   const qr = peerServer.renderToString(
     peerReact.createElement(peerLibrary.QRCode, { value: 'https://github.com/ayhamDev/Plain' }),
   );
@@ -226,6 +272,7 @@ console.log(
       compiledExamples: components.length,
       compiledCompositions: compositionExamples.length,
       buttonGzipBytes: gzipBytes,
+      layoutGzipBytes,
       heavyFeaturesExcluded: true,
       ssr: true,
       ssrReactVersions: ['18.3.1', '19.3.0'],

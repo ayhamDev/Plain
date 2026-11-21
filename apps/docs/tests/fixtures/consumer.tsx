@@ -4,6 +4,9 @@ import {
   PlainProvider,
   ThemeScope,
   Button,
+  Box,
+  Stack,
+  LayoutPresence,
   Field,
   Input,
   Switch,
@@ -85,6 +88,24 @@ export function ConsumerApp() {
         tokens={{ accent: '#1d4ed8' }}
       >
         <H1 size="2xl">Project workspace</H1>
+        <Stack
+          presence={{
+            initial: false,
+            preset: 'slide',
+            duration: 180,
+            exitDuration: 120,
+            stagger: 24,
+            layout: true,
+            maxItems: 30,
+          }}
+        >
+          <Box key="project">Project content</Box>
+        </Stack>
+        <LayoutPresence asChild>
+          <ul>
+            <li key="navigation">Custom container</li>
+          </ul>
+        </LayoutPresence>
         <ModularQRCode
           value="https://github.com/ayhamDev/Plain"
           label="Project repository"

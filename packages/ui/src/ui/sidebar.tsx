@@ -9,6 +9,7 @@ import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './
 import { useSelectionIndicator } from './selection-indicator';
 import { inertAttribute } from './utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './overlays';
+import { LayoutPresence, useLayoutPresence, type LayoutPresenceProps } from './layout-presence';
 
 export interface SidebarContextValue {
   collapsed: boolean;
@@ -32,7 +33,7 @@ export function useSidebar(): SidebarContextValue {
 }
 
 export interface SidebarProviderProps
-  extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps {
+  extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps, LayoutPresenceProps {
   collapsed?: boolean;
   defaultCollapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
@@ -70,6 +71,7 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
       shortcut = 'b',
       className,
       style,
+      presence,
       unstyled,
       children,
       dir,
@@ -185,23 +187,25 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
       <SidebarContext.Provider value={context}>
         <StyleProvider unstyled={unstyled}>
           <Sheet open={isMobile && mobileOpen} onOpenChange={setMobileOpen}>
-            <div
-              ref={providerRef}
-              dir={direction}
-              {...styles('sidebar.provider', 'ui-sidebar-provider', className, unstyled)}
-              data-sidebar-state={collapsed ? 'collapsed' : 'expanded'}
-              data-mobile={isMobile}
-              style={
-                {
-                  ...(width ? { '--ui-sidebar-width': width } : {}),
-                  ...(collapsedWidth ? { '--ui-sidebar-collapsed-width': collapsedWidth } : {}),
-                  ...style,
-                } as React.CSSProperties
-              }
-              {...props}
-            >
-              {children}
-            </div>
+            <LayoutPresence asChild presence={presence ?? false}>
+              <div
+                ref={providerRef}
+                dir={direction}
+                {...styles('sidebar.provider', 'ui-sidebar-provider', className, unstyled)}
+                data-sidebar-state={collapsed ? 'collapsed' : 'expanded'}
+                data-mobile={isMobile}
+                style={
+                  {
+                    ...(width ? { '--ui-sidebar-width': width } : {}),
+                    ...(collapsedWidth ? { '--ui-sidebar-collapsed-width': collapsedWidth } : {}),
+                    ...style,
+                  } as React.CSSProperties
+                }
+                {...props}
+              >
+                {children}
+              </div>
+            </LayoutPresence>
           </Sheet>
         </StyleProvider>
       </SidebarContext.Provider>
@@ -210,7 +214,8 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
 );
 SidebarProvider.displayName = 'SidebarProvider';
 
-export interface SidebarProps extends React.HTMLAttributes<HTMLElement>, PlainStyleProps {
+export interface SidebarProps
+  extends React.HTMLAttributes<HTMLElement>, PlainStyleProps, LayoutPresenceProps {
   side?: 'start' | 'end';
   label?: string;
   variant?: 'sidebar' | 'inset' | 'floating';
@@ -226,6 +231,7 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
       className,
       unstyled,
       dir,
+      presence,
       ...props
     },
     ref,
@@ -243,70 +249,74 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
     if (isMobile)
       return (
         <StyleProvider unstyled={unstyled}>
-          <SheetContent
-            ref={ref as React.Ref<HTMLDivElement>}
-            side={side}
-            dir={direction}
-            id={id ?? contentId}
-            showClose={false}
-            aria-describedby={undefined}
-            {...styles('sidebar.root', 'ui-sidebar ui-sidebar-mobile', className, unstyled)}
-            data-sidebar-state="expanded"
-            {...props}
-            style={{
-              ...variables,
-              ...(!(unstyled ?? styles.unstyled)
-                ? {
-                    width: 'var(--ui-sidebar-mobile-width, 288px)',
-                    maxWidth: 'calc(100vw - 32px)',
-                    borderWidth: 'var(--ui-sidebar-border-width, 0px)',
-                    borderRadius: 'var(--ui-sidebar-radius, 0px)',
-                    background:
-                      'var(--ui-sidebar-background, var(--ui-surface-low, var(--ui-background)))',
-                    color: 'var(--ui-sidebar-foreground, var(--ui-foreground))',
-                    paddingBlockStart: 'max(56px, calc(env(safe-area-inset-top) + 48px))',
-                    paddingBlockEnd: 'max(16px, env(safe-area-inset-bottom))',
-                    paddingLeft: 'max(8px, env(safe-area-inset-left))',
-                    paddingRight: 'max(8px, env(safe-area-inset-right))',
-                  }
-                : {}),
-              ...props.style,
-            }}
-          >
-            <SheetTitle {...styles('sidebar.title', 'ui-visually-hidden', undefined, unstyled)}>
-              {label}
-            </SheetTitle>
-            <SheetClose
-              aria-label={t('navigation.close')}
-              title={t('navigation.close')}
-              {...styles('sidebar.close', 'ui-sidebar-close', undefined, unstyled)}
+          <LayoutPresence asChild presence={presence ?? false}>
+            <SheetContent
+              ref={ref as React.Ref<HTMLDivElement>}
+              side={side}
+              dir={direction}
+              id={id ?? contentId}
+              showClose={false}
+              aria-describedby={undefined}
+              {...styles('sidebar.root', 'ui-sidebar ui-sidebar-mobile', className, unstyled)}
+              data-sidebar-state="expanded"
+              {...props}
+              style={{
+                ...variables,
+                ...(!(unstyled ?? styles.unstyled)
+                  ? {
+                      width: 'var(--ui-sidebar-mobile-width, 288px)',
+                      maxWidth: 'calc(100vw - 32px)',
+                      borderWidth: 'var(--ui-sidebar-border-width, 0px)',
+                      borderRadius: 'var(--ui-sidebar-radius, 0px)',
+                      background:
+                        'var(--ui-sidebar-background, var(--ui-surface-low, var(--ui-background)))',
+                      color: 'var(--ui-sidebar-foreground, var(--ui-foreground))',
+                      paddingBlockStart: 'max(56px, calc(env(safe-area-inset-top) + 48px))',
+                      paddingBlockEnd: 'max(16px, env(safe-area-inset-bottom))',
+                      paddingLeft: 'max(8px, env(safe-area-inset-left))',
+                      paddingRight: 'max(8px, env(safe-area-inset-right))',
+                    }
+                  : {}),
+                ...props.style,
+              }}
             >
-              <X
-                {...styles('sidebar.close-icon', 'ui-sidebar-trigger-icon', undefined, unstyled)}
-                aria-hidden="true"
-              />
-            </SheetClose>
-            {children}
-          </SheetContent>
+              <SheetTitle {...styles('sidebar.title', 'ui-visually-hidden', undefined, unstyled)}>
+                {label}
+              </SheetTitle>
+              <SheetClose
+                aria-label={t('navigation.close')}
+                title={t('navigation.close')}
+                {...styles('sidebar.close', 'ui-sidebar-close', undefined, unstyled)}
+              >
+                <X
+                  {...styles('sidebar.close-icon', 'ui-sidebar-trigger-icon', undefined, unstyled)}
+                  aria-hidden="true"
+                />
+              </SheetClose>
+              {children}
+            </SheetContent>
+          </LayoutPresence>
         </StyleProvider>
       );
     return (
       <StyleProvider unstyled={unstyled}>
-        <aside
-          ref={ref}
-          dir={direction}
-          id={id ?? contentId}
-          aria-label={label}
-          {...styles('sidebar.root', 'ui-sidebar ui-sidebar-desktop', className, unstyled)}
-          data-state={collapsed && collapsible !== 'none' ? 'collapsed' : 'expanded'}
-          data-side={side}
-          data-variant={variant}
-          data-collapsible={collapsible}
-          inert={inertAttribute(collapsed && collapsible === 'offcanvas')}
-          {...props}
-        >
-          {children}
-        </aside>
+        <LayoutPresence asChild presence={presence ?? false}>
+          <aside
+            ref={ref}
+            dir={direction}
+            id={id ?? contentId}
+            aria-label={label}
+            {...styles('sidebar.root', 'ui-sidebar ui-sidebar-desktop', className, unstyled)}
+            data-state={collapsed && collapsible !== 'none' ? 'collapsed' : 'expanded'}
+            data-side={side}
+            data-variant={variant}
+            data-collapsible={collapsible}
+            inert={inertAttribute(collapsed && collapsible === 'offcanvas')}
+            {...props}
+          >
+            {children}
+          </aside>
+        </LayoutPresence>
       </StyleProvider>
     );
   },
@@ -352,91 +362,98 @@ export const SidebarTrigger = /* @__PURE__ */ React.forwardRef<
 });
 SidebarTrigger.displayName = 'SidebarTrigger';
 
-export interface SidebarSectionProps extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps {
+export interface SidebarSectionProps
+  extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps, LayoutPresenceProps {
   /** Alternate content for the desktop icon rail. Mobile retains children. */
   collapsedContent?: React.ReactNode;
 }
 export const SidebarHeader = /* @__PURE__ */ React.forwardRef<HTMLDivElement, SidebarSectionProps>(
-  ({ className, unstyled, collapsedContent, children, ...props }, ref) => {
+  ({ className, unstyled, collapsedContent, children, presence, ...props }, ref) => {
     const styles = useStyles();
     const context = React.useContext(SidebarContext);
     const compact = context?.collapsed && !context.isMobile && context.collapsible === 'icon';
     return (
-      <div
-        ref={ref}
-        {...styles('sidebar.header', 'ui-sidebar-header', className, unstyled)}
-        {...props}
-      >
-        {collapsedContent === undefined ? (
-          children
-        ) : (
-          <div className="ui-sidebar-section-swap">
-            <div
-              data-expanded-content=""
-              aria-hidden={compact || undefined}
-              inert={inertAttribute(!!compact)}
-            >
-              {children}
+      <LayoutPresence asChild presence={presence ?? false}>
+        <div
+          ref={ref}
+          {...styles('sidebar.header', 'ui-sidebar-header', className, unstyled)}
+          {...props}
+        >
+          {collapsedContent === undefined ? (
+            children
+          ) : (
+            <div className="ui-sidebar-section-swap">
+              <div
+                data-expanded-content=""
+                aria-hidden={compact || undefined}
+                inert={inertAttribute(!!compact)}
+              >
+                {children}
+              </div>
+              <div
+                data-collapsed-content=""
+                aria-hidden={!compact || undefined}
+                inert={inertAttribute(!compact)}
+              >
+                {collapsedContent}
+              </div>
             </div>
-            <div
-              data-collapsed-content=""
-              aria-hidden={!compact || undefined}
-              inert={inertAttribute(!compact)}
-            >
-              {collapsedContent}
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </LayoutPresence>
     );
   },
 );
 SidebarHeader.displayName = 'SidebarHeader';
 export const SidebarFooter = /* @__PURE__ */ React.forwardRef<HTMLDivElement, SidebarSectionProps>(
-  ({ className, unstyled, collapsedContent, children, ...props }, ref) => {
+  ({ className, unstyled, collapsedContent, children, presence, ...props }, ref) => {
     const styles = useStyles();
     const context = React.useContext(SidebarContext);
     const compact = context?.collapsed && !context.isMobile && context.collapsible === 'icon';
     return (
-      <div
-        ref={ref}
-        {...styles('sidebar.footer', 'ui-sidebar-footer', className, unstyled)}
-        {...props}
-      >
-        {collapsedContent === undefined ? (
-          children
-        ) : (
-          <div className="ui-sidebar-section-swap">
-            <div
-              data-expanded-content=""
-              aria-hidden={compact || undefined}
-              inert={inertAttribute(!!compact)}
-            >
-              {children}
+      <LayoutPresence asChild presence={presence ?? false}>
+        <div
+          ref={ref}
+          {...styles('sidebar.footer', 'ui-sidebar-footer', className, unstyled)}
+          {...props}
+        >
+          {collapsedContent === undefined ? (
+            children
+          ) : (
+            <div className="ui-sidebar-section-swap">
+              <div
+                data-expanded-content=""
+                aria-hidden={compact || undefined}
+                inert={inertAttribute(!!compact)}
+              >
+                {children}
+              </div>
+              <div
+                data-collapsed-content=""
+                aria-hidden={!compact || undefined}
+                inert={inertAttribute(!compact)}
+              >
+                {collapsedContent}
+              </div>
             </div>
-            <div
-              data-collapsed-content=""
-              aria-hidden={!compact || undefined}
-              inert={inertAttribute(!compact)}
-            >
-              {collapsedContent}
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </LayoutPresence>
     );
   },
 );
 SidebarFooter.displayName = 'SidebarFooter';
 export const SidebarContent = /* @__PURE__ */ React.forwardRef<
   HTMLElement,
-  React.HTMLAttributes<HTMLElement> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
+  React.HTMLAttributes<HTMLElement> & PlainStyleProps & LayoutPresenceProps
+>(({ className, unstyled, presence, children, ...props }, ref) => {
   const styles = useStyles();
   const { t } = useTranslation();
+  const scope = useLayoutPresence(children, presence, ref);
   return (
     <nav
-      ref={ref}
+      ref={scope.ref}
+      children={scope.children}
       aria-label={t('navigation.sidebar')}
       {...styles('sidebar.content', 'ui-sidebar-content', className, unstyled)}
       {...props}
@@ -444,43 +461,52 @@ export const SidebarContent = /* @__PURE__ */ React.forwardRef<
   );
 });
 SidebarContent.displayName = 'SidebarContent';
-export interface SidebarGroupProps extends React.HTMLAttributes<HTMLElement>, PlainStyleProps {
+export interface SidebarGroupProps
+  extends React.HTMLAttributes<HTMLElement>, PlainStyleProps, LayoutPresenceProps {
   label?: string;
 }
 export const SidebarGroup = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarGroupProps>(
-  ({ label, children, className, unstyled, ...props }, ref) => {
+  ({ label, children, className, unstyled, presence, ...props }, ref) => {
     const styles = useStyles();
 
     const id = React.useId();
     return (
-      <section
-        ref={ref}
-        aria-labelledby={label ? id : undefined}
-        {...styles('sidebar.group', 'ui-sidebar-group', className, unstyled)}
-        {...props}
-      >
-        {label && (
-          <h2
-            id={id}
-            {...styles('sidebar.group-label', 'ui-sidebar-group-label', undefined, unstyled)}
-          >
-            {label}
-          </h2>
-        )}
-        {children}
-      </section>
+      <LayoutPresence asChild presence={presence ?? false}>
+        <section
+          ref={ref}
+          aria-labelledby={label ? id : undefined}
+          {...styles('sidebar.group', 'ui-sidebar-group', className, unstyled)}
+          {...props}
+        >
+          {label && (
+            <h2
+              id={id}
+              {...styles('sidebar.group-label', 'ui-sidebar-group-label', undefined, unstyled)}
+            >
+              {label}
+            </h2>
+          )}
+          {children}
+        </section>
+      </LayoutPresence>
     );
   },
 );
 SidebarGroup.displayName = 'SidebarGroup';
 export const SidebarMenu = /* @__PURE__ */ React.forwardRef<
   HTMLUListElement,
-  React.HTMLAttributes<HTMLUListElement> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
+  React.HTMLAttributes<HTMLUListElement> & PlainStyleProps & LayoutPresenceProps
+>(({ className, unstyled, presence, children, ...props }, ref) => {
   const styles = useStyles();
+  const scope = useLayoutPresence(children, presence, ref);
 
   return (
-    <ul ref={ref} {...styles('sidebar.menu', 'ui-sidebar-menu', className, unstyled)} {...props} />
+    <ul
+      ref={scope.ref}
+      children={scope.children}
+      {...styles('sidebar.menu', 'ui-sidebar-menu', className, unstyled)}
+      {...props}
+    />
   );
 });
 SidebarMenu.displayName = 'SidebarMenu';
@@ -768,14 +794,16 @@ export const SidebarRail = /* @__PURE__ */ React.forwardRef<
 SidebarRail.displayName = 'SidebarRail';
 export const SidebarInset = /* @__PURE__ */ React.forwardRef<
   HTMLElement,
-  React.HTMLAttributes<HTMLElement> & PlainStyleProps & { asChild?: boolean }
->(({ className, unstyled, asChild, ...props }, ref) => {
+  React.HTMLAttributes<HTMLElement> & PlainStyleProps & LayoutPresenceProps & { asChild?: boolean }
+>(({ className, unstyled, asChild, presence, children, ...props }, ref) => {
   const styles = useStyles();
+  const scope = useLayoutPresence(children, presence, ref, asChild);
 
   const Element = asChild ? Slot.Root : 'main';
   return (
     <Element
-      ref={ref}
+      ref={scope.ref}
+      children={scope.children}
       {...styles('sidebar.inset', 'ui-sidebar-inset', className, unstyled)}
       {...props}
     />
@@ -783,7 +811,8 @@ export const SidebarInset = /* @__PURE__ */ React.forwardRef<
 });
 SidebarInset.displayName = 'SidebarInset';
 
-export interface AppShellProps extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps {
+export interface AppShellProps
+  extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps, LayoutPresenceProps {
   sidebar?: React.ReactNode;
   header?: React.ReactNode;
   footer?: React.ReactNode;
@@ -803,11 +832,13 @@ export const AppShell = /* @__PURE__ */ React.forwardRef<HTMLDivElement, AppShel
       children,
       className,
       unstyled,
+      presence,
       ...props
     },
     ref,
   ) => {
     const styles = useStyles();
+    const scope = useLayoutPresence<HTMLElement>(children, presence);
 
     const id = React.useId();
     const mainId = contentId ?? `main-${id}`;
@@ -834,11 +865,12 @@ export const AppShell = /* @__PURE__ */ React.forwardRef<HTMLDivElement, AppShel
               </header>
             )}
             <main
+              ref={scope.ref}
               id={mainId}
               tabIndex={-1}
               {...styles('app-shell.main', 'ui-app-shell-main', undefined, unstyled)}
             >
-              {children}
+              {scope.children}
             </main>
             {footer && (
               <footer {...styles('app-shell.footer', 'ui-app-shell-footer', undefined, unstyled)}>

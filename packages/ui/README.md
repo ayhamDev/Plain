@@ -227,6 +227,68 @@ filters and returns to page one while preserving sorting, columns and selection;
 use controller methods in application actions for a different reset policy.
 The working docs example is `/components/data-table-controls`.
 
+## Layout presence
+
+Layout containers accept `presence` to animate direct keyed children on first
+render, insertion and removal. Use stable data IDs as keys; each child should
+render one DOM element. Wrap multi-element groups in Box.
+
+```tsx
+import { Card, Grid, LayoutPresence } from '@plain/ui';
+
+<Grid
+  columns={{ base: 1, sm: 2, lg: 3 }}
+  presence={{ preset: 'fade', initial: true, stagger: 32, layout: true }}
+>
+  {projects.map((project) => (
+    <Card key={project.id}>{project.name}</Card>
+  ))}
+</Grid>;
+
+<LayoutPresence asChild>
+  <ul>
+    {items.map((item) => (
+      <li key={item.id}>{item.label}</li>
+    ))}
+  </ul>
+</LayoutPresence>;
+```
+
+The API is shared by Box, Flex, Stack, Inline, Grid, Container, Center, Spacer,
+Masonry, Resizable/ResizablePanel, Card/Header/Content/Footer, AspectRatio,
+ScrollArea, Collapsible/CollapsibleContent, AccordionContent, TabsContent,
+TableHeader/Body/Footer and the sidebar provider, root, header, footer, content,
+group, menu and inset. AppShell applies it to main content. LayoutPresence extends
+any native or ref-forwarding container through `asChild`, with no extra DOM node.
+These APIs and types are also exported from `@plain/ui/layout`.
+
+`presence` defaults to false; LayoutPresence itself defaults to true. Options:
+
+| Option                      | Behavior                                                                  |
+| --------------------------- | ------------------------------------------------------------------------- |
+| `preset`                    | `fade` (default), `slide`, or `scale`; no hover/press transforms          |
+| `initial`                   | Animate the first render (default true); false animates later changes     |
+| `duration` / `exitDuration` | Milliseconds; inherit normal/fast scope motion tokens                     |
+| `easing` / `distance`       | CSS timing function and slide distance in pixels (default 8)              |
+| `stagger`                   | Entrance delay per child in milliseconds, capped at 200ms total           |
+| `layout`                    | Opt into position animation on child changes, with batched geometry reads |
+| `maxItems`                  | Limit concurrent animations and retained exits (default 50)               |
+| `onExitComplete`            | Called after the last retained exit is removed or cancelled               |
+
+Native Web Animations own the frames; React tracks membership and completion.
+Static layouts perform no animation/geometry work or preference subscriptions.
+Enabled scopes share one system preference listener. Timings respect scoped
+motion tokens and provider/system reduced motion. Reduced/none policy, zero
+duration or unavailable animation support removes content immediately. Server
+HTML stays visible. Exiting elements are inert, hidden from assistive technology
+and excluded from form submission; reintroducing a key preserves its local state.
+
+Nested scopes are independent. Prefer one scope per changing collection. Engine
+opening/closing and virtualized window lifecycles remain engine-owned: use a
+stable application content scope rather than retaining virtual rows. Portals and
+children without a single DOM root safely skip animation. The working example is
+`/docs/layouts#layout-presence`.
+
 ## Time pickers
 
 TimePicker, DateTimePicker and their range variants open a bottom sheet below

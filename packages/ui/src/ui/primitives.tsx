@@ -11,6 +11,7 @@ import {
 import { cva, type VariantProps } from 'class-variance-authority';
 import { LoaderCircle, Info, CircleCheck, TriangleAlert, Inbox, X } from 'lucide-react';
 import { cn } from './utils';
+import { useLayoutPresence, type LayoutPresenceProps } from './layout-presence';
 export const buttonVariants = /* @__PURE__ */ cva(
   'ui-interactive inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[var(--ui-button-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-45 [&_svg]:size-4 [&_svg]:shrink-0',
   {
@@ -153,65 +154,77 @@ export function Badge({ className, variant, unstyled, ...props }: BadgeProps & P
     />
   );
 }
-export interface CardProps extends React.ComponentPropsWithoutRef<'div'>, PlainStyleProps {
+export interface CardProps
+  extends React.ComponentPropsWithoutRef<'div'>, PlainStyleProps, LayoutPresenceProps {
   asChild?: boolean;
   variant?: 'outlined' | 'filled' | 'elevated' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   interactive?: boolean;
   selected?: boolean;
 }
-export const Card = /* @__PURE__ */ React.forwardRef<HTMLDivElement, CardProps>(
-  (
-    {
-      className,
-      unstyled,
-      asChild,
-      variant = 'outlined',
-      size = 'md',
-      interactive = false,
-      selected = false,
-      ...props
+export const Card = /* @__PURE__ */ Object.assign(
+  /* @__PURE__ */ React.forwardRef<HTMLDivElement, CardProps>(
+    (
+      {
+        className,
+        unstyled,
+        asChild,
+        variant = 'outlined',
+        size = 'md',
+        interactive = false,
+        selected = false,
+        presence,
+        children,
+        ...props
+      },
+      ref,
+    ) => {
+      const styles = useStyles();
+      const scope = useLayoutPresence(children, presence, ref, asChild);
+      const Element = asChild ? Slot.Root : 'div';
+
+      return (
+        <StyleProvider unstyled={unstyled}>
+          <Element
+            ref={scope.ref}
+            children={scope.children}
+            data-variant={variant}
+            data-size={size}
+            data-interactive={interactive || undefined}
+            data-selected={selected || undefined}
+            {...styles(
+              'card.root',
+              'ui-card rounded-[var(--ui-card-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-card-border,var(--ui-border))] bg-[var(--ui-card-background,var(--ui-surface))] text-[var(--ui-card-foreground,var(--ui-foreground))]',
+              className,
+              unstyled,
+            )}
+            {...props}
+          />
+        </StyleProvider>
+      );
     },
-    ref,
-  ) => {
+  ),
+  { displayName: 'Card' },
+);
+export const CardHeader = /* @__PURE__ */ Object.assign(
+  /* @__PURE__ */ React.forwardRef<
+    HTMLDivElement,
+    React.ComponentPropsWithoutRef<'div'> & PlainStyleProps & LayoutPresenceProps
+  >(({ className, unstyled, presence, children, ...props }, ref) => {
     const styles = useStyles();
-    const Element = asChild ? Slot.Root : 'div';
+    const scope = useLayoutPresence(children, presence, ref);
 
     return (
-      <StyleProvider unstyled={unstyled}>
-        <Element
-          ref={ref}
-          data-variant={variant}
-          data-size={size}
-          data-interactive={interactive || undefined}
-          data-selected={selected || undefined}
-          {...styles(
-            'card.root',
-            'ui-card rounded-[var(--ui-card-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-card-border,var(--ui-border))] bg-[var(--ui-card-background,var(--ui-surface))] text-[var(--ui-card-foreground,var(--ui-foreground))]',
-            className,
-            unstyled,
-          )}
-          {...props}
-        />
-      </StyleProvider>
+      <div
+        ref={scope.ref}
+        children={scope.children}
+        {...styles('card.header', 'ui-card-header flex flex-col gap-1.5', className, unstyled)}
+        {...props}
+      />
     );
-  },
+  }),
+  { displayName: 'CardHeader' },
 );
-Card.displayName = 'Card';
-export function CardHeader({
-  className,
-  unstyled,
-  ...props
-}: React.ComponentProps<'div'> & PlainStyleProps) {
-  const styles = useStyles();
-
-  return (
-    <div
-      {...styles('card.header', 'ui-card-header flex flex-col gap-1.5', className, unstyled)}
-      {...props}
-    />
-  );
-}
 export function CardTitle({
   className,
   unstyled,
@@ -245,34 +258,49 @@ export function CardDescription({
     />
   );
 }
-export function CardContent({
-  className,
-  unstyled,
-  ...props
-}: React.ComponentProps<'div'> & PlainStyleProps) {
-  const styles = useStyles();
+export const CardContent = /* @__PURE__ */ Object.assign(
+  /* @__PURE__ */ React.forwardRef<
+    HTMLDivElement,
+    React.ComponentPropsWithoutRef<'div'> & PlainStyleProps & LayoutPresenceProps
+  >(({ className, unstyled, presence, children, ...props }, ref) => {
+    const styles = useStyles();
+    const scope = useLayoutPresence(children, presence, ref);
 
-  return <div {...styles('card.content', 'ui-card-content', className, unstyled)} {...props} />;
-}
-export function CardFooter({
-  className,
-  unstyled,
-  ...props
-}: React.ComponentProps<'div'> & PlainStyleProps) {
-  const styles = useStyles();
+    return (
+      <div
+        ref={scope.ref}
+        children={scope.children}
+        {...styles('card.content', 'ui-card-content', className, unstyled)}
+        {...props}
+      />
+    );
+  }),
+  { displayName: 'CardContent' },
+);
+export const CardFooter = /* @__PURE__ */ Object.assign(
+  /* @__PURE__ */ React.forwardRef<
+    HTMLDivElement,
+    React.ComponentPropsWithoutRef<'div'> & PlainStyleProps & LayoutPresenceProps
+  >(({ className, unstyled, presence, children, ...props }, ref) => {
+    const styles = useStyles();
+    const scope = useLayoutPresence(children, presence, ref);
 
-  return (
-    <div
-      {...styles(
-        'card.footer',
-        'ui-card-footer flex flex-wrap items-center gap-2',
-        className,
-        unstyled,
-      )}
-      {...props}
-    />
-  );
-}
+    return (
+      <div
+        ref={scope.ref}
+        children={scope.children}
+        {...styles(
+          'card.footer',
+          'ui-card-footer flex flex-wrap items-center gap-2',
+          className,
+          unstyled,
+        )}
+        {...props}
+      />
+    );
+  }),
+  { displayName: 'CardFooter' },
+);
 export const Avatar = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Root>,
   (React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> & {
@@ -633,7 +661,21 @@ export function Spinner({
     </span>
   );
 }
-export const AspectRatio = AspectRatioPrimitive.Root;
+export type AspectRatioProps = React.ComponentPropsWithoutRef<typeof AspectRatioPrimitive.Root> &
+  LayoutPresenceProps;
+export const AspectRatio = /* @__PURE__ */ Object.assign(
+  /* @__PURE__ */ React.forwardRef<HTMLDivElement, AspectRatioProps>(
+    ({ presence, children, asChild, ...props }, ref) => {
+      const scope = useLayoutPresence(children, presence, ref, asChild);
+      return (
+        <AspectRatioPrimitive.Root {...props} asChild={asChild} ref={scope.ref}>
+          {scope.children}
+        </AspectRatioPrimitive.Root>
+      );
+    },
+  ),
+  { displayName: 'AspectRatio' },
+);
 export function Kbd({
   className,
   unstyled,

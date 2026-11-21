@@ -43,6 +43,7 @@ import {
   scopedOverridesCode,
 } from '../examples/ComponentOverridesExample';
 import { LocalizationExample } from '../examples/LocalizationExample';
+import { LayoutPresenceExample, layoutPresenceCode } from '../examples/LayoutPresenceExample';
 
 const guideInfo: Record<string, { title: string; description: string }> = {
   introduction: {
@@ -1556,6 +1557,38 @@ function LayoutsGuide() {
           Grid accepts a column count or CSS track string, plus <code>minItemWidth</code> for
           auto-fit layouts. Container constrains width and uses logical gutters. Use links for
           destinations and tabs for peer views within a task.
+        </p>
+      </GuideSection>
+      <GuideSection title="Animate keyed content" id="layout-presence">
+        <p>
+          Set presence on a layout container to animate its direct keyed children on first render,
+          addition and removal. The same API works across layout primitives, Card sections,
+          ScrollArea content, sidebar containers, tab and disclosure content, table row groups, and
+          resizable panels. AppShell applies it to main content. Each key must identify one DOM
+          element; put groups in Box. Keep stable data IDs as keys.
+        </p>
+        <LayoutPresenceExample />
+        <CodeBlock code={layoutPresenceCode} />
+        <p>
+          Fade is the default. Options include preset, initial, duration, exitDuration, easing,
+          distance, stagger, layout, maxItems and onExitComplete. Durations and stagger are in
+          milliseconds. Stagger delay is capped at 200ms; maxItems defaults to 50 concurrent
+          animations and retained exits. Set initial=false to animate later changes only. Set
+          layout=true for position changes; its geometry reads occur on child updates.
+        </p>
+        <p>
+          LayoutPresence asChild adds the same behavior to a custom native or ref-forwarding
+          container without a DOM wrapper. Nested scopes remain independent. Exiting content is
+          inert, hidden from assistive technology and excluded from form submission until removal. A
+          reintroduced key keeps its component state. Reduced/none motion and unsupported animation
+          APIs remove content immediately. Server HTML stays visible.
+        </p>
+        <p>
+          Presence is opt-in. Static layouts create no animation or layout measurements and no
+          motion preference subscription. Enabled scopes share one system preference listener.
+          Native Web Animations handle frames; React only tracks membership and completion.
+          Virtualized windows and engine-owned opening/closing keep their existing lifecycle;
+          animate application content within a stable scope instead of retaining virtual rows.
         </p>
       </GuideSection>
       <GuideSection title="Know which numbers are spacing units">

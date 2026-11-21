@@ -36,6 +36,19 @@ const layout = [
   ),
   p('asChild', 'boolean', 'Apply layout to one child without an extra wrapper.', 'false'),
 ];
+const presenceLayouts = new Set([
+  'box',
+  'flex',
+  'stack',
+  'inline',
+  'grid',
+  'container',
+  'center',
+  'spacer',
+  'masonry',
+  'resizable',
+  'app-shell',
+]);
 function define(
   slug: string,
   name: string,
@@ -54,7 +67,20 @@ function define(
     description,
     imports,
     code,
-    props: [...props, ...native],
+    props: [
+      ...props,
+      ...(presenceLayouts.has(slug)
+        ? [
+            p(
+              'presence',
+              'boolean | LayoutPresenceOptions',
+              'Animate direct keyed children on first mount, addition and removal. Supports timing, stagger, reflow and limits; honors reduced/none motion. AppShell applies this to main content; ResizablePanel supports the same option.',
+              'false',
+            ),
+          ]
+        : []),
+      ...native,
+    ],
     accessibility,
     ...extra,
   };

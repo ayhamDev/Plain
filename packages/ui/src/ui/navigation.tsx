@@ -22,6 +22,7 @@ import { numberFormatter, useTranslation } from './i18n';
 import { useElasticScroll, type ElasticScrollOptions, type RefreshState } from './elastic-scroll';
 import { useScrollAreaElastic } from './scroll-area-elastic';
 import { useSelectionIndicator } from './selection-indicator';
+import { LayoutPresence, useLayoutPresence, type LayoutPresenceProps } from './layout-presence';
 export const Accordion = AccordionPrimitive.Root;
 export const AccordionItem = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
@@ -73,8 +74,10 @@ export const AccordionTrigger = /* @__PURE__ */ React.forwardRef<
 AccordionTrigger.displayName = 'AccordionTrigger';
 export const AccordionContent = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content> & PlainStyleProps
->(({ className, children, unstyled, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content> &
+    PlainStyleProps &
+    LayoutPresenceProps
+>(({ className, children, unstyled, presence, ...props }, ref) => {
   const styles = useStyles();
 
   return (
@@ -83,16 +86,18 @@ export const AccordionContent = /* @__PURE__ */ React.forwardRef<
       {...styles('accordion.content', 'ui-accordion overflow-hidden', className, unstyled)}
       {...props}
     >
-      <div
-        {...styles(
-          'accordion.body',
-          'pb-4 text-sm leading-6 text-muted-foreground',
-          undefined,
-          unstyled,
-        )}
-      >
-        {children}
-      </div>
+      <LayoutPresence asChild presence={presence ?? false}>
+        <div
+          {...styles(
+            'accordion.body',
+            'pb-4 text-sm leading-6 text-muted-foreground',
+            undefined,
+            unstyled,
+          )}
+        >
+          {children}
+        </div>
+      </LayoutPresence>
     </AccordionPrimitive.Content>
   );
 });
@@ -199,13 +204,18 @@ export const TabsTrigger = /* @__PURE__ */ React.forwardRef<
 TabsTrigger.displayName = 'TabsTrigger';
 export const TabsContent = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content> &
+    PlainStyleProps &
+    LayoutPresenceProps
+>(({ className, unstyled, presence, children, asChild, ...props }, ref) => {
   const styles = useStyles();
+  const scope = useLayoutPresence(children, presence, ref, asChild);
 
   return (
     <TabsPrimitive.Content
-      ref={ref}
+      ref={scope.ref}
+      children={scope.children}
+      asChild={asChild}
       {...styles('tabs.content', 'ui-tab-panel mt-4 outline-offset-4', className, unstyled)}
       {...props}
     />
@@ -214,18 +224,22 @@ export const TabsContent = /* @__PURE__ */ React.forwardRef<
 TabsContent.displayName = 'TabsContent';
 export const Collapsible = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof CollapsiblePrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Root> & PlainStyleProps
->(({ className, children, unstyled, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Root> &
+    PlainStyleProps &
+    LayoutPresenceProps
+>(({ className, children, unstyled, presence, asChild, ...props }, ref) => {
   const styles = useStyles();
+  const scope = useLayoutPresence(children, presence, ref, asChild);
 
   return (
     <StyleProvider unstyled={unstyled}>
       <CollapsiblePrimitive.Root
-        ref={ref}
+        ref={scope.ref}
+        asChild={asChild}
         {...styles('collapsible.root', '', className, unstyled)}
         {...props}
       >
-        {children}
+        {scope.children}
       </CollapsiblePrimitive.Root>
     </StyleProvider>
   );
@@ -248,13 +262,18 @@ export const CollapsibleTrigger = /* @__PURE__ */ React.forwardRef<
 CollapsibleTrigger.displayName = 'CollapsibleTrigger';
 export const CollapsibleContent = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof CollapsiblePrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Content> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Content> &
+    PlainStyleProps &
+    LayoutPresenceProps
+>(({ className, unstyled, presence, children, asChild, ...props }, ref) => {
   const styles = useStyles();
+  const scope = useLayoutPresence(children, presence, ref, asChild);
 
   return (
     <CollapsiblePrimitive.Content
-      ref={ref}
+      ref={scope.ref}
+      children={scope.children}
+      asChild={asChild}
       {...styles('collapsible.content', 'ui-collapsible overflow-hidden', className, unstyled)}
       {...props}
     />
@@ -265,7 +284,8 @@ export interface ScrollAreaProps
   extends
     React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>,
     PlainStyleProps,
-    ElasticScrollOptions {
+    ElasticScrollOptions,
+    LayoutPresenceProps {
   scrollbarVisibility?: 'hover' | 'always' | 'hidden';
   scrollbarExpandOnHover?: boolean;
   scrollbarSize?: number | string;
@@ -303,6 +323,7 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
       onScroll,
       dir,
       style,
+      presence,
       ...props
     },
     ref,
@@ -312,6 +333,15 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
     const viewport = React.useRef<HTMLDivElement>(null);
     const { t } = useTranslation();
     const content = React.useRef<HTMLDivElement>(null);
+    const scope = useLayoutPresence<HTMLDivElement>(children, presence);
+    const presenceRef = scope.ref;
+    const assignContent = React.useCallback(
+      (node: HTMLDivElement | null) => {
+        content.current = node;
+        presenceRef(node);
+      },
+      [presenceRef],
+    );
     const fade = fadeEdges && typeof fadeEdges === 'object' ? fadeEdges : {};
     const fadeEdgesKey = (
       fade.edges ??
@@ -405,10 +435,10 @@ export const ScrollArea = /* @__PURE__ */ React.forwardRef<
           }}
         >
           <div
-            ref={content}
+            ref={assignContent}
             {...styles('scroll-area.content', 'ui-scroll-content', undefined, unstyled)}
           >
-            {children}
+            {scope.children}
           </div>
         </ScrollAreaPrimitive.Viewport>
         {orientation !== 'horizontal' && (

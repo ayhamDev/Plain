@@ -244,7 +244,8 @@ describe('time-picker interaction', () => {
     );
     await userEvent.click(screen.getByLabelText('Time', { selector: 'input' }));
     fireEvent.wheel(minuteViewport(), { deltaY: 120 });
-    await userEvent.click(screen.getByRole('button', { name: 'Clear value' }));
+    // Keep clear in the same turn so the assertion covers a still-pending gesture.
+    fireEvent.click(screen.getByRole('button', { name: 'Clear value' }));
     expect(screen.getByLabelText('Time', { selector: 'input' })).toHaveValue('');
     await pause(240);
     expect(changed).toHaveBeenCalledExactlyOnceWith(undefined);

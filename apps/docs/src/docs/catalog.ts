@@ -136,7 +136,15 @@ export const components: ComponentDefinition[] = [
     'A quiet frame for related content, with composable structure.',
     ['Card', 'CardHeader', 'CardTitle', 'CardDescription', 'CardContent', 'CardFooter', 'Button'],
     '<Card>\n  <CardHeader>\n    <CardTitle>Your next project</CardTitle>\n    <CardDescription>Start with a small idea.</CardDescription>\n  </CardHeader>\n  <CardContent>Make something useful.</CardContent>\n  <CardFooter><Button>Create project</Button></CardFooter>\n</Card>',
-    [prop('className', 'string', 'Customize padding, width, or layout on any part.')],
+    [
+      prop('className', 'string', 'Customize padding, width, or layout on any part.'),
+      prop(
+        'presence',
+        'boolean | LayoutPresenceOptions',
+        'Animate direct keyed children. Also available on CardHeader, CardContent and CardFooter; native refs remain supported.',
+        'false',
+      ),
+    ],
     'CardTitle renders a level-three heading. Match the heading hierarchy of your page when composing card content.',
   ),
   definition(
@@ -706,6 +714,12 @@ export const components: ComponentDefinition[] = [
     '<Table aria-label="Projects">\n  <TableHeader><TableRow><TableHead>Project</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>\n  <TableBody><TableRow><TableCell>Website redesign</TableCell><TableCell>Active</TableCell></TableRow></TableBody>\n</Table>',
     [
       prop('className', 'string', 'Customize the table or any structural part.'),
+      prop(
+        'TableBody / TableHeader / TableFooter presence',
+        'boolean | LayoutPresenceOptions',
+        'Animate keyed rows within native row groups without wrappers. Reduced/none motion removes rows immediately.',
+        'false',
+      ),
       prop(
         'wrapperProps',
         'HTMLAttributes<HTMLDivElement>',
