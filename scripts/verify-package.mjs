@@ -276,6 +276,23 @@ for (const directory of [consumer, minimumConsumer]) {
   const peerCharts = await import(
     pathToFileURL(join(directory, 'node_modules/@plain/ui/dist/ui/charts.js')).href
   );
+  for (const resize of ['none', 'vertical', 'horizontal', 'both']) {
+    const textarea = peerServer.renderToString(
+      peerReact.createElement(peerLibrary.Textarea, {
+        resize,
+        name: 'notes',
+        defaultValue: 'Team notes',
+        'aria-label': 'Notes',
+      }),
+    );
+    assert(
+      textarea.includes(`data-resize="${resize}"`) &&
+        textarea.includes('name="notes"') &&
+        textarea.includes('Team notes') &&
+        !/\sresize=/.test(textarea),
+      `React ${peerReact.version} did not preserve textarea resize mode and native props.`,
+    );
+  }
   for (const variant of ['outlined', 'filled', 'ghost', 'contrast']) {
     const pin = peerServer.renderToString(
       peerReact.createElement(peerLibrary.PinInput, {

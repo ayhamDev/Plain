@@ -396,6 +396,7 @@ export const propPreviews: Record<string, PropPreview> = {
   textarea: {
     defaults: {
       variant: 'outlined',
+      resize: 'vertical',
       rows: 4,
       disabled: false,
       readOnly: false,
@@ -403,6 +404,7 @@ export const propPreviews: Record<string, PropPreview> = {
     },
     controls: [
       options('variant', inputVariants),
+      options('resize', ['none', 'vertical', 'horizontal', 'both']),
       number('rows', 2, 8),
       bool('disabled'),
       bool('readOnly'),
@@ -412,6 +414,7 @@ export const propPreviews: Record<string, PropPreview> = {
       field(
         <UI.Textarea
           variant={choice(s, 'variant', inputVariants)}
+          resize={choice(s, 'resize', ['none', 'vertical', 'horizontal', 'both'])}
           {...native(s)}
           rows={Number(s.rows)}
           placeholder="A few notes for your team"

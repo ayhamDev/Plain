@@ -10,6 +10,7 @@ import {
   LayoutPresence,
   Field,
   Input,
+  Textarea,
   PinInput,
   SearchInput,
   DateTimeRangePicker,
@@ -48,6 +49,7 @@ import {
   type TooltipOptions,
 } from '@plain/ui';
 import { Button as ModularButton } from '@plain/ui/primitives';
+import { Textarea as ModularTextarea, type TextareaProps } from '@plain/ui/forms';
 import { ChartSkeleton as ModularChartSkeleton } from '@plain/ui/charts';
 import { TooltipProvider as ModularTooltipProvider, type TooltipValue } from '@plain/ui/overlays';
 import { Dropzone as ModularDropzone } from '@plain/ui/advanced';
@@ -111,6 +113,12 @@ export function ConsumerApp() {
           <ModularTableSort table={table} tooltip={{ content: 'Reorder records', align: 'end' }} />
         </ModularTooltipProvider>
         <H1 size="2xl">Project workspace</H1>
+        <Textarea resize="none" name="description" aria-label="Description" />
+        <ModularTextarea
+          {...({ resize: 'both' } satisfies Pick<TextareaProps, 'resize'>)}
+          name="draft"
+          aria-label="Draft"
+        />
         <Stack
           presence={{
             initial: false,

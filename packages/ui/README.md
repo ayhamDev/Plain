@@ -65,6 +65,18 @@ variant colors. Existing component radius, sizing and focus tokens still apply.
 Focused fields retain their resting border and keep the separate outer focus
 outline. Invalid and disabled states remain available in every variant.
 
+Textarea supports `resize="none" | "vertical" | "horizontal" | "both"` across
+all input appearances. The default is `vertical`; `none` removes the native resize
+handle. Horizontal resizing stays within the parent width. Native `rows`, refs,
+form attributes and the `textarea.root` styling slot remain available. Unstyled
+consumers control their own CSS, with the requested mode exposed as `data-resize`.
+
+```tsx
+<Textarea resize="none" aria-label="Fixed description" />
+<Textarea resize="vertical" aria-label="Resizable notes" />
+<Textarea resize="both" aria-label="Draft" style={{ maxHeight: 400 }} />
+```
+
 ## Tooltips on components
 
 Add `tooltip` to a rendered component or compound trigger for the same P.UI

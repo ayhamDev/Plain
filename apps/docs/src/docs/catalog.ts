@@ -202,6 +202,12 @@ export const components: ComponentDefinition[] = [
     '<Field label="Description">\n  <Textarea placeholder="What are you working on?" rows={4} />\n</Field>',
     [
       prop('rows', 'number', 'The initial number of visible text lines.', '3'),
+      prop(
+        'resize',
+        'none | vertical | horizontal | both',
+        'Controls the native resize handle. Use none to disable resizing. Horizontal resizing stays within the parent width.',
+        'vertical',
+      ),
       prop('disabled', 'boolean', 'Prevents interaction.', 'false'),
     ],
     'Use a visible label and associate validation messages with aria-describedby. Textarea supports native form attributes.',

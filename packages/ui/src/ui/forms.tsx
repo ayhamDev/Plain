@@ -35,27 +35,44 @@ export const Input = /* @__PURE__ */ React.forwardRef<HTMLInputElement, InputPro
   },
 );
 Input.displayName = 'Input';
-export const Textarea = /* @__PURE__ */ React.forwardRef<
-  HTMLTextAreaElement,
-  React.TextareaHTMLAttributes<HTMLTextAreaElement> & PlainStyleProps & { variant?: InputVariant }
->(({ className, rows = 3, variant = 'outlined', unstyled, ...props }, ref) => {
-  const styles = useStyles();
-  return styles.tooltip(
-    <textarea
-      ref={ref}
-      rows={rows}
-      data-variant={variant}
-      {...styles(
-        'textarea.root',
-        cn(inputClass, inputVariantClass(variant), 'min-h-24 resize-y leading-6'),
-        className,
-        unstyled,
-      )}
-      {...props}
-    />,
-    unstyled,
-  );
-});
+export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> &
+  PlainStyleProps & {
+    variant?: InputVariant;
+    /** Native resize handle direction. Defaults to vertical; use none to disable it. */
+    resize?: 'none' | 'vertical' | 'horizontal' | 'both';
+  };
+const textareaResizeClasses = {
+  none: 'resize-none',
+  vertical: 'resize-y',
+  horizontal: 'resize-x',
+  both: 'resize',
+} satisfies Record<NonNullable<TextareaProps['resize']>, string>;
+export const Textarea = /* @__PURE__ */ React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, rows = 3, variant = 'outlined', resize = 'vertical', unstyled, ...props }, ref) => {
+    const styles = useStyles();
+    return styles.tooltip(
+      <textarea
+        ref={ref}
+        rows={rows}
+        data-variant={variant}
+        data-resize={resize}
+        {...styles(
+          'textarea.root',
+          cn(
+            inputClass,
+            inputVariantClass(variant),
+            'min-h-24 max-w-full leading-6',
+            textareaResizeClasses[resize],
+          ),
+          className,
+          unstyled,
+        )}
+        {...props}
+      />,
+      unstyled,
+    );
+  },
+);
 Textarea.displayName = 'Textarea';
 export const Label = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
@@ -111,7 +128,7 @@ export function Field({
       .filter(Boolean)
       .join(' ') || undefined;
   return styles.tooltip(
-    <div {...styles('field.root', 'flex flex-col gap-2', className, unstyled)} {...props}>
+    <div {...styles('field.root', 'flex min-w-0 flex-col gap-2', className, unstyled)} {...props}>
       <Label id={`${id}-label`} htmlFor={id}>
         {label}
         {required && (
