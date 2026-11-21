@@ -86,10 +86,8 @@ for (const [width, height, dir, theme] of [
       width < 768 ? '2026-10-29' : '',
     );
     await day(8).click();
-    if (width < 768) {
-      await expect(panel).toBeVisible();
-      await panel.getByRole('button', { name: dir === 'rtl' ? 'تم' : 'Done', exact: true }).click();
-    }
+    await expect(panel).toBeVisible();
+    await panel.getByRole('button', { name: dir === 'rtl' ? 'تم' : 'Done', exact: true }).click();
     await expect(panel).toHaveCount(0);
     await expect(trigger).toBeFocused();
     await expect(page.locator('input[name="travel[to]"]')).toHaveValue('2026-10-08');

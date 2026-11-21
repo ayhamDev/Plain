@@ -616,7 +616,9 @@ the controls. Mobile date-time sheets separate date and time into two steps.
 
 `DateRangePicker` starts a new range on the first date click, including when
 editing an existing interval. The second click completes the inclusive range.
-Desktop popovers close immediately; mobile sheets wait for Done. Selecting the
+Desktop popovers stay open after either selection; Done, Escape or clicking
+outside dismisses them. Desktop values update as dates are selected; mobile
+sheets keep changes pending until Done. Selecting the
 same date twice permits a one-day interval unless `minNights` excludes it.
 Disabled dates and range limits still apply. Use the clear button or
 Delete/Backspace on the trigger to clear a range.

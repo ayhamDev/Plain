@@ -1099,7 +1099,7 @@ const fields: DataTableFilterField<Invoice>[] = [
       ),
       p('fromName / toName', 'string', 'Local YYYY-MM-DD form values.'),
     ],
-    'The trigger opens a keyboard-accessible range calendar with P.UI month/year Select controls. Desktop selection closes after the second date. Below 768px, a sheet shows pending endpoints and two stacked months by default; Done confirms and Cancel discards the draft. Selection is announced and focus returns to the trigger on close.',
+    'The trigger opens a keyboard-accessible range calendar with P.UI month/year Select controls. Desktop values update on selection while the popover stays open; Done, Escape or outside dismissal closes it. Below 768px, a sheet shows pending endpoints and two stacked months by default; Done confirms and Cancel discards the draft. Selection is announced and focus returns to the trigger on close.',
   ),
   define(
     'date-time-picker',

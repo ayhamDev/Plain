@@ -1273,7 +1273,6 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
   const select = (next: DateRange | undefined) => {
     if (disabled || readOnly) return;
     change(next);
-    if (next?.from && next.to) setOpen(false);
   };
   const clear = () => {
     select(undefined);
@@ -1409,7 +1408,13 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
                   <Button variant="ghost" onClick={() => setOpen(false)}>
                     {language.t('common.cancel')}
                   </Button>
-                  <Button disabled={!canConfirm} onClick={() => select(draft)}>
+                  <Button
+                    disabled={!canConfirm}
+                    onClick={() => {
+                      select(draft);
+                      setOpen(false);
+                    }}
+                  >
                     {language.t('common.done')}
                   </Button>
                 </>
@@ -1430,6 +1435,16 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
               }}
             >
               {calendar}
+              <div
+                {...styles(
+                  'date-range-picker.footer',
+                  'ui-temporal-done mt-4',
+                  undefined,
+                  unstyled,
+                )}
+              >
+                <Button onClick={() => setOpen(false)}>{language.t('common.done')}</Button>
+              </div>
             </PickerPopoverContent>
           )}
         </PickerRoot>

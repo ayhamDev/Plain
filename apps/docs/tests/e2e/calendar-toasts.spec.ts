@@ -115,7 +115,7 @@ for (const view of [
           .getByRole('dialog')
           .getByRole('button', { name: dir === 'rtl' ? 'التالي' : 'Next', exact: true })
           .click();
-      if (width < 768 && (view === 'date-picker' || view === 'date-range-picker'))
+      if ((width < 768 && view === 'date-picker') || view === 'date-range-picker')
         await page
           .getByRole('dialog')
           .getByRole('button', { name: dir === 'rtl' ? 'تم' : 'Done', exact: true })

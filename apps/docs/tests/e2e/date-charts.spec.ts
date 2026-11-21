@@ -490,6 +490,9 @@ test.describe('native wall-time forms across zones', () => {
     const end = dialog.getByRole('button', { name: 'Tuesday, October 6, 2026', exact: true });
     await expect(end).toBeFocused();
     await end.press('Enter');
+    await expect(dialog).toBeVisible();
+    await expect(end).toBeFocused();
+    await dialog.getByRole('button', { name: 'Done', exact: true }).click();
     await expect(dialog).toHaveCount(0);
     await expect(trigger).toBeFocused();
     expect(await valid()).toBe(true);
@@ -515,6 +518,8 @@ test.describe('native wall-time forms across zones', () => {
     await trigger.click();
     await dialog.getByRole('button', { name: 'Monday, October 5, 2026', exact: true }).click();
     await dialog.getByRole('button', { name: 'Tuesday, October 6, 2026', exact: true }).click();
+    await expect(dialog).toBeVisible();
+    await dialog.getByRole('button', { name: 'Done', exact: true }).click();
     await trigger.press('Control+Backspace');
     const cleared = await form
       .locator('form')

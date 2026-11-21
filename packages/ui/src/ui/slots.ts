@@ -158,6 +158,7 @@ export const styleSlots = [
   "date-picker.trigger",
   "date-range-picker.clear",
   "date-range-picker.content",
+  "date-range-picker.footer",
   "date-range-picker.root",
   "date-range-picker.trigger",
   "date-range-picker.value",

@@ -291,7 +291,12 @@ describe('native temporal controls', () => {
     await userEvent.click(screen.getByRole('button', { name: /Monday, October 5, 2026/ }));
     expect(screen.getByRole('button', { name: /Thursday, October 8, 2026/ })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: /Thursday, October 8, 2026/ }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Thursday, October 8, 2026/ })).toHaveFocus();
+    const selections = change.mock.calls.length;
+    await userEvent.click(screen.getByRole('button', { name: 'Done' }));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Travel' })).toHaveFocus());
+    expect(change).toHaveBeenCalledTimes(selections);
     expect(change).toHaveBeenLastCalledWith({ from: expect.any(Date), to: expect.any(Date) });
     const data = new FormData(container.querySelector('form')!);
     expect(data.get('travel[from]')).toBe('2026-10-05');
@@ -350,21 +355,24 @@ describe('native temporal controls', () => {
       expect(screen.getByRole('dialog')).toBeInTheDocument();
       expect(change).toHaveBeenLastCalledWith({ from: new Date(2026, 9, 5), to: undefined });
       await userEvent.click(screen.getByRole('button', { name: /Thursday, October 8, 2026/ }));
-      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
       expect(new FormData(container.querySelector('form')!).get('travel[to]')).toBe('2026-10-08');
-      await userEvent.click(screen.getByRole('button', { name: 'Travel' }));
       await userEvent.click(screen.getByRole('button', { name: /Monday, October 5, 2026/ }));
       expect(screen.getByRole('dialog')).toBeInTheDocument();
       await userEvent.click(screen.getByRole('button', { name: /Monday, October 5, 2026/ }));
-      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
       expect(new FormData(container.querySelector('form')!).get('travel[to]')).toBe('2026-10-05');
-      await userEvent.click(screen.getByRole('button', { name: 'Travel' }));
       await userEvent.click(screen.getByRole('button', { name: /Monday, October 5, 2026/ }));
       expect(change).toHaveBeenLastCalledWith({ from: new Date(2026, 9, 5), to: undefined });
       await userEvent.click(screen.getByRole('button', { name: /Friday, October 2, 2026/ }));
-      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
       expect(new FormData(container.querySelector('form')!).get('travel[from]')).toBe('2026-10-02');
       expect(new FormData(container.querySelector('form')!).get('travel[to]')).toBe('2026-10-05');
+      const selections = change.mock.calls.length;
+      await userEvent.click(screen.getByRole('button', { name: 'Done' }));
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(screen.getByRole('button', { name: 'Travel' })).toHaveFocus();
+      expect(change).toHaveBeenCalledTimes(selections);
     },
   );
 

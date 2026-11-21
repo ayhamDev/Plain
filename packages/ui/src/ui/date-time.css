@@ -56,7 +56,8 @@
 .ui-temporal-input[data-custom-picker]::-webkit-calendar-picker-indicator {
   display: none;
 }
-.ui-temporal .ui-temporal-input {
+.ui-temporal .ui-temporal-input,
+.ui-temporal .ui-date-range-trigger {
   border: 0;
   background: transparent;
   outline: none;
