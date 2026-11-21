@@ -64,7 +64,7 @@ export default function SheetExample() {
           </UI.Stack>
         </UI.SheetContent>
       </UI.Sheet>
-      <UI.Sheet side="bottom" snapPoints={[0.4, 0.85]}>
+      <UI.Sheet side="bottom" snapPoints={[0.4, 0.75, 1]}>
         <UI.SheetTrigger asChild>
           <UI.Button variant="outline">Snap points</UI.Button>
         </UI.SheetTrigger>

@@ -666,6 +666,16 @@ snap points and controls remain on the original dialog element. Detached/floatin
 gaps and unstyled/custom-container presentation are retained. The decorative
 extension uses the shared `sheet.overflow-fill` styling slot.
 
+`size="full"` on either Sheet or Drawer fills both viewport dimensions on every
+side. Detached/floating gaps and the root/content `maxWidth` yield to full size.
+With `snapPoints={[0.5, 1]}`, the last snap also fills the viewport; bounded width
+and detached gaps return at partial snaps. Corners flatten progressively over
+the last 64px of travel and return when pulling away, following the native drag
+and snap animation. Full panels retain safe-area padding and a continuous
+background during overdrag. Custom-container panels fill their own positioned container;
+unstyled consumers retain control of presentation. Mobile pickers can use the
+entire viewport when their content needs it, with internal scrolling for overflow.
+
 Time picker fields stay side by side, including optional period and seconds.
 Styled popovers use Radix's available width and height to stay within their
 collision boundary, scrolling tall content internally. `PopoverContent` defaults

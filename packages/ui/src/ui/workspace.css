@@ -338,24 +338,24 @@
 }
 .ui-sheet[data-variant='detached'],
 .ui-sheet[data-variant='floating'] {
-  inset-block: var(--ui-panel-gap);
-  height: calc(100dvh - 2 * var(--ui-panel-gap));
-  max-width: calc(100vw - 2 * var(--ui-panel-gap));
-  border-radius: var(--ui-radius);
+  inset-block: var(--ui-panel-effective-gap, var(--ui-panel-gap));
+  height: calc(100dvh - 2 * var(--ui-panel-effective-gap, var(--ui-panel-gap)));
+  max-width: calc(100vw - 2 * var(--ui-panel-effective-gap, var(--ui-panel-gap)));
+  border-radius: calc(var(--ui-sheet-radius, var(--ui-radius)) * var(--ui-panel-radius-scale, 1));
 }
 .ui-sheet[data-variant='detached'][data-side='left'],
 .ui-sheet[data-variant='floating'][data-side='left'] {
-  left: var(--ui-panel-gap);
+  left: var(--ui-panel-effective-gap, var(--ui-panel-gap));
 }
 .ui-sheet[data-variant='detached'][data-side='right'],
 .ui-sheet[data-variant='floating'][data-side='right'] {
-  right: var(--ui-panel-gap);
+  right: var(--ui-panel-effective-gap, var(--ui-panel-gap));
 }
 .ui-drawer[data-variant='detached'],
 .ui-drawer[data-variant='floating'] {
-  inset-inline: var(--ui-panel-gap);
-  border-radius: var(--ui-radius);
-  max-height: calc(100dvh - 2 * var(--ui-panel-gap));
+  inset-inline: var(--ui-panel-effective-gap, var(--ui-panel-gap));
+  border-radius: calc(var(--ui-sheet-radius, var(--ui-radius)) * var(--ui-panel-radius-scale, 1));
+  max-height: calc(100dvh - 2 * var(--ui-panel-effective-gap, var(--ui-panel-gap)));
 }
 .ui-drawer {
   box-sizing: border-box;
@@ -364,10 +364,71 @@
 }
 .ui-drawer[data-variant='detached'],
 .ui-drawer[data-variant='floating'] {
-  width: calc(100% - 2 * var(--ui-panel-gap));
+  width: calc(100% - 2 * var(--ui-panel-effective-gap, var(--ui-panel-gap)));
 }
+/* A full snap uses the viewport as Vaul's sizing canvas. Cross-axis limits and
+   detached gaps interpolate only near the leading edge, preserving partial snaps. */
 .ui-panel {
+  --ui-panel-layout-scale: 1;
+  --ui-panel-padding: 1.25rem;
   overflow-wrap: anywhere;
+}
+@media (min-width: 640px) {
+  .ui-panel {
+    --ui-panel-padding: 1.5rem;
+  }
+}
+.ui-panel[data-viewport-expandable='true']:not([data-vaul-custom-container='true']) {
+  --ui-panel-layout-scale: var(--ui-panel-radius-scale, 1);
+  --ui-panel-effective-gap: calc(var(--ui-panel-gap, 12px) * var(--ui-panel-layout-scale));
+}
+.ui-drawer[data-viewport-expandable='true']:not([data-vaul-custom-container='true']) {
+  height: 100dvh;
+  max-height: 100dvh;
+  max-block-size: 100dvh;
+}
+.ui-sheet[data-viewport-expandable='true']:not([data-vaul-custom-container='true']) {
+  --ui-panel-axis-max-width: none;
+  width: 100vw;
+  max-width: 100vw;
+}
+.ui-panel[data-size='full']:not([data-vaul-custom-container='true']) {
+  --ui-panel-layout-scale: 0;
+  --ui-panel-effective-gap: 0px;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: 100vw;
+  max-height: 100dvh;
+  max-block-size: 100dvh;
+  margin: 0;
+  border-radius: calc(var(--ui-sheet-radius, var(--ui-radius)) * var(--ui-panel-radius-scale, 0));
+  border-color: transparent;
+}
+.ui-panel[data-size='full'][data-vaul-custom-container='true'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  max-block-size: 100%;
+  margin: 0;
+  border-radius: 0;
+}
+.ui-panel[data-viewport-covered='true'] {
+  border-color: transparent;
+}
+.ui-panel[data-size='full']:not([data-vaul-custom-container='true']),
+.ui-panel[data-viewport-covered='true'] {
+  padding-block-start: max(var(--ui-panel-padding), env(safe-area-inset-top));
+  padding-block-end: max(1.5rem, env(safe-area-inset-bottom));
+  padding-inline-start: max(var(--ui-panel-padding), env(safe-area-inset-left));
+  padding-inline-end: max(var(--ui-panel-padding), env(safe-area-inset-right));
+}
+.ui-panel[data-size='full']:not([data-vaul-custom-container='true']) > [data-slot='close'],
+.ui-panel[data-viewport-covered='true'] > [data-slot='close'] {
+  top: max(1rem, env(safe-area-inset-top));
 }
 .ui-panel[data-vaul-drawer] {
   user-select: text;
@@ -422,11 +483,11 @@
 }
 .ui-drawer[data-variant='detached'][data-side='bottom'],
 .ui-drawer[data-variant='floating'][data-side='bottom'] {
-  bottom: var(--ui-panel-gap);
+  bottom: var(--ui-panel-effective-gap, var(--ui-panel-gap));
 }
 .ui-drawer[data-variant='detached'][data-side='top'],
 .ui-drawer[data-variant='floating'][data-side='top'] {
-  top: var(--ui-panel-gap);
+  top: var(--ui-panel-effective-gap, var(--ui-panel-gap));
 }
 .ui-sheet[data-variant='floating'],
 .ui-drawer[data-variant='floating'] {

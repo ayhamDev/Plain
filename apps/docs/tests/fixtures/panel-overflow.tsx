@@ -33,6 +33,7 @@ function Workspace() {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState([40]);
   const [scroll, setScroll] = React.useState(0);
+  const [container, setContainer] = React.useState<HTMLDivElement | null>(null);
   const [snap, setSnap] = React.useState<number | string | null>(params.has('snap') ? 0.5 : 1);
   const ref = React.useRef<HTMLDivElement>(null);
   const Root = params.get('kind') === 'sheet' ? Sheet : Drawer;
@@ -40,9 +41,19 @@ function Workspace() {
   return (
     <main style={{ padding: 16 }}>
       <h1>Panel overdrag backgrounds</h1>
+      {params.has('container') && (
+        <div
+          ref={setContainer}
+          data-testid="panel-container"
+          style={{ position: 'relative', width: 600, height: 500, marginTop: 24 }}
+        />
+      )}
       <Root
         side={side}
         variant={variant}
+        size={params.has('full') ? 'full' : 'md'}
+        gap={params.has('wide-gap') ? 40 : 12}
+        container={params.has('container') ? container : undefined}
         open={open}
         onOpenChange={setOpen}
         {...(params.has('snap')
@@ -56,9 +67,11 @@ function Workspace() {
         <Content
           ref={ref}
           showHandle
+          maxWidth={params.has('content-bounded') ? 280 : undefined}
           unstyled={params.has('unstyled')}
-          style={
-            params.has('inline')
+          style={{
+            ...(params.has('rounded') ? tokensToStyle({ 'sheet.radius': '32px' }) : {}),
+            ...(params.has('inline')
               ? {
                   backgroundColor: '#36584a',
                   ...tokensToStyle({
@@ -66,8 +79,8 @@ function Workspace() {
                     'muted-foreground': '#c9d8cf',
                   }),
                 }
-              : undefined
-          }
+              : {}),
+          }}
           onScroll={(event) => setScroll(event.currentTarget.scrollTop)}
         >
           <SheetHandle />
@@ -76,6 +89,12 @@ function Workspace() {
             Pull beyond the resting edge. The background should stay connected.
           </SheetDescription>
           <div style={{ display: 'grid', gap: 16, paddingBlock: 16 }}>
+            {params.has('snap') && (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Button onClick={() => setSnap(1)}>Expand fully</Button>
+                <Button onClick={() => setSnap(0.5)}>Half height</Button>
+              </div>
+            )}
             <Input aria-label="Project name" placeholder="Project name" />
             <Slider aria-label="Volume" value={value} onValueChange={setValue} />
             <output aria-label="Volume value">{value[0]}</output>

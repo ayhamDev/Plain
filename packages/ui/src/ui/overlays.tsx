@@ -24,6 +24,7 @@ import { buttonVariants } from './primitives';
 import { useModalInert } from './modal-accessibility';
 import { useMotionSettings } from './motion-policy';
 import { PanelOverflowFill } from './panel-overflow';
+import { usePanelViewport } from './panel-viewport';
 import { PanelDragSurface, usePanelTouchGestures } from './panel-gestures';
 export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = /* @__PURE__ */ React.forwardRef<
@@ -202,6 +203,7 @@ type PanelConfiguration = { side?: SheetSide; dir?: TextDirection };
 const PanelContext = /* @__PURE__ */ React.createContext<{
   side: 'left' | 'right' | 'top' | 'bottom';
   hasSnapPoints: boolean;
+  snapPoints?: readonly (number | string)[];
   variant: 'attached' | 'detached' | 'floating';
   size: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   gap: number;
@@ -255,6 +257,7 @@ function PanelRoot({
     () => ({
       side: resolvedSide,
       hasSnapPoints: Boolean(props.snapPoints?.length),
+      snapPoints: props.snapPoints,
       configure,
       variant,
       size,
@@ -262,7 +265,7 @@ function PanelRoot({
       maxWidth,
       handleOnly,
     }),
-    [resolvedSide, props.snapPoints?.length, variant, size, gap, maxWidth, handleOnly],
+    [resolvedSide, props.snapPoints, variant, size, gap, maxWidth, handleOnly],
   );
   return (
     <DirectionProvider dir={textDirection}>
@@ -416,6 +419,13 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
     }, [configure, side, localDirection]);
     const resolvedSide = context?.side ?? 'right';
     const vertical = resolvedSide === 'top' || resolvedSide === 'bottom';
+    const styled = !(unstyled ?? styles.unstyled);
+    const full = styled && context?.size === 'full';
+    const widthLimit = maxWidth ?? context?.maxWidth;
+    const widthValue = typeof widthLimit === 'number' ? `${widthLimit}px` : widthLimit;
+    const interpolatedWidth =
+      widthValue && !['none', 'max-content', 'min-content', 'fit-content'].includes(widthValue);
+    usePanelViewport(panel, resolvedSide, styled, context?.snapPoints);
     return (
       <>
         <SheetPortal>
@@ -432,10 +442,10 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
                     vertical
                       ? cn(
                           'ui-drawer inset-x-0',
-                          context?.hasSnapPoints ? 'h-dvh max-h-none' : 'max-h-[90dvh]',
+                          context?.hasSnapPoints ? 'h-dvh max-h-none' : 'max-h-dvh',
                           resolvedSide === 'bottom'
-                            ? 'bottom-0 rounded-t-[var(--ui-sheet-radius,var(--ui-radius))] pb-[max(1.5rem,env(safe-area-inset-bottom))]'
-                            : 'top-0 rounded-b-[var(--ui-sheet-radius,var(--ui-radius))] pt-[max(1.5rem,env(safe-area-inset-top))]',
+                            ? 'bottom-0 rounded-t-[calc(var(--ui-sheet-radius,var(--ui-radius))*var(--ui-panel-radius-scale,1))] pb-[max(1.5rem,env(safe-area-inset-bottom))]'
+                            : 'top-0 rounded-b-[calc(var(--ui-sheet-radius,var(--ui-radius))*var(--ui-panel-radius-scale,1))] pt-[max(1.5rem,env(safe-area-inset-top))]',
                         )
                       : cn(
                           'ui-sheet inset-y-0 h-dvh',
@@ -451,11 +461,19 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
                 data-side={resolvedSide}
                 data-variant={context?.variant ?? 'attached'}
                 data-size={context?.size ?? 'md'}
+                data-viewport-expandable={context?.snapPoints?.includes(1) || undefined}
                 style={
                   {
                     '--ui-panel-gap': `${context?.gap ?? 12}px`,
-                    ...((maxWidth ?? context?.maxWidth) != null
-                      ? { maxWidth: maxWidth ?? context?.maxWidth }
+                    ...(widthLimit != null && !full
+                      ? {
+                          maxWidth:
+                            styled && vertical && context?.hasSnapPoints && interpolatedWidth
+                              ? `calc(min(100vw, ${widthValue}) * var(--ui-panel-layout-scale, 1) + 100vw * (1 - var(--ui-panel-layout-scale, 1)))`
+                              : styled && !vertical && context?.hasSnapPoints
+                                ? `var(--ui-panel-axis-max-width, ${widthValue})`
+                                : widthLimit,
+                        }
                       : {}),
                     ...style,
                   } as React.CSSProperties
@@ -497,7 +515,7 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
         </SheetPortal>
         {panel?.parentElement &&
         !(unstyled ?? styles.unstyled) &&
-        (context?.variant ?? 'attached') === 'attached'
+        ((context?.variant ?? 'attached') === 'attached' || full || context?.hasSnapPoints)
           ? createPortal(
               <PanelOverflowFill panel={panel} side={resolvedSide} />,
               panel.parentElement,

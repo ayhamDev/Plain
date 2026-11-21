@@ -7,9 +7,11 @@ const appearanceAttributes = [
   'data-state',
   'data-ui-motion',
   'data-variant',
+  'data-size',
   'data-vaul-snap-points',
   'data-vaul-animate',
   'data-vaul-custom-container',
+  'data-viewport-expandable',
 ];
 
 /** A decorative sibling: the dialog keeps its native scrolling, refs and hit area. */
@@ -31,7 +33,7 @@ export function PanelOverflowFill({
     const layoutStyle = () =>
       [
         Array.from(panel.style)
-          .filter((name) => name !== 'transform')
+          .filter((name) => name !== 'transform' && name !== '--ui-panel-radius-scale')
           .map((name) => `${name}:${panel.style.getPropertyValue(name)}`)
           .join(';'),
         ...appearanceAttributes.map((name) => panel.getAttribute(name) ?? ''),
@@ -48,7 +50,10 @@ export function PanelOverflowFill({
         computed.position === 'fixed' &&
         width > 0 &&
         height > 0 &&
-        panel.dataset.variant === 'attached' &&
+        (panel.dataset.variant === 'attached' ||
+          panel.dataset.size === 'full' ||
+          (panel.dataset.viewportExpandable === 'true' &&
+            Number(computed.getPropertyValue('--ui-panel-radius-scale')) < 1)) &&
         panel.dataset.vaulCustomContainer !== 'true';
       fill.style.visibility = enabled ? 'visible' : 'hidden';
       if (!enabled) return;
