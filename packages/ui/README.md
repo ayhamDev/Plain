@@ -473,7 +473,9 @@ to `collisionPadding={8}` and `sticky="always"`; native placement/collision prop
 and consumer class/style overrides remain available. Unstyled consumers own sizing.
 
 Calendars and all date picker popups include direct month/year selectors by
-default, with localized labels and keyboard order matching the visible controls.
+default, using P.UI Select with localized labels, themed menus and keyboard order
+matching the visible controls. Navigation does not commit a selected date or
+dismiss the picker. Caller `components` overrides remain available on Calendar.
 Use `captionLayout="label"` on Calendar (or through a picker's `calendarProps`)
 for the former text caption. Configure year ranges and order explicitly:
 
@@ -500,6 +502,18 @@ apply. `month`, `defaultMonth` and `onMonthChange` control navigation independen
 of the chosen date.
 The `calendar.month-width` and `calendar.year-width` tokens keep selector widths
 stable between month names and can accommodate custom labels or formatters.
+
+`DateRangePicker` starts a new range on the first date click, including when
+editing an existing interval. The second click completes the inclusive range and
+closes the popup; selecting the same date twice permits a one-day interval unless
+`minNights` excludes it. Disabled dates and range limits still apply. Use the
+clear button or Delete/Backspace on the trigger to clear a range.
+
+Calendar popups keep their full content visible when it fits in the viewport.
+If neither side of the trigger has enough room, the popup can overlap its trigger
+to fit; content scrolls only when the available viewport really is too short.
+Explicit collision boundaries, horizontal placement and custom maximum heights
+retain the native Popover sizing behavior.
 
 ## Gantt timelines
 
@@ -697,10 +711,16 @@ touch gestures and reduced/none motion, and resets when the device or motion
 preference changes. Native scrolling, keyboard navigation, scrollbar dragging,
 scroll dimensions, nested scrollers and pinch/zoom gestures are preserved. Pixel,
 line and page wheel units and Shift-wheel horizontal scrolling are supported.
+The visual pull uses progressive resistance, stays within 20px (less in small
+viewports), and returns without a rebound. Large wheel impulses and trackpad
+momentum tails share the same limit.
 
 The existing `elastic` boolean now controls desktop feedback instead of its former
 touch-only resistance. `onRefresh` independently enables touch pull-to-refresh and
 its accessible refresh command; wheel/trackpad elasticity never triggers refresh.
+Touch refresh uses a separate visual pull capped at 40px and a 28px loading hold,
+scaled down for short scroll areas. `refreshThreshold` still controls the gesture
+needed to activate refresh independently of that visual feedback.
 
 ## Develop
 

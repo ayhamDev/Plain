@@ -9,6 +9,7 @@ import {
   type Matcher,
 } from 'react-day-picker';
 import { Calendar, type CalendarProps } from './calendar';
+import { PickerPopoverContent } from './picker-popover';
 import { Button } from './primitives';
 import { Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
 import {
@@ -864,7 +865,8 @@ function TemporalInput({
                     {done}
                   </SheetContent>
                 ) : (
-                  <PopoverContent
+                  <PickerPopoverContent
+                    anchorRef={fieldRef}
                     align="start"
                     {...popoverProps}
                     {...styles(
@@ -895,7 +897,7 @@ function TemporalInput({
                   >
                     {pickerContent}
                     {done}
-                  </PopoverContent>
+                  </PickerPopoverContent>
                 )}
               </>
             )}
@@ -1133,7 +1135,7 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
   const select = (next: DateRange | undefined) => {
     if (disabled || readOnly) return;
     change(next);
-    if (next?.to && current?.from) setOpen(false);
+    if (next?.from && next.to) setOpen(false);
   };
   const clear = () => {
     select(undefined);
@@ -1199,7 +1201,8 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
           <span id={valueId} style={visuallyHidden}>
             {formatted}
           </span>
-          <PopoverContent
+          <PickerPopoverContent
+            anchorRef={buttonRef}
             align="start"
             {...styles('date-range-picker.content', 'ui-temporal-content', undefined, unstyled)}
             dir={direction}
@@ -1212,6 +1215,8 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
             <Calendar
               {...calendarDefaults(locale, calendarProps)}
               mode="range"
+              resetOnSelect
+              required
               selected={current}
               onSelect={select}
               defaultMonth={calendarProps?.defaultMonth ?? from ?? minimum}
@@ -1224,7 +1229,7 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
               autoFocus
               dir={direction}
             />
-          </PopoverContent>
+          </PickerPopoverContent>
         </Popover>
         {clearable && current && (
           <button

@@ -390,7 +390,7 @@
   --ui-calendar-radius: var(--ui-radius);
   --ui-calendar-day-size: 32px;
   --ui-calendar-month-width: 104px;
-  --ui-calendar-year-width: 64px;
+  --ui-calendar-year-width: 72px;
   --ui-table-background: var(--ui-surface);
   --ui-table-foreground: var(--ui-foreground);
   --ui-table-muted-foreground: var(--ui-muted-foreground);

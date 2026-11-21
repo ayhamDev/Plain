@@ -876,12 +876,12 @@ export const components: ComponentDefinition[] = [
       prop(
         'calendarProps',
         'CalendarProps',
-        'Configure captionLayout, startMonth/endMonth, reverseYears, displayed month, locale or disabled dates. Month/year selectors are enabled by default.',
+        'Configure captionLayout, startMonth/endMonth, reverseYears, displayed month, locale or disabled dates. The default month/year navigation uses P.UI Select and keeps the picker open.',
       ),
       prop(
         'locale',
         'string',
-        'Intl locale for the trigger date. Set the calendar locale separately.',
+        'Intl locale for the trigger and calendar, falling back to the language provider.',
         'en',
       ),
       prop('clearLabel', 'string', 'Localized text for the clear action.', 'Clear date'),
@@ -998,7 +998,7 @@ export const components: ComponentDefinition[] = [
       ),
       prop('type', 'auto | always | scroll | hover', 'Native Radix visibility override.', 'hover'),
     ],
-    'Radix preserves native scrolling and keyboard navigation. Provide a constrained height. Elastic is opt-in and desktop-only, supports pixel/line/page wheel deltas and both axes, and returns smoothly without changing scroll dimensions. onRefresh independently enables touch pull-to-refresh. Fades affect only content, use logical start/end in RTL, and are removed for visible keyboard focus and forced colors. ScrollBar also accepts size, hoverSize and expandOnHover. Reduced/none motion disables optional transitions and elasticity.',
+    'Radix preserves native scrolling and keyboard navigation. Provide a constrained height. Elastic is opt-in and desktop-only, supports pixel/line/page wheel deltas and both axes, and uses gentle progressive resistance capped at 20px without changing scroll dimensions. onRefresh independently enables touch pull-to-refresh with a visual pull capped at 40px. Fades affect only content, use logical start/end in RTL, and are removed for visible keyboard focus and forced colors. ScrollBar also accepts size, hoverSize and expandOnHover. Reduced/none motion disables optional transitions and elasticity.',
   ),
   definition(
     'collapsible',

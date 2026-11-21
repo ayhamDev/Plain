@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { DateRange } from 'react-day-picker';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -319,6 +320,53 @@ describe('native temporal controls', () => {
     expect(new FormData(form).get('travel[to]')).toBe('');
     act(() => expect(form.checkValidity()).toBe(false));
   });
+
+  it.each([false, true])(
+    'starts a fresh two-click range when editing (controlled: %s)',
+    async (controlled) => {
+      const initial = { from: new Date(2026, 9, 4), to: new Date(2026, 9, 29) };
+      const change = vi.fn();
+      function Example() {
+        const [value, setValue] = React.useState<DateRange | undefined>(initial);
+        return (
+          <DateRangePicker
+            aria-label="Travel"
+            name="travel"
+            {...(controlled ? { value } : { defaultValue: initial })}
+            onValueChange={(next) => {
+              change(next);
+              setValue(next);
+            }}
+          />
+        );
+      }
+      const { container } = render(
+        <form>
+          <Example />
+        </form>,
+      );
+      await userEvent.click(screen.getByRole('button', { name: 'Travel' }));
+      await userEvent.click(screen.getByRole('button', { name: /Monday, October 5, 2026/ }));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(change).toHaveBeenLastCalledWith({ from: new Date(2026, 9, 5), to: undefined });
+      await userEvent.click(screen.getByRole('button', { name: /Thursday, October 8, 2026/ }));
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(new FormData(container.querySelector('form')!).get('travel[to]')).toBe('2026-10-08');
+      await userEvent.click(screen.getByRole('button', { name: 'Travel' }));
+      await userEvent.click(screen.getByRole('button', { name: /Monday, October 5, 2026/ }));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      await userEvent.click(screen.getByRole('button', { name: /Monday, October 5, 2026/ }));
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(new FormData(container.querySelector('form')!).get('travel[to]')).toBe('2026-10-05');
+      await userEvent.click(screen.getByRole('button', { name: 'Travel' }));
+      await userEvent.click(screen.getByRole('button', { name: /Monday, October 5, 2026/ }));
+      expect(change).toHaveBeenLastCalledWith({ from: new Date(2026, 9, 5), to: undefined });
+      await userEvent.click(screen.getByRole('button', { name: /Friday, October 2, 2026/ }));
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      expect(new FormData(container.querySelector('form')!).get('travel[from]')).toBe('2026-10-02');
+      expect(new FormData(container.querySelector('form')!).get('travel[to]')).toBe('2026-10-05');
+    },
+  );
 
   it('validates supplied ranges against disabled days and clears custom validity with undefined', () => {
     const unavailable = new Date(2026, 9, 6);

@@ -330,7 +330,7 @@ describe('global component localization', () => {
       year: 'numeric',
     }).format(day);
     expect(screen.getAllByRole('grid', { name: expectedMonth })).toHaveLength(2);
-    expect(screen.getByRole('combobox', { name: 'Choose year' })).toHaveValue('2026');
+    expect(screen.getByRole('combobox', { name: 'Choose year' })).toHaveTextContent('۲۰۲۶');
     expect(screen.getByRole('button', { name: 'Pick a date' })).toHaveTextContent('۲۰۲۶');
     const table = screen.getByRole('table', { name: 'Gantt chart data', hidden: true });
     expect(table).toHaveTextContent('۲۰۲۶');

@@ -249,6 +249,32 @@ for (const directory of [consumer, minimumConsumer]) {
     presence.includes('Visible layout') && !presence.includes('opacity:0'),
     `React ${peerReact.version} hid the server layout.`,
   );
+  const calendar = peerServer.renderToString(
+    peerReact.createElement(peerLibrary.Calendar, {
+      defaultMonth: new Date(2026, 10, 20),
+      localeCode: 'en-US',
+    }),
+  );
+  for (const [label, value] of [
+    ['Choose month', 'November'],
+    ['Choose year', '2026'],
+  ]) {
+    const trigger = calendar.split(`aria-label="${label}"`)[1]?.split('</button>')[0];
+    assert(
+      trigger?.includes(value),
+      `React ${peerReact.version} omitted the server calendar ${label}.`,
+    );
+  }
+  const range = peerServer.renderToString(
+    peerReact.createElement(peerLibrary.DateRangePicker, {
+      name: 'travel',
+      defaultValue: { from: new Date(2026, 10, 20), to: new Date(2026, 10, 23) },
+    }),
+  );
+  assert(
+    range.includes('value="2026-11-20"') && range.includes('value="2026-11-23"'),
+    `React ${peerReact.version} omitted server date range form values.`,
+  );
   const qr = peerServer.renderToString(
     peerReact.createElement(peerLibrary.QRCode, { value: 'https://github.com/ayhamDev/Plain' }),
   );

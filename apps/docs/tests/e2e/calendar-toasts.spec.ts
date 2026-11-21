@@ -46,9 +46,26 @@ for (const view of [
       const year = calendar.getByRole('combobox', {
         name: dir === 'rtl' ? 'اختر السنة' : 'Choose year',
       });
-      await expect(year.locator('option')).toHaveCount(view === 'date-time-range-picker' ? 47 : 56);
-      await year.selectOption('1985');
-      await month.selectOption('8');
+      const digits = new Intl.NumberFormat(dir === 'rtl' ? 'ar' : 'en', { useGrouping: false });
+      const monthName = (value: number) =>
+        new Intl.DateTimeFormat(dir === 'rtl' ? 'ar' : 'en', {
+          month: 'long',
+          calendar: 'gregory',
+        }).format(new Date(2026, value));
+      const chooseYear = async (value: number) => {
+        await year.click();
+        await page.getByRole('option', { name: digits.format(value), exact: true }).click();
+      };
+      const chooseMonth = async (value: number) => {
+        await month.click();
+        await page.getByRole('option', { name: monthName(value), exact: true }).click();
+      };
+      await year.click();
+      await expect(page.getByRole('listbox').getByRole('option')).toHaveCount(
+        view === 'date-time-range-picker' ? 47 : 56,
+      );
+      await page.getByRole('option', { name: digits.format(1985), exact: true }).click();
+      await chooseMonth(8);
       const septemberWidth = (await calendar.locator('.rdp-month').boundingBox())!.width;
       await contained(page, calendar);
       const bounds = await year.boundingBox();
@@ -63,13 +80,15 @@ for (const view of [
       await page.keyboard.press('Tab');
       await expect(year).toBeFocused();
       await page.keyboard.press('ArrowDown');
-      await expect(year).toHaveValue('1986');
-      await year.selectOption('1985');
-      await month.selectOption('1');
+      await page.getByRole('option', { name: digits.format(1985), exact: true }).focus();
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
+      await expect(year).toContainText(digits.format(1986));
+      await chooseYear(1985);
+      await chooseMonth(1);
       expect(
         Math.abs((await calendar.locator('.rdp-month').boundingBox())!.width - septemberWidth),
       ).toBeLessThanOrEqual(1);
-      const digits = new Intl.NumberFormat(dir === 'rtl' ? 'ar' : 'en');
       const day = (value: number) =>
         calendar
           .getByRole('button', { name: new RegExp('.*') })

@@ -1033,7 +1033,7 @@ const fields: DataTableFilterField<Invoice>[] = [
       ),
       p('fromName / toName', 'string', 'Local YYYY-MM-DD form values.'),
     ],
-    'The trigger opens a keyboard-accessible range calendar. Selection and range state are announced; focus returns to the trigger on close.',
+    'The trigger opens a keyboard-accessible range calendar with P.UI month/year Select controls. The first click starts a new range, even when editing an existing interval; the second completes it and closes the popup. Selection and range state are announced; focus returns to the trigger on close.',
   ),
   define(
     'date-time-picker',

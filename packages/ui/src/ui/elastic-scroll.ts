@@ -25,7 +25,8 @@ export function useElasticScroll(
     if (busy.current || !callbacks.current.onRefresh) return;
     busy.current = true;
     setState('refreshing');
-    content.current?.style.setProperty('--ui-elastic-offset', '40px');
+    const hold = Math.min(28, (viewport.current?.clientHeight ?? 160) * 0.18);
+    content.current?.style.setProperty('--ui-elastic-offset', `${hold}px`);
     content.current?.setAttribute('data-settling', '');
     try {
       await callbacks.current.onRefresh();
@@ -37,7 +38,7 @@ export function useElasticScroll(
       busy.current = false;
       content.current?.style.setProperty('--ui-elastic-offset', '0px');
     }
-  }, [content]);
+  }, [content, viewport]);
   React.useEffect(() => {
     mounted.current = true;
     return () => {
@@ -100,10 +101,13 @@ export function useElasticScroll(
       if (!event.cancelable) return;
       event.preventDefault();
       distance = Math.sign(dy) * Math.min(threshold + 32, Math.abs(dy) * 0.45);
+      // Keep the activation distance independent from the much smaller visual pull.
+      const limit = Math.min(40, root.clientHeight * 0.18);
+      const offset = limit * (1 - Math.exp(-distance / (threshold * 0.5)));
       body.removeAttribute('data-settling');
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() =>
-        body.style.setProperty('--ui-elastic-offset', `${distance}px`),
+        body.style.setProperty('--ui-elastic-offset', `${offset}px`),
       );
       if (callbacks.current.onRefresh) phaseChange(distance >= threshold ? 'ready' : 'pulling');
     };

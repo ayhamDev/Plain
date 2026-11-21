@@ -2,12 +2,68 @@ import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './
 import * as React from 'react';
 import { ar, enUS } from 'react-day-picker/locale';
 import { dateFormatter, numberFormatter, useTranslation } from './i18n';
-import { DayPicker, labelDayButton, type DayPickerProps } from 'react-day-picker';
+import {
+  DayPicker,
+  labelDayButton,
+  useDayPicker,
+  type DayPickerProps,
+  type DropdownProps,
+} from 'react-day-picker';
 import { CalendarDays } from 'lucide-react';
 import { cn } from './utils';
 import { Button } from './primitives';
-import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from './overlays';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
+import { Popover, PopoverTrigger, PopoverClose } from './overlays';
+import { PickerPopoverContent } from './picker-popover';
 export type CalendarProps = DayPickerProps & { localeCode?: string };
+function CalendarDropdown({
+  options = [],
+  value,
+  onChange,
+  className,
+  style,
+  ...props
+}: DropdownProps) {
+  const { classNames, styles: calendarStyles, dayPickerProps } = useDayPicker();
+  const styles = useStyles();
+  const dir = useDirection(dayPickerProps.dir as 'ltr' | 'rtl' | undefined);
+  return (
+    <span className={classNames.dropdown_root} style={calendarStyles?.dropdown_root}>
+      <Select
+        value={value === undefined ? undefined : String(value)}
+        disabled={props.disabled}
+        dir={dir}
+        onValueChange={(next) => {
+          // DayPicker's navigation adapter reads the selected value from the change target.
+          const target = { value: next } as HTMLSelectElement;
+          onChange?.({ target, currentTarget: target } as React.ChangeEvent<HTMLSelectElement>);
+        }}
+      >
+        <SelectTrigger
+          {...styles('select.trigger', 'ui-calendar-select', className)}
+          style={style}
+          id={props.id}
+          title={props.title}
+          tabIndex={props.tabIndex}
+          aria-label={props['aria-label']}
+          aria-labelledby={props['aria-labelledby']}
+          aria-describedby={props['aria-describedby']}
+        >
+          <SelectValue>
+            {options.find((option) => String(option.value) === String(value))?.label}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent collisionPadding={8}>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={String(option.value)} disabled={option.disabled}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </span>
+  );
+}
 function yearMonth(year: number, month: number) {
   const date = new Date(0);
   date.setFullYear(year, month, 1);
@@ -21,6 +77,7 @@ export function Calendar({
   localeCode,
   labels,
   formatters,
+  components,
   captionLayout = 'dropdown',
   navLayout = 'after',
   ...props
@@ -60,42 +117,45 @@ export function Calendar({
       ? yearMonth(Math.max((props.startMonth ?? today).getFullYear() + 100, displayedYear), 11)
       : undefined);
   return (
-    <DayPicker
-      showOutsideDays={showOutsideDays}
-      captionLayout={captionLayout}
-      navLayout={navLayout}
-      dir={dir}
-      locale={locale.startsWith('ar') ? ar : enUS}
-      lang={locale}
-      labels={{
-        labelPrevious: () => language.t('calendar.previous'),
-        labelNext: () => language.t('calendar.next'),
-        labelMonthDropdown: () => language.t('picker.monthDropdown'),
-        labelYearDropdown: () => language.t('picker.yearDropdown'),
-        labelNav: () => language.t('calendar.label'),
-        labelWeekNumberHeader: () => language.t('picker.weekHeader'),
-        labelWeekNumber: (number) => language.t('picker.weekNumber', { number }),
-        labelDayButton: dayLabel,
-        labelGridcell: (date, modifiers) => dayLabel(date, modifiers ?? {}),
-        labelGrid: (date) => formatDate(date, { month: 'long', year: 'numeric' }),
-        labelWeekday: (date) => formatDate(date, { weekday: 'long' }),
-        ...labels,
-      }}
-      formatters={{
-        formatCaption: (date) => formatDate(date, { month: 'long', year: 'numeric' }),
-        formatDay: (date) => formatDate(date, { day: 'numeric' }),
-        formatWeekdayName: (date) =>
-          formatDate(date, { weekday: locale.startsWith('ar') ? 'narrow' : 'short' }),
-        formatMonthDropdown: (date) => formatDate(date, { month: 'long' }),
-        formatYearDropdown: (date) => formatDate(date, { year: 'numeric' }),
-        formatWeekNumber: (number) => numberFormatter(locale).format(number),
-        ...formatters,
-      }}
-      {...styles('calendar.root', 'ui-calendar', className, unstyled)}
-      {...props}
-      startMonth={startMonth}
-      endMonth={endMonth}
-    />
+    <StyleProvider unstyled={unstyled}>
+      <DayPicker
+        showOutsideDays={showOutsideDays}
+        captionLayout={captionLayout}
+        navLayout={navLayout}
+        dir={dir}
+        locale={locale.startsWith('ar') ? ar : enUS}
+        lang={locale}
+        labels={{
+          labelPrevious: () => language.t('calendar.previous'),
+          labelNext: () => language.t('calendar.next'),
+          labelMonthDropdown: () => language.t('picker.monthDropdown'),
+          labelYearDropdown: () => language.t('picker.yearDropdown'),
+          labelNav: () => language.t('calendar.label'),
+          labelWeekNumberHeader: () => language.t('picker.weekHeader'),
+          labelWeekNumber: (number) => language.t('picker.weekNumber', { number }),
+          labelDayButton: dayLabel,
+          labelGridcell: (date, modifiers) => dayLabel(date, modifiers ?? {}),
+          labelGrid: (date) => formatDate(date, { month: 'long', year: 'numeric' }),
+          labelWeekday: (date) => formatDate(date, { weekday: 'long' }),
+          ...labels,
+        }}
+        formatters={{
+          formatCaption: (date) => formatDate(date, { month: 'long', year: 'numeric' }),
+          formatDay: (date) => formatDate(date, { day: 'numeric' }),
+          formatWeekdayName: (date) =>
+            formatDate(date, { weekday: locale.startsWith('ar') ? 'narrow' : 'short' }),
+          formatMonthDropdown: (date) => formatDate(date, { month: 'long' }),
+          formatYearDropdown: (date) => formatDate(date, { year: 'numeric' }),
+          formatWeekNumber: (number) => numberFormatter(locale).format(number),
+          ...formatters,
+        }}
+        {...styles('calendar.root', 'ui-calendar', className, unstyled)}
+        {...props}
+        components={{ Dropdown: CalendarDropdown, ...components }}
+        startMonth={startMonth}
+        endMonth={endMonth}
+      />
+    </StyleProvider>
   );
 }
 export interface DatePickerProps extends Omit<
@@ -140,6 +200,8 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
   const isControlled = Object.prototype.hasOwnProperty.call(allProps, 'value');
   const styles = useStyles();
   const [open, setOpen] = React.useState(false);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  React.useImperativeHandle(ref, () => buttonRef.current!);
   const [internalValue, setInternalValue] = React.useState(defaultValue);
   const candidate = isControlled ? value : internalValue;
   const current = candidate && Number.isFinite(candidate.getTime()) ? candidate : undefined;
@@ -162,7 +224,7 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
-            ref={ref}
+            ref={buttonRef}
             variant="outline"
             {...styles(
               'date-picker.trigger',
@@ -187,7 +249,8 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
         <span id={valueId} hidden>
           {formattedValue}
         </span>
-        <PopoverContent
+        <PickerPopoverContent
+          anchorRef={buttonRef}
           align="start"
           aria-label={props['aria-label'] ?? placeholder}
           aria-labelledby={props['aria-labelledby']}
@@ -216,7 +279,7 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
               </PopoverClose>
             </div>
           )}
-        </PopoverContent>
+        </PickerPopoverContent>
         {name && (
           <input
             type="hidden"

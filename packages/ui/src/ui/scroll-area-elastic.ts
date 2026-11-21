@@ -62,14 +62,14 @@ export function useScrollAreaElastic(
     };
     const pull = (value: number, delta: number, limit: number) =>
       limit > 0
-        ? Math.max(
-            -limit,
-            Math.min(limit, value - delta * 0.35 * (1 - Math.abs(value) / limit) ** 2),
-          )
+        ? value -
+          Math.sign(delta) *
+            (limit - Math.abs(value)) *
+            (1 - Math.exp((-Math.abs(delta) * 0.12) / limit))
         : 0;
     // Critically damped return, integrated analytically so timing survives frame-rate changes.
     const spring = (value: number, velocity: number, dt: number) => {
-      const omega = 18;
+      const omega = 22;
       const decay = Math.exp(-omega * dt);
       const c = velocity + omega * value;
       const next = (value + c * dt) * decay;
@@ -124,7 +124,7 @@ export function useScrollAreaElastic(
           maxX > 1 &&
           ((atX <= 1 && dx < 0) || (maxX - atX <= 1 && dx > 0))
         ) {
-          x = pull(x, dx, Math.min(64, node.clientWidth / 4));
+          x = pull(x, dx, Math.min(20, node.clientWidth / 10));
           vx = 0;
         }
         if (
@@ -132,7 +132,7 @@ export function useScrollAreaElastic(
           maxY > 1 &&
           ((atY <= 1 && dy < 0) || (maxY - atY <= 1 && dy > 0))
         ) {
-          y = pull(y, dy, Math.min(64, node.clientHeight / 4));
+          y = pull(y, dy, Math.min(20, node.clientHeight / 10));
           vy = 0;
         }
       }

@@ -78,6 +78,11 @@ function Workspace() {
               max="2035-12-31"
               disabledDates={unavailable}
               calendarProps={config}
+              defaultValue={
+                params.has('existing')
+                  ? { from: new Date(2026, 9, 4), to: new Date(2026, 9, 29) }
+                  : undefined
+              }
             />
           )}
           {view === 'date-time-picker' && (

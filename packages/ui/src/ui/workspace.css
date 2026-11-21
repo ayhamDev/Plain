@@ -102,7 +102,7 @@
   will-change: transform;
 }
 .ui-scroll-content[data-settling] {
-  transition: transform calc(320ms * var(--ui-motion-scale, 1)) cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: transform calc(240ms * var(--ui-motion-scale, 1)) cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .ui-scroll-refresh {
   position: absolute;

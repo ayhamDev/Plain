@@ -106,7 +106,7 @@ for (const dir of ['ltr', 'rtl']) {
       );
       const peak = Math.max(...signed);
       expect(peak).toBeGreaterThan(5);
-      expect(peak).toBeLessThanOrEqual(64);
+      expect(peak).toBeLessThanOrEqual(20);
       expect(signed.some((value) => value > 0.2 && value < peak * 0.75)).toBe(true);
       expect(values.every((value) => Math.abs(vertical ? value.x : value.y) < 0.1)).toBe(true);
       await settled(viewport);
@@ -133,7 +133,7 @@ test('small trackpad deltas and momentum tails remain bounded and settle, and re
   }
   const values = (await samples()).map((value) => value.y);
   expect(Math.max(...values)).toBeGreaterThan(2);
-  expect(Math.max(...values)).toBeLessThanOrEqual(64);
+  expect(Math.max(...values)).toBeLessThanOrEqual(20);
   await settled(viewport);
   await page.mouse.wheel(0, -120);
   await expect(viewport).toHaveAttribute('data-elastic-active');
@@ -141,6 +141,20 @@ test('small trackpad deltas and momentum tails remain bounded and settle, and re
   await expect.poll(() => viewport.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
   await settled(viewport);
   await expect(page.getByRole('status', { name: 'Refresh calls' })).toHaveText('0');
+});
+
+test('large wheel bursts remain subtle and settle without rebounding', async ({ page }) => {
+  const viewport = await open(page, 'axis=vertical');
+  const samples = await sample(viewport, 48);
+  await viewport.evaluate((node) => {
+    for (let index = 0; index < 20; index++)
+      node.dispatchEvent(new WheelEvent('wheel', { deltaY: -1000, bubbles: true }));
+  });
+  const values = (await samples()).map((value) => value.y);
+  expect(Math.max(...values)).toBeGreaterThan(2);
+  expect(Math.max(...values)).toBeLessThanOrEqual(20);
+  expect(Math.min(...values)).toBeGreaterThanOrEqual(0);
+  await settled(viewport);
 });
 
 test('middle-of-content wheel scrolling and keyboard scrolling remain native', async ({ page }) => {
@@ -171,14 +185,14 @@ test('line/page delta modes and Shift-wheel horizontal intent are supported', as
     [2, -1],
   ]) {
     await viewport.dispatchEvent('wheel', { deltaY: delta, deltaX: 0, deltaMode: mode });
-    await expect.poll(async () => (await offset(viewport)).y).toBeGreaterThan(5);
+    await expect.poll(async () => (await offset(viewport)).y).toBeGreaterThan(1);
     await settled(viewport);
   }
   await viewport.evaluate((node) => {
     node.scrollLeft = -node.scrollWidth;
   });
   await viewport.dispatchEvent('wheel', { deltaY: -80, deltaX: 0, shiftKey: true });
-  await expect.poll(async () => (await offset(viewport)).x).toBeGreaterThan(5);
+  await expect.poll(async () => (await offset(viewport)).x).toBeGreaterThan(1);
   expect(Math.abs((await offset(viewport)).y)).toBeLessThan(0.1);
   await settled(viewport);
 });
@@ -318,13 +332,17 @@ test('explicit mobile pull-to-refresh remains separate and keyboard accessible',
       // Start below the floating refresh command, on the actual viewport content.
       touchPoints: points(rect.y + 64),
     });
+    const pulls: number[] = [];
     for (let step = 1; step <= 12; step++) {
       await session.send('Input.dispatchTouchEvent', {
         type: 'touchMove',
         touchPoints: points(rect.y + 64 + step * 20),
       });
       await page.waitForTimeout(16);
+      pulls.push((await offset(viewport)).y);
     }
+    expect(Math.max(...pulls)).toBeGreaterThan(10);
+    expect(Math.max(...pulls)).toBeLessThanOrEqual(40);
     await expect(
       page.getByRole('button', { name: 'Release to refresh', exact: true }),
     ).toBeVisible();

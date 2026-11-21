@@ -45,8 +45,10 @@ for (const [width, mode, direction] of [
     const calendar = scope.locator('.ui-calendar');
     await expect(calendar).toBeVisible();
     await expect(calendar.getByRole('grid')).toHaveAttribute('aria-label', /نوفمبر.*٢٠٢٦/);
-    await calendar.getByRole('combobox', { name: 'اختر السنة' }).selectOption('2027');
-    await calendar.getByRole('combobox', { name: 'اختر الشهر' }).selectOption('1');
+    await calendar.getByRole('combobox', { name: 'اختر السنة' }).click();
+    await scope.getByRole('option', { name: '٢٠٢٧', exact: true }).click();
+    await calendar.getByRole('combobox', { name: 'اختر الشهر' }).click();
+    await scope.getByRole('option', { name: 'فبراير', exact: true }).click();
     await calendar.getByRole('button', { name: /١٥ فبراير ٢٠٢٧/ }).click();
     await expect(example.locator('input[name="preview-date"]')).toHaveValue('2027-02-15');
     await example.getByRole('button', { name: 'اختيار الوقت', exact: true }).click();
