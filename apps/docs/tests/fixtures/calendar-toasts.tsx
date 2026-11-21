@@ -16,14 +16,25 @@ import {
 import '@plain/ui/styles.css';
 
 const params = new URLSearchParams(location.search);
+if (params.has('inter')) await import('../../src/docs/font.css');
 const view = params.get('view') ?? 'calendar';
 const dir = params.get('dir') === 'rtl' ? 'rtl' : 'ltr';
-const locale = dir === 'rtl' ? 'ar' : 'en';
+const locale = params.get('locale') ?? (dir === 'rtl' ? 'ar' : 'en');
 const today = new Date(2026, 9, 5);
 const start = new Date(1980, 0);
 const end = new Date(2035, 11);
 const unavailable = new Date(1985, 1, 15);
-const config = { today, defaultMonth: today, reverseYears: params.has('descending') };
+const config = {
+  today,
+  defaultMonth: today,
+  reverseYears: params.has('descending'),
+  styles: params.has('largeLabels')
+    ? {
+        months_dropdown: { fontSize: '18px' },
+        years_dropdown: { fontSize: '18px' },
+      }
+    : undefined,
+};
 function Workspace() {
   const { resolvedMode, setTheme } = useTheme();
   const [date, setDate] = React.useState<Date>();

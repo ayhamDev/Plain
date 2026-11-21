@@ -153,6 +153,7 @@
 }
 .ui-calendar .rdp-day,
 .ui-calendar .rdp-day_button {
+  margin-inline: auto;
   font-size: 13px;
 }
 .ui-calendar .rdp-day_button {
@@ -167,14 +168,33 @@
 .ui-calendar[data-nav-layout='after'] .rdp-month:has(> .rdp-nav) > .rdp-month_caption {
   padding-inline-end: calc(var(--rdp-nav_button-width) * 2 + 8px);
 }
+.ui-calendar .rdp-months {
+  inline-size: 100%;
+  max-inline-size: 100%;
+}
+.ui-calendar .rdp-month {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+.ui-calendar .rdp-month_caption {
+  block-size: auto;
+  min-block-size: var(--rdp-nav-height);
+  align-items: center;
+}
 .ui-calendar .rdp-dropdowns {
   min-width: 0;
   max-width: 100%;
+  inline-size: 100%;
+  flex-wrap: wrap;
+  padding-block: max(0px, calc((var(--rdp-nav-height) - 32px) / 2));
 }
 .ui-calendar .rdp-dropdown_root {
-  min-width: 0;
+  flex: 1 0 auto;
+  inline-size: max-content;
 }
 .ui-calendar .ui-calendar-select {
+  min-inline-size: max-content;
   min-height: 32px;
   height: 32px;
   padding-inline: 6px;
@@ -182,16 +202,23 @@
   font-size: 13px;
   font-weight: 500;
 }
+.ui-calendar .ui-calendar-select > span {
+  flex-shrink: 0;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
 .ui-calendar .ui-calendar-select:hover:not(:disabled) {
   background: var(--ui-calendar-hover);
 }
 .ui-calendar .rdp-dropdown_root:has(> .rdp-months_dropdown) {
-  width: var(--ui-calendar-month-width, 104px);
+  min-inline-size: var(--ui-calendar-month-width, 104px);
 }
 .ui-calendar .rdp-dropdown_root:has(> .rdp-years_dropdown) {
-  width: var(--ui-calendar-year-width, 72px);
+  min-inline-size: var(--ui-calendar-year-width, 72px);
 }
 .ui-calendar .rdp-month_grid {
+  inline-size: 100%;
   margin-inline: auto;
 }
 .ui-calendar .rdp-weekday {

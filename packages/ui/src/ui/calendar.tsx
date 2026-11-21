@@ -149,7 +149,7 @@ export function Calendar({
           formatWeekNumber: (number) => numberFormatter(locale).format(number),
           ...formatters,
         }}
-        {...styles('calendar.root', 'ui-calendar', className, unstyled)}
+        {...styles('calendar.root', 'ui-calendar w-fit max-w-full', className, unstyled)}
         {...props}
         components={{ Dropdown: CalendarDropdown, ...components }}
         startMonth={startMonth}

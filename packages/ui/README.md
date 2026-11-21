@@ -500,8 +500,10 @@ bound. Range and date/time pickers use min/max months for navigation unless
 `calendarProps.startMonth/endMonth` override them; selection restrictions still
 apply. `month`, `defaultMonth` and `onMonthChange` control navigation independently
 of the chosen date.
-The `calendar.month-width` and `calendar.year-width` tokens keep selector widths
-stable between month names and can accommodate custom labels or formatters.
+The `calendar.month-width` and `calendar.year-width` tokens set minimum selector
+widths. Controls grow to fit complete labels and custom formatters instead of
+showing ellipses. The header and day grid share a width; constrained headers wrap
+the controls, and mobile date-time sheets align the calendar with the time fields.
 
 `DateRangePicker` starts a new range on the first date click, including when
 editing an existing interval. The second click completes the inclusive range and
