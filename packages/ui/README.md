@@ -509,9 +509,14 @@ remains the collapse-edge control. Tabs, SegmentedControl and BottomNavigation
 animate a shared active indicator without introducing an animation-engine dependency.
 All default motion respects the provider and system reduced-motion policy.
 
-Sheet/Drawer now default to `handleOnly={true}` so nested controls keep their
-gestures. Vertical panels include a handle automatically; opt into content swipes
-with `handleOnly={false}`. Use `maxWidth` with detached or floating bottom sheets
+Sheet/Drawer drag from headers, padding and non-interactive content by default.
+Inputs, sliders (including tracks), buttons, links, editable content and nested
+scroll regions keep their own gestures. Mouse drags on paragraphs/code select
+text, and touch scrolling takes precedence when the panel can scroll in that
+direction. Set `handleOnly={true}` to restrict dragging to the handle, or put
+`data-vaul-no-drag` on a custom widget/region. Native pointer handlers and
+`preventDefault()` on pointer down remain available. Vertical panels include a
+handle automatically. Use `maxWidth` with detached or floating bottom sheets
 for centered, bounded panels. Toasts include a close button and default to
 inverse contrast: dark in light mode and light in
 dark mode. Use `<Toaster invert={false} />` for the current surface, or

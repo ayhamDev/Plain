@@ -33,8 +33,8 @@ export default function SheetExample() {
           <UI.SheetHeader>
             <UI.SheetTitle>Swipe to dismiss</UI.SheetTitle>
             <UI.SheetDescription>
-              Content dragging is enabled for this read-only panel. Use handle-only gestures for
-              forms.
+              Drag from the heading or empty space. Form controls and scrollable content keep their
+              own gestures automatically.
             </UI.SheetDescription>
           </UI.SheetHeader>
           <UI.SheetClose asChild>

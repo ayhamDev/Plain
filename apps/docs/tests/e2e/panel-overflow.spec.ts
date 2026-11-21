@@ -119,6 +119,18 @@ async function sameSurface(page: Page, panel: Locator, side: string) {
     await page.evaluate(() => document.documentElement.scrollWidth - innerWidth),
   ).toBeLessThanOrEqual(1);
 }
+test('late engine CSS cannot recreate an invisible panel scroll tail', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 1000 });
+  const { panel } = await open(page, 'kind=drawer&side=bottom&dir=rtl');
+  await page.addStyleTag({
+    content:
+      '[data-vaul-drawer]:not([data-vaul-custom-container="true"])::after { content: ""; position: absolute; top: 100%; height: 200%; left: 0; right: 0; }',
+  });
+  expect(await panel.evaluate((node) => getComputedStyle(node, '::after').content)).toBe('none');
+  expect(await panel.evaluate((node) => node.scrollHeight - node.clientHeight)).toBeLessThanOrEqual(
+    1,
+  );
+});
 for (const kind of ['sheet', 'drawer']) {
   for (const side of ['bottom', 'top', 'left', 'right']) {
     test(`${kind} ${side} overdrag retains a continuous background`, async ({ page }, info) => {

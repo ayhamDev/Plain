@@ -1499,10 +1499,10 @@ function MotionGuide() {
           Motion engine.
         </p>
         <p>
-          Sheet and Drawer drag only from their handle by default. This preserves slider,
-          text-selection and scrolling gestures inside the panel. Set handleOnly={'{false}'}
-          deliberately for content swipes; maxWidth and detached/floating variants constrain bottom
-          panels without overriding the engine's transform.
+          Sheet and Drawer drag from non-interactive areas by default while preserving control,
+          text-selection and scrolling gestures. Set handleOnly={'{true}'} for handle-only swipes,
+          or mark custom widgets with data-vaul-no-drag. maxWidth and detached/floating variants
+          constrain bottom panels without overriding the engine's transform.
         </p>
       </GuideSection>
       <GuideSection title="Policy works without the animation entry">

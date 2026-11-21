@@ -151,8 +151,8 @@ export const refinementProps: Record<string, PropDefinition[]> = {
     p(
       'handleOnly',
       'boolean',
-      'Drag only from SheetHandle by default, so sliders, text selection and scrolling do not move the panel. Set false to opt into content dragging.',
-      'true',
+      'Drag from non-interactive areas by default. Controls, mouse text selection and nested scroll regions keep their gestures. Set true to restrict dragging to SheetHandle. Use data-vaul-no-drag on custom interactive regions.',
+      'false',
     ),
     p(
       'maxWidth',

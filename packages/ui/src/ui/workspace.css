@@ -369,9 +369,17 @@
 .ui-panel {
   overflow-wrap: anywhere;
 }
+.ui-panel[data-vaul-drawer] {
+  user-select: text;
+}
+.ui-panel [data-slot='header'],
+.ui-panel [data-vaul-handle] {
+  user-select: none;
+}
 /* Vaul's child tail is clipped by the dialog's scrollport and creates phantom
    scroll space. Its decorative sibling supplies the viewport-edge continuation. */
-.ui-panel[data-vaul-drawer]::after {
+/* The engine injects its two-attribute selector after production styles load. */
+.ui-panel[data-vaul-drawer]:not([data-vaul-custom-container='true'])::after {
   content: none;
 }
 .ui-panel-overflow-clip {

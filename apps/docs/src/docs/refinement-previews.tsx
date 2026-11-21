@@ -118,7 +118,7 @@ export const refinementPreviews: Record<string, PropPreview> = {
       size: 'md',
       maxWidth: 560,
       gap: 12,
-      handleOnly: true,
+      handleOnly: false,
       showHandle: true,
     },
     controls: [

@@ -25,6 +25,7 @@ import { buttonVariants } from './primitives';
 import { useModalInert } from './modal-accessibility';
 import { useMotionSettings } from './motion-policy';
 import { PanelOverflowFill } from './panel-overflow';
+import { PanelDragSurface, usePanelTouchGestures } from './panel-gestures';
 export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
@@ -181,6 +182,7 @@ const PanelContext = /* @__PURE__ */ React.createContext<{
   size: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   gap: number;
   maxWidth?: React.CSSProperties['maxWidth'];
+  handleOnly: boolean;
   configure: React.Dispatch<React.SetStateAction<PanelConfiguration>>;
 } | null>(null);
 const usePanelLayoutEffect =
@@ -199,7 +201,7 @@ function PanelRoot({
   mobileSide,
   mobileBreakpoint = 640,
   maxWidth,
-  handleOnly = true,
+  handleOnly = false,
   ...props
 }: SheetProps & { defaultSide: SheetSide }) {
   const [configuration, configure] = React.useState<PanelConfiguration>({});
@@ -234,8 +236,9 @@ function PanelRoot({
       size,
       gap,
       maxWidth,
+      handleOnly,
     }),
-    [resolvedSide, props.snapPoints?.length, variant, size, gap, maxWidth],
+    [resolvedSide, props.snapPoints?.length, variant, size, gap, maxWidth, handleOnly],
   );
   return (
     <DirectionProvider dir={textDirection}>
@@ -348,6 +351,11 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
       unstyled,
       dir,
       style,
+      asChild,
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onPointerCancel,
       ...props
     },
     ref,
@@ -356,6 +364,7 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
     const motion = useMotionSettings();
     const context = React.useContext(PanelContext);
     const [panel, setPanel] = React.useState<HTMLElement | null>(null);
+    const touchGesture = usePanelTouchGestures(panel, context?.handleOnly ?? false);
     const { t } = useTranslation();
     const localDirection = dir === 'ltr' || dir === 'rtl' ? dir : undefined;
     const textDirection = useDirection(localDirection);
@@ -374,6 +383,7 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
           <Slot.Root ref={setPanel}>
             <Vaul.Content
               ref={ref}
+              asChild
               {...styles(
                 'sheet.content',
                 cn(
@@ -412,27 +422,33 @@ export const SheetContent = /* @__PURE__ */ React.forwardRef<
               data-ui-motion={motion.reduced ? 'reduced' : undefined}
               {...props}
             >
-              {(showHandle ?? vertical) &&
-                !React.Children.toArray(children).some(
-                  (child) => React.isValidElement(child) && child.type === SheetHandle,
-                ) && <SheetHandle />}
-              {children}
-              {showClose && (
-                <SheetClose
-                  {...styles(
-                    'sheet.close',
-                    'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
-                    undefined,
-                    unstyled,
-                  )}
-                  aria-label={t('panel.close')}
-                >
-                  <X
-                    {...styles('sheet.close-icon', 'size-4', undefined, unstyled)}
-                    aria-hidden="true"
-                  />
-                </SheetClose>
-              )}
+              <PanelDragSurface
+                asChild={asChild}
+                touchGesture={touchGesture}
+                consumerHandlers={{ onPointerDown, onPointerMove, onPointerUp, onPointerCancel }}
+              >
+                {(showHandle ?? vertical) &&
+                  !React.Children.toArray(children).some(
+                    (child) => React.isValidElement(child) && child.type === SheetHandle,
+                  ) && <SheetHandle />}
+                {children}
+                {showClose && (
+                  <SheetClose
+                    {...styles(
+                      'sheet.close',
+                      'ui-interactive absolute top-4 end-4 flex size-8 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
+                      undefined,
+                      unstyled,
+                    )}
+                    aria-label={t('panel.close')}
+                  >
+                    <X
+                      {...styles('sheet.close-icon', 'size-4', undefined, unstyled)}
+                      aria-hidden="true"
+                    />
+                  </SheetClose>
+                )}
+              </PanelDragSurface>
             </Vaul.Content>
           </Slot.Root>
         </SheetPortal>
