@@ -77,6 +77,66 @@ consumers control their own CSS, with the requested mode exposed as `data-resize
 <Textarea resize="both" aria-label="Draft" style={{ maxHeight: 400 }} />
 ```
 
+## Theme-matched color palettes
+
+Use the pure utility in Node, server rendering, canvas or any UI library:
+
+```ts
+import { createColorPalette, generateColors } from '@plain/ui/color-palette';
+
+const colors = generateColors(100, { color: '#2563eb', mode: 'dark' });
+const palette = createColorPalette({ color: '#2563eb' });
+palette.get(1000000); // random access without generating earlier entries
+palette.take(24); // the same first 24 colors every time
+palette.take(12, 24); // a later batch
+palette.forKey('customer:42'); // stable across insertion and reordering
+```
+
+In React, `useColorPalette()` from `@plain/ui` or `@plain/ui/styling` memoizes a
+palette from PlainProvider/ThemeProvider and nested ThemeScope modes/tokens:
+
+```tsx
+import { useColorPalette } from '@plain/ui';
+import { BarChart } from '@plain/ui/charts';
+import '@plain/ui/charts.css';
+
+function RevenueChart({
+  data,
+  metrics,
+}: {
+  data: Record<string, unknown>[];
+  metrics: { key: string; label: string }[];
+}) {
+  const palette = useColorPalette();
+  const series = metrics.map((metric, index) => ({
+    dataKey: metric.key,
+    label: metric.label,
+    color: palette.get(index),
+  }));
+  return <BarChart data={data} series={series} label="Revenue by metric" />;
+}
+```
+
+Supply colors explicitly to charts; their existing default palette is unchanged.
+The factory also accepts `scheme`, `tokens`, `background` and `minContrast`.
+Modes are `light`/`dark`; seeds/backgrounds are `#RGB`/`#RRGGBB`. The first eight
+colors use the theme's chart roles; later colors vary HCT hue, chroma and tone
+around those anchors. Output is deterministic opaque hex, with a bounded cache.
+Indices, counts and starts must be nonnegative safe integers; adding colors never
+reassigns earlier indices. The palette is iterable, so lazy consumers can read as
+many entries as needed. There is no fixed palette length; finite RGB colors and
+perceptual similarity mean uniqueness/distinguishability cannot be unlimited.
+
+`minContrast` defaults to 3 against the resolved theme surface and accepts 1..21.
+Colors may adjust tone to meet it; use 1 to retain exact custom chart colors.
+An unattainable target throws. Choose a `background` matching another destination;
+text labels still need their own appropriate foreground contrast. `tokens` can
+use hex values or `var()` references to supplied P.UI variables with hex fallbacks.
+Resolve external variables, named colors and CSS color expressions to hex first.
+Explicit hook `color` (including null) replaces inherited color roles; explicit
+`tokens` then override those roles. System mode uses the provider's existing
+server fallback and updates with the resolved client preference.
+
 ## Item rows
 
 Use `Item` for a reusable file, choice, destination or content row. It is a native

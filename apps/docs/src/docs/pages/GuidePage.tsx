@@ -44,6 +44,7 @@ import {
 } from '../examples/ComponentOverridesExample';
 import { LocalizationExample } from '../examples/LocalizationExample';
 import { LayoutPresenceExample, layoutPresenceCode } from '../examples/LayoutPresenceExample';
+import { ColorPaletteExample, colorPaletteCode } from '../examples/ColorPaletteExample';
 
 const guideInfo: Record<string, { title: string; description: string }> = {
   introduction: {
@@ -935,6 +936,35 @@ function Theming() {
           colors.
         </p>
       </GuideSection>
+      <GuideSection title="Theme-matched color palettes" id="theme-matched-color-palettes">
+        <p>
+          Use <code>useColorPalette()</code> for any number of coordinated colors from the current
+          provider or ThemeScope. <code>get(index)</code> reads a color without allocating earlier
+          entries; <code>take(count, start?)</code> creates a batch; <code>forKey(id)</code> keeps
+          an association stable when records reorder. Colors are opaque hex values for charts,
+          canvas and other UI. The first eight use the existing chart roles, subject to the contrast
+          target; further colors vary gently around those roles.
+        </p>
+        <ColorPaletteExample />
+        <CodeBlock code={colorPaletteCode} title="Theme-aware chart colors" />
+        <CodeBlock
+          code={`import { createColorPalette, generateColors } from '@plain/ui/color-palette';
+
+const colors = generateColors(100, { color: '#2563eb', mode: 'dark' });
+const palette = createColorPalette({ color: '#2563eb' });
+const distantColor = palette.get(1000000);
+const customerColor = palette.forKey('customer:42');`}
+          title="Framework-independent generation"
+        />
+        <p>
+          Generation is deterministic and does not read the DOM. Explicit seeds accept hex colors;
+          <code> tokens</code> accepts resolved theme roles or hex-based variable references. The
+          default <code>minContrast: 3</code> targets chart marks against the theme surface. Supply
+          <code> background</code> for another surface, or <code>minContrast: 1</code> to preserve
+          exact overridden colors. Impossible contrast requests throw. Large palettes can contain
+          similar colors; keep labels, patterns or a data alternative alongside color.
+        </p>
+      </GuideSection>
       <GuideSection title="Root policy and explicit overrides">
         <p>
           Theme radius is a number in pixels, density is compact/comfortable/spacious, and borders
@@ -1792,10 +1822,14 @@ function ChartsGuide() {
           composed ChartArea, ChartBar and ChartLine children. A selected vibe generates eight
           coordinated categorical colors for light and dark mode; neutral themes keep their curated
           palette. Override a series with <code>config[key].color</code>, a series color, or{' '}
-          <code>chart-1</code> through <code>chart-8</code> theme tokens. Area fills use unique
-          gradients by default; <code>gradient={'{false}'}</code> restores a flat fill, and an
-          explicit fill always wins. ChartTooltipContent supports dot, line and dashed indicators
-          and can be supplied through the native tooltip content prop.
+          <code>chart-1</code> through <code>chart-8</code> theme tokens. For larger collections,
+          supply colors from{' '}
+          <Link className="text-link" to="/docs/theming#theme-matched-color-palettes">
+            useColorPalette()
+          </Link>
+          . Area fills use unique gradients by default; <code>gradient={'{false}'}</code> restores a
+          flat fill, and an explicit fill always wins. ChartTooltipContent supports dot, line and
+          dashed indicators and can be supplied through the native tooltip content prop.
         </p>
         <p>
           Retain Recharts' <code>accessibilityLayer</code>; the composed example enables it

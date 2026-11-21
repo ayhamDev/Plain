@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { Direction } from 'radix-ui';
-import { ThemeProvider, type ThemeSettings } from './theme';
+import { ThemeProvider, useTheme, type ThemeSettings } from './theme';
+import { createTheme } from './color-theme';
+import { createColorPalette, type ColorPaletteOptions } from './color-palette';
+import { TokenOverridesContext } from './theme-token-context';
 import { cn } from './utils';
 import { wrapTooltip } from './tooltip-prop';
 import { TooltipProviderScope, type TooltipProviderProps } from './tooltip-provider';
@@ -27,7 +30,66 @@ export interface PlainStyleProps extends TooltipProps {
 /** @deprecated Use the corresponding resizable.* styling slots. */
 export type SplitPaneStyleSlot = `split-pane.${'root' | 'panel' | 'handle' | 'icon'}`;
 export type ComponentStyles = Partial<Record<StyleSlot | SplitPaneStyleSlot, string>>;
-const TokenOverridesContext = /* @__PURE__ */ React.createContext<ThemeTokens>({});
+const PaletteScopeContext = /* @__PURE__ */ React.createContext<
+  | {
+      mode?: 'light' | 'dark';
+      tokens: ThemeTokens;
+    }
+  | undefined
+>(undefined);
+
+/** Memoized palette following PlainProvider/ThemeProvider and nested ThemeScope roles. */
+export function useColorPalette({
+  color,
+  scheme,
+  mode,
+  tokens,
+  background,
+  minContrast,
+}: ColorPaletteOptions = {}) {
+  const theme = useTheme();
+  const overrides = React.useContext(TokenOverridesContext);
+  const scope = React.useContext(PaletteScopeContext);
+  const resolvedMode = mode ?? scope?.mode ?? theme.resolvedMode;
+  return React.useMemo(() => {
+    if (color !== undefined)
+      return createColorPalette({
+        color,
+        scheme,
+        mode: resolvedMode,
+        tokens,
+        background,
+        minContrast,
+      });
+    const base = createTheme({
+      color: scope?.mode ? null : theme.resolvedColor,
+      scheme: scheme ?? theme.scheme,
+      contrast: theme.contrast,
+    })[resolvedMode];
+    return createColorPalette({
+      mode: resolvedMode,
+      background,
+      minContrast,
+      tokens: {
+        ...base,
+        ...(scope?.tokens ?? overrides),
+        ...tokens,
+      },
+    });
+  }, [
+    color,
+    scheme,
+    resolvedMode,
+    tokens,
+    background,
+    minContrast,
+    scope,
+    overrides,
+    theme.resolvedColor,
+    theme.scheme,
+    theme.contrast,
+  ]);
+}
 const aliasNames = /* @__PURE__ */ createAliasNames();
 function createAliasNames() {
   return new Set([
@@ -202,28 +264,45 @@ const ThemeScopeContent = /* @__PURE__ */ React.forwardRef<
   }, []);
   React.useImperativeHandle(ref, () => nodeRef.current!, []);
   const parentOverrides = React.useContext(TokenOverridesContext);
+  const parentPaletteScope = React.useContext(PaletteScopeContext);
   const inheritedAliases = Object.fromEntries(
     Object.entries(parentOverrides).filter(([key]) => aliasNames.has(key)),
   );
   const variables = tokensToStyle({ ...inheritedAliases, ...tokens }) as React.CSSProperties;
+  const paletteScope = React.useMemo(
+    () => ({
+      mode: mode ?? parentPaletteScope?.mode,
+      tokens: mode
+        ? {
+            ...Object.fromEntries(
+              Object.entries(parentOverrides).filter(([key]) => aliasNames.has(key)),
+            ),
+            ...tokens,
+          }
+        : { ...(parentPaletteScope?.tokens ?? parentOverrides), ...tokens },
+    }),
+    [mode, parentPaletteScope, parentOverrides, tokens],
+  );
   return (
     <DirectionProvider dir={direction}>
       <TokenOverridesProvider tokens={tokens}>
-        <StyleProvider styles={componentStyles} unstyled={unstyled}>
-          <div
-            ref={scopeRef}
-            dir={direction}
-            lang={language.locale}
-            data-ui-theme-scope=""
-            data-theme={mode}
-            style={{ ...variables, ...style }}
-            {...props}
-          >
-            <PortalContainerContext.Provider value={container}>
-              {children}
-            </PortalContainerContext.Provider>
-          </div>
-        </StyleProvider>
+        <PaletteScopeContext.Provider value={paletteScope}>
+          <StyleProvider styles={componentStyles} unstyled={unstyled}>
+            <div
+              ref={scopeRef}
+              dir={direction}
+              lang={language.locale}
+              data-ui-theme-scope=""
+              data-theme={mode}
+              style={{ ...variables, ...style }}
+              {...props}
+            >
+              <PortalContainerContext.Provider value={container}>
+                {children}
+              </PortalContainerContext.Provider>
+            </div>
+          </StyleProvider>
+        </PaletteScopeContext.Provider>
       </TokenOverridesProvider>
     </DirectionProvider>
   );

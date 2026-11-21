@@ -72,6 +72,10 @@ await writeFile(
 await copyFile(resolve('apps/docs/tests/fixtures/consumer.tsx'), join(consumer, 'consumer.tsx'));
 await writeFile(join(consumer, 'button-only.ts'), "export { Button } from '@plain/ui';\n");
 await writeFile(
+  join(consumer, 'palette-only.ts'),
+  "export { createColorPalette, generateColors } from '@plain/ui/color-palette';\n",
+);
+await writeFile(
   join(consumer, 'layout-only.ts'),
   "export { Stack, Grid, LayoutPresence } from '@plain/ui/layout';\n",
 );
@@ -190,6 +194,35 @@ assert(
 const library = await import(
   pathToFileURL(join(consumer, 'node_modules/@plain/ui/dist/ui/index.js')).href
 );
+const paletteBuild = await build({
+  configFile: false,
+  root: consumer,
+  logLevel: 'error',
+  build: {
+    write: false,
+    minify: true,
+    lib: { entry: join(consumer, 'palette-only.ts'), formats: ['es'] },
+  },
+});
+const paletteChunks = (Array.isArray(paletteBuild) ? paletteBuild : [paletteBuild])
+  .flatMap((output) => output.output)
+  .filter((output) => output.type === 'chunk');
+const paletteModules = paletteChunks.flatMap((chunk) =>
+  Object.keys(chunk.modules).filter((id) => chunk.modules[id].renderedLength > 0),
+);
+for (const dependency of [
+  'node_modules/react/',
+  'node_modules/react-dom/',
+  '/recharts/',
+  '/motion/',
+  '/@tanstack/',
+  '/radix-ui/',
+])
+  assert(
+    !paletteModules.some((id) => id.replaceAll('\\', '/').includes(dependency)),
+    `Pure palette entry retained ${dependency}`,
+  );
+const paletteGzipBytes = gzipSync(paletteChunks.map((chunk) => chunk.code).join('\n')).length;
 const require = createRequire(join(consumer, 'package.json'));
 const layoutBuild = await build({
   configFile: false,
@@ -275,6 +308,33 @@ for (const directory of [consumer, minimumConsumer]) {
   );
   const peerCharts = await import(
     pathToFileURL(join(directory, 'node_modules/@plain/ui/dist/ui/charts.js')).href
+  );
+  const peerPalette = await import(
+    pathToFileURL(join(directory, 'node_modules/@plain/ui/dist/ui/color-palette.js')).href
+  );
+  assert.equal(peerPalette.createColorPalette, peerLibrary.createColorPalette);
+  const peerColors = peerPalette.createColorPalette({ color: '#2563eb', mode: 'dark' });
+  assert.equal(peerPalette.generateColors(1000).length, 1000);
+  assert.match(peerColors.get(1000000), /^#[a-f\d]{6}$/);
+  function PaletteSSR() {
+    const palette = peerLibrary.useColorPalette();
+    return peerReact.createElement(
+      'div',
+      { style: { color: palette.get(42) } },
+      palette.forKey('customer:42'),
+    );
+  }
+  const paletteMarkup = peerServer.renderToString(
+    peerReact.createElement(
+      peerLibrary.PlainProvider,
+      { persist: false, theme: { color: '#2563eb', mode: 'dark' } },
+      peerReact.createElement(PaletteSSR),
+    ),
+  );
+  assert(
+    paletteMarkup.includes(peerColors.get(42)) &&
+      paletteMarkup.includes(peerColors.forKey('customer:42')),
+    `React ${peerReact.version} did not derive SSR colors from the provider.`,
   );
   const item = peerServer.renderToString(
     peerReact.createElement(peerLibrary.Item, { defaultSelected: true }, 'Peer item'),
@@ -492,6 +552,8 @@ console.log(
       compiledCompositions: compositionExamples.length,
       buttonGzipBytes: gzipBytes,
       layoutGzipBytes,
+      paletteGzipBytes,
+      paletteReactFree: true,
       buttonDeferredGzipBytes,
       layoutDeferredGzipBytes,
       heavyFeaturesExcluded: true,

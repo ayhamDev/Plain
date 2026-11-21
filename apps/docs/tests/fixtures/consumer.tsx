@@ -5,6 +5,7 @@ import {
   ThemeScope,
   Button,
   ChartSkeleton,
+  useColorPalette,
   Box,
   Stack,
   LayoutPresence,
@@ -55,6 +56,11 @@ import { Button as ModularButton } from '@plain/ui/primitives';
 import { Textarea as ModularTextarea, type TextareaProps } from '@plain/ui/forms';
 import { Item as ModularItem, ItemActions, type ItemProps } from '@plain/ui/item';
 import { ChartSkeleton as ModularChartSkeleton } from '@plain/ui/charts';
+import {
+  createColorPalette,
+  generateColors,
+  type ColorPaletteOptions,
+} from '@plain/ui/color-palette';
 import { TooltipProvider as ModularTooltipProvider, type TooltipValue } from '@plain/ui/overlays';
 import { Dropzone as ModularDropzone } from '@plain/ui/advanced';
 import { QRCode as ModularQRCode, type QRCodeProps } from '@plain/ui/qr-code';
@@ -70,6 +76,19 @@ import { FullCalendar, type FullCalendarRef } from '@plain/ui/full-calendar';
 import '@plain/ui/full-calendar.css';
 
 type Record = { id: string; name: string };
+const exportedPalette = createColorPalette({
+  color: '#2563eb',
+  mode: 'dark',
+} satisfies ColorPaletteOptions);
+const exportedColors = generateColors(24, { color: '#2563eb' });
+function PaletteConsumer() {
+  const palette = useColorPalette();
+  return (
+    <div style={{ borderColor: exportedPalette.get(1000000), background: exportedColors[12] }}>
+      <span style={{ color: palette.get(12) }}>{palette.forKey('customer:42')}</span>
+    </div>
+  );
+}
 const columns: DataTableColumn<Record>[] = [{ accessorKey: 'name', header: 'Name' }];
 const styles: ComponentStyles = {
   'button.root': 'rounded-full',
@@ -122,6 +141,7 @@ export function ConsumerApp() {
           <ModularTableSort table={table} tooltip={{ content: 'Reorder records', align: 'end' }} />
         </ModularTooltipProvider>
         <H1 size="2xl">Project workspace</H1>
+        <PaletteConsumer />
         <Item defaultSelected onSelectedChange={(value) => console.log(value)}>
           <ItemContent>
             <ItemTitle>Public file</ItemTitle>

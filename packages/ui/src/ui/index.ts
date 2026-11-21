@@ -22,6 +22,7 @@ export * from './data-table';
 export * from './data-table-remote';
 export * from './token-contract';
 export * from './color-theme';
+export * from './color-palette';
 export * from './extend';
 export * from './motion-policy';
 export * from './layout';

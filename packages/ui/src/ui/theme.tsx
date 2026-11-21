@@ -2,6 +2,7 @@ import * as React from 'react';
 import { createTheme, normalizeColor, type ColorScheme } from './color-theme';
 import { tokenVariable, type ThemeToken, type ThemeTokens } from './token-contract';
 import { MotionPolicyProvider, type MotionPolicy } from './motion-policy';
+import { TokenOverridesContext } from './theme-token-context';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type AccentColor = 'emerald' | 'blue' | 'rose' | 'amber' | 'violet' | 'neutral';
@@ -74,6 +75,7 @@ interface ThemeContextValue extends ThemeSettings {
   resetTheme: () => void;
 }
 const ThemeContext = /* @__PURE__ */ React.createContext<ThemeContextValue | null>(null);
+const noTokenOverrides: ThemeTokens = {};
 
 export function ThemeProvider({
   children,
@@ -219,12 +221,20 @@ export function ThemeProvider({
   );
   const resetTheme = React.useCallback(() => setSettings({ ...defaultTheme }), []);
   const value = React.useMemo(
-    () => ({ ...settings, resolvedMode, resolvedColor, setTheme, resetTheme }),
+    () => ({
+      ...settings,
+      resolvedMode,
+      resolvedColor,
+      setTheme,
+      resetTheme,
+    }),
     [settings, resolvedMode, resolvedColor, setTheme, resetTheme],
   );
   return (
     <ThemeContext.Provider value={value}>
-      <MotionPolicyProvider policy={settings.motion}>{children}</MotionPolicyProvider>
+      <TokenOverridesContext.Provider value={tokens ?? noTokenOverrides}>
+        <MotionPolicyProvider policy={settings.motion}>{children}</MotionPolicyProvider>
+      </TokenOverridesContext.Provider>
     </ThemeContext.Provider>
   );
 }
