@@ -33,26 +33,71 @@ describe('QRCode', () => {
     expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'none');
     expect(screen.getByRole('img').querySelector('mask')).toBeNull();
   });
-  it('makes a circular silhouette while retaining a square quiet zone inside it', () => {
-    render(<QRCode value="Round code" shape="circle" />);
+  it('integrates the circular dot field without changing the encoded matrix', () => {
+    const { rerender } = render(<QRCode value="Round code" moduleShape="dots" moduleScale={0.9} />);
+    const matrix = screen
+      .getByRole('img')
+      .querySelector('[data-slot="foreground"]')!
+      .getAttribute('d');
+    const functions = screen
+      .getByRole('img')
+      .querySelector('[data-slot="function"]')!
+      .getAttribute('d');
+    rerender(<QRCode value="Round code" shape="circle" />);
     const code = screen.getByRole('img');
-    expect(code).toHaveAttribute('data-shape', 'circle');
-    expect(code).toHaveAttribute('data-module-shape', 'dots');
-    const paper = code.querySelector('[data-slot="background"]')!;
-    expect(paper.tagName).toBe('circle');
-    const origin = Number(
-      code
-        .querySelector('[data-slot="foreground"]')!
-        .getAttribute('transform')!
-        .match(/\d+(\.\d+)?/)![0],
+    expect(code).toHaveAttribute('data-circle-pattern', 'integrated');
+    expect(code).toHaveAttribute('data-finder-shape', 'dots');
+    expect(code.querySelector('[data-slot="foreground"]')).toHaveAttribute('d', matrix);
+    expect(code.querySelector('[data-slot="function"]')).toHaveAttribute('d', functions);
+    expect(code.querySelectorAll('path').length).toBeLessThan(20);
+    const pattern = code.querySelector('[data-slot="circle"]')!.getAttribute('d');
+    rerender(<QRCode value="Round code" shape="circle" size={320} />);
+    expect(code.querySelector('[data-slot="circle"]')).toHaveAttribute('d', pattern);
+  });
+  it.each(['separated', false] as const)(
+    'preserves a square quiet zone with pattern %s',
+    (circlePattern) => {
+      render(<QRCode value="Round code" shape="circle" circlePattern={circlePattern} />);
+      const code = screen.getByRole('img');
+      expect(code).toHaveAttribute('data-shape', 'circle');
+      expect(code).toHaveAttribute('data-module-shape', 'dots');
+      const paper = code.querySelector('[data-slot="background"]')!;
+      expect(paper.tagName).toBe('circle');
+      const origin = Number(
+        code
+          .querySelector('[data-slot="foreground"]')!
+          .getAttribute('transform')!
+          .match(/\d+(\.\d+)?/)![0],
+      );
+      const extent = Number(code.getAttribute('viewBox')!.split(' ')[2]);
+      const matrix = extent - origin * 2;
+      expect((matrix + 8) * Math.SQRT2).toBeLessThanOrEqual(extent);
+      if (circlePattern)
+        expect(code.querySelector('[data-slot="circle"]')).toHaveAttribute(
+          'd',
+          expect.stringContaining('M'),
+        );
+      else expect(code.querySelector('[data-slot="circle"]')).toBeNull();
+    },
+  );
+  it('supports dotted finders independently and retains explicit circular styling overrides', () => {
+    const { rerender } = render(
+      <QRCode value="Round code" finderShape="dots" finderColor="#123456" />,
     );
-    const extent = Number(code.getAttribute('viewBox')!.split(' ')[2]);
-    const matrix = extent - origin * 2;
-    expect((matrix + 8) * Math.SQRT2).toBeLessThanOrEqual(extent);
-    expect(code.querySelector('[data-slot="circle"]')).toHaveAttribute(
-      'd',
-      expect.stringContaining('M'),
+    const code = screen.getByRole('img');
+    expect(code).toHaveAttribute('data-finder-shape', 'dots');
+    expect(code.querySelector('[data-slot="finder-frame"]')).toHaveAttribute('fill', '#123456');
+    rerender(
+      <QRCode
+        value="Round code"
+        shape="circle"
+        finderShape="rounded"
+        moduleScale={1}
+        circlePattern="separated"
+      />,
     );
+    expect(code).toHaveAttribute('data-finder-shape', 'rounded');
+    expect(code).toHaveAttribute('data-circle-pattern', 'separated');
   });
   it('supports independent finder styling, gradients and logo cutouts with strong default correction', () => {
     render(

@@ -386,8 +386,10 @@ import { QRCode } from '@plain/ui'; // also @plain/ui/qr-code
 QRCode uses the `qrcode` encoder locally and renders SVG during SSR and in the
 browser. `value` is encoded exactly, including Unicode and whitespace. `level`
 supports L/M/Q/H, defaulting to M or H with a logo. Explicit levels take precedence.
-The quiet zone is measured in modules and normalized to 4..128. Defaults keep
-black ink on white paper in both themes. RTL does not mirror the code.
+The margin is measured in modules and normalized to 4..128. Square codes keep a
+four-module quiet zone; integrated circles put the margin around the full circular
+silhouette. Defaults keep black ink on white paper in both themes. RTL does not
+mirror the code.
 
 A 600ms tile assembly runs on mount and content changes by default: finder anchors
 appear first, then a bounded grid resolves the stationary pattern. Use
@@ -408,7 +410,7 @@ when exported during an animation.
   shape="circle"
   size={320}
   moduleShape="dots"
-  finderShape="rounded"
+  finderShape="dots"
   finderCenterShape="circle"
   finderColor="#111827"
   gradient={{
@@ -423,16 +425,25 @@ when exported during an animation.
 />
 ```
 
-`shape="circle"` surrounds a complete square QR matrix and its quiet zone with
-decorative outer modules on a circular background. Encoded corners are never
-cropped. It defaults to dotted data modules and rounded finders. Use
-`circlePattern={false}` for just the circular background or `circlePatternColor`
-for separate outer ink. Circular layouts give the encoded matrix less space at
-the same SVG size; increase `size` for dense content.
+`shape="circle"` uses one aligned dot field with round dotted finder rings and
+solid round centers. The encoded square stays complete and takes more of the
+available space; outer dots continue its grid, with a light separator around each
+finder. Data dots default to 90% scale. The outer field inherits the data gradient
+or foreground; `circlePatternColor` can override it.
+
+`circlePattern={true}` and `"integrated"` select this continuous composition.
+Use `circlePattern="separated"` to retain the original blank square quiet zone,
+or `false` for a plain circular background. An integrated circle fills beside the
+matrix and therefore differs from the standard
+[four-module square quiet zone](https://www.qrcode.com/en/howto/code.html/index.html).
+Use the square or separated layout when that margin is required. Encoded corners
+are never cropped. Increase `size` for dense content and test the intended output.
 
 `moduleShape` accepts square, rounded, dots and diamond, with `moduleScale` in
-0.6..1 (default 1). `finderShape` and `finderCenterShape` accept square, rounded
-and circle. Finder centers inherit the outer shape/color unless overridden with
+0.6..1 (default 1, or 0.9 in circles). `finderShape` and `finderCenterShape` accept
+square, rounded, circle and dots. Dotted finder rings keep a solid round center;
+`dots` on a center also means a solid round dot. Other finder
+centers inherit the outer shape. Override centers/colors with
 `finderCenterShape`/`finderCenterColor`. Explicit `foreground`/`background` or
 typed `qr-code.foreground`/`qr-code.background` tokens customize ink and paper.
 `gradient` supports linear/radial, rotation and up to 16 stops (offset 0..1,
@@ -450,7 +461,7 @@ Native SVG `version` remains separate. `renderModule(module, defaultElement)`
 receives x/y, size: 1 and isFunction, using matrix coordinates.
 `renderFinder(finder, defaultElement)` receives corner, x/y and size: 7; its
 returned SVG uses local 0..7 coordinates. Both callbacks are clipped to the
-matrix to preserve the quiet zone. Default rendering combines modules into a
+matrix to retain its bounds and surrounding layout. Default rendering combines modules into a
 few paths; custom module rendering opts into individual DOM nodes.
 
 Native SVG refs, attributes, handlers, classes and style target the actual SVG.

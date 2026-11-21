@@ -42,7 +42,13 @@ function Fixture() {
         finderShape={(params.get('finders') ?? undefined) as QRCodeFinderShape | undefined}
         finderCenterShape={(params.get('centers') ?? undefined) as QRCodeFinderShape | undefined}
         finderColor={params.get('finderColor') ?? undefined}
-        circlePattern={!params.has('noPattern')}
+        circlePattern={
+          params.has('noPattern')
+            ? false
+            : params.get('pattern') === 'separated'
+              ? 'separated'
+              : true
+        }
         gradient={
           params.has('gradient')
             ? {

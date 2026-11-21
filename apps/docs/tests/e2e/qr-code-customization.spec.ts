@@ -13,7 +13,7 @@ async function decode(code: Locator) {
 test('square and circular codes decode across module and finder shapes', async ({ page }) => {
   for (const shape of ['square', 'circle'])
     for (const modules of ['square', 'rounded', 'dots', 'diamond'])
-      for (const finders of ['square', 'rounded', 'circle']) {
+      for (const finders of ['square', 'rounded', 'circle', 'dots']) {
         await page.goto(
           `/tests/fixtures/qr-code.html?shape=${shape}&modules=${modules}&finders=${finders}&static&size=240`,
         );

@@ -15,7 +15,7 @@ import {
 
 export type QRCodeErrorCorrectionLevel = 'L' | 'M' | 'Q' | 'H';
 export type QRCodeModuleShape = 'square' | 'rounded' | 'dots' | 'diamond';
-export type QRCodeFinderShape = 'square' | 'rounded' | 'circle';
+export type QRCodeFinderShape = 'square' | 'rounded' | 'circle' | 'dots';
 export interface QRCodeGradient {
   type?: 'linear' | 'radial';
   /** Linear-gradient rotation in degrees. */
@@ -59,7 +59,7 @@ export interface QRCodeProps
   value: string;
   size?: number;
   level?: QRCodeErrorCorrectionLevel;
-  /** Quiet zone in modules, normalized to 4..128. */
+  /** Margin in modules, normalized to 4..128; around the silhouette for an integrated circle. */
   margin?: number;
   foreground?: string;
   background?: string;
@@ -73,8 +73,8 @@ export interface QRCodeProps
   finderCenterColor?: string;
   gradient?: QRCodeGradient;
   logo?: QRCodeLogo;
-  /** Decorative outer modules for a circular silhouette, outside the quiet zone. */
-  circlePattern?: boolean;
+  /** True/integrated joins the circular dot field; separated preserves a square quiet zone. */
+  circlePattern?: boolean | 'integrated' | 'separated';
   circlePatternColor?: string;
   animation?: boolean | QRCodeAnimation;
   /** Encoder version, 1..40. Native SVG `version` remains available. */
@@ -92,12 +92,21 @@ export interface QRCodeProps
   onEncodingError?: (error: Error) => void;
 }
 function finderPath(size: number, shape: QRCodeFinderShape, inset = 0) {
-  if (shape === 'circle') {
+  if (shape === 'circle' || shape === 'dots') {
     const r = size / 2,
       c = inset + r;
     return `M${inset} ${c}a${r} ${r} 0 1 0 ${size} 0a${r} ${r} 0 1 0 ${-size} 0Z`;
   }
   return roundedRect(inset, inset, size, shape === 'rounded' ? size * 0.18 : 0);
+}
+function finderFrame(shape: QRCodeFinderShape) {
+  if (shape !== 'dots') return finderPath(7, shape) + finderPath(5, shape, 1);
+  // Round dots follow the same 7-module bounds and finder center as a solid ring.
+  // A solid center preserves the 1:1:3:1:1 scan-line proportions.
+  return Array.from({ length: 24 }, (_, index) => {
+    const angle = (index * Math.PI) / 12;
+    return modulePath(3 + Math.cos(angle) * 3, 3 + Math.sin(angle) * 3, 'dots');
+  }).join('');
 }
 
 export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProps>(
@@ -111,7 +120,7 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
       background,
       shape = 'square',
       moduleShape,
-      moduleScale = 1,
+      moduleScale,
       finderShape,
       finderCenterShape,
       finderColor,
@@ -141,6 +150,7 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
     const id = React.useId();
     const { reduced } = useMotionSettings(animation !== false);
     const circular = shape === 'circle';
+    const integrated = circular && Boolean(decorate) && decorate !== 'separated';
     const correction =
       level === undefined ? (logo ? 'H' : 'M') : ['L', 'M', 'Q', 'H'].includes(level) ? level : 'M';
     const version =
@@ -159,7 +169,7 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
     const extent =
       encoded.state === 'ready'
         ? circular
-          ? Math.ceil(square * Math.SQRT2) + padding * 2
+          ? Math.ceil((integrated ? encoded.size : square) * Math.SQRT2) + padding * 2
           : square
         : 100;
     const offset = (extent - encoded.size) / 2;
@@ -171,18 +181,20 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
           : 'square'
     ) as QRCodeModuleShape;
     const selectedFinder = (
-      ['square', 'rounded', 'circle'].includes(finderShape ?? '')
+      ['square', 'rounded', 'circle', 'dots'].includes(finderShape ?? '')
         ? finderShape
         : circular
-          ? 'rounded'
+          ? 'dots'
           : 'square'
     ) as QRCodeFinderShape;
     const selectedCenter = (
-      ['square', 'rounded', 'circle'].includes(finderCenterShape ?? '')
+      ['square', 'rounded', 'circle', 'dots'].includes(finderCenterShape ?? '')
         ? finderCenterShape
-        : selectedFinder
+        : selectedFinder === 'dots'
+          ? 'circle'
+          : selectedFinder
     ) as QRCodeFinderShape;
-    const scale = finite(moduleScale, 1, 0.6, 1);
+    const scale = finite(moduleScale, circular ? 0.9 : 1, 0.6, 1);
     const logoSide = logo?.src ? encoded.size * finite(logo.size, 0.18, 0, 0.24) : 0;
     const logoPadding = finite(logo?.padding, 1, 0, 4);
     const logoBounds = React.useMemo(
@@ -204,9 +216,9 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
     const decoration = React.useMemo(
       () =>
         circular && decorate && encoded.state === 'ready'
-          ? circlePattern(encoded, extent, padding, selectedModule, scale)
+          ? circlePattern(encoded, extent, padding, selectedModule, scale, integrated)
           : '',
-      [circular, decorate, encoded, extent, padding, selectedModule, scale],
+      [circular, decorate, encoded, extent, padding, selectedModule, scale, integrated],
     );
     const ink = foreground ?? 'var(--ui-qr-code-foreground, #000000)';
     const paper = background ?? 'var(--ui-qr-code-background, #ffffff)';
@@ -285,6 +297,10 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
         data-level={correction}
         data-shape={circular ? 'circle' : 'square'}
         data-module-shape={selectedModule}
+        data-finder-shape={selectedFinder}
+        data-circle-pattern={
+          circular ? (decorate ? (integrated ? 'integrated' : 'separated') : 'none') : undefined
+        }
         data-animation={motion}
       >
         <title {...styles('qr-code.title', '', undefined, unstyled)}>
@@ -450,7 +466,7 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
               {decoration && (
                 <path
                   d={decoration}
-                  fill={circlePatternColor ?? ink}
+                  fill={circlePatternColor ?? dataInk}
                   {...styles('qr-code.circle', '', undefined, unstyled)}
                 />
               )}
@@ -510,8 +526,8 @@ export const QRCode = /* @__PURE__ */ React.forwardRef<SVGSVGElement, QRCodeProp
                   const element = (
                     <>
                       <path
-                        d={finderPath(7, selectedFinder) + finderPath(5, selectedFinder, 1)}
-                        fillRule="evenodd"
+                        d={finderFrame(selectedFinder)}
+                        fillRule={selectedFinder === 'dots' ? 'nonzero' : 'evenodd'}
                         fill={finderColor ?? ink}
                         {...styles('qr-code.finder-frame', '', undefined, unstyled)}
                       />

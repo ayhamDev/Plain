@@ -168,16 +168,20 @@ function qrPreviewProps(state: State): Omit<UI.QRCodeProps, 'value'> {
       state.moduleShape === 'auto'
         ? undefined
         : choice(state, 'moduleShape', ['square', 'rounded', 'dots', 'diamond']),
-    moduleScale: Number(state.moduleScalePercent) / 100,
+    moduleScale:
+      state.moduleScalePercent === 'auto' ? undefined : Number(state.moduleScalePercent) / 100,
     finderShape:
       state.finderShape === 'auto'
         ? undefined
-        : choice(state, 'finderShape', ['square', 'rounded', 'circle']),
+        : choice(state, 'finderShape', ['square', 'rounded', 'circle', 'dots']),
     finderCenterShape:
       state.finderCenterShape === 'auto'
         ? undefined
-        : choice(state, 'finderCenterShape', ['square', 'rounded', 'circle']),
-    circlePattern: !!state.circlePattern,
+        : choice(state, 'finderCenterShape', ['square', 'rounded', 'circle', 'dots']),
+    circlePattern:
+      state.circlePattern === 'none'
+        ? false
+        : choice(state, 'circlePattern', ['integrated', 'separated']),
     animation: state.animation
       ? {
           preset: choice(state, 'animationPreset', ['assemble', 'scan', 'fade', 'reveal']),
@@ -197,10 +201,10 @@ export const propPreviews: Record<string, PropPreview> = {
       margin: 4,
       shape: 'square',
       moduleShape: 'auto',
-      moduleScalePercent: 100,
+      moduleScalePercent: 'auto',
       finderShape: 'auto',
       finderCenterShape: 'auto',
-      circlePattern: true,
+      circlePattern: 'integrated',
       animation: true,
       animationPreset: 'assemble',
       animationDuration: 600,
@@ -213,10 +217,10 @@ export const propPreviews: Record<string, PropPreview> = {
       number('margin', 4, 12),
       options('shape', ['square', 'circle']),
       options('moduleShape', ['auto', 'square', 'rounded', 'dots', 'diamond']),
-      number('moduleScalePercent', 60, 100),
-      options('finderShape', ['auto', 'square', 'rounded', 'circle']),
-      options('finderCenterShape', ['auto', 'square', 'rounded', 'circle']),
-      bool('circlePattern'),
+      options('moduleScalePercent', ['auto', '100', '90', '80', '70', '60']),
+      options('finderShape', ['auto', 'square', 'rounded', 'circle', 'dots']),
+      options('finderCenterShape', ['auto', 'square', 'rounded', 'circle', 'dots']),
+      options('circlePattern', ['integrated', 'separated', 'none']),
       bool('animation'),
       options('animationPreset', ['assemble', 'scan', 'fade', 'reveal']),
       number('animationDuration', 0, 1200),

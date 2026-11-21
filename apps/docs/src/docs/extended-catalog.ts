@@ -207,7 +207,7 @@ const fields: DataTableFilterField<Invoice>[] = [
       p(
         'margin',
         'number',
-        'Quiet-zone width in modules, rounded down and normalized to 4..128.',
+        'Margin in modules, rounded down and normalized to 4..128. Integrated circles put this margin around the complete silhouette; square/separated layouts retain the square quiet zone.',
         '4',
       ),
       p(
@@ -218,7 +218,7 @@ const fields: DataTableFilterField<Invoice>[] = [
       p(
         'shape',
         'square | circle',
-        'Circular presentation keeps the encoded square and its quiet zone inside a round composition.',
+        'Circular presentation uses a continuous dot field with round dotted finders. The encoded matrix stays complete.',
         'square',
       ),
       p(
@@ -231,13 +231,13 @@ const fields: DataTableFilterField<Invoice>[] = [
         'moduleScale',
         'number',
         'Data-module width relative to one module, normalized to 0.6..1. Smaller modules need more display resolution.',
-        '1',
+        '1 / 0.9 in circle',
       ),
       p(
         'finderShape / finderCenterShape',
-        'square | rounded | circle',
-        'Outer finder rings and their centers can be styled separately. Centers inherit the outer shape.',
-        'square / rounded in circle',
+        'square | rounded | circle | dots',
+        'Outer finder rings and their centers can be styled separately. Dotted rings use a solid round center; dots on a center also means a solid round dot. Other centers inherit the outer shape.',
+        'square / dots in circle',
       ),
       p(
         'finderColor / finderCenterColor',
@@ -256,9 +256,9 @@ const fields: DataTableFilterField<Invoice>[] = [
       ),
       p(
         'circlePattern / circlePatternColor',
-        'boolean / CSS color string',
-        'Decorative outer modules outside the quiet zone, only for shape="circle". Disable the pattern for a plain round background.',
-        'true / foreground',
+        'boolean | integrated | separated / CSS color string',
+        'True/integrated joins the outer dot field to the matrix grid, preserving finder separators and an outer circular margin. Separated keeps a blank square quiet zone. False removes the pattern. Outer ink inherits the data gradient/foreground unless overridden.',
+        'true (integrated) / data ink',
       ),
       p(
         'animation',

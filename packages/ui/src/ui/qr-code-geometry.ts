@@ -128,27 +128,38 @@ export function circlePattern(
   margin: number,
   shape: QRCodeModuleShape,
   scale: number,
+  integrated = false,
 ) {
   if (!matrix.size) return '';
   const center = extent / 2,
-    quietHalf = (matrix.size + margin * 2) / 2;
-  const radius = center - margin;
+    origin = (extent - matrix.size) / 2,
+    gap = integrated ? 0 : margin,
+    radius = center - margin,
+    half = scale / 2;
   const paths: string[] = [];
-  for (let y = 0; y < extent; y++)
-    for (let x = 0; x < extent; x++) {
-      // The whole decorative module must be outside the required square quiet zone.
+  // Use matrix coordinates for both layers, including when the origin is half-integral.
+  for (let y = -Math.ceil(origin); y < matrix.size + origin; y++)
+    for (let x = -Math.ceil(origin); x < matrix.size + origin; x++) {
+      if (x >= -gap && x < matrix.size + gap && y >= -gap && y < matrix.size + gap) continue;
+      // Continue the light separator around each finder beyond the encoded matrix.
       if (
-        x < center + quietHalf &&
-        x + 1 > center - quietHalf &&
-        y < center + quietHalf &&
-        y + 1 > center - quietHalf
+        integrated &&
+        ((x >= -1 && x <= 7 && y >= -1 && y <= 7) ||
+          (x >= matrix.size - 8 && x <= matrix.size && y >= -1 && y <= 7) ||
+          (x >= -1 && x <= 7 && y >= matrix.size - 8 && y <= matrix.size))
       )
         continue;
-      if (Math.hypot(Math.abs(x + 0.5 - center) + 0.5, Math.abs(y + 0.5 - center) + 0.5) > radius)
-        continue;
-      // Repeat encoded bits deterministically: no random render/SSR differences.
-      if (matrix.data[(y * extent + x) % matrix.data.length])
-        paths.push(modulePath(x, y, shape, scale));
+      const dx = x + 0.5 - matrix.size / 2,
+        dy = y + 0.5 - matrix.size / 2;
+      const reach =
+        shape === 'dots'
+          ? Math.hypot(dx, dy) + half
+          : Math.hypot(Math.abs(dx) + half, Math.abs(dy) + half);
+      if (reach > radius) continue;
+      // Stable, distributed sampling avoids repeated finder shapes and horizontal bands.
+      const hash = (Math.imul(x + 197, 73856093) ^ Math.imul(y + 197, 19349663)) >>> 0;
+      if (matrix.data[hash % matrix.data.length])
+        paths.push(modulePath(x + origin, y + origin, shape, scale));
     }
   return paths.join('');
 }
