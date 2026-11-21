@@ -746,7 +746,10 @@ Use the same semantic tokens as the rest of P.UI when customizing these parts.
 
 ScrollArea widens its scrollbar on hover without changing viewport geometry.
 `scrollbarSize`, `scrollbarHoverSize` and `scrollbarExpandOnHover` configure it.
-Sizes include the track's 4px gutter; the minimum hit area remains 12px.
+Sizes describe the visible rounded pill (6px idle and 12px hovered by default).
+The track adds a 4px gutter and retains a minimum 12px hit area. Only its painted
+thickness animates, so the drag target and viewport stay fixed and both end caps
+remain rounded. Vertical thumbs expand inward in LTR and RTL.
 Faded edges are opt-in and use transparency, so they work on custom backgrounds:
 
 ```tsx
@@ -765,7 +768,7 @@ Faded edges are opt-in and use transparency, so they work on custom backgrounds:
 The example's `projects` is application content; import `ScrollArea` from `@plain/ui`.
 `fadeEdges={true}` follows the scrolling axes. The default `mode: 'scroll'` fades
 only edges with more content; `'always'` keeps configured edges faded. `start`/`end`
-follow RTL. Keyboard-visible focus and forced colors remove masks for readability.
+follow RTL. Keyboard-visible focus and forced colors remove edge fades for readability.
 Theme aliases are `scrollbar.width`, `scrollbar.hover-width`, `scroll-area.fade-size`
 and `scroll-area.fade-intensity`. Direct `ScrollBar` accepts `size`, `hoverSize` and
 `expandOnHover`.

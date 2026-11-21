@@ -11,11 +11,10 @@ async function open(page: Page, query = '', width = 1000) {
 }
 async function paintWidth(thumb: Locator, axis = 'vertical') {
   return thumb.evaluate((node, axis) => {
-    const css = getComputedStyle(node),
-      box = node.getBoundingClientRect();
+    const css = getComputedStyle(node);
     return axis === 'vertical'
-      ? box.width - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight)
-      : box.height - parseFloat(css.paddingTop) - parseFloat(css.paddingBottom);
+      ? parseFloat(css.maskSize)
+      : Number(css.maskSize.match(/\)\s+([\d.]+)px/)?.[1]);
   }, axis);
 }
 async function pixel(page: Page, viewport: Locator, x: number, y: number) {
@@ -59,25 +58,24 @@ for (const dir of ['ltr', 'rtl']) {
       await page.mouse.move(1, 1);
       const before = (await viewport.boundingBox())!,
         rail = (await bar.boundingBox())!;
-      await expect.poll(() => paintWidth(thumb, axis)).toBeCloseTo(2, 0);
+      await expect.poll(() => paintWidth(thumb, axis)).toBeCloseTo(6, 0);
       const samplesPromise = thumb.evaluate(async (node, axis) => {
         const samples: number[] = [];
         for (let i = 0; i < 24; i++) {
           await new Promise(requestAnimationFrame);
-          const css = getComputedStyle(node),
-            box = node.getBoundingClientRect();
+          const css = getComputedStyle(node);
           samples.push(
             axis === 'vertical'
-              ? box.width - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight)
-              : box.height - parseFloat(css.paddingTop) - parseFloat(css.paddingBottom),
+              ? parseFloat(css.maskSize)
+              : Number(css.maskSize.match(/\)\s+([\d.]+)px/)?.[1]),
           );
         }
         return samples;
       }, axis);
       await bar.hover();
       const samples = await samplesPromise;
-      expect(samples.some((value) => value > 2.2 && value < 7.8)).toBe(true);
-      await expect.poll(() => paintWidth(thumb, axis)).toBeCloseTo(8, 0);
+      expect(samples.some((value) => value > 6.2 && value < 11.8)).toBe(true);
+      await expect.poll(() => paintWidth(thumb, axis)).toBeCloseTo(12, 0);
       expect(await viewport.boundingBox()).toEqual(before);
       expect(await bar.boundingBox()).toEqual(rail);
       await page.screenshot({ path: info.outputPath(`hover-${dir}-${axis}.png`) });
@@ -166,14 +164,14 @@ test('thumb opt-out, custom sizes and dragging preserve native scrolling', async
   let viewport = await open(page, 'axis=vertical&expand=off&size=8&hoverSize=18&fade=off');
   let bar = page.locator('.ui-scrollbar'),
     thumb = bar.locator('.ui-scrollbar-thumb');
-  await expect.poll(() => paintWidth(thumb)).toBeCloseTo(4, 0);
+  await expect.poll(() => paintWidth(thumb)).toBeCloseTo(8, 0);
   await bar.hover();
-  await expect.poll(() => paintWidth(thumb)).toBeCloseTo(4, 0);
+  await expect.poll(() => paintWidth(thumb)).toBeCloseTo(8, 0);
   viewport = await open(page, 'axis=vertical&size=8&hoverSize=18&fade=off');
   bar = page.locator('.ui-scrollbar');
   thumb = bar.locator('.ui-scrollbar-thumb');
   await bar.hover();
-  await expect.poll(() => paintWidth(thumb)).toBeCloseTo(14, 0);
+  await expect.poll(() => paintWidth(thumb)).toBeCloseTo(18, 0);
   const before = (await viewport.boundingBox())!,
     grip = (await thumb.boundingBox())!;
   await page.mouse.move(grip.x + grip.width / 2, grip.y + grip.height / 2);
@@ -192,7 +190,7 @@ test('reduced motion disables thumb and edge transitions without hiding feedback
   const bar = page.locator('.ui-scrollbar[data-orientation="vertical"]'),
     thumb = bar.locator('.ui-scrollbar-thumb');
   await bar.hover();
-  await expect.poll(() => paintWidth(thumb)).toBeCloseTo(8, 0);
+  await expect.poll(() => paintWidth(thumb)).toBeCloseTo(12, 0);
   expect(
     await thumb.evaluate((node) => parseFloat(getComputedStyle(node).transitionDuration)),
   ).toBeLessThanOrEqual(0.001);

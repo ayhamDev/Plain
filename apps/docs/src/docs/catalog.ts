@@ -959,7 +959,7 @@ export const components: ComponentDefinition[] = [
       prop(
         'scrollbarSize / scrollbarHoverSize',
         'number | CSS length',
-        'Base and hovered thickness in pixels or CSS lengths. Existing scrollbar.width and new scrollbar.hover-width tokens supply the defaults.',
+        'Visible pill thickness in pixels or CSS lengths, excluding the 4px track gutter. scrollbar.width and scrollbar.hover-width tokens supply the defaults. The hit target stays fixed while the fully rounded paint expands inward.',
         '6px / 12px',
       ),
       prop(

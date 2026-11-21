@@ -536,7 +536,7 @@ export const ScrollBar = /* @__PURE__ */ React.forwardRef<
         {...styles(
           'scroll-bar.root',
           cn(
-            'ui-scrollbar flex touch-none select-none bg-[var(--ui-scrollbar-track,transparent)] p-0.5',
+            'ui-scrollbar flex touch-none select-none bg-[var(--ui-scrollbar-track,transparent)] p-[2px]',
             orientation === 'horizontal' && 'flex-col',
           ),
           className,
@@ -556,7 +556,7 @@ export const ScrollBar = /* @__PURE__ */ React.forwardRef<
         <ScrollAreaPrimitive.ScrollAreaThumb
           {...styles(
             'scroll-bar.thumb',
-            'ui-scrollbar-thumb relative flex-1 rounded-full bg-[var(--ui-scrollbar-thumb,var(--ui-input-border))]',
+            'ui-scrollbar-thumb relative flex-1 bg-[var(--ui-scrollbar-thumb,var(--ui-input-border))]',
             undefined,
             unstyled,
           )}

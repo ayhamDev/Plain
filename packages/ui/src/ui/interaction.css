@@ -403,14 +403,10 @@
   .ui-scrollbar {
     --ui-scrollbar-track-size: max(
       12px,
-      var(--ui-scrollbar-width, 6px),
-      var(--ui-scrollbar-hover-width, 12px)
+      calc(var(--ui-scrollbar-width, 6px) + 4px),
+      calc(var(--ui-scrollbar-hover-width, 12px) + 4px)
     );
-    --ui-scrollbar-thumb-inset: clamp(
-      0px,
-      calc(var(--ui-scrollbar-track-size) - var(--ui-scrollbar-width, 6px)),
-      calc(var(--ui-scrollbar-track-size) - 4px)
-    );
+    --ui-scrollbar-thumb-size: var(--ui-scrollbar-width, 6px);
     transition: opacity calc(var(--ui-duration-fast, 120ms) * var(--ui-motion-scale, 1))
       var(--ui-ease-standard, ease);
   }
@@ -418,33 +414,78 @@
     width: var(--ui-scrollbar-track-size);
   }
   .ui-scrollbar[data-expand-on-hover='false'] {
-    --ui-scrollbar-track-size: max(12px, var(--ui-scrollbar-width, 6px));
+    --ui-scrollbar-track-size: max(12px, calc(var(--ui-scrollbar-width, 6px) + 4px));
   }
   .ui-scrollbar[data-orientation='horizontal'] {
     height: var(--ui-scrollbar-track-size);
   }
   .ui-scrollbar-thumb {
     box-sizing: border-box;
-    background-clip: content-box;
+    /* Mask only the paint: the native thumb keeps its full drag target. Padding
+       inside a rounded background cuts the caps instead of resizing the pill. */
+    -webkit-mask-image:
+      radial-gradient(ellipse closest-side, #000 98%, #0000 100%), linear-gradient(#000 0 0),
+      radial-gradient(ellipse closest-side, #000 98%, #0000 100%);
+    mask-image:
+      radial-gradient(ellipse closest-side, #000 98%, #0000 100%), linear-gradient(#000 0 0),
+      radial-gradient(ellipse closest-side, #000 98%, #0000 100%);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
     transition:
-      padding calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1)) var(--ui-ease-out),
+      mask-size calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1)) var(--ui-ease-out),
       background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1))
         var(--ui-ease-standard);
   }
   .ui-scrollbar[data-orientation='vertical'] > .ui-scrollbar-thumb {
-    padding-inline-start: var(--ui-scrollbar-thumb-inset);
+    -webkit-mask-position:
+      right top,
+      right center,
+      right bottom;
+    mask-position:
+      right top,
+      right center,
+      right bottom;
+    -webkit-mask-size:
+      var(--ui-scrollbar-thumb-size) min(100%, var(--ui-scrollbar-thumb-size)),
+      var(--ui-scrollbar-thumb-size) calc(100% - min(100%, var(--ui-scrollbar-thumb-size))),
+      var(--ui-scrollbar-thumb-size) min(100%, var(--ui-scrollbar-thumb-size));
+    mask-size:
+      var(--ui-scrollbar-thumb-size) min(100%, var(--ui-scrollbar-thumb-size)),
+      var(--ui-scrollbar-thumb-size) calc(100% - min(100%, var(--ui-scrollbar-thumb-size))),
+      var(--ui-scrollbar-thumb-size) min(100%, var(--ui-scrollbar-thumb-size));
+  }
+  .ui-scrollbar[data-orientation='vertical']:dir(rtl) > .ui-scrollbar-thumb {
+    -webkit-mask-position:
+      left top,
+      left center,
+      left bottom;
+    mask-position:
+      left top,
+      left center,
+      left bottom;
   }
   .ui-scrollbar[data-orientation='horizontal'] > .ui-scrollbar-thumb {
-    padding-block-start: var(--ui-scrollbar-thumb-inset);
+    -webkit-mask-position:
+      left bottom,
+      center bottom,
+      right bottom;
+    mask-position:
+      left bottom,
+      center bottom,
+      right bottom;
+    -webkit-mask-size:
+      min(100%, var(--ui-scrollbar-thumb-size)) var(--ui-scrollbar-thumb-size),
+      calc(100% - min(100%, var(--ui-scrollbar-thumb-size))) var(--ui-scrollbar-thumb-size),
+      min(100%, var(--ui-scrollbar-thumb-size)) var(--ui-scrollbar-thumb-size);
+    mask-size:
+      min(100%, var(--ui-scrollbar-thumb-size)) var(--ui-scrollbar-thumb-size),
+      calc(100% - min(100%, var(--ui-scrollbar-thumb-size))) var(--ui-scrollbar-thumb-size),
+      min(100%, var(--ui-scrollbar-thumb-size)) var(--ui-scrollbar-thumb-size);
   }
   .ui-scrollbar[data-expand-on-hover='true']:is(:hover, :active) {
-    --ui-scrollbar-thumb-inset: clamp(
-      0px,
-      calc(
-        var(--ui-scrollbar-track-size) -
-          max(var(--ui-scrollbar-width, 6px), var(--ui-scrollbar-hover-width, 12px))
-      ),
-      calc(var(--ui-scrollbar-track-size) - 4px)
+    --ui-scrollbar-thumb-size: max(
+      var(--ui-scrollbar-width, 6px),
+      var(--ui-scrollbar-hover-width, 12px)
     );
   }
 
