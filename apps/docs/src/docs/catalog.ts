@@ -139,6 +139,26 @@ export const components: ComponentDefinition[] = [
     [
       prop('className', 'string', 'Customize padding, width, or layout on any part.'),
       prop(
+        'variant',
+        "'outlined' | 'filled' | 'elevated' | 'ghost'",
+        'Choose the resting surface. Ghost stays borderless, including when hovered or selected.',
+        'outlined',
+      ),
+      prop('size', "'sm' | 'md' | 'lg'", 'Consistent padding across the card parts.', 'md'),
+      prop(
+        'interactive',
+        'boolean',
+        'Smooth surface feedback for hover and press, with keyboard-visible focus. Compose a native link or button with asChild to make the whole card actionable.',
+        'false',
+      ),
+      prop(
+        'selected',
+        'boolean',
+        'A persistent surface tint that stays distinct on hover and press. Expose the selection through your control semantics and a visible label or checkmark.',
+        'false',
+      ),
+      prop('asChild', 'boolean', 'Render the card styles on a single child element.', 'false'),
+      prop(
         'presence',
         'boolean | LayoutPresenceOptions',
         'Animate direct keyed children. Also available on CardHeader, CardContent and CardFooter; native refs remain supported.',

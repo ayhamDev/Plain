@@ -227,6 +227,24 @@ filters and returns to page one while preserving sorting, columns and selection;
 use controller methods in application actions for a different reset policy.
 The working docs example is `/components/data-table-controls`.
 
+## Card interactions
+
+Card offers `outlined`, `filled`, `elevated` and `ghost` surfaces. Use `ghost` for
+a borderless card. `interactive` adds smooth hover and press tints; `selected`
+adds a persistent tint, with stronger feedback while hovering or pressing it.
+These states keep the card still and preserve its resting border and elevation.
+Description text gains emphasis with the tint to maintain readable contrast.
+Keyboard focus keeps its own visible outline. System reduced motion and the
+provider's reduced/none policies remove the transition.
+
+Compose a native link or button with `asChild` when the entire card is actionable.
+`interactive` is a visual option; it does not add a role, tab stop or click handler.
+Keep a card with separate actions as a container, and let those controls retain
+their native focus and activation. For selectable cards, provide the appropriate
+control semantics (such as `aria-pressed` on a toggle button) and a visible
+selection label or checkmark. Existing `card.background`, `card.foreground`,
+`card.border`, `card.radius`, styling slots and native `style` overrides apply.
+
 ## Layout presence
 
 Layout containers accept `presence` to animate direct keyed children on first

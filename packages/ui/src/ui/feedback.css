@@ -258,14 +258,20 @@
   }
   .ui-card {
     --ui-card-padding: 24px;
+    --_ui-card-state-opacity: 0%;
+    --_ui-card-description-color: color-mix(
+      in srgb,
+      var(--ui-card-foreground, var(--ui-foreground)) calc(var(--_ui-card-state-opacity) * 2),
+      var(--ui-muted-foreground)
+    );
     min-inline-size: 0;
     text-decoration: none;
     transition:
-      border-color calc(var(--ui-duration-normal) * var(--ui-motion-scale)) var(--ui-ease-standard),
-      background-color calc(var(--ui-duration-normal) * var(--ui-motion-scale))
-        var(--ui-ease-standard),
-      box-shadow calc(var(--ui-duration-normal) * var(--ui-motion-scale)) var(--ui-ease-standard),
-      translate calc(var(--ui-duration-normal) * var(--ui-motion-scale)) var(--ui-ease-out);
+      background-color calc(var(--ui-duration-normal) * var(--ui-motion-scale)) var(--ui-ease-out),
+      box-shadow calc(var(--ui-duration-normal) * var(--ui-motion-scale)) var(--ui-ease-out);
+  }
+  .ui-card-description {
+    transition: color calc(var(--ui-duration-normal) * var(--ui-motion-scale)) var(--ui-ease-out);
   }
   .ui-card[data-size='sm'] {
     --ui-card-padding: 16px;
@@ -286,8 +292,7 @@
     --ui-card-background: transparent;
   }
   .ui-card[data-selected] {
-    --ui-card-border: var(--ui-accent);
-    box-shadow: 0 0 0 1px var(--ui-accent);
+    --_ui-card-state-opacity: 8%;
   }
   .ui-card-header {
     position: relative;
@@ -306,10 +311,26 @@
     outline-offset: 3px;
   }
   @media (hover: hover) {
-    .ui-card[data-interactive]:hover {
-      --ui-card-border: var(--ui-outline);
-      box-shadow: var(--ui-shadow);
+    .ui-card[data-interactive]:not(:disabled, [aria-disabled='true'], [data-disabled]):hover {
+      --_ui-card-state-opacity: 4%;
     }
+    .ui-card[data-interactive][data-selected]:not(
+        :disabled,
+        [aria-disabled='true'],
+        [data-disabled]
+      ):hover {
+      --_ui-card-state-opacity: 12%;
+    }
+  }
+  .ui-card[data-interactive]:not(:disabled, [aria-disabled='true'], [data-disabled]):active {
+    --_ui-card-state-opacity: 12%;
+  }
+  .ui-card[data-interactive][data-selected]:not(
+      :disabled,
+      [aria-disabled='true'],
+      [data-disabled]
+    ):active {
+    --_ui-card-state-opacity: 16%;
   }
   .ui-alert {
     --ui-alert-tone: var(--ui-info);

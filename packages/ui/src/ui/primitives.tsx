@@ -194,7 +194,7 @@ export const Card = /* @__PURE__ */ Object.assign(
             data-selected={selected || undefined}
             {...styles(
               'card.root',
-              'ui-card rounded-[var(--ui-card-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-card-border,var(--ui-border))] bg-[var(--ui-card-background,var(--ui-surface))] text-[var(--ui-card-foreground,var(--ui-foreground))]',
+              'ui-card rounded-[var(--ui-card-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-card-border,var(--ui-border))] bg-[color-mix(in_srgb,var(--ui-card-foreground,var(--ui-foreground))_var(--_ui-card-state-opacity,0%),var(--ui-card-background,var(--ui-surface)))] text-[var(--ui-card-foreground,var(--ui-foreground))]',
               className,
               unstyled,
             )}
@@ -250,7 +250,7 @@ export function CardDescription({
     <p
       {...styles(
         'card.description',
-        'text-sm leading-6 text-muted-foreground',
+        'ui-card-description text-sm leading-6 text-[var(--_ui-card-description-color,var(--ui-muted-foreground))]',
         className,
         unstyled,
       )}
