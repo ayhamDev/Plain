@@ -39,13 +39,13 @@ for (const query of [
     await code.screenshot({ path: info.outputPath('custom-qr.png') });
   });
 }
-test('default reveal replays on value changes and follows live motion preferences', async ({
+test('default assembly replays on value changes and follows live motion preferences', async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/tests/fixtures/qr-code.html?duration=1000');
   const code = page.getByRole('img', { name: 'Project QR code' });
-  await expect(code).toHaveAttribute('data-animation', 'reveal');
+  await expect(code).toHaveAttribute('data-animation', 'assemble');
   expect(
     await code.evaluate((node) =>
       node.getAnimations({ subtree: true }).some((a) => a.effect?.getTiming().iterations === 1),
@@ -63,7 +63,7 @@ test('default reveal replays on value changes and follows live motion preference
   await expect(code).toHaveAttribute('data-animation', 'none');
   expect(await decode(code)).toBe('Animated update');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
-  await expect(code).toHaveAttribute('data-animation', 'reveal');
+  await expect(code).toHaveAttribute('data-animation', 'assemble');
 });
 test('fade, opt-out and provider policies keep a complete static code', async ({ page }) => {
   for (const query of ['animation=fade&duration=100', 'static', 'motion=none', 'motion=reduced']) {
@@ -75,6 +75,81 @@ test('fade, opt-out and provider policies keep a complete static code', async ({
     );
     expect(await decode(code)).toBe(value);
   }
+});
+
+for (const preset of ['assemble', 'scan', 'reveal']) {
+  for (const shape of ['square', 'circle']) {
+    test(`${preset} ${shape} settles to a decodable code with bounded animation geometry`, async ({
+      page,
+    }, info) => {
+      await page.goto(
+        `/tests/fixtures/qr-code.html?animation=${preset}&shape=${shape}&gradient=linear&logo&duration=1000`,
+      );
+      const code = page.getByRole('img', { name: 'Project QR code' });
+      await expect(code).toHaveAttribute('data-animation', preset);
+      expect(await code.locator('rect').count()).toBeLessThanOrEqual(70);
+      const running = await code.evaluate((node) => {
+        const animations = node.getAnimations({ subtree: true });
+        animations.forEach((animation) => {
+          animation.pause();
+          animation.currentTime = 300;
+        });
+        return animations.length;
+      });
+      expect(running).toBeGreaterThan(0);
+      const geometry = await code.locator('[data-slot="foreground"]').getAttribute('d');
+      await code.screenshot({ path: info.outputPath('mid-animation.png'), animations: 'allow' });
+      await code.evaluate((node) =>
+        node.getAnimations({ subtree: true }).forEach((animation) => animation.finish()),
+      );
+      expect(await decode(code)).toBe(value);
+      expect(await code.locator('[data-slot="foreground"]').getAttribute('d')).toBe(geometry);
+      await code.screenshot({ path: info.outputPath('settled.png') });
+    });
+  }
+}
+
+test('dense matrices keep a bounded mask and downloads are complete during a scan', async ({
+  page,
+}) => {
+  await page.goto('/tests/fixtures/qr-code.html?animation=assemble&version=40');
+  const dense = page.getByRole('img', { name: 'Project QR code' });
+  expect(await dense.locator('rect').count()).toBeLessThanOrEqual(70);
+  await page.goto('/components/qr-code');
+  const preview = page.locator('.component-preview');
+  await preview.getByRole('combobox', { name: 'Animation style', exact: true }).click();
+  await page.getByRole('option', { name: 'Soft scan', exact: true }).click();
+  const code = preview.getByRole('img', { name: 'QR code for the entered content' });
+  await code.evaluate((node) =>
+    node.getAnimations({ subtree: true }).forEach((animation) => {
+      animation.pause();
+      animation.currentTime = 50;
+    }),
+  );
+  const download = page.waitForEvent('download');
+  await preview.getByRole('button', { name: 'Download SVG', exact: true }).click();
+  const { readFile } = await import('node:fs/promises');
+  const svg = await readFile((await (await download).path())!, 'utf8');
+  const result = await page.evaluate(async (svg) => {
+    const image = new Image();
+    image.src = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    try {
+      await image.decode();
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext('2d')!;
+      context.drawImage(image, 0, 0);
+      return {
+        width: canvas.width,
+        height: canvas.height,
+        data: [...context.getImageData(0, 0, canvas.width, canvas.height).data],
+      };
+    } finally {
+      URL.revokeObjectURL(image.src);
+    }
+  }, svg);
+  expect(jsQR(new Uint8ClampedArray(result.data), result.width, result.height)?.data).toBe(value);
 });
 test('documented circular gradient logo downloads as a self-contained decodable SVG', async ({
   page,

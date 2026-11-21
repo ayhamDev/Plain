@@ -30,8 +30,10 @@ export default function QRCodeExample() {
   const [withLogo, setWithLogo] = React.useState(false);
   const [withGradient, setWithGradient] = React.useState(false);
   const [animate, setAnimate] = React.useState(true);
+  const [motion, setMotion] = React.useState<'assemble' | 'scan' | 'fade'>('assemble');
   const [replay, setReplay] = React.useState(0);
   const styleId = React.useId();
+  const motionId = React.useId();
   const download = () => {
     const source = ref.current;
     if (!source || source.dataset.state !== 'ready') return;
@@ -116,6 +118,23 @@ export default function QRCodeExample() {
         <Field label="Animation">
           <Switch checked={animate} onCheckedChange={setAnimate} />
         </Field>
+        <div style={{ display: 'grid', gap: 8, minWidth: 0 }}>
+          <Label htmlFor={motionId}>Animation style</Label>
+          <Select
+            value={motion}
+            onValueChange={(value) => setMotion(value as typeof motion)}
+            disabled={!animate}
+          >
+            <SelectTrigger id={motionId}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="assemble">Assemble</SelectItem>
+              <SelectItem value="scan">Soft scan</SelectItem>
+              <SelectItem value="fade">Fade</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       <div style={{ display: 'grid', justifyItems: 'center', gap: 16, minWidth: 0 }}>
         <QRCode
@@ -140,7 +159,7 @@ export default function QRCodeExample() {
               : undefined
           }
           logo={withLogo ? { src: demoLogo } : undefined}
-          animation={animate}
+          animation={animate ? { preset: motion } : false}
           onEncodingError={setError}
         />
         <Code

@@ -40,12 +40,16 @@ for (const view of [
         trigger = page.locator('[data-ui="temporal"][data-slot="calendar-trigger"]').first();
       if (trigger) await trigger.click();
       const calendar = page.locator('[data-ui="calendar"]');
-      const month = calendar.getByRole('combobox', {
-        name: dir === 'rtl' ? 'اختر الشهر' : 'Choose month',
-      });
-      const year = calendar.getByRole('combobox', {
-        name: dir === 'rtl' ? 'اختر السنة' : 'Choose year',
-      });
+      const month = calendar
+        .getByRole('combobox', {
+          name: dir === 'rtl' ? 'اختر الشهر' : 'Choose month',
+        })
+        .first();
+      const year = calendar
+        .getByRole('combobox', {
+          name: dir === 'rtl' ? 'اختر السنة' : 'Choose year',
+        })
+        .first();
       const digits = new Intl.NumberFormat(dir === 'rtl' ? 'ar' : 'en', { useGrouping: false });
       const monthName = (value: number) =>
         new Intl.DateTimeFormat(dir === 'rtl' ? 'ar' : 'en', {
@@ -66,16 +70,20 @@ for (const view of [
       );
       await page.getByRole('option', { name: digits.format(1985), exact: true }).click();
       await chooseMonth(8);
-      const septemberWidth = (await calendar.locator('.rdp-month').boundingBox())!.width;
+      const septemberWidth = (await calendar.locator('.rdp-month').first().boundingBox())!.width;
       await contained(page, calendar);
       const bounds = await year.boundingBox();
       const nextBounds = await calendar.locator('.rdp-button_previous').boundingBox();
       expect(bounds!.width).toBeGreaterThan(24);
-      expect(
-        dir === 'rtl'
-          ? bounds!.x >= nextBounds!.x + nextBounds!.width
-          : bounds!.x + bounds!.width <= nextBounds!.x,
-      ).toBe(true);
+      const sameRow =
+        bounds!.y < nextBounds!.y + nextBounds!.height &&
+        nextBounds!.y < bounds!.y + bounds!.height;
+      if (sameRow)
+        expect(
+          dir === 'rtl'
+            ? bounds!.x >= nextBounds!.x + nextBounds!.width
+            : bounds!.x + bounds!.width <= nextBounds!.x,
+        ).toBe(true);
       await month.focus();
       await page.keyboard.press('Tab');
       await expect(year).toBeFocused();
@@ -87,10 +95,14 @@ for (const view of [
       await chooseYear(1985);
       await chooseMonth(1);
       expect(
-        Math.abs((await calendar.locator('.rdp-month').boundingBox())!.width - septemberWidth),
+        Math.abs(
+          (await calendar.locator('.rdp-month').first().boundingBox())!.width - septemberWidth,
+        ),
       ).toBeLessThanOrEqual(1);
       const day = (value: number) =>
         calendar
+          .locator('.rdp-month')
+          .first()
           .getByRole('button', { name: new RegExp('.*') })
           .filter({ hasText: new RegExp(`^${digits.format(value)}$`) });
       await expect(day(15)).toBeDisabled();
@@ -98,6 +110,16 @@ for (const view of [
       await calendar.screenshot({ path: info.outputPath(`${view}-${width}-${dir}.png`) });
       await day(view === 'date-range-picker' ? 18 : 14).click();
       if (view === 'date-range-picker') await day(20).click();
+      if (width < 768 && view.includes('date-time'))
+        await page
+          .getByRole('dialog')
+          .getByRole('button', { name: dir === 'rtl' ? 'التالي' : 'Next', exact: true })
+          .click();
+      if (width < 768 && (view === 'date-picker' || view === 'date-range-picker'))
+        await page
+          .getByRole('dialog')
+          .getByRole('button', { name: dir === 'rtl' ? 'تم' : 'Done', exact: true })
+          .click();
       if (view.includes('date-time'))
         await page
           .getByRole('dialog')

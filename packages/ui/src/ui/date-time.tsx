@@ -10,6 +10,7 @@ import {
 } from 'react-day-picker';
 import { Calendar, type CalendarProps } from './calendar';
 import { PickerPopoverContent } from './picker-popover';
+import { PickerMobileContent, useCompactPicker } from './picker-mobile';
 import { Button } from './primitives';
 import { Label, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
 import {
@@ -19,10 +20,6 @@ import {
   PopoverTrigger,
   Sheet,
   SheetTrigger,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
 } from './overlays';
 import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
 import { changeInput } from './utils';
@@ -452,15 +449,6 @@ function TimeChooser({
   );
 }
 
-const compactPickerQuery = '(max-width: 767px)';
-const subscribeCompactPicker = (update: () => void) => {
-  const media = window.matchMedia(compactPickerQuery);
-  media.addEventListener('change', update);
-  return () => media.removeEventListener('change', update);
-};
-const compactPickerSnapshot = () => window.matchMedia(compactPickerQuery).matches;
-const desktopPickerSnapshot = () => false;
-
 function TemporalInput({
   kind,
   allProps,
@@ -532,17 +520,27 @@ function TemporalInput({
   );
   const current = wallValue(value, kind);
   const [open, setOpen] = React.useState(false);
-  const compactScreen = React.useSyncExternalStore(
-    subscribeCompactPicker,
-    compactPickerSnapshot,
-    desktopPickerSnapshot,
-  );
+  const compactScreen = useCompactPicker();
   const [openedCompact, setOpenedCompact] = React.useState(false);
+  const [mobileDraft, setMobileDraft] = React.useState<string>();
+  const draftRef = React.useRef<string | undefined>(undefined);
+  const [mobileStep, setMobileStep] = React.useState<'date' | 'time'>('date');
   // Keep an open surface stable when rotation/resizing crosses the breakpoint.
   const compact = open ? openedCompact : compactScreen;
+  const mobileDateTime = compact && kind === 'datetime-local';
+  const staged = mobileDateTime && open;
+  const pickerCurrent = staged ? mobileDraft : current;
   const setPickerOpen = (next: boolean, acceptDefault = false) => {
-    if (next && !open) setOpenedCompact(compactScreen);
-    if (!next) timeActions.current?.commit(acceptDefault);
+    if (next && !open) {
+      setOpenedCompact(compactScreen);
+      draftRef.current = current;
+      setMobileDraft(current);
+      setMobileStep('date');
+    }
+    if (!next) {
+      if (staged) timeActions.current?.discard();
+      else timeActions.current?.commit(acceptDefault);
+    }
     setOpen(next);
   };
   const wheel = pickerMode === 'wheel' || (pickerMode === 'auto' && compact);
@@ -553,9 +551,11 @@ function TemporalInput({
     { ...allProps, locale, timeZone, hourCycle: resolvedCycle },
     kind,
   );
-  const selected = kind === 'datetime-local' ? calendarDate(current) : undefined;
+  const selected = kind === 'datetime-local' ? calendarDate(pickerCurrent) : undefined;
   const unavailable = matchers(calendarDate(min), calendarDate(max), disabledDates);
-  let invalid = kind === 'datetime-local' && selected && dateMatchModifiers(selected, unavailable);
+  const committedDate = kind === 'datetime-local' ? calendarDate(current) : undefined;
+  let invalid =
+    kind === 'datetime-local' && committedDate && dateMatchModifiers(committedDate, unavailable);
   if (current && kind === 'datetime-local' && timeZone) {
     try {
       Temporal.PlainDateTime.from(current).toZonedDateTime(timeZone, { disambiguation });
@@ -586,19 +586,25 @@ function TemporalInput({
     return () => form.removeEventListener('reset', reset);
   }, [props.form]);
   const selectValue = (next: string | undefined) => {
-    if (!disabled && !readOnly) changeInput(inputRef.current, next ?? '');
+    if (disabled || readOnly) return;
+    if (mobileDateTime) {
+      draftRef.current = next;
+      setMobileDraft(next);
+    } else changeInput(inputRef.current, next ?? '');
   };
   const clear = () => {
     if (disabled || readOnly) return;
     timeActions.current?.discard();
-    selectValue(undefined);
+    changeInput(inputRef.current, '');
     setOpen(false);
     inputRef.current?.focus();
   };
   const pickDate = (date: Date | undefined) => {
     if (disabled || readOnly) return;
     const day = localDate(date);
-    let next = day ? `${day}T${current?.split('T')[1] ?? '00:00'}` : undefined;
+    let next = day
+      ? `${day}T${pickerCurrent?.split('T')[1] ?? (staged ? '09:00' : '00:00')}`
+      : undefined;
     if (next && min && wallValue(min, kind) && Temporal.PlainDateTime.compare(next, min) < 0)
       next = min;
     if (next && max && wallValue(max, kind) && Temporal.PlainDateTime.compare(next, max) > 0)
@@ -620,34 +626,89 @@ function TemporalInput({
     }
     selectValue(candidate);
   };
+  const validDraft = (candidate: string | undefined) => {
+    if (!candidate || !wallValue(candidate, 'datetime-local')) return false;
+    if (dateMatchModifiers(calendarDate(candidate)!, unavailable)) return false;
+    const lower = wallValue(min, kind),
+      upper = wallValue(max, kind);
+    if (lower && Temporal.PlainDateTime.compare(candidate, lower) < 0) return false;
+    if (upper && Temporal.PlainDateTime.compare(candidate, upper) > 0) return false;
+    try {
+      if (timeZone)
+        Temporal.PlainDateTime.from(candidate).toZonedDateTime(timeZone, { disambiguation });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const finishMobile = () => {
+    timeActions.current?.commit(true);
+    const next = draftRef.current;
+    if (disabled || readOnly || !validDraft(next)) return;
+    changeInput(inputRef.current, next!);
+    setOpen(false);
+  };
+  React.useEffect(() => {
+    if (!staged) return;
+    const frame = requestAnimationFrame(() => {
+      mobilePanelRef.current
+        ?.querySelector<HTMLElement>(
+          mobileStep === 'time'
+            ? '[data-slot="time-choices"] [role="spinbutton"], [data-slot="time-choices"] [role="combobox"]'
+            : '.rdp-day_button[tabindex="0"]',
+        )
+        ?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [staged, mobileStep]);
   const Trigger = compact ? SheetTrigger : PopoverTrigger;
   const PickerRoot = compact ? Sheet : Popover;
   const FieldAnchor = compact ? React.Fragment : PopoverAnchor;
+  const calendarContent = kind === 'datetime-local' && (
+    <Calendar
+      {...calendarDefaults(locale, calendarProps)}
+      mode="single"
+      selected={selected}
+      defaultMonth={calendarProps?.defaultMonth ?? selected ?? calendarDate(min)}
+      startMonth={calendarProps?.startMonth ?? calendarDate(min)}
+      endMonth={calendarProps?.endMonth ?? calendarDate(max)}
+      disabled={unavailable}
+      onSelect={pickDate}
+      autoFocus={!compact}
+      dir={direction}
+    />
+  );
+  const timeContent = (
+    <TimeChooser
+      actions={timeActions}
+      value={kind === 'time' ? current : pickerCurrent?.split('T')[1]}
+      onValueChange={pickTime}
+      minuteStep={minuteStep}
+      hourCycle={resolvedCycle}
+      wheel={wheel}
+      locale={locale}
+    />
+  );
   const pickerContent = (
     <>
-      {kind === 'datetime-local' && (
-        <Calendar
-          {...calendarDefaults(locale, calendarProps)}
-          mode="single"
-          selected={selected}
-          defaultMonth={calendarProps?.defaultMonth ?? selected ?? calendarDate(min)}
-          startMonth={calendarProps?.startMonth ?? calendarDate(min)}
-          endMonth={calendarProps?.endMonth ?? calendarDate(max)}
-          disabled={unavailable}
-          onSelect={pickDate}
-          autoFocus={!compact}
-          dir={direction}
-        />
+      {compact && kind === 'datetime-local' ? (
+        <div
+          hidden={mobileStep !== 'date'}
+          {...styles('picker.step-content', 'ui-picker-step', undefined, unstyled)}
+        >
+          {calendarContent}
+        </div>
+      ) : (
+        calendarContent
       )}
-      <TimeChooser
-        actions={timeActions}
-        value={kind === 'time' ? current : current?.split('T')[1]}
-        onValueChange={pickTime}
-        minuteStep={minuteStep}
-        hourCycle={resolvedCycle}
-        wheel={wheel}
-        locale={locale}
-      />
+      {(kind === 'time' || !compact || mobileStep === 'time') &&
+        (compact ? (
+          <div {...styles('picker.step-content', 'ui-picker-step', undefined, unstyled)}>
+            {timeContent}
+          </div>
+        ) : (
+          timeContent
+        ))}
     </>
   );
   const done = (
@@ -829,41 +890,95 @@ function TemporalInput({
                   </button>
                 </Trigger>
                 {compact ? (
-                  <SheetContent
+                  <PickerMobileContent
+                    temporal
+                    data-phase={kind === 'time' ? 'time' : mobileStep}
                     id={panelId}
                     ref={mobilePanelRef}
-                    {...styles('temporal.mobile-panel', 'ui-temporal-sheet', undefined, unstyled)}
+                    className="ui-temporal-sheet"
                     dir={direction}
-                    onCloseAutoFocus={restoreFocus}
-                    onOpenAutoFocus={(event) => {
-                      event.preventDefault();
-                      const column = mobilePanelRef.current?.querySelector<HTMLElement>(
-                        'select:not([disabled]), [role="spinbutton"], [role="combobox"]',
-                      );
-                      column?.focus({ preventScroll: true });
-                    }}
-                    aria-describedby={wheel ? `${formatId}-wheel-hint` : undefined}
+                    unstyled={unstyled}
+                    returnFocusRef={inputRef}
+                    title={
+                      kind === 'time' || mobileStep === 'time'
+                        ? timeLabel
+                        : language.t('picker.chooseDate')
+                    }
+                    description={
+                      kind === 'time' || mobileStep === 'time'
+                        ? wheel
+                          ? language.t('picker.wheelHint')
+                          : undefined
+                        : language.t('picker.dateTimeHint')
+                    }
+                    summary={
+                      kind === 'datetime-local' && selected
+                        ? dateFormatter(locale, {
+                            calendar: 'gregory',
+                            weekday: 'short',
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric',
+                          }).format(selected)
+                        : undefined
+                    }
+                    steps={
+                      kind === 'datetime-local' && (
+                        <ol
+                          {...styles('picker.steps', 'ui-picker-steps', undefined, unstyled)}
+                          aria-label={language.t('picker.step', {
+                            current: numberFormatter(locale).format(mobileStep === 'date' ? 1 : 2),
+                            total: numberFormatter(locale).format(2),
+                          })}
+                        >
+                          <li aria-current={mobileStep === 'date' ? 'step' : undefined}>
+                            <span>{numberFormatter(locale).format(1)}</span>
+                            {language.t('picker.date')}
+                          </li>
+                          <li aria-current={mobileStep === 'time' ? 'step' : undefined}>
+                            <span>{numberFormatter(locale).format(2)}</span>
+                            {language.t('picker.time')}
+                          </li>
+                        </ol>
+                      )
+                    }
+                    footer={
+                      kind === 'time' ? (
+                        <Button onClick={() => setPickerOpen(false, true)}>
+                          {language.t('common.done')}
+                        </Button>
+                      ) : mobileStep === 'date' ? (
+                        <>
+                          <Button variant="ghost" onClick={() => setPickerOpen(false)}>
+                            {language.t('common.cancel')}
+                          </Button>
+                          <Button
+                            disabled={!selected || dateMatchModifiers(selected, unavailable)}
+                            onClick={() => setMobileStep('time')}
+                          >
+                            {language.t('common.next')}
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            onClick={() => {
+                              timeActions.current?.commit();
+                              setMobileStep('date');
+                            }}
+                          >
+                            {language.t('common.back')}
+                          </Button>
+                          <Button disabled={!validDraft(mobileDraft)} onClick={finishMobile}>
+                            {language.t('common.done')}
+                          </Button>
+                        </>
+                      )
+                    }
                   >
-                    <SheetHeader>
-                      <SheetTitle>{kind === 'time' ? timeLabel : calendarLabel}</SheetTitle>
-                      {wheel && (
-                        <SheetDescription id={`${formatId}-wheel-hint`}>
-                          {language.t('picker.wheelHint')}
-                        </SheetDescription>
-                      )}
-                    </SheetHeader>
-                    <div
-                      {...styles(
-                        'temporal.mobile-body',
-                        'ui-temporal-sheet-body',
-                        undefined,
-                        unstyled,
-                      )}
-                    >
-                      {pickerContent}
-                    </div>
-                    {done}
-                  </SheetContent>
+                    {pickerContent}
+                  </PickerMobileContent>
                 ) : (
                   <PickerPopoverContent
                     anchorRef={fieldRef}
@@ -1118,9 +1233,22 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
     Object.prototype.hasOwnProperty.call(allProps, 'value'),
   );
   const [open, setOpen] = React.useState(false);
+  const compactScreen = useCompactPicker();
+  const [openedCompact, setOpenedCompact] = React.useState(false);
+  const compact = open ? openedCompact : compactScreen;
+  const [draft, setDraft] = React.useState<DateRange>();
   const from = calendarDate(value?.from);
   const to = calendarDate(value?.to);
   const current = from || to ? { from, to } : undefined;
+  const shownRange = compact && open ? draft : current;
+  const setPickerOpen = (next: boolean) => {
+    if (disabled || readOnly) return;
+    if (next && !open) {
+      setOpenedCompact(compactScreen);
+      setDraft(current);
+    }
+    setOpen(next);
+  };
   const minimum = calendarDate(min);
   const maximum = calendarDate(max);
   const unavailable = matchers(minimum, maximum, disabledDates);
@@ -1132,6 +1260,16 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
   React.useEffect(() => {
     if (disabled || readOnly) setOpen(false);
   }, [disabled, readOnly]);
+  React.useEffect(() => {
+    const form = buttonRef.current?.form;
+    if (!form) return;
+    const reset = (event: Event) =>
+      queueMicrotask(() => {
+        if (!event.defaultPrevented) setOpen(false);
+      });
+    form.addEventListener('reset', reset);
+    return () => form.removeEventListener('reset', reset);
+  }, [props.form]);
   const select = (next: DateRange | undefined) => {
     if (disabled || readOnly) return;
     change(next);
@@ -1159,14 +1297,53 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
     for (const input of Object.values(validationRefs.current))
       input?.setCustomValidity(invalid ? invalidRangeLabel : '');
   }, [invalid, invalidRangeLabel]);
+  const draftNights =
+    draft?.from && draft.to
+      ? Temporal.PlainDate.from(localDate(draft.from)!).until(localDate(draft.to)!, {
+          largestUnit: 'days',
+        }).days
+      : undefined;
+  const canConfirm =
+    draftNights !== undefined &&
+    draftNights >= (minNights ?? 0) &&
+    (maxNights === undefined || draftNights <= maxNights) &&
+    !rangeContainsModifiers(draft as { from: Date; to: Date }, unavailable);
+  const PickerRoot = compact ? Sheet : Popover;
+  const Trigger = compact ? SheetTrigger : PopoverTrigger;
+  const calendar = (
+    <Calendar
+      {...calendarDefaults(locale, calendarProps)}
+      mode="range"
+      resetOnSelect
+      required
+      selected={shownRange}
+      onSelect={compact ? setDraft : select}
+      numberOfMonths={calendarProps?.numberOfMonths ?? (compact ? 2 : 1)}
+      defaultMonth={calendarProps?.defaultMonth ?? shownRange?.from ?? minimum}
+      startMonth={calendarProps?.startMonth ?? minimum}
+      endMonth={calendarProps?.endMonth ?? maximum}
+      disabled={unavailable}
+      min={minNights}
+      max={maxNights}
+      excludeDisabled
+      autoFocus={!compact}
+      dir={direction}
+    />
+  );
   return (
     <StyleProvider unstyled={unstyled}>
       <div
         {...styles('date-range-picker.root', 'ui-temporal', undefined, unstyled)}
         dir={direction}
       >
-        <Popover open={open} onOpenChange={(next) => !disabled && !readOnly && setOpen(next)}>
-          <PopoverTrigger asChild>
+        <PickerRoot
+          open={open}
+          onOpenChange={setPickerOpen}
+          {...(compact
+            ? { side: 'bottom' as const, maxWidth: 480, handleOnly: true, repositionInputs: false }
+            : {})}
+        >
+          <Trigger asChild>
             <button
               {...styles('date-range-picker.trigger', 'ui-date-range-trigger', className, unstyled)}
               {...props}
@@ -1186,7 +1363,7 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
                 }
                 if (event.altKey && event.key === 'ArrowDown') {
                   event.preventDefault();
-                  setOpen(true);
+                  setPickerOpen(true);
                 }
               }}
             >
@@ -1197,40 +1374,65 @@ export const DateRangePicker = /* @__PURE__ */ React.forwardRef<
                 {formatted}
               </span>
             </button>
-          </PopoverTrigger>
+          </Trigger>
           <span id={valueId} style={visuallyHidden}>
             {formatted}
           </span>
-          <PickerPopoverContent
-            anchorRef={buttonRef}
-            align="start"
-            {...styles('date-range-picker.content', 'ui-temporal-content', undefined, unstyled)}
-            dir={direction}
-            aria-label={props['aria-label'] ?? placeholder}
-            onCloseAutoFocus={(event) => {
-              event.preventDefault();
-              buttonRef.current?.focus();
-            }}
-          >
-            <Calendar
-              {...calendarDefaults(locale, calendarProps)}
-              mode="range"
-              resetOnSelect
-              required
-              selected={current}
-              onSelect={select}
-              defaultMonth={calendarProps?.defaultMonth ?? from ?? minimum}
-              startMonth={calendarProps?.startMonth ?? minimum}
-              endMonth={calendarProps?.endMonth ?? maximum}
-              disabled={unavailable}
-              min={minNights}
-              max={maxNights}
-              excludeDisabled
-              autoFocus
+          {compact ? (
+            <PickerMobileContent
+              title={props['aria-label'] ?? placeholder}
+              description={language.t('picker.rangeHint')}
+              returnFocusRef={buttonRef}
               dir={direction}
-            />
-          </PickerPopoverContent>
-        </Popover>
+              unstyled={unstyled}
+              summary={
+                <div
+                  {...styles(
+                    'picker.range-summary',
+                    'ui-picker-range-summary',
+                    undefined,
+                    unstyled,
+                  )}
+                >
+                  <div>
+                    <span>{language.t('picker.from')}</span>
+                    <strong>{draft?.from ? formatDay(draft.from, locale) : '—'}</strong>
+                  </div>
+                  <div>
+                    <span>{language.t('picker.to')}</span>
+                    <strong>{draft?.to ? formatDay(draft.to, locale) : '—'}</strong>
+                  </div>
+                </div>
+              }
+              footer={
+                <>
+                  <Button variant="ghost" onClick={() => setOpen(false)}>
+                    {language.t('common.cancel')}
+                  </Button>
+                  <Button disabled={!canConfirm} onClick={() => select(draft)}>
+                    {language.t('common.done')}
+                  </Button>
+                </>
+              }
+            >
+              {calendar}
+            </PickerMobileContent>
+          ) : (
+            <PickerPopoverContent
+              anchorRef={buttonRef}
+              align="start"
+              {...styles('date-range-picker.content', 'ui-temporal-content', undefined, unstyled)}
+              dir={direction}
+              aria-label={props['aria-label'] ?? placeholder}
+              onCloseAutoFocus={(event) => {
+                event.preventDefault();
+                buttonRef.current?.focus();
+              }}
+            >
+              {calendar}
+            </PickerPopoverContent>
+          )}
+        </PickerRoot>
         {clearable && current && (
           <button
             {...styles('date-range-picker.clear', 'ui-temporal-action', undefined, unstyled)}

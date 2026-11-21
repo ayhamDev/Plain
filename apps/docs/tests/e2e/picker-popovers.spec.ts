@@ -153,15 +153,23 @@ for (const width of [1000, 390]) {
       includeHidden: true,
     });
     await editor.getByRole('button', { name: 'Open calendar', exact: true }).first().click();
-    panel = page.getByRole('dialog', { name: 'Open calendar', exact: true });
+    panel = page.getByRole('dialog', {
+      name: width < 768 ? 'Pick a date' : 'Open calendar',
+      exact: true,
+    });
     await contained(page, panel);
+    if (width < 768) {
+      await expect(panel.locator('.rdp-month_caption')).toBeInViewport();
+      await panel.getByRole('button', { name: 'Next', exact: true }).click();
+      panel = page.getByRole('dialog', { name: 'Choose time', exact: true });
+    }
     await inlineTimes(panel, 2);
-    const scrollBody = panel.locator('.ui-temporal-sheet-body');
+    const scrollBody = panel.locator('.ui-picker-body');
     const scroller = (await scrollBody.count()) ? scrollBody : panel;
     await scroller.evaluate((node) => {
       node.scrollTop = 0;
     });
-    await expect(panel.locator('.rdp-month_caption')).toBeInViewport();
+    if (width >= 768) await expect(panel.locator('.rdp-month_caption')).toBeInViewport();
     const hourWheel = panel.getByRole('spinbutton', { name: 'Hour', exact: true });
     if (await hourWheel.count()) {
       await hourWheel.press('Home');
@@ -170,13 +178,15 @@ for (const width of [1000, 390]) {
       await panel.getByRole('combobox', { name: 'Hour', exact: true }).click();
       await page.getByRole('option', { name: '11', exact: true }).click();
     }
-    await expect(editor.locator('input[type="datetime-local"]').first()).toHaveValue(/T11:/);
+    if (width >= 768)
+      await expect(editor.locator('input[type="datetime-local"]').first()).toHaveValue(/T11:/);
     await scroller.evaluate((node) => {
       node.scrollTop = node.scrollHeight;
     });
     await expect(panel.getByRole('button', { name: 'Done', exact: true })).toBeInViewport();
     await panel.screenshot({ path: info.outputPath(`built-event-picker-${width}.png`) });
     await panel.getByRole('button', { name: 'Done', exact: true }).click();
+    await expect(editor.locator('input[type="datetime-local"]').first()).toHaveValue(/T11:/);
     await expect(panel).toHaveCount(0);
     await expect(editor).toBeVisible();
     await expect(editor.locator('input[type="datetime-local"]').first()).toBeFocused();

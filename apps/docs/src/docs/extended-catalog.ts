@@ -263,8 +263,8 @@ const fields: DataTableFilterField<Invoice>[] = [
       p(
         'animation',
         'boolean | QRCodeAnimation',
-        'A one-shot reveal on mount and value changes. Configure preset (reveal/fade), duration and delay in milliseconds; false or duration: 0 disables it. Provider and device motion preferences take precedence.',
-        'true; reveal, 400ms, 0ms delay',
+        'A one-shot tile assembly on mount and value changes. Choose assemble, scan or fade; reveal is a legacy alias for assemble. Configure duration/delay in milliseconds. False or duration: 0 disables it. Provider and device motion preferences take precedence.',
+        'true; assemble, 600ms, 0ms delay',
       ),
       p(
         'qrVersion / maskPattern',
@@ -1099,7 +1099,7 @@ const fields: DataTableFilterField<Invoice>[] = [
       ),
       p('fromName / toName', 'string', 'Local YYYY-MM-DD form values.'),
     ],
-    'The trigger opens a keyboard-accessible range calendar with P.UI month/year Select controls. The first click starts a new range, even when editing an existing interval; the second completes it and closes the popup. Selection and range state are announced; focus returns to the trigger on close.',
+    'The trigger opens a keyboard-accessible range calendar with P.UI month/year Select controls. Desktop selection closes after the second date. Below 768px, a sheet shows pending endpoints and two stacked months by default; Done confirms and Cancel discards the draft. Selection is announced and focus returns to the trigger on close.',
   ),
   define(
     'date-time-picker',
@@ -1125,7 +1125,7 @@ const fields: DataTableFilterField<Invoice>[] = [
       p(
         'pickerMode',
         'auto | select | wheel',
-        'Auto uses mobile time wheels below the calendar and desktop select controls.',
+        'Auto uses time wheels in the second mobile step and inline desktop select controls.',
         'auto',
       ),
       p(
@@ -1147,7 +1147,7 @@ const fields: DataTableFilterField<Invoice>[] = [
     inputA11y,
     {
       usage:
-        'The value remains a wall-time string. Convert it deliberately using your IANA timezone and disambiguation policy when storing an instant. Compact screens use a bottom sheet with a scrollable calendar/time body and an independently reachable Done action. Each wheel scrolls without dragging the panel. The desktop calendar popover remains bounded by the viewport, including when used inside a dialog.',
+        'The value remains a wall-time string. Convert it deliberately using your IANA timezone and disambiguation policy when storing an instant. Compact screens use two steps: Date then Time. Next advances, Back retains the draft, Done commits both parts once, and dismissal discards unconfirmed edits. Footer actions remain reachable and wheel gestures stay separate from sheet dragging. Desktop selection keeps its bounded calendar/time popover.',
     },
   ),
   define(

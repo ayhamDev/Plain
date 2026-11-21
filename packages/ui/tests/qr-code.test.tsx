@@ -11,7 +11,7 @@ import { MotionPolicyProvider } from '../src/ui/motion-policy';
 describe('QRCode', () => {
   it('animates by default, accepts timing overrides and can disable animation', () => {
     const { rerender } = render(<QRCode value="Motion" />);
-    expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'reveal');
+    expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'assemble');
     rerender(<QRCode value="Motion" animation={{ preset: 'fade', duration: 700, delay: 80 }} />);
     expect(screen.getByRole('img')).toHaveAttribute('data-animation', 'fade');
     expect(

@@ -891,7 +891,11 @@ export const components: ComponentDefinition[] = [
     '<DatePicker aria-label="Due date" placeholder="Choose a due date" name="dueDate" />',
     [
       prop('value / defaultValue', 'Date', 'Controlled or initial selected date.'),
-      prop('onValueChange', '(date: Date | undefined) => void', 'Called on selection or clearing.'),
+      prop(
+        'onValueChange',
+        '(date: Date | undefined) => void',
+        'Called on desktop selection, mobile confirmation or explicit clearing.',
+      ),
       prop('clearable', 'boolean', 'Allow clearing the selected date.', 'true'),
       prop(
         'calendarProps',
@@ -907,7 +911,7 @@ export const components: ComponentDefinition[] = [
       prop('clearLabel', 'string', 'Localized text for the clear action.', 'Clear date'),
       prop('name', 'string', 'Submits the date in local YYYY-MM-DD format.'),
     ],
-    'The trigger opens a keyboard-accessible calendar and restores focus on selection. Provide a visible Field label or aria-label.',
+    'The trigger opens a desktop popover or a mobile date sheet below 768px. Mobile selection stays pending until Done; Cancel and dismissal discard the draft. Month/year Select navigation, native form values and focus return remain supported. Provide a visible Field label or aria-label.',
   ),
   definition(
     'progress',

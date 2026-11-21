@@ -71,8 +71,11 @@ function Fixture() {
           params.has('static')
             ? false
             : {
-                preset: params.get('animation') === 'fade' ? 'fade' : 'reveal',
-                duration: Number(params.get('duration') ?? 400),
+                preset:
+                  (['assemble', 'scan', 'reveal', 'fade'] as const).find(
+                    (preset) => preset === params.get('animation'),
+                  ) ?? 'assemble',
+                duration: Number(params.get('duration') ?? 600),
                 delay: Number(params.get('delay') ?? 0),
               }
         }

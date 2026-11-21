@@ -180,7 +180,7 @@ function qrPreviewProps(state: State): Omit<UI.QRCodeProps, 'value'> {
     circlePattern: !!state.circlePattern,
     animation: state.animation
       ? {
-          preset: choice(state, 'animationPreset', ['reveal', 'fade']),
+          preset: choice(state, 'animationPreset', ['assemble', 'scan', 'fade', 'reveal']),
           duration: Number(state.animationDuration),
         }
       : false,
@@ -202,8 +202,8 @@ export const propPreviews: Record<string, PropPreview> = {
       finderCenterShape: 'auto',
       circlePattern: true,
       animation: true,
-      animationPreset: 'reveal',
-      animationDuration: 400,
+      animationPreset: 'assemble',
+      animationDuration: 600,
       qrVersion: 0,
       maskPattern: -1,
     },
@@ -218,7 +218,7 @@ export const propPreviews: Record<string, PropPreview> = {
       options('finderCenterShape', ['auto', 'square', 'rounded', 'circle']),
       bool('circlePattern'),
       bool('animation'),
-      options('animationPreset', ['reveal', 'fade']),
+      options('animationPreset', ['assemble', 'scan', 'fade', 'reveal']),
       number('animationDuration', 0, 1200),
       number('qrVersion', 0, 12),
       number('maskPattern', -1, 7),

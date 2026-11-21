@@ -309,7 +309,7 @@ children without a single DOM root safely skip animation. The working example is
 
 ## Time pickers
 
-TimePicker, DateTimePicker and their range variants open a bottom sheet below
+DatePicker, DateRangePicker, TimePicker, DateTimePicker and their range variants open a bottom sheet below
 768px. The default `pickerMode="auto"` uses iOS-style wheels on compact screens
 and select controls in a desktop popover. Set `pickerMode="select"` or `"wheel"`
 to choose the time controls explicitly; compact screens still use a sheet.
@@ -342,8 +342,19 @@ Each column also supports Arrow Up/Down, Page Up/Down and Home/End. Seconds appe
 when present in the value. Values remain ISO wall-time strings in the actual
 native input: refs, change events, forms, bounds and controlled state remain
 available. Clear and form reset discard pending gestures. Done restores field
-focus. Date-time sheets keep their calendar in a scrollable body, with Done
-outside that body. Wheel gestures do not drag the sheet.
+focus. Date/time sheets use two steps: choose a date, press Next, then choose the
+time. Back retains the draft; Done commits both parts together. Cancel, Escape,
+outside dismissal and reset discard the unconfirmed date/time draft. Each endpoint
+of DateTimeRangePicker uses the same flow. Standalone TimePicker keeps its live
+time updates. Wheel gestures do not drag the sheet.
+
+Mobile date-only sheets have a larger date summary, full-width touch calendar and
+fixed Cancel/Done actions. DateRangePicker shows two vertically stacked months
+by default, with pending start/end summaries; set `calendarProps.numberOfMonths`
+to customize that count. Dates remain pending until Done. Desktop date pickers
+keep their existing popovers and immediate selection behavior. Short screens use
+compact headers and three visible wheel rows while keeping the selected row and
+actions reachable. Internal labels and step counts use the language provider.
 
 Desktop popovers anchor to the whole field and fit the available viewport. Use
 `popoverProps` for placement, collision boundaries, sizing or native popover
@@ -378,12 +389,17 @@ supports L/M/Q/H, defaulting to M or H with a logo. Explicit levels take precede
 The quiet zone is measured in modules and normalized to 4..128. Defaults keep
 black ink on white paper in both themes. RTL does not mirror the code.
 
-A brief reveal runs on mount and content changes by default. Configure
-`animation={{ preset: 'fade', duration: 600, delay: 80 }}` or use
+A 600ms tile assembly runs on mount and content changes by default: finder anchors
+appear first, then a bounded grid resolves the stationary pattern. Use
+`animation={{ preset: 'scan', duration: 700, delay: 80 }}` for a soft print-style
+scan, or choose `fade`. The older `reveal` name aliases `assemble`. Use
 `animation={false}` (also `duration: 0`). System reduced-motion preferences and
 provider `reduced`/`none` policies disable it. Timing uses the library easing and
 motion scale, with local `qr-code.duration` and `qr-code.delay` token overrides.
-There is no continuous animation or per-module animation overhead.
+There is no continuous animation or per-module animation overhead. Assembly uses
+64 mask tiles regardless of matrix density; gradients, custom modules and the
+quiet zone retain their original geometry. Downloaded SVGs remain complete even
+when exported during an animation.
 
 ```tsx
 <QRCode
@@ -585,13 +601,14 @@ of the chosen date.
 The `calendar.month-width` and `calendar.year-width` tokens set minimum selector
 widths. Controls grow to fit complete labels and custom formatters instead of
 showing ellipses. The header and day grid share a width; constrained headers wrap
-the controls, and mobile date-time sheets align the calendar with the time fields.
+the controls. Mobile date-time sheets separate date and time into two steps.
 
 `DateRangePicker` starts a new range on the first date click, including when
-editing an existing interval. The second click completes the inclusive range and
-closes the popup; selecting the same date twice permits a one-day interval unless
-`minNights` excludes it. Disabled dates and range limits still apply. Use the
-clear button or Delete/Backspace on the trigger to clear a range.
+editing an existing interval. The second click completes the inclusive range.
+Desktop popovers close immediately; mobile sheets wait for Done. Selecting the
+same date twice permits a one-day interval unless `minNights` excludes it.
+Disabled dates and range limits still apply. Use the clear button or
+Delete/Backspace on the trigger to clear a range.
 
 Calendar popups keep their full content visible when it fits in the viewport.
 If neither side of the trigger has enough room, the popup can overlap its trigger

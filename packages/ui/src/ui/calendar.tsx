@@ -4,6 +4,7 @@ import { ar, enUS } from 'react-day-picker/locale';
 import { dateFormatter, numberFormatter, useTranslation } from './i18n';
 import {
   DayPicker,
+  dateMatchModifiers,
   labelDayButton,
   useDayPicker,
   type DayPickerProps,
@@ -13,8 +14,9 @@ import { CalendarDays } from 'lucide-react';
 import { cn } from './utils';
 import { Button } from './primitives';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
-import { Popover, PopoverTrigger, PopoverClose } from './overlays';
+import { Popover, PopoverTrigger, Sheet, SheetTrigger } from './overlays';
 import { PickerPopoverContent } from './picker-popover';
+import { PickerMobileContent, useCompactPicker } from './picker-mobile';
 export type CalendarProps = DayPickerProps & { localeCode?: string };
 function CalendarDropdown({
   options = [],
@@ -200,11 +202,23 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
   const isControlled = Object.prototype.hasOwnProperty.call(allProps, 'value');
   const styles = useStyles();
   const [open, setOpen] = React.useState(false);
+  const compactScreen = useCompactPicker();
+  const [openedCompact, setOpenedCompact] = React.useState(false);
+  const compact = open ? openedCompact : compactScreen;
+  const [draft, setDraft] = React.useState<Date>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   React.useImperativeHandle(ref, () => buttonRef.current!);
   const [internalValue, setInternalValue] = React.useState(defaultValue);
   const candidate = isControlled ? value : internalValue;
   const current = candidate && Number.isFinite(candidate.getTime()) ? candidate : undefined;
+  const setPickerOpen = (next: boolean) => {
+    if (props.disabled) return;
+    if (next && !open) {
+      setOpenedCompact(compactScreen);
+      setDraft(current);
+    }
+    setOpen(next);
+  };
   const valueId = React.useId();
   const formattedValue = current
     ? dateFormatter(locale, {
@@ -219,10 +233,44 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
     onValueChange?.(date);
     setOpen(false);
   };
+  React.useEffect(() => {
+    if (props.disabled) setOpen(false);
+  }, [props.disabled]);
+  React.useEffect(() => {
+    const form = buttonRef.current?.form;
+    if (!form) return;
+    const reset = (event: Event) =>
+      queueMicrotask(() => {
+        if (event.defaultPrevented) return;
+        if (!isControlled) setInternalValue(defaultValue);
+        setOpen(false);
+      });
+    form.addEventListener('reset', reset);
+    return () => form.removeEventListener('reset', reset);
+  }, [isControlled, defaultValue, props.form]);
+  const PickerRoot = compact ? Sheet : Popover;
+  const Trigger = compact ? SheetTrigger : PopoverTrigger;
+  const calendar = (
+    <Calendar
+      localeCode={locale}
+      mode="single"
+      selected={compact ? draft : current}
+      onSelect={compact ? setDraft : select}
+      defaultMonth={(compact ? draft : current) ?? current}
+      autoFocus={!compact}
+      {...calendarProps}
+    />
+  );
   return (
     <StyleProvider unstyled={unstyled}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+      <PickerRoot
+        open={open}
+        onOpenChange={setPickerOpen}
+        {...(compact
+          ? { side: 'bottom' as const, maxWidth: 480, handleOnly: true, repositionInputs: false }
+          : {})}
+      >
+        <Trigger asChild>
           <Button
             ref={buttonRef}
             variant="outline"
@@ -245,29 +293,64 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
             />
             {formattedValue}
           </Button>
-        </PopoverTrigger>
+        </Trigger>
         <span id={valueId} hidden>
           {formattedValue}
         </span>
-        <PickerPopoverContent
-          anchorRef={buttonRef}
-          align="start"
-          aria-label={props['aria-label'] ?? placeholder}
-          aria-labelledby={props['aria-labelledby']}
-          {...styles('date-picker.content', 'p-3', undefined, unstyled)}
-        >
-          <Calendar
-            localeCode={locale}
-            mode="single"
-            selected={current}
-            onSelect={select}
-            defaultMonth={current}
-            autoFocus
-            {...calendarProps}
-          />
-          {clearable && current && (
-            <div {...styles('date-picker.footer', 'mt-2 border-t pt-2', undefined, unstyled)}>
-              <PopoverClose asChild>
+        {compact ? (
+          <PickerMobileContent
+            title={props['aria-label'] ?? placeholder}
+            description={language.t('picker.dateHint')}
+            returnFocusRef={buttonRef}
+            unstyled={unstyled}
+            summary={
+              draft
+                ? dateFormatter(locale, {
+                    calendar: 'gregory',
+                    weekday: 'short',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                  }).format(draft)
+                : placeholder
+            }
+            footer={
+              <>
+                <Button variant="ghost" onClick={() => setOpen(false)}>
+                  {language.t('common.cancel')}
+                </Button>
+                <Button
+                  disabled={
+                    !draft ||
+                    Boolean(
+                      calendarProps?.disabled && dateMatchModifiers(draft, calendarProps.disabled),
+                    )
+                  }
+                  onClick={() => select(draft)}
+                >
+                  {language.t('common.done')}
+                </Button>
+              </>
+            }
+          >
+            {calendar}
+            {clearable && current && (
+              <Button variant="ghost" size="sm" onClick={() => select(undefined)}>
+                {clearLabel}
+              </Button>
+            )}
+          </PickerMobileContent>
+        ) : (
+          <PickerPopoverContent
+            anchorRef={buttonRef}
+            align="start"
+            aria-label={props['aria-label'] ?? placeholder}
+            aria-labelledby={props['aria-labelledby']}
+            {...styles('date-picker.content', 'p-3', undefined, unstyled)}
+          >
+            {calendar}
+            {clearable && current && (
+              <div {...styles('date-picker.footer', 'mt-2 border-t pt-2', undefined, unstyled)}>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -276,19 +359,20 @@ export const DatePicker = /* @__PURE__ */ React.forwardRef<
                 >
                   {clearLabel}
                 </Button>
-              </PopoverClose>
-            </div>
-          )}
-        </PickerPopoverContent>
+              </div>
+            )}
+          </PickerPopoverContent>
+        )}
         {name && (
           <input
             type="hidden"
             name={name}
             value={current ? localDateString(current) : ''}
             disabled={props.disabled}
+            form={props.form}
           />
         )}
-      </Popover>
+      </PickerRoot>
     </StyleProvider>
   );
 });

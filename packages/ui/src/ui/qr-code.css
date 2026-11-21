@@ -7,14 +7,32 @@
     forced-color-adjust: none;
   }
   .ui-qr-code[data-animation='fade'] [data-slot='pattern'] {
-    animation: ui-qr-fade calc(var(--ui-qr-code-duration, 400ms) * var(--ui-motion-scale, 1))
-      var(--ui-ease-standard, ease) calc(var(--ui-qr-code-delay, 0ms) * var(--ui-motion-scale, 1))
+    animation: ui-qr-fade calc(var(--ui-qr-code-duration, 600ms) * var(--ui-motion-scale, 1))
+      var(--ui-ease-out, ease-out) calc(var(--ui-qr-code-delay, 0ms) * var(--ui-motion-scale, 1))
       both;
   }
-  .ui-qr-code[data-animation='reveal'] [data-slot='reveal'] {
+  .ui-qr-code:is([data-animation='assemble'], [data-animation='reveal']) [data-slot='motion-tile'] {
     transform-box: fill-box;
-    transform-origin: center top;
-    animation: ui-qr-reveal calc(var(--ui-qr-code-duration, 400ms) * var(--ui-motion-scale, 1))
+    transform-origin: center;
+    animation: ui-qr-tile calc(var(--ui-qr-code-duration, 600ms) * 0.52 * var(--ui-motion-scale, 1))
+      var(--ui-ease-out, ease-out)
+      calc(
+        (
+            var(--ui-qr-code-delay, 0ms) + var(--ui-qr-code-duration, 600ms) * 0.48 *
+              var(--_ui-qr-stage, 0)
+          ) *
+          var(--ui-motion-scale, 1)
+      )
+      both;
+  }
+  .ui-qr-code:is([data-animation='assemble'], [data-animation='reveal'])
+    [data-slot='motion-anchor'] {
+    animation: ui-qr-fade calc(var(--ui-qr-code-duration, 600ms) * 0.28 * var(--ui-motion-scale, 1))
+      var(--ui-ease-out, ease-out) calc(var(--ui-qr-code-delay, 0ms) * var(--ui-motion-scale, 1))
+      both;
+  }
+  .ui-qr-code[data-animation='scan'] [data-slot='scan'] {
+    animation: ui-qr-scan calc(var(--ui-qr-code-duration, 600ms) * var(--ui-motion-scale, 1))
       var(--ui-ease-standard, ease) calc(var(--ui-qr-code-delay, 0ms) * var(--ui-motion-scale, 1))
       both;
   }
@@ -27,17 +45,29 @@
     opacity: 1;
   }
 }
-@keyframes ui-qr-reveal {
+@keyframes ui-qr-tile {
   from {
-    transform: scaleY(0);
+    opacity: 0;
+    transform: translateY(0.5px) scale(0.92);
   }
   to {
-    transform: scaleY(1);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes ui-qr-scan {
+  from {
+    transform: translateY(calc(var(--_ui-qr-distance) * -1.2));
+  }
+  to {
+    transform: translateY(0);
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .ui-qr-code [data-slot='pattern'],
-  .ui-qr-code [data-slot='reveal'] {
+  .ui-qr-code [data-slot='motion-tile'],
+  .ui-qr-code [data-slot='motion-anchor'],
+  .ui-qr-code [data-slot='scan'] {
     animation: none !important;
   }
 }

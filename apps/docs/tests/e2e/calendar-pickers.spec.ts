@@ -28,10 +28,11 @@ for (const [width, dir] of [
 async function contained(page: Page, panel: Locator) {
   const box = (await panel.boundingBox())!;
   const viewport = page.viewportSize()!;
-  expect(box.x).toBeGreaterThanOrEqual(7);
-  expect(box.y).toBeGreaterThanOrEqual(7);
-  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width - 7);
-  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height - 7);
+  const edge = (await panel.getAttribute('data-side')) === 'bottom' ? 0 : 7;
+  expect(box.x).toBeGreaterThanOrEqual(edge);
+  expect(box.y).toBeGreaterThanOrEqual(edge);
+  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width - edge);
+  expect(box.y + box.height).toBeLessThanOrEqual(viewport.height - edge);
   expect(await panel.evaluate((node) => node.scrollWidth - node.clientWidth)).toBeLessThanOrEqual(
     1,
   );
@@ -56,9 +57,11 @@ for (const [width, height, dir, theme] of [
     expect(
       await panel.evaluate((node) => node.scrollHeight - node.clientHeight),
     ).toBeLessThanOrEqual(1);
-    const month = panel.getByRole('combobox', {
-      name: dir === 'rtl' ? 'اختر الشهر' : 'Choose month',
-    });
+    const month = panel
+      .getByRole('combobox', {
+        name: dir === 'rtl' ? 'اختر الشهر' : 'Choose month',
+      })
+      .first();
     expect(await month.evaluate((node) => node.tagName)).toBe('BUTTON');
     await month.click();
     const list = page.getByRole('listbox');
@@ -70,13 +73,23 @@ for (const [width, height, dir, theme] of [
     const digit = (day: number) => new Intl.NumberFormat(dir === 'rtl' ? 'ar' : 'en').format(day);
     const day = (value: number) =>
       panel
+        .locator('.rdp-month')
+        .first()
         .locator('.rdp-day:not(.rdp-outside) .rdp-day_button')
         .filter({ hasText: new RegExp(`^${digit(value)}$`) });
     await day(5).click();
     await expect(panel).toBeVisible();
-    await expect(page.locator('input[name="travel[from]"]')).toHaveValue('2026-10-05');
-    await expect(page.locator('input[name="travel[to]"]')).toHaveValue('');
+    await expect(page.locator('input[name="travel[from]"]')).toHaveValue(
+      width < 768 ? '2026-10-04' : '2026-10-05',
+    );
+    await expect(page.locator('input[name="travel[to]"]')).toHaveValue(
+      width < 768 ? '2026-10-29' : '',
+    );
     await day(8).click();
+    if (width < 768) {
+      await expect(panel).toBeVisible();
+      await panel.getByRole('button', { name: dir === 'rtl' ? 'تم' : 'Done', exact: true }).click();
+    }
     await expect(panel).toHaveCount(0);
     await expect(trigger).toBeFocused();
     await expect(page.locator('input[name="travel[to]"]')).toHaveValue('2026-10-08');
@@ -85,7 +98,7 @@ for (const [width, height, dir, theme] of [
     await page
       .getByRole('option', { name: dir === 'rtl' ? 'نوفمبر' : 'November', exact: true })
       .click();
-    await expect(panel.getByRole('grid')).toHaveAttribute('aria-label', /November|نوفمبر/);
+    await expect(panel.getByRole('grid').first()).toHaveAttribute('aria-label', /November|نوفمبر/);
     await expect(panel).toBeVisible();
     expect(
       (
