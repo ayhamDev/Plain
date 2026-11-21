@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LoaderCircle } from 'lucide-react';
+import { ChartSkeleton, type ChartSkeletonVariant } from './chart-skeleton';
 import {
   ResponsiveContainer,
   AreaChart as RechartsAreaChart,
@@ -126,6 +126,8 @@ export interface ChartProps
   loading?: boolean;
   empty?: boolean;
   loadingLabel?: string;
+  /** Override the inferred skeleton shape for a custom chart composition. */
+  loadingVariant?: ChartSkeletonVariant;
   emptyLabel?: string;
   tableLabel?: string;
   /** False is appropriate when an explicit description conveys the chart's data. */
@@ -195,6 +197,38 @@ function discoverSeries(children: React.ReactNode, config: ChartConfig): ChartCo
   return { ...result, ...config };
 }
 
+function loadingAppearance(child: React.ReactElement) {
+  const variants = new Map<unknown, ChartSkeletonVariant>([
+    [RechartsAreaChart, 'area'],
+    [RechartsBarChart, 'bar'],
+    [RechartsLineChart, 'line'],
+    [RechartsComposedChart, 'composed'],
+    [RechartsRadarChart, 'radar'],
+    [RechartsScatterChart, 'scatter'],
+    [RechartsPieChart, 'pie'],
+  ]);
+  let variant = variants.get(child.type) ?? 'line';
+  let legend = false;
+  const visit = (nodes: React.ReactNode) =>
+    React.Children.forEach(nodes, (node) => {
+      if (
+        !React.isValidElement<{ innerRadius?: number | string; children?: React.ReactNode }>(node)
+      )
+        return;
+      if (node.type === ChartLegend || node.type === Legend) legend = true;
+      if (
+        (node.type === ChartPie || node.type === Pie) &&
+        node.props.innerRadius &&
+        parseFloat(String(node.props.innerRadius)) > 0
+      )
+        variant = 'donut';
+      visit(node.props.children);
+    });
+  const props = child.props as { layout?: 'horizontal' | 'vertical'; children?: React.ReactNode };
+  visit(props.children);
+  return { variant, legend, layout: props.layout };
+}
+
 /** Composes any Recharts chart, preserving native keyboard navigation and an accessible data alternative. */
 export const Chart = /* @__PURE__ */ React.forwardRef<HTMLElement, ChartProps>(
   (
@@ -210,6 +244,7 @@ export const Chart = /* @__PURE__ */ React.forwardRef<HTMLElement, ChartProps>(
       loading = false,
       empty = data?.length === 0,
       loadingLabel: loadingLabelProp,
+      loadingVariant,
       emptyLabel: emptyLabelProp,
       tableLabel,
       dataTable = 'sr-only',
@@ -248,6 +283,7 @@ export const Chart = /* @__PURE__ */ React.forwardRef<HTMLElement, ChartProps>(
       () => ({ config: resolvedConfig, locale, animate: animate && motion.enabled }),
       [resolvedConfig, locale, animate, motion.enabled],
     );
+    const placeholder = loading ? loadingAppearance(children) : undefined;
     return (
       <StyleProvider unstyled={unstyled}>
         <DirectionProvider dir={direction}>
@@ -287,14 +323,21 @@ export const Chart = /* @__PURE__ */ React.forwardRef<HTMLElement, ChartProps>(
                   {...styles('chart.viewport', 'ui-chart-viewport', undefined, unstyled)}
                   style={{ width: '100%', minWidth: 0, height }}
                 >
-                  {loading || empty ? (
+                  {loading ? (
+                    <ChartSkeleton
+                      {...placeholder}
+                      variant={loadingVariant ?? placeholder?.variant}
+                      height="100%"
+                      label={loadingLabel}
+                      animate={context.animate}
+                    />
+                  ) : empty ? (
                     <div
                       {...styles('chart.status', 'ui-chart-status', undefined, unstyled)}
                       role="status"
                       aria-live="polite"
                     >
-                      {loading && <LoaderCircle size={18} aria-hidden="true" />}
-                      <span>{loading ? loadingLabel : emptyLabel}</span>
+                      <span>{emptyLabel}</span>
                     </div>
                   ) : (
                     <ResponsiveContainer
@@ -1045,6 +1088,8 @@ export const ScatterChart = React.forwardRef<HTMLElement, ScatterChartProps>(
 );
 ScatterChart.displayName = 'ScatterChart';
 export { HeatmapChart } from './heatmap';
+export { ChartSkeleton } from './chart-skeleton';
+export type { ChartSkeletonProps, ChartSkeletonVariant } from './chart-skeleton';
 export type { HeatmapChartProps, HeatmapDatum } from './heatmap';
 export { GanttChart } from './gantt';
 export type { GanttChartProps, GanttTask, GanttScale } from './gantt';

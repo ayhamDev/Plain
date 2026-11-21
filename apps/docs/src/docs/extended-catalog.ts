@@ -1288,7 +1288,16 @@ const fields: DataTableFilterField<Invoice>[] = [
           : [p('curve', 'Recharts curve type', 'Change interpolation.', 'monotone')]),
         p('valueFormatter', '(value: number) => string', 'Format values consistently.'),
         p('dataTable', 'sr-only | visible | false', 'Accessible data alternative.', 'sr-only'),
-        p('animate / loading / empty', 'boolean', 'Motion and state controls.'),
+        p(
+          'animate / loading / empty',
+          'boolean',
+          'Motion policy, chart-shaped loading skeleton and separate empty state.',
+        ),
+        p(
+          'loadingLabel / loadingVariant',
+          'string / ChartSkeletonVariant',
+          'Customize the screen-reader loading announcement or placeholder shape.',
+        ),
       ],
       'Charts expose Recharts keyboard navigation and a semantic data table. Give the chart a useful label; keep series distinguishable beyond color. Motion respects the library policy.',
       { entry: '@plain/ui/charts', stylesheet: '@plain/ui/charts.css', setup: chartData },
@@ -1312,7 +1321,7 @@ const fields: DataTableFilterField<Invoice>[] = [
       p(
         'height / animate / loading / empty',
         'CSS height / boolean',
-        'Viewport, motion and states.',
+        'Stable viewport, motion policy, ring-shaped loading skeleton and empty state.',
       ),
     ],
     'A semantic data table is supplied by default. Use names and values for each slice; avoid conveying distinctions only through color.',

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as UI from '@plain/ui';
+import { ChartLoadingPreview } from './ChartLoadingPreview';
 const WorkspaceCharts = React.lazy(() => import('./WorkspaceCharts'));
 const KanbanExample = React.lazy(() => import('./KanbanExample'));
 const EventEditor = React.lazy(() => import('./EventEditorExample'));
@@ -14,7 +15,7 @@ export default function WorkspaceExample({ slug, state = {} }: { slug: string; s
     state.variant === 'docked' || state.variant === 'fullscreen' ? state.variant : 'modal';
   if (slug.endsWith('-chart'))
     return (
-      <React.Suspense fallback={<UI.Spinner />}>
+      <React.Suspense fallback={<ChartLoadingPreview slug={slug} state={state} />}>
         <WorkspaceCharts slug={slug} state={state} />
       </React.Suspense>
     );

@@ -570,6 +570,12 @@ describe('Recharts wrappers', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Loading sales');
     expect(screen.getByLabelText('Sales')).toHaveAttribute('aria-busy', 'true');
     expect(container.querySelector('[data-slot="viewport"]')).toHaveStyle({ height: '240px' });
+    expect(container.querySelector('[data-ui="chart-skeleton"]')).toHaveAttribute(
+      'data-variant',
+      'bar',
+    );
+    expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
+    expect(container.querySelector('.recharts-wrapper')).toBeNull();
   });
 
   it('renders tooltip labels and values independently with formatter and indicator overrides', () => {

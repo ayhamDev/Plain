@@ -273,6 +273,33 @@ for (const directory of [consumer, minimumConsumer]) {
   const peerLibrary = await import(
     pathToFileURL(join(directory, 'node_modules/@plain/ui/dist/ui/index.js')).href
   );
+  const peerCharts = await import(
+    pathToFileURL(join(directory, 'node_modules/@plain/ui/dist/ui/charts.js')).href
+  );
+  assert.equal(peerLibrary.ChartSkeleton, peerCharts.ChartSkeleton);
+  const chartSkeleton = peerServer.renderToString(
+    peerReact.createElement(
+      peerLibrary.PlainProvider,
+      { persist: false, theme: { motion: 'none' } },
+      peerReact.createElement(peerLibrary.ChartSkeleton, {
+        variant: 'heatmap',
+        rows: 3,
+        columns: 5,
+        height: 176,
+        label: 'Preparing chart',
+      }),
+    ),
+  );
+  assert(
+    chartSkeleton.includes('role="status"') &&
+      chartSkeleton.includes('Preparing chart') &&
+      chartSkeleton.includes('data-motion="disabled"') &&
+      chartSkeleton.includes('height:176px') &&
+      chartSkeleton.includes('aria-hidden="true"') &&
+      !chartSkeleton.includes('recharts') &&
+      !chartSkeleton.includes(' ui-skeleton'),
+    `React ${peerReact.version} did not render a static, accessible chart skeleton.`,
+  );
   const markup = peerServer.renderToString(
     peerReact.createElement(
       peerLibrary.LoadingOverlay,

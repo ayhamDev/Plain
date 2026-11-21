@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { EmptyState } from './primitives';
+import { ChartSkeleton } from './chart-skeleton';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './table';
 import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './styling';
 import { useTranslation, numberFormatter } from './i18n';
@@ -95,11 +96,21 @@ export const HeatmapChart = React.forwardRef<HTMLElement, HeatmapChartProps>(
             dir={direction}
             aria-label={label ?? t('chart.heatmap')}
             aria-busy={loading || undefined}
+            data-state={loading ? 'loading' : !index.size ? 'empty' : 'ready'}
             {...styles('heatmap.root', 'ui-heatmap', className, unstyled)}
             {...props}
           >
-            {loading || !index.size ? (
-              <EmptyState icon={null} title={t(loading ? 'chart.loading' : 'chart.empty')} />
+            {loading ? (
+              <ChartSkeleton
+                variant="heatmap"
+                rows={y.length || 4}
+                columns={x.length || 8}
+                legend={legend}
+                dir={direction}
+                height={16 + (y.length || 4) * (Math.max(24, cellSize) + 4) + (legend ? 28 : 0)}
+              />
+            ) : !index.size ? (
+              <EmptyState icon={null} title={t('chart.empty')} />
             ) : (
               <div className="ui-heatmap-scroll">
                 <div
@@ -212,7 +223,7 @@ export const HeatmapChart = React.forwardRef<HTMLElement, HeatmapChartProps>(
                 </div>
               </div>
             )}
-            {legend && index.size > 0 && (
+            {!loading && legend && index.size > 0 && (
               <figcaption className="ui-heatmap-legend">
                 <span>{format(bounds[0])}</span>
                 {Array.from({ length: 5 }, (_, i) => (
@@ -225,7 +236,7 @@ export const HeatmapChart = React.forwardRef<HTMLElement, HeatmapChartProps>(
                 <span>{format(bounds[1])}</span>
               </figcaption>
             )}
-            {dataTable !== false && (
+            {!loading && dataTable !== false && (
               <div className={dataTable === 'sr-only' ? 'ui-visually-hidden' : undefined}>
                 <Table aria-label={t('chart.data', { label: label ?? t('chart.heatmap') })}>
                   <TableHeader>

@@ -6,6 +6,7 @@ import { workspaceComponents as workspaceDefinitions } from './workspace-catalog
 import { chartSampleData, donutSampleData } from './chart-samples';
 import { refinementPreviews } from './refinement-previews';
 import { emptyStatePreview } from './empty-state-preview';
+import { ChartLoadingPreview } from './examples/ChartLoadingPreview';
 const WorkspacePreview = React.lazy(() => import('./examples/WorkspaceExample'));
 const TablePreview = React.lazy(() => import('./examples/TableWorkspaceExample'));
 const ChartPreview = React.lazy(() => import('./examples/ChartExample'));
@@ -1275,7 +1276,7 @@ for (const slug of ['area-chart', 'bar-chart', 'line-chart', 'donut-chart'] as c
       bool('empty'),
     ],
     render: (s) => (
-      <React.Suspense fallback={<UI.Spinner label="Loading chart preview" />}>
+      <React.Suspense fallback={<ChartLoadingPreview slug={slug} state={s} />}>
         <ChartPreview slug={slug} state={s} />
       </React.Suspense>
     ),
@@ -1568,7 +1569,11 @@ for (const slug of [
     defaults,
     controls,
     render: (s) => (
-      <React.Suspense fallback={<UI.Spinner />}>
+      <React.Suspense
+        fallback={
+          slug.endsWith('-chart') ? <ChartLoadingPreview slug={slug} state={s} /> : <UI.Spinner />
+        }
+      >
         <WorkspacePreview slug={slug} state={s} />
       </React.Suspense>
     ),

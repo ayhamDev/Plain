@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Temporal } from 'temporal-polyfill';
 import { useVirtualizer, observeElementRect } from '@tanstack/react-virtual';
 import { Button, EmptyState } from './primitives';
+import { ChartSkeleton } from './chart-skeleton';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
 import {
   useDirection,
@@ -316,6 +317,7 @@ export function GanttChart<T>({
           <figure
             aria-label={label ?? t('chart.gantt')}
             aria-busy={loading || undefined}
+            data-state={loading ? 'loading' : !rows.length || !range ? 'empty' : 'ready'}
             dir={direction}
             {...styles('gantt.root', 'ui-gantt', className, unstyled)}
             data-dragging={!!drag.preview || undefined}
@@ -327,8 +329,15 @@ export function GanttChart<T>({
             <span role="status" aria-live="polite" className="ui-visually-hidden">
               {announcement}
             </span>
-            {loading || !rows.length || !range ? (
-              <EmptyState icon={null} title={t(loading ? 'chart.loading' : 'chart.empty')} />
+            {loading ? (
+              <ChartSkeleton
+                variant="gantt"
+                height={viewHeight}
+                showToolbar={showToolbar}
+                showTaskList={showTaskList}
+              />
+            ) : !rows.length || !range ? (
+              <EmptyState icon={null} title={t('chart.empty')} />
             ) : (
               <>
                 {showToolbar && (
@@ -597,7 +606,7 @@ export function GanttChart<T>({
                 </div>
               </>
             )}
-            {dataTable !== false && (
+            {!loading && dataTable !== false && (
               <GanttDataTable rows={rows} label={label} presentation={dataTable} />
             )}
           </figure>,

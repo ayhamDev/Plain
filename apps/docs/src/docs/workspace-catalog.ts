@@ -212,6 +212,11 @@ export const workspaceComponents: ComponentDefinition[] = [
           'Chart configuration',
           'Semantic colors, tooltip content, readable values, and motion policy.',
         ),
+        p(
+          'loading / loadingLabel / loadingVariant',
+          'boolean / string / ChartSkeletonVariant',
+          'Display a matching skeleton with a localized announcement while keeping the chart viewport reserved.',
+        ),
       ],
       accessibility:
         'Native chart keyboard access is paired with a semantic P.UI Table. Provide clear labels and meaningful series names. Do not rely on color alone; the visible data alternative works without a pointer.',
@@ -253,7 +258,7 @@ export const workspaceComponents: ComponentDefinition[] = [
       p(
         'legend / dataTable / loading',
         'configuration',
-        'Legend, P.UI Table alternative and loading state.',
+        'Legend, P.UI Table alternative and grid-shaped loading skeleton. Loading hides stale data and the legend.',
       ),
     ],
     accessibility:

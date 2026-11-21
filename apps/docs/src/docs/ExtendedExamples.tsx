@@ -12,6 +12,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import * as UI from '@plain/ui';
+import { ChartLoadingPreview } from './examples/ChartLoadingPreview';
 
 const ChartExample = React.lazy(() => import('./examples/ChartExample'));
 const ScheduleExample = React.lazy(() => import('./examples/ScheduleExample'));
@@ -459,7 +460,9 @@ export default function ExtendedExamples({ slug }: { slug: string }) {
     ].includes(slug)
   )
     return (
-      <React.Suspense fallback={<UI.Spinner />}>
+      <React.Suspense
+        fallback={slug.endsWith('-chart') ? <ChartLoadingPreview slug={slug} /> : <UI.Spinner />}
+      >
         <WorkspaceExample slug={slug} />
       </React.Suspense>
     );
@@ -478,7 +481,7 @@ export default function ExtendedExamples({ slug }: { slug: string }) {
     );
   if (slug.endsWith('-chart'))
     return (
-      <React.Suspense fallback={<UI.Skeleton style={{ height: 280, width: '100%' }} />}>
+      <React.Suspense fallback={<ChartLoadingPreview slug={slug} />}>
         <ChartExample slug={slug} />
       </React.Suspense>
     );

@@ -4,6 +4,7 @@ import {
   PlainProvider,
   ThemeScope,
   Button,
+  ChartSkeleton,
   Box,
   Stack,
   LayoutPresence,
@@ -43,6 +44,7 @@ import {
   type TooltipOptions,
 } from '@plain/ui';
 import { Button as ModularButton } from '@plain/ui/primitives';
+import { ChartSkeleton as ModularChartSkeleton } from '@plain/ui/charts';
 import { TooltipProvider as ModularTooltipProvider, type TooltipValue } from '@plain/ui/overlays';
 import { Dropzone as ModularDropzone } from '@plain/ui/advanced';
 import { QRCode as ModularQRCode, type QRCodeProps } from '@plain/ui/qr-code';
@@ -249,6 +251,8 @@ export function ConsumerApp() {
             <SidebarTrigger />
           </SidebarInset>
         </SidebarProvider>
+        <ChartSkeleton variant="area" height={280} label="Loading revenue" />
+        <ModularChartSkeleton variant="heatmap" rows={3} columns={5} height={176} animate={false} />
         <EmptyState align="start">
           <EmptyStateContent>
             <EmptyStateTitle>No events</EmptyStateTitle>

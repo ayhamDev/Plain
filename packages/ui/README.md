@@ -690,6 +690,41 @@ to fit; content scrolls only when the available viewport really is too short.
 Explicit collision boundaries, horizontal placement and custom maximum heights
 retain the native Popover sizing behavior.
 
+## Chart loading
+
+All chart families display a neutral skeleton shaped like their visualization
+when `loading` is true, including Heatmap and Gantt. The chart viewport stays
+reserved while loading; real plots, controls and data alternatives appear when
+the data is ready. Empty data keeps its separate empty state. Loading messages
+are announced to screen readers without displaying loading text over the chart.
+
+Use the lightweight core `ChartSkeleton` as a matching lazy-loading fallback:
+
+```tsx
+import { lazy, Suspense } from 'react';
+import { ChartSkeleton } from '@plain/ui';
+import '@plain/ui/styles.css';
+
+const RevenueChart = lazy(() => import('./RevenueChart'));
+
+<Suspense fallback={<ChartSkeleton variant="area" height={280} />}>
+  <RevenueChart />
+</Suspense>;
+```
+
+Variants are `area`, `bar`, `line`, `composed`, `donut`, `pie`, `radar`,
+`scatter`, `heatmap` and `gantt`. Match `height` to the chart's viewport;
+Gantt's `showToolbar` adds a toolbar placeholder above that height.
+`legend`, Cartesian `layout` and Gantt's `showTaskList` match optional features.
+Heatmap `rows` and `columns` match a known grid; skeleton density is capped at
+12 rows and 24 columns so placeholders stay lightweight.
+`label` overrides the localized screen-reader announcement. `animate={false}`
+disables the subtle pulse; provider reduced/none motion and system reduced
+motion also make it static. Skeletons use `skeleton.background` and the
+`chart-skeleton.*` styling slots, support `unstyled`, and never import Recharts.
+The charts entry point also exports `ChartSkeleton`. Custom `Chart` compositions
+can set `loadingVariant` to override the inferred shape.
+
 ## Gantt timelines
 
 `GanttChart` is available from `@plain/ui/charts`, with `@plain/ui/charts.css`.

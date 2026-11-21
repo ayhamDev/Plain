@@ -10,6 +10,7 @@ export * from './theme';
 export * from './styling';
 export * from './slots';
 export * from './primitives';
+export * from './chart-skeleton';
 export * from './forms';
 export * from './overlays';
 export * from './navigation';
