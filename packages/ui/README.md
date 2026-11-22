@@ -117,15 +117,19 @@ function RevenueChart({
 }
 ```
 
-Supply colors explicitly to charts; their existing default palette is unchanged.
+Charts automatically use a tonal palette: grayscale in neutral themes and shades
+of the active primary color in branded themes. Explicit series colors and
+`chart-1` through `chart-8` overrides take precedence. Supply colors from the
+utility for larger collections or another chart library.
 The factory also accepts `scheme`, `tokens`, `background` and `minContrast`.
 Modes are `light`/`dark`; seeds/backgrounds are `#RGB`/`#RRGGBB`. The first eight
-colors use the theme's chart roles; later colors vary HCT hue, chroma and tone
-around those anchors. Output is deterministic opaque hex, with a bounded cache.
+colors use the theme's chart roles; later colors vary lightness and chroma while
+retaining each anchor's hue. Output is deterministic opaque hex, with a bounded cache.
 Indices, counts and starts must be nonnegative safe integers; adding colors never
 reassigns earlier indices. The palette is iterable, so lazy consumers can read as
 many entries as needed. There is no fixed palette length; finite RGB colors and
 perceptual similarity mean uniqueness/distinguishability cannot be unlimited.
+Grayscale has fewer distinct shades; keep labels, shapes or a data alternative.
 
 `minContrast` defaults to 3 against the resolved theme surface and accepts 1..21.
 Colors may adjust tone to meet it; use 1 to retain exact custom chart colors.

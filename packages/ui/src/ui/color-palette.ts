@@ -3,7 +3,7 @@ import { createTheme, normalizeColor, type ColorScheme } from './color-theme';
 import { tokenVariable, type ThemeTokens } from './token-contract';
 
 export interface ColorPaletteOptions {
-  /** Same optional hex seed and scheme as createTheme; null preserves neutral theme colors. */
+  /** Same optional hex seed and scheme as createTheme; null uses neutral chart shades. */
   color?: string | null;
   scheme?: ColorScheme;
   mode?: 'light' | 'dark';
@@ -48,9 +48,9 @@ function resolveHex(
 }
 
 /**
- * Lazy, deterministic colors derived from the theme's eight categorical roles.
+ * Lazy, deterministic colors derived from the theme's eight tonal chart roles.
  * Hex output works in SVG, canvas, CSS and server-rendered content. Extended
- * colors vary perceptual hue/chroma/tone gently around those roles, never modulo-wrap.
+ * colors vary lightness and chroma within each role's hue family, never modulo-wrap.
  */
 export function createColorPalette({
   color = null,
@@ -124,13 +124,13 @@ export function createColorPalette({
     if (cached) return cached;
     const base = profiles[index % profiles.length];
     const generation = Math.floor(index / profiles.length);
-    const hue = (base.hue + (fraction(generation * 0.618033988749895) - 0.5) * 38 + 360) % 360;
-    const chroma = base.chroma * (0.82 + fraction(generation * 0.5698402909980532) * 0.36);
+    const chroma =
+      base.chroma < 4 ? 0 : base.chroma * (0.82 + fraction(generation * 0.5698402909980532) * 0.36);
     const tone = Math.max(
       0,
       Math.min(100, base.tone + (fraction(generation * 0.7548776662466927) - 0.5) * 18),
     );
-    const result = fit(Hct.from(hue, chroma, tone));
+    const result = fit(Hct.from(base.hue, chroma, tone));
     if (cache.size >= 256) cache.delete(cache.keys().next().value!);
     cache.set(index, result);
     return result;

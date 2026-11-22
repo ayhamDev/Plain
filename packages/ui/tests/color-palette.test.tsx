@@ -13,7 +13,7 @@ import { PlainProvider, ThemeScope, useColorPalette } from '../src/ui/styling';
 import { ThemeProvider, useTheme } from '../src/ui/theme';
 
 describe('theme color palettes', () => {
-  it('preserves neutral roles and generates deterministic extensions without wrapping at eight', () => {
+  it('uses neutral shades and generates deterministic extensions without wrapping at eight', () => {
     for (const mode of ['light', 'dark'] as const) {
       const theme = createTheme();
       const palette = createColorPalette({ mode });
@@ -25,7 +25,12 @@ describe('theme color palettes', () => {
       );
       const colors = palette.take(1024);
       expect(colors.every((color) => /^#[a-f\d]{6}$/.test(color))).toBe(true);
-      expect(new Set(colors).size).toBeGreaterThan(1000);
+      // A grayscale palette has a finite shade range, even though access is unbounded.
+      expect(new Set(colors).size).toBeGreaterThan(64);
+      for (const color of colors) {
+        const channels = [color.slice(1, 3), color.slice(3, 5), color.slice(5, 7)];
+        expect(new Set(channels).size).toBe(1);
+      }
       expect(colors.slice(8, 16)).not.toEqual(colors.slice(0, 8));
       expect(palette.take(32)).toEqual(colors.slice(0, 32));
       expect(createColorPalette({ mode }).get(9000000)).toBe(palette.get(9000000));
@@ -48,16 +53,20 @@ describe('theme color palettes', () => {
       }
   });
 
-  it('keeps distant colors close to the anchor family in perceptual hue, chroma and tone', () => {
-    const palette = createColorPalette({ color: '#2563eb' });
-    for (const index of [8, 47, 128, 999, 1000000]) {
-      const anchor = Hct.fromInt(argbFromHex(palette.get(index % 8)));
-      const color = Hct.fromInt(argbFromHex(palette.get(index)));
-      const distance = Math.abs(color.hue - anchor.hue);
-      expect(Math.min(distance, 360 - distance)).toBeLessThan(22);
-      expect(Math.abs(color.tone - anchor.tone)).toBeLessThan(10);
-      expect(Math.abs(color.chroma - anchor.chroma)).toBeLessThan(12);
-    }
+  it('keeps first and distant colors in the active primary hue family', () => {
+    for (const seed of ['#2563eb', '#087f5b', '#be185d'])
+      for (const scheme of ['tonal', 'vibrant', 'expressive'] as const)
+        for (const mode of ['light', 'dark'] as const) {
+          const primary = Hct.fromInt(
+            argbFromHex(createTheme({ color: seed, scheme })[mode].primary!),
+          );
+          const palette = createColorPalette({ color: seed, scheme, mode });
+          for (const index of [...Array.from({ length: 32 }, (_, i) => i), 999, 1000000]) {
+            const color = Hct.fromInt(argbFromHex(palette.get(index)));
+            const distance = Math.abs(color.hue - primary.hue);
+            expect(Math.min(distance, 360 - distance)).toBeLessThan(5);
+          }
+        }
   });
 
   it('resolves token references and custom surfaces without mutating overrides', () => {

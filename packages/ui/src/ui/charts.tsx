@@ -78,14 +78,14 @@ export interface ChartSeries {
 
 /** Each palette color can be independently overridden with a semantic theme token. */
 export const chartPalette = [
-  'var(--ui-chart-1, var(--ui-accent, #267f60))',
-  'var(--ui-chart-2, #3579c7)',
-  'var(--ui-chart-3, #b35175)',
-  'var(--ui-chart-4, #b08720)',
-  'var(--ui-chart-5, #7b66b9)',
-  'var(--ui-chart-6, #278c9b)',
-  'var(--ui-chart-7, #c25a4b)',
-  'var(--ui-chart-8, #697f36)',
+  'var(--ui-chart-1, var(--ui-accent, #404040))',
+  'var(--ui-chart-2, #737373)',
+  'var(--ui-chart-3, #525252)',
+  'var(--ui-chart-4, #858585)',
+  'var(--ui-chart-5, #262626)',
+  'var(--ui-chart-6, #949494)',
+  'var(--ui-chart-7, #626262)',
+  'var(--ui-chart-8, #7a7a7a)',
 ] as const;
 const chartLabel = 'var(--ui-chart-label, var(--ui-muted-foreground, #666b68))';
 const chartGrid = 'var(--ui-chart-grid, var(--ui-border, #e5e7e6))';
@@ -377,6 +377,7 @@ export const Chart = /* @__PURE__ */ React.forwardRef<HTMLElement, ChartProps>(
                   >
                     <Table
                       id={tableId}
+                      aria-label={tableLabel ?? language.t('chart.data', { label })}
                       {...styles('chart.table', 'ui-chart-table', undefined, unstyled)}
                     >
                       <TableCaption>

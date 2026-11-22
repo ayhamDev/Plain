@@ -47,8 +47,9 @@ export function ColorPaletteExample() {
         ))}
       </ul>
       <p style={{ margin: 0, color: 'var(--ui-muted-foreground)', fontSize: 12 }}>
-        Adding colors keeps existing assignments. The global theme editor updates this palette. This
-        demo displays up to 64 colors; the utility has no eight-color limit.
+        Adding shades keeps existing assignments. Neutral themes stay grayscale; brand themes stay
+        in the primary color family. The global theme editor updates this palette. This demo
+        displays up to 64 colors; the utility has no eight-color limit.
       </p>
     </div>
   );

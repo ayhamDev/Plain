@@ -467,6 +467,33 @@ describe('Recharts wrappers', () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
+  it('names overflowing data-table regions from each chart or custom table label', () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(900);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300);
+    render(
+      <>
+        <BarChart
+          label="Revenue"
+          data={chartData}
+          series={[{ dataKey: 'revenue' }]}
+          animate={false}
+        />
+        <BarChart
+          label="Costs"
+          tableLabel="Operating expenses"
+          data={chartData}
+          series={[{ dataKey: 'cost' }]}
+          animate={false}
+        />
+      </>,
+    );
+    expect(screen.getByRole('region', { name: 'Revenue data scroll area' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'Operating expenses scroll area' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Table scroll area' })).not.toBeInTheDocument();
+  });
+
   it.each([AreaChart, BarChart, LineChart])(
     'renders real series, native keyboard accessibility, a legend, and a screen-reader data table',
     async (Component) => {

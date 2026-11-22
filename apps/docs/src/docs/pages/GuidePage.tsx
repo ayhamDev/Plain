@@ -942,8 +942,9 @@ function Theming() {
           provider or ThemeScope. <code>get(index)</code> reads a color without allocating earlier
           entries; <code>take(count, start?)</code> creates a batch; <code>forKey(id)</code> keeps
           an association stable when records reorder. Colors are opaque hex values for charts,
-          canvas and other UI. The first eight use the existing chart roles, subject to the contrast
-          target; further colors vary gently around those roles.
+          canvas and other UI. Neutral themes use grayscale; branded themes use shades of the active
+          primary color. The first eight follow the chart roles, subject to the contrast target;
+          further colors vary lightness and chroma within the same hue family.
         </p>
         <ColorPaletteExample />
         <CodeBlock code={colorPaletteCode} title="Theme-aware chart colors" />
@@ -1818,12 +1819,11 @@ function ChartsGuide() {
           automatically. Install Recharts directly when importing its engine in your application.
         </p>
         <p>
-          Colors are optional. Series receive distinct chart tokens automatically, including
-          composed ChartArea, ChartBar and ChartLine children. A selected vibe generates eight
-          coordinated categorical colors for light and dark mode; neutral themes keep their curated
-          palette. Override a series with <code>config[key].color</code>, a series color, or{' '}
-          <code>chart-1</code> through <code>chart-8</code> theme tokens. For larger collections,
-          supply colors from{' '}
+          Colors are optional. Series receive tonal chart tokens automatically, including composed
+          ChartArea, ChartBar and ChartLine children. Neutral themes use grayscale; a selected vibe
+          generates eight shades of the active primary color for light and dark mode. Override a
+          series with <code>config[key].color</code>, a series color, or <code>chart-1</code>{' '}
+          through <code>chart-8</code> theme tokens. For larger collections, supply colors from{' '}
           <Link className="text-link" to="/docs/theming#theme-matched-color-palettes">
             useColorPalette()
           </Link>

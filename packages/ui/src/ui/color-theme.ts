@@ -98,12 +98,11 @@ function roles(scheme: DynamicScheme): ThemeTokens {
     'inverse-accent': hex(scheme.inversePrimary),
     'focus-ring': hex(scheme.primary),
   };
-  // Categorical colors share perceptual tone/chroma; error colors are not data roles.
-  const offsets = [0, 55, 150, 235, 95, 195, 285, 320];
-  offsets.forEach((offset, index) => {
-    tokens[`chart-${index + 1}` as keyof ThemeTokens] = hex(
-      Hct.from((scheme.primaryPalette.hue + offset) % 360, dark ? 36 : 32, dark ? 70 : 45).toInt(),
-    );
+  // Keep data in the active primary's hue family, including expressive schemes.
+  // Alternate lightness so adjacent series remain distinct without rotating hues.
+  const tones = dark ? [80, 64, 72, 56, 88, 68, 60, 76] : [40, 56, 30, 48, 22, 60, 35, 52];
+  tones.forEach((tone, index) => {
+    tokens[`chart-${index + 1}` as keyof ThemeTokens] = hex(scheme.primaryPalette.tone(tone));
   });
   const palettes = {
     primary: scheme.primaryPalette,

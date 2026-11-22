@@ -2,7 +2,7 @@ import * as React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Contrast, argbFromHex, lstarFromArgb } from '@material/material-color-utilities';
+import { Contrast, Hct, argbFromHex, lstarFromArgb } from '@material/material-color-utilities';
 import { createTheme } from '../src/ui/color-theme';
 import { tokenNames, tokenVariable, tokensToStyle } from '../src/ui/token-contract';
 import { PlainProvider, ThemeScope } from '../src/ui/styling';
@@ -64,6 +64,42 @@ describe('layered color themes', () => {
     expect(green.light.background).not.toBe(green.dark.background);
     expect(green.light['palette.primary.40']).toMatch(/^#[a-f\d]{6}$/);
   });
+  it('uses grayscale for neutral charts and distinct primary shades for every branded scheme', () => {
+    for (const mode of ['light', 'dark'] as const) {
+      const neutral = createTheme()[mode];
+      const neutralCharts = Array.from(
+        { length: 8 },
+        (_, i) => neutral[`chart-${i + 1}` as keyof typeof neutral]!,
+      );
+      expect(new Set(neutralCharts).size).toBe(8);
+      expect(
+        neutralCharts.every(
+          (hex) => hex.slice(1, 3) === hex.slice(3, 5) && hex.slice(3, 5) === hex.slice(5, 7),
+        ),
+      ).toBe(true);
+      for (const seed of ['#087f5b', '#2563eb', '#be185d', '#976900', '#6d28d9'])
+        for (const scheme of ['tonal', 'vibrant', 'expressive'] as const) {
+          const theme = createTheme({ color: seed, scheme })[mode];
+          const primary = Hct.fromInt(argbFromHex(theme.primary!));
+          const charts = Array.from(
+            { length: 8 },
+            (_, i) => theme[`chart-${i + 1}` as keyof typeof theme]!,
+          );
+          expect(new Set(charts).size).toBe(8);
+          const tones = [];
+          for (const value of charts) {
+            const chart = Hct.fromInt(argbFromHex(value));
+            const distance = Math.abs(chart.hue - primary.hue);
+            expect(Math.min(distance, 360 - distance)).toBeLessThan(5);
+            tones.push(chart.tone);
+            expect(
+              Contrast.ratioOfTones(chart.tone, Hct.fromInt(argbFromHex(theme.surface!)).tone),
+            ).toBeGreaterThanOrEqual(3);
+          }
+          expect(Math.max(...tones) - Math.min(...tones)).toBeGreaterThan(25);
+        }
+    }
+  });
   it('keeps accessible text pairs for supported seed colors and contrast levels', () => {
     for (const color of ['#087f5b', '#2563eb', '#ffea00', '#ffffff', '#000000', '#be185d'])
       for (const contrast of [0, 0.5, 1]) {
@@ -93,11 +129,14 @@ describe('layered color themes', () => {
   it('applies explicit root and component overrides after generated roles without mutating the cache', () => {
     const configured = createTheme({
       color: '#087f5b',
-      tokens: { 'sidebar.background': '#123456' },
-      dark: { background: '#121212' },
+      tokens: { 'sidebar.background': '#123456', 'chart-1': '#d946ef' },
+      dark: { background: '#121212', 'chart-2': '#38bdf8' },
     });
     expect(configured.light['sidebar.background']).toBe('#123456');
     expect(configured.dark.background).toBe('#121212');
+    expect(configured.light['chart-1']).toBe('#d946ef');
+    expect(configured.dark['chart-1']).toBe('#d946ef');
+    expect(configured.dark['chart-2']).toBe('#38bdf8');
     expect(createTheme({ color: '#087f5b' }).dark.background).not.toBe('#121212');
     expect(configured.css).toContain('--ui-sidebar-background: #123456;');
   });

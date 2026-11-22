@@ -71,14 +71,14 @@
   --ui-layer-overlay: 80;
   --ui-layer-dialog: 90;
   --ui-layer-toast: 110;
-  --ui-chart-1: #3e6250;
-  --ui-chart-2: #58748d;
-  --ui-chart-3: #927037;
-  --ui-chart-4: #855769;
-  --ui-chart-5: #786a91;
-  --ui-chart-6: #397781;
-  --ui-chart-7: #6c7546;
-  --ui-chart-8: #8e6253;
+  --ui-chart-1: #404040;
+  --ui-chart-2: #737373;
+  --ui-chart-3: #525252;
+  --ui-chart-4: #858585;
+  --ui-chart-5: #262626;
+  --ui-chart-6: #949494;
+  --ui-chart-7: #626262;
+  --ui-chart-8: #7a7a7a;
   --ui-chart-grid: var(--ui-border);
   --ui-chart-label: var(--ui-muted-foreground);
   --ui-space-0: 0px;
@@ -218,14 +218,14 @@
   --ui-shadow: 0 12px 36px #00000040;
   --ui-shadow-sm: 0 2px 8px #00000024;
   --ui-shadow-lg: 0 20px 56px #00000066;
-  --ui-chart-1: #9ed5b5;
-  --ui-chart-2: #a0c9ee;
-  --ui-chart-3: #e8c882;
-  --ui-chart-4: #edaec6;
-  --ui-chart-5: #c7b5eb;
-  --ui-chart-6: #8fd1db;
-  --ui-chart-7: #bdcf90;
-  --ui-chart-8: #e3b49f;
+  --ui-chart-1: #d4d4d4;
+  --ui-chart-2: #999999;
+  --ui-chart-3: #b8b8b8;
+  --ui-chart-4: #808080;
+  --ui-chart-5: #e5e5e5;
+  --ui-chart-6: #a8a8a8;
+  --ui-chart-7: #8a8a8a;
+  --ui-chart-8: #c4c4c4;
   color-scheme: dark;
 }
 :root, :where([data-ui-theme-scope]) {

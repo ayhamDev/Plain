@@ -8,7 +8,7 @@ import {
   useColorPalette,
   useTheme,
 } from '@plain/ui';
-import { BarChart } from '@plain/ui/charts';
+import { BarChart, DonutChart } from '@plain/ui/charts';
 import '@plain/ui/styles.css';
 import '@plain/ui/charts.css';
 
@@ -68,6 +68,7 @@ function Fixture() {
         </Button>
         <Button onClick={() => setTheme({ color: '#2563eb' })}>Blue theme</Button>
         <Button onClick={() => setTheme({ color: '#be185d' })}>Rose theme</Button>
+        <Button onClick={() => setTheme({ color: null, accent: 'neutral' })}>Neutral theme</Button>
         <Button onClick={() => setCount(48)}>More colors</Button>
         <Button onClick={() => setReversed((value) => !value)}>Reverse items</Button>
       </div>
@@ -75,6 +76,27 @@ function Fixture() {
         <h2>Current theme</h2>
         <Swatches name="Root colors" count={count} />
       </section>
+      <BarChart
+        label="Default palette chart"
+        data={data}
+        index="name"
+        height={260}
+        series={metrics.slice(0, 8).map((metric) => ({ dataKey: metric.key, label: metric.label }))}
+      />
+      <DonutChart
+        label="Default donut palette"
+        data={metrics
+          .slice(0, 8)
+          .map((metric, index) => ({ name: metric.label, value: 8 + index * 4 }))}
+        height={260}
+      />
+      <BarChart
+        label="Custom series color"
+        data={data}
+        index="name"
+        height={180}
+        series={[{ dataKey: 'metric0', label: 'Custom', color: '#d946ef' }]}
+      />
       <BarChart
         label="Generated palette chart"
         data={data}
@@ -117,6 +139,15 @@ function Fixture() {
         <section aria-label="Local brand palette">
           <h2>Scoped brand</h2>
           <Swatches name="Scoped colors" count={12} />
+          <BarChart
+            label="Scoped default palette chart"
+            data={data}
+            index="name"
+            height={180}
+            series={metrics
+              .slice(0, 2)
+              .map((metric) => ({ dataKey: metric.key, label: metric.label }))}
+          />
         </section>
       </ThemeScope>
       <ThemeScope
@@ -131,6 +162,15 @@ function Fixture() {
         <section aria-label="Neutral dark palette">
           <h2>Scoped dark mode</h2>
           <Swatches name="Dark colors" count={12} />
+          <BarChart
+            label="Dark neutral chart"
+            data={data}
+            index="name"
+            height={180}
+            series={metrics
+              .slice(0, 2)
+              .map((metric) => ({ dataKey: metric.key, label: metric.label }))}
+          />
         </section>
       </ThemeScope>
       <output aria-label="Distant color">{palette.get(1000000)}</output>
