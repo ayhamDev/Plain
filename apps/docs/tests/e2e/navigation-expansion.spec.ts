@@ -1,6 +1,27 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
+test('the sidebar documentation exposes hover/overlay options and an accessible pin control', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/components/sidebar');
+  const preview = page.locator('.component-preview');
+  const panel = preview.getByRole('complementary', { name: 'Workspace navigation' });
+  await preview.getByRole('combobox', { name: 'Sidebar expansion mode' }).click();
+  await page.getByRole('option', { name: 'Overlay', exact: true }).click();
+  await preview.locator('[data-ui="sidebar"][data-slot="backdrop"]').click();
+  await expect(panel).toHaveAttribute('data-state', 'collapsed');
+  await preview.getByRole('switch', { name: 'Expand on hover' }).click();
+  await panel.hover();
+  await expect(panel).toHaveAttribute('data-hover-expanded', 'true');
+  await panel.locator('.ui-sidebar-trigger').click();
+  await page.mouse.move(1380, 900);
+  await page.waitForTimeout(250);
+  await expect(panel).toHaveAttribute('data-state', 'expanded');
+  await expect(panel).not.toHaveAttribute('data-hover-expanded');
+});
+
 for (const kind of ['sidebar', 'rail'] as const) {
   for (const dir of ['ltr', 'rtl'] as const) {
     test(`${kind} hover overlay reserves compact space in ${dir} and dismisses without click-through`, async ({
