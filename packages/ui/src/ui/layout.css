@@ -170,6 +170,7 @@
     border: 0;
   }
   .ui-sidebar-provider {
+    position: relative;
     display: flex;
     inline-size: 100%;
     min-inline-size: 0;
@@ -342,6 +343,7 @@
     color: var(--ui-panel-foreground, var(--ui-foreground));
   }
   .ui-app-shell {
+    position: relative;
     display: flex;
     inline-size: 100%;
     min-inline-size: 0;

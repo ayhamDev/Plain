@@ -577,6 +577,30 @@ const fields: DataTableFilterField<Invoice>[] = [
     '<SidebarProvider style={{ minHeight: 300 }}>\n  <Sidebar label="Workspace navigation">\n    <SidebarHeader>Workspace</SidebarHeader>\n    <SidebarContent><SidebarGroup label="Projects"><SidebarMenu>\n      <SidebarMenuItem><SidebarItem active>Overview</SidebarItem></SidebarMenuItem>\n      <SidebarMenuItem><SidebarItem>Projects</SidebarItem></SidebarMenuItem>\n    </SidebarMenu></SidebarGroup></SidebarContent>\n  </Sidebar>\n  <SidebarInset><SidebarTrigger /><h3>Overview</h3></SidebarInset>\n</SidebarProvider>',
     [
       p('collapsed / defaultCollapsed', 'boolean', 'Desktop state on SidebarProvider.'),
+      p(
+        'expandOnHover',
+        'boolean',
+        'Provider option: temporarily expand a collapsed icon sidebar on fine-pointer hover or keyboard focus; the pinned collapse state is preserved.',
+        'false',
+      ),
+      p(
+        'expansionMode',
+        'inline | overlay',
+        'Provider option: reflow content or keep compact width reserved and expand above it. Overlay mode includes a dismissible backdrop scoped to the enclosing navigation shell.',
+        'inline',
+      ),
+      p(
+        'hoverOpenDelay / hoverCloseDelay',
+        'number',
+        'Pointer preview delays in milliseconds. Focus expands immediately; focus inside keeps the preview open.',
+        '120 / 180',
+      ),
+      p(
+        'overlayBackdrop',
+        'boolean',
+        'Provider option to show the overlay backdrop. Customize sidebar.overlay-background, sidebar.overlay-shadow and sidebar.backdrop/frame slots.',
+        'true',
+      ),
       p('mobileOpen / defaultMobileOpen', 'boolean', 'Mobile overlay state on SidebarProvider.'),
       p('mobileBreakpoint', 'number', 'Mobile threshold in pixels.', '768'),
       p('collapsible', 'icon | offcanvas | none', 'Provider collapse mode.', 'icon'),
@@ -601,7 +625,7 @@ const fields: DataTableFilterField<Invoice>[] = [
         'SidebarItem composition, active state and mobile dismissal.',
       ),
     ],
-    'Compose Header, Footer, Content, GroupLabel, GroupContent, GroupAction, Input, Separator, Rail, MenuButton, MenuAction, MenuBadge, MenuSub and MenuSubButton. Supply collapsedContent on Header and Footer for a brand mark or avatar; SidebarInput is hidden in the icon rail without discarding its value. Native links use asChild on menu buttons. Nested expansion uses P.UI Collapsible. Desktop collapse and mobile open state are separate and controllable; Vaul handles the mobile focus trap, swipe dismissal and restoration. Motion follows the theme and reduced-motion preference. Inset accepts asChild to preserve application landmarks.',
+    'Compose Header, Footer, Content, GroupLabel, GroupContent, GroupAction, Input, Separator, Rail, MenuButton, MenuAction, MenuBadge, MenuSub and MenuSubButton. Supply collapsedContent on Header and Footer for a brand mark or avatar; SidebarInput is hidden in the icon rail without discarding its value. Native links use asChild on menu buttons. Nested expansion uses P.UI Collapsible. Desktop collapse and mobile open state are separate and controllable; Vaul handles the mobile focus trap, swipe dismissal and restoration. Motion follows the theme and reduced-motion preference. Inset accepts asChild to preserve application landmarks. Set expandOnHover and expansionMode="overlay" on SidebarProvider for a temporary overlay preview. Escape or the backdrop dismisses it; the existing trigger pins it expanded. useSidebar().collapsed remains the persistent state; expanded and hoverExpanded report effective visibility. Hover is disabled on touch/mobile and with offcanvas/none collapse modes. Desktop overlays are nonmodal: keyboard focus can leave normally. AppShell/SidebarProvider scope their backdrop to the shell; a standalone rail uses a viewport backdrop.',
   ),
   define(
     'app-shell',

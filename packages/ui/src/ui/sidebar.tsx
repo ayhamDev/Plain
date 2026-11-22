@@ -9,11 +9,21 @@ import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from './she
 import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './style-context';
 import { useSelectionIndicator } from './selection-indicator';
 import { inertAttribute } from './utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './overlays';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
 import { LayoutPresence, useLayoutPresence, type LayoutPresenceProps } from './layout-presence';
+import {
+  NavigationExpansionFrame,
+  navigationExpansionEvents,
+  useNavigationExpansion,
+  type NavigationExpansionProps,
+} from './navigation-expansion';
+export type { NavigationExpansionProps } from './navigation-expansion';
 
 export interface SidebarContextValue {
   collapsed: boolean;
+  /** Effective visibility, including a temporary hover/focus preview. */
+  expanded: boolean;
+  hoverExpanded: boolean;
   setCollapsed: (collapsed: boolean) => void;
   mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
@@ -23,7 +33,13 @@ export interface SidebarContextValue {
   collapsible: 'icon' | 'offcanvas' | 'none';
 }
 const SidebarContext = /* @__PURE__ */ React.createContext<
-  | (SidebarContextValue & { setContentId: (id: string) => void; variables: React.CSSProperties })
+  | (SidebarContextValue & {
+      setContentId: (id: string) => void;
+      variables: React.CSSProperties;
+      expansion: ReturnType<typeof useNavigationExpansion>;
+      expansionMode: 'inline' | 'overlay';
+      overlayBackdrop: boolean;
+    })
   | null
 >(null);
 
@@ -34,7 +50,11 @@ export function useSidebar(): SidebarContextValue {
 }
 
 export interface SidebarProviderProps
-  extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps, LayoutPresenceProps {
+  extends
+    React.HTMLAttributes<HTMLDivElement>,
+    PlainStyleProps,
+    LayoutPresenceProps,
+    NavigationExpansionProps {
   collapsed?: boolean;
   defaultCollapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
@@ -69,6 +89,11 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
       sidebarId,
       mobileWidth,
       collapsible = 'icon',
+      expandOnHover = false,
+      expansionMode = 'inline',
+      hoverOpenDelay,
+      hoverCloseDelay,
+      overlayBackdrop = true,
       shortcut = 'b',
       className,
       style,
@@ -105,6 +130,16 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
       },
       [controlledMobileOpen, onMobileOpenChange],
     );
+    const setExpanded = React.useCallback((next: boolean) => setCollapsed(!next), [setCollapsed]);
+    const expansion = useNavigationExpansion({
+      expanded: !collapsed,
+      onExpandedChange: setExpanded,
+      enabled: !isMobile && collapsible !== 'none',
+      expandOnHover: expandOnHover && collapsible === 'icon',
+      expansionMode,
+      hoverOpenDelay,
+      hoverCloseDelay,
+    });
     const toggle = React.useCallback(() => {
       if (isMobile) setMobileOpen(!mobileOpen);
       else if (collapsible !== 'none') setCollapsed(!collapsed);
@@ -155,6 +190,11 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
     const context = React.useMemo(
       () => ({
         collapsed,
+        expanded: isMobile ? mobileOpen : expansion.expanded,
+        hoverExpanded: expansion.hoverExpanded,
+        expansion,
+        expansionMode,
+        overlayBackdrop,
         setCollapsed,
         mobileOpen,
         setMobileOpen,
@@ -167,6 +207,9 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
       }),
       [
         collapsed,
+        expansion,
+        expansionMode,
+        overlayBackdrop,
         setCollapsed,
         mobileOpen,
         setMobileOpen,
@@ -187,7 +230,8 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
                   ref={providerRef}
                   dir={direction}
                   {...styles('sidebar.provider', 'ui-sidebar-provider', className, unstyled)}
-                  data-sidebar-state={collapsed ? 'collapsed' : 'expanded'}
+                  data-sidebar-state={expansion.expanded ? 'expanded' : 'collapsed'}
+                  data-sidebar-pinned={!collapsed}
                   data-mobile={isMobile}
                   style={
                     {
@@ -238,8 +282,27 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
     const label = labelProp ?? t('navigation.label');
     const context = React.useContext(SidebarContext);
     if (!context) throw new Error('Sidebar must be used inside SidebarProvider.');
-    const { isMobile, collapsed, contentId, setContentId, variables, collapsible } = context;
+    const {
+      isMobile,
+      expanded,
+      expansion,
+      expansionMode,
+      overlayBackdrop,
+      contentId,
+      setContentId,
+      variables,
+      collapsible,
+    } = context;
     const direction = useDirection(dir as 'ltr' | 'rtl' | undefined);
+    const setExpansionNode = expansion.setNode;
+    const setNode = React.useCallback(
+      (node: HTMLElement | null) => {
+        setExpansionNode(node);
+        if (typeof ref === 'function') ref(node);
+        else if (ref) ref.current = node;
+      },
+      [ref, setExpansionNode],
+    );
     React.useEffect(() => {
       if (id) setContentId(id);
     }, [id, setContentId]);
@@ -303,22 +366,25 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
           </LayoutPresence>
         </StyleProvider>
       );
-    return (
+    const desktop = (
       <StyleProvider unstyled={unstyled}>
         <LayoutPresence asChild presence={presence ?? false}>
           {styles.tooltip(
             <aside
-              ref={ref}
+              ref={setNode}
               dir={direction}
               id={id ?? contentId}
               aria-label={label}
               {...styles('sidebar.root', 'ui-sidebar ui-sidebar-desktop', className, unstyled)}
-              data-state={collapsed && collapsible !== 'none' ? 'collapsed' : 'expanded'}
+              data-state={expanded ? 'expanded' : 'collapsed'}
+              data-hover-expanded={expansion.hoverExpanded || undefined}
+              data-expansion-mode={collapsible === 'none' ? 'inline' : expansionMode}
               data-side={side}
               data-variant={variant}
               data-collapsible={collapsible}
-              inert={inertAttribute(collapsed && collapsible === 'offcanvas')}
+              inert={inertAttribute(!expanded && collapsible === 'offcanvas')}
               {...props}
+              {...navigationExpansionEvents(props, expansion.events)}
             >
               {children}
             </aside>,
@@ -326,6 +392,30 @@ export const Sidebar = /* @__PURE__ */ React.forwardRef<HTMLElement, SidebarProp
           )}
         </LayoutPresence>
       </StyleProvider>
+    );
+    return expansionMode === 'overlay' && collapsible !== 'none' ? (
+      <NavigationExpansionFrame
+        kind="sidebar"
+        dir={direction}
+        side={side}
+        variant={variant}
+        expanded={expanded}
+        backdrop={overlayBackdrop}
+        node={expansion.node}
+        dismiss={expansion.dismiss}
+        unstyled={unstyled}
+        style={{
+          ...variables,
+          ...Object.fromEntries(
+            Object.entries(props.style ?? {}).filter(([key]) => key.startsWith('--ui-')),
+          ),
+        }}
+        offcanvas={collapsible === 'offcanvas'}
+      >
+        {desktop}
+      </NavigationExpansionFrame>
+    ) : (
+      desktop
     );
   },
 );
@@ -337,18 +427,26 @@ export const SidebarTrigger = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, onClick, children, ...props }, ref) => {
   const styles = useStyles();
   const { t } = useTranslation();
-  const { isMobile, mobileOpen, collapsed, contentId, toggle, collapsible } = useSidebar();
+  const {
+    isMobile,
+    mobileOpen,
+    collapsed,
+    expanded,
+    hoverExpanded,
+    contentId,
+    toggle,
+    collapsible,
+  } = useSidebar();
+  const desktopLabel = hoverExpanded
+    ? t('navigation.pin')
+    : t(collapsed ? 'navigation.expand' : 'navigation.collapse');
   const trigger = styles.tooltip(
     <button
       ref={ref}
       type="button"
-      aria-label={
-        isMobile ? t('navigation.open') : t(collapsed ? 'navigation.expand' : 'navigation.collapse')
-      }
-      title={
-        isMobile ? t('navigation.open') : t(collapsed ? 'navigation.expand' : 'navigation.collapse')
-      }
-      aria-expanded={isMobile ? mobileOpen : !collapsed}
+      aria-label={isMobile ? t('navigation.open') : desktopLabel}
+      title={isMobile ? t('navigation.open') : desktopLabel}
+      aria-expanded={isMobile ? mobileOpen : expanded}
       aria-controls={contentId}
       hidden={!isMobile && collapsible === 'none'}
       {...styles('sidebar.trigger', 'ui-sidebar-trigger', className, unstyled)}
@@ -380,7 +478,8 @@ export const SidebarHeader = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Si
   ({ className, unstyled, collapsedContent, children, presence, ...props }, ref) => {
     const styles = useStyles();
     const context = React.useContext(SidebarContext);
-    const compact = context?.collapsed && !context.isMobile && context.collapsible === 'icon';
+    const compact =
+      context && !context.expanded && !context.isMobile && context.collapsible === 'icon';
     return (
       <LayoutPresence asChild presence={presence ?? false}>
         {styles.tooltip(
@@ -421,7 +520,8 @@ export const SidebarFooter = /* @__PURE__ */ React.forwardRef<HTMLDivElement, Si
   ({ className, unstyled, collapsedContent, children, presence, ...props }, ref) => {
     const styles = useStyles();
     const context = React.useContext(SidebarContext);
-    const compact = context?.collapsed && !context.isMobile && context.collapsible === 'icon';
+    const compact =
+      context && !context.expanded && !context.isMobile && context.collapsible === 'icon';
     return (
       <LayoutPresence asChild presence={presence ?? false}>
         {styles.tooltip(
@@ -765,7 +865,8 @@ export const SidebarInput = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, ...props }, ref) => {
   const styles = useStyles();
   const sidebar = React.useContext(SidebarContext);
-  const compact = !!sidebar?.collapsed && !sidebar.isMobile && sidebar.collapsible === 'icon';
+  const compact =
+    !!sidebar && !sidebar.expanded && !sidebar.isMobile && sidebar.collapsible === 'icon';
 
   return styles.tooltip(
     <Input
@@ -802,16 +903,19 @@ export const SidebarRail = /* @__PURE__ */ React.forwardRef<
 >(({ className, unstyled, onClick, ...props }, ref) => {
   const styles = useStyles();
   const { t } = useTranslation();
-  const { toggle, collapsed, contentId, collapsible, isMobile } = useSidebar();
+  const { toggle, expanded, hoverExpanded, contentId, collapsible, isMobile } = useSidebar();
+  const label = t(
+    hoverExpanded ? 'navigation.pin' : expanded ? 'navigation.collapse' : 'navigation.expand',
+  );
   return styles.tooltip(
     <button
       ref={ref}
       type="button"
       hidden={isMobile || collapsible === 'none'}
-      aria-label={t(collapsed ? 'navigation.expand' : 'navigation.collapse')}
-      title={t(collapsed ? 'navigation.expand' : 'navigation.collapse')}
+      aria-label={label}
+      title={label}
       aria-controls={contentId}
-      aria-expanded={!collapsed}
+      aria-expanded={expanded}
       {...styles('sidebar.rail', 'ui-sidebar-rail ui-edge-handle', className, unstyled)}
       {...props}
       onClick={(event) => {
@@ -921,7 +1025,8 @@ export const AppShell = /* @__PURE__ */ React.forwardRef<HTMLDivElement, AppShel
 );
 AppShell.displayName = 'AppShell';
 
-export interface NavigationRailProps extends React.HTMLAttributes<HTMLElement>, PlainStyleProps {
+export interface NavigationRailProps
+  extends React.HTMLAttributes<HTMLElement>, PlainStyleProps, NavigationExpansionProps {
   items: readonly BottomNavigationItem[];
   value?: string;
   defaultValue?: string;
@@ -932,6 +1037,10 @@ export interface NavigationRailProps extends React.HTMLAttributes<HTMLElement>, 
   variant?: 'attached' | 'inset' | 'floating';
   width?: React.CSSProperties['width'];
   hideOnMobile?: boolean;
+  expanded?: boolean;
+  defaultExpanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  expandedWidth?: React.CSSProperties['width'];
 }
 
 /** A persistent app/workspace switcher; SidebarRail remains the collapse edge control. */
@@ -948,6 +1057,15 @@ export const NavigationRail = /* @__PURE__ */ React.forwardRef<HTMLElement, Navi
       variant = 'attached',
       width,
       hideOnMobile = true,
+      expanded: controlledExpanded,
+      defaultExpanded = false,
+      onExpandedChange,
+      expandedWidth,
+      expandOnHover = false,
+      expansionMode = 'inline',
+      hoverOpenDelay,
+      hoverCloseDelay,
+      overlayBackdrop = true,
       className,
       style,
       unstyled,
@@ -963,21 +1081,75 @@ export const NavigationRail = /* @__PURE__ */ React.forwardRef<HTMLElement, Navi
       defaultValue ?? items.find((item) => !item.disabled)?.value ?? '',
     );
     const current = value ?? local;
+    const [localExpanded, updateExpanded] = React.useState(defaultExpanded);
+    const setExpanded = React.useCallback(
+      (next: boolean) => {
+        if (controlledExpanded === undefined) updateExpanded(next);
+        onExpandedChange?.(next);
+      },
+      [controlledExpanded, onExpandedChange],
+    );
+    const mobile = useMediaQuery(
+      '(max-width: 767px)',
+      expandOnHover || expansionMode === 'overlay',
+    );
+    const expansion = useNavigationExpansion({
+      expanded: controlledExpanded ?? localExpanded,
+      onExpandedChange: setExpanded,
+      enabled: !mobile,
+      expandOnHover,
+      expansionMode,
+      hoverOpenDelay,
+      hoverCloseDelay,
+    });
+    const generatedId = React.useId();
+    const setExpansionNode = expansion.setNode;
+    const setNode = React.useCallback(
+      (node: HTMLElement | null) => {
+        setExpansionNode(node);
+        if (typeof ref === 'function') ref(node);
+        else if (ref) ref.current = node;
+      },
+      [ref, setExpansionNode],
+    );
+    const variables = {
+      ...(width !== undefined
+        ? { '--ui-navigation-rail-width': typeof width === 'number' ? `${width}px` : width }
+        : {}),
+      ...(expandedWidth !== undefined
+        ? {
+            '--ui-navigation-rail-expanded-width':
+              typeof expandedWidth === 'number' ? `${expandedWidth}px` : expandedWidth,
+          }
+        : {}),
+      ...Object.fromEntries(Object.entries(style ?? {}).filter(([key]) => key.startsWith('--ui-'))),
+    } as React.CSSProperties;
     const list = React.useRef<HTMLDivElement>(null);
     useSelectionIndicator(list, '[aria-current="page"]', !(unstyled ?? styles.unstyled));
-    return (
+    const rail = (
       <TooltipProvider delayDuration={300}>
         {styles.tooltip(
           <nav
-            ref={ref}
+            ref={setNode}
             dir={direction}
+            id={props.id ?? `navigation-rail-${generatedId}`}
             aria-label={t('navigation.primary')}
             data-side={side}
             data-variant={variant}
             data-hide-on-mobile={hideOnMobile}
+            data-state={expansion.expanded ? 'expanded' : 'collapsed'}
+            data-hover-expanded={expansion.hoverExpanded || undefined}
+            data-expansion-mode={expansionMode}
             {...styles('navigation-rail.root', 'ui-navigation-rail', className, unstyled)}
-            style={{ ...(width !== undefined ? { width } : {}), ...style }}
+            style={{
+              ...variables,
+              ...((unstyled ?? styles.unstyled)
+                ? { width: expansion.expanded ? (expandedWidth ?? width) : width }
+                : {}),
+              ...style,
+            }}
             {...props}
+            {...navigationExpansionEvents(props, expansion.events)}
           >
             {header && (
               <div
@@ -998,7 +1170,7 @@ export const NavigationRail = /* @__PURE__ */ React.forwardRef<HTMLElement, Navi
               {items.map((item) => {
                 const Element = item.href ? 'a' : 'button';
                 return (
-                  <Tooltip key={item.value}>
+                  <Tooltip key={item.value} open={expansion.expanded ? false : undefined}>
                     <TooltipTrigger asChild>
                       <Element
                         type={item.href ? undefined : 'button'}
@@ -1035,6 +1207,17 @@ export const NavigationRail = /* @__PURE__ */ React.forwardRef<HTMLElement, Navi
                           {item.renderIcon?.(current === item.value) ??
                             item.icon ??
                             item.label.slice(0, 1)}
+                        </span>
+                        <span
+                          aria-hidden="true"
+                          {...styles(
+                            'navigation-rail.label',
+                            'ui-navigation-rail-label',
+                            undefined,
+                            unstyled,
+                          )}
+                        >
+                          {item.label}
                         </span>
                         {item.badge != null && (
                           <span
@@ -1084,6 +1267,25 @@ export const NavigationRail = /* @__PURE__ */ React.forwardRef<HTMLElement, Navi
           unstyled,
         )}
       </TooltipProvider>
+    );
+    return expansionMode === 'overlay' ? (
+      <NavigationExpansionFrame
+        kind="navigation-rail"
+        dir={direction}
+        side={side}
+        variant={variant}
+        expanded={expansion.expanded && !(hideOnMobile && mobile)}
+        backdrop={overlayBackdrop}
+        node={expansion.node}
+        dismiss={expansion.dismiss}
+        unstyled={unstyled}
+        style={variables}
+        hideOnMobile={hideOnMobile}
+      >
+        {rail}
+      </NavigationExpansionFrame>
+    ) : (
+      rail
     );
   },
 );

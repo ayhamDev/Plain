@@ -6,11 +6,17 @@ import '@plain/ui/styles.css';
 
 const params = new URLSearchParams(location.search);
 const count = params.has('long') ? 50 : 4;
+const hover = params.get('hover');
+const expansionMode = params.get('mode') === 'overlay' ? 'overlay' : 'inline';
+const localPaint = params.has('local-paint')
+  ? ({ '--ui-sidebar-overlay-background': 'rgba(40, 80, 160, 0.25)' } as React.CSSProperties)
+  : undefined;
 function Fixture() {
   const [name, setName] = React.useState('Personal workspace');
   const [current, setCurrent] = React.useState('Overview');
   const [scroll, setScroll] = React.useState(0);
   const [accounts, setAccounts] = React.useState(0);
+  const [railExpanded, setRailExpanded] = React.useState(params.has('pinned'));
   const nav = React.useRef<HTMLElement>(null);
   const items = Array.from({ length: count }, (_, index) => ({
     value: String(index),
@@ -21,12 +27,23 @@ function Fixture() {
     <main style={{ padding: 16 }}>
       <h1>Sidebar overflow</h1>
       <UI.SidebarProvider
-        defaultCollapsed={params.has('collapsed')}
+        defaultCollapsed={params.has('collapsed') || hover === 'sidebar'}
+        expandOnHover={hover === 'sidebar'}
+        expansionMode={hover === 'sidebar' ? expansionMode : 'inline'}
+        overlayBackdrop={!params.has('no-backdrop')}
         width="248px"
         collapsedWidth={params.get('compact') === '48' ? '48px' : '64px'}
         style={{ height: 360, maxWidth: 780, width: '100%', border: '1px solid var(--ui-border)' }}
       >
         <UI.NavigationRail
+          id="fixture-rail"
+          expandOnHover={hover === 'rail'}
+          expansionMode={hover === 'rail' ? expansionMode : 'inline'}
+          overlayBackdrop={!params.has('no-backdrop')}
+          expanded={railExpanded}
+          onExpandedChange={setRailExpanded}
+          expandedWidth={params.get('wide') ?? '264px'}
+          style={localPaint}
           items={items}
           aria-label="Workspaces"
           variant={params.get('variant') === 'floating' ? 'floating' : 'attached'}
@@ -38,6 +55,7 @@ function Fixture() {
           }
         />
         <UI.Sidebar
+          style={localPaint}
           label="Fixture navigation"
           variant={
             params.get('variant') === 'floating'
@@ -58,6 +76,20 @@ function Fixture() {
                 value={name}
                 onChange={(event) => setName(event.target.value)}
               />
+              {params.has('popup') && (
+                <UI.DropdownMenu modal={params.has('modal-popup')}>
+                  <UI.DropdownMenuTrigger asChild>
+                    <UI.Button variant="outline" size="sm">
+                      Navigation tools
+                    </UI.Button>
+                  </UI.DropdownMenuTrigger>
+                  <UI.DropdownMenuContent side="right" align="start">
+                    <UI.DropdownMenuItem onSelect={() => setAccounts((value) => value + 1)}>
+                      Workspace action
+                    </UI.DropdownMenuItem>
+                  </UI.DropdownMenuContent>
+                </UI.DropdownMenu>
+              )}
             </div>
           </UI.SidebarHeader>
           <UI.SidebarContent
@@ -137,11 +169,25 @@ function Fixture() {
             aria-label="Workspace content"
             style={{ padding: 12, minWidth: 0, overflowWrap: 'anywhere' }}
           >
-            <UI.SidebarTrigger />
+            {!params.has('no-trigger') && <UI.SidebarTrigger />}
+            {hover === 'rail' && (
+              <UI.Button
+                aria-controls="fixture-rail"
+                aria-expanded={railExpanded}
+                onClick={() => setRailExpanded((value) => !value)}
+              >
+                Toggle rail expansion
+              </UI.Button>
+            )}
             <h2>{current}</h2>
             <UI.Button onClick={() => nav.current?.scrollTo({ top: nav.current.scrollHeight })}>
               Scroll to last item
             </UI.Button>
+            {hover && (
+              <UI.Button onClick={() => setAccounts((value) => value + 1)}>
+                Content action
+              </UI.Button>
+            )}
             <output aria-label="Native scroll">{Math.round(scroll)}</output>
             <output aria-label="Account calls">{accounts}</output>
           </section>

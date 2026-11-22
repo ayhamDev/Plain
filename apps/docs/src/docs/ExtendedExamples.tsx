@@ -196,15 +196,24 @@ function SplitWorkspace() {
   );
 }
 
+function SidebarPreviewPin() {
+  return UI.useSidebar().isMobile ? null : <UI.SidebarTrigger />;
+}
+
 function SidebarWorkspace() {
   const [destination, setDestination] = React.useState('Overview');
   const [search, setSearch] = React.useState('');
   const [variant, setVariant] = React.useState<'sidebar' | 'inset' | 'floating'>('sidebar');
+  const [expandOnHover, setExpandOnHover] = React.useState(false);
+  const [expansionMode, setExpansionMode] = React.useState<'inline' | 'overlay'>('inline');
+  const hoverId = React.useId();
   return (
     <div className="sidebar-workspace">
       <UI.SidebarProvider
         width="224px"
         mobileWidth="288px"
+        expandOnHover={expandOnHover}
+        expansionMode={expansionMode}
         style={{ width: '100%', minHeight: 400 }}
       >
         <UI.Sidebar variant={variant} label="Workspace navigation">
@@ -218,6 +227,7 @@ function SidebarWorkspace() {
           >
             <span className="workspace-brand">p.</span>
             <UI.Strong>Workspace</UI.Strong>
+            {expandOnHover && expansionMode === 'overlay' && <SidebarPreviewPin />}
           </UI.SidebarHeader>
           <div className="workspace-search">
             <UI.SidebarInput
@@ -351,6 +361,36 @@ function SidebarWorkspace() {
               </UI.Select>
             </div>
             <div className="workspace-page">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 16,
+                  marginBlockEnd: 16,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <UI.Switch
+                    id={hoverId}
+                    checked={expandOnHover}
+                    onCheckedChange={setExpandOnHover}
+                  />
+                  <UI.Label htmlFor={hoverId}>Expand on hover</UI.Label>
+                </div>
+                <UI.Select
+                  value={expansionMode}
+                  onValueChange={(value) => setExpansionMode(value as typeof expansionMode)}
+                >
+                  <UI.SelectTrigger aria-label="Sidebar expansion mode" style={{ width: 128 }}>
+                    <UI.SelectValue />
+                  </UI.SelectTrigger>
+                  <UI.SelectContent>
+                    <UI.SelectItem value="inline">Inline</UI.SelectItem>
+                    <UI.SelectItem value="overlay">Overlay</UI.SelectItem>
+                  </UI.SelectContent>
+                </UI.Select>
+              </div>
               <UI.H3>{destination}</UI.H3>
               <UI.P tone="muted" size="sm">
                 Your workspace, all in one place.

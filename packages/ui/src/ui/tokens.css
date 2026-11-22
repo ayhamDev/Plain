@@ -306,6 +306,8 @@
   --ui-sidebar-radius: var(--ui-radius);
   --ui-sidebar-width: 248px;
   --ui-sidebar-collapsed-width: 64px;
+  --ui-sidebar-overlay-background: var(--ui-overlay);
+  --ui-sidebar-overlay-shadow: var(--ui-shadow-lg);
   --ui-navigation-background: var(--ui-background);
   --ui-navigation-foreground: var(--ui-foreground);
   --ui-navigation-border: var(--ui-border);

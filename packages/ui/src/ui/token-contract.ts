@@ -216,6 +216,8 @@ export const componentTokenAliases = {
   'sidebar.radius': 'var(--ui-radius)',
   'sidebar.width': '248px',
   'sidebar.collapsed-width': '64px',
+  'sidebar.overlay-background': 'var(--ui-overlay)',
+  'sidebar.overlay-shadow': 'var(--ui-shadow-lg)',
   'navigation.background': 'var(--ui-background)',
   'navigation.foreground': 'var(--ui-foreground)',
   'navigation.border': 'var(--ui-border)',

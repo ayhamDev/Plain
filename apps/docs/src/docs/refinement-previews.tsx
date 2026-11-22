@@ -53,8 +53,24 @@ export const refinementPreviews: Record<string, PropPreview> = {
       `<List items={[{ id: 'review', title: 'Design review notes', description: 'Sophie Chen: Ready for review.' }, { id: 'release', title: 'Release checklist', description: 'Alex Morgan: Verification is complete.' }]} getItemKey={item => item.id} getItemLabel={item => item.title} defaultMode="${s.mode}" ${attrs({ selectable: s.selectable, density: s.density, dividers: s.dividers, loading: s.loading })} renderItem={item => <><ListItemTitle>{item.title}</ListItemTitle><ListItemDescription>{item.description}</ListItemDescription></>} />`,
   },
   'navigation-rail': {
-    defaults: { variant: 'attached', hideOnMobile: false },
-    controls: [option('variant', ['attached', 'inset', 'floating']), bool('hideOnMobile')],
+    defaults: {
+      variant: 'attached',
+      hideOnMobile: false,
+      expandOnHover: false,
+      expansionMode: 'inline',
+      expanded: false,
+      expandedWidth: 248,
+      overlayBackdrop: true,
+    },
+    controls: [
+      option('variant', ['attached', 'inset', 'floating']),
+      bool('hideOnMobile'),
+      bool('expandOnHover'),
+      option('expansionMode', ['inline', 'overlay']),
+      bool('expanded'),
+      { name: 'expandedWidth', min: 160, max: 360 },
+      bool('overlayBackdrop'),
+    ],
     render: render('navigation-rail'),
     code: (s) =>
       `<SidebarProvider width="200px" style={{ minHeight: 400 }}><NavigationRail ${attrs(s)} aria-label="Workspaces" items={${items}} /><Sidebar label="Project navigation"><SidebarHeader collapsedContent={<span>P</span>}>Projects</SidebarHeader><SidebarContent><SidebarItem>Overview</SidebarItem><SidebarItem>Activity</SidebarItem></SidebarContent></Sidebar><SidebarInset><SidebarTrigger />Project workspace</SidebarInset></SidebarProvider>`,

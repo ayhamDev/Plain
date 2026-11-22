@@ -219,6 +219,36 @@ export const refinementComponents: ComponentDefinition[] = [
     code: '<SidebarProvider><NavigationRail aria-label="Workspaces" items={[{ value: "projects", label: "Projects", icon: <span>P</span> }, { value: "inbox", label: "Inbox", icon: <span>I</span>, badge: 3 }]} /><Sidebar><SidebarHeader>Workspace</SidebarHeader><SidebarContent><SidebarItem>Overview</SidebarItem><SidebarItem>Activity</SidebarItem></SidebarContent></Sidebar><SidebarInset><SidebarTrigger />Project workspace</SidebarInset></SidebarProvider>',
     props: [
       p(
+        'expanded / defaultExpanded / onExpandedChange',
+        'boolean / callback',
+        'Persistent expanded state. Expanded rails show item labels; hover previews do not write this state.',
+        'false',
+      ),
+      p(
+        'expandOnHover',
+        'boolean',
+        'Temporarily reveal labels on fine-pointer hover or keyboard focus. Touch/mobile does not activate a hover preview.',
+        'false',
+      ),
+      p(
+        'expansionMode / overlayBackdrop',
+        'inline | overlay / boolean',
+        'Overlay reserves compact width, expands above content and adds a dismissible backdrop. The backdrop can be disabled.',
+        'inline / true',
+      ),
+      p(
+        'expandedWidth',
+        'CSS length',
+        'Expanded width; width remains the compact width. Scoped sidebar width tokens are the fallback.',
+        '248px',
+      ),
+      p(
+        'hoverOpenDelay / hoverCloseDelay',
+        'number',
+        'Pointer preview delays in milliseconds; keyboard focus opens immediately.',
+        '120 / 180',
+      ),
+      p(
         'items',
         'BottomNavigationItem[]',
         'Stable values, names, icons or avatars, links, badges and disabled states.',
@@ -246,7 +276,7 @@ export const refinementComponents: ComponentDefinition[] = [
       ),
     ],
     accessibility:
-      'A named navigation landmark with native links/buttons, disabled states and aria-current. Icon controls have accessible labels and tooltips. NavigationRail is the workspace column; the legacy SidebarRail remains the narrow collapse edge control.',
+      'A named navigation landmark with native links/buttons, disabled states and aria-current. Icon controls have accessible labels and tooltips; expanded rails show their labels. Keyboard focus holds hover previews open. Escape or a backdrop click dismisses overlay expansion; focus can leave normally because desktop previews are nonmodal. Backdrops are scoped to the enclosing SidebarProvider/AppShell or the viewport for a standalone rail. Use navigation-rail.frame/backdrop/label styling slots and sidebar.overlay-background/overlay-shadow tokens. NavigationRail is the workspace column; the legacy SidebarRail remains the narrow collapse edge control.',
   },
 ];
 export const refinementProps: Record<string, PropDefinition[]> = {

@@ -124,6 +124,11 @@ export default function RefinementExample({ slug, state = {} }: { slug: string; 
           onValueChange={setDestination}
           variant={choice(state, 'variant', ['attached', 'inset', 'floating'])}
           hideOnMobile={!!state.hideOnMobile}
+          expandOnHover={!!state.expandOnHover}
+          expansionMode={choice(state, 'expansionMode', ['inline', 'overlay'])}
+          expanded={!!state.expanded}
+          expandedWidth={Number(state.expandedWidth)}
+          overlayBackdrop={!!state.overlayBackdrop}
           aria-label="Workspaces"
           header={<UI.Strong aria-label="P.UI">p.</UI.Strong>}
           footer={

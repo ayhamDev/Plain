@@ -35,6 +35,48 @@ focus outline remains visible and uses `input.focus` or `select.focus`; error
 styling and explicitly chosen contrast variants remain available. Filled, ghost
 and theme-borderless fields do not gain a border when focused.
 
+## Hover navigation expansion
+
+Both navigation surfaces support optional temporary expansion and an overlay layout:
+
+```tsx
+<SidebarProvider defaultCollapsed expandOnHover expansionMode="overlay">
+  <Sidebar>
+    <SidebarHeader><SidebarTrigger />Workspace</SidebarHeader>
+    <SidebarContent><SidebarItem>Overview</SidebarItem></SidebarContent>
+  </Sidebar>
+  <SidebarInset><SidebarTrigger />Page content</SidebarInset>
+</SidebarProvider>
+
+<NavigationRail
+  items={destinations}
+  expandOnHover
+  expansionMode="overlay"
+  width={64}
+  expandedWidth={248}
+/>
+```
+
+Defaults remain manual expansion with inline layout. Overlay mode reserves compact
+width and expands above content, with a backdrop over the enclosing SidebarProvider
+or AppShell. Standalone rails use a viewport backdrop. Set `overlayBackdrop={false}`
+to omit it. Style `sidebar.overlay-background`, `sidebar.overlay-shadow` and the
+`sidebar.frame/backdrop` or `navigation-rail.frame/backdrop/label` slots. Feature-CSS
+consumers add `@plain/ui/sidebar.css` after `core.css`.
+
+`hoverOpenDelay` and `hoverCloseDelay` default to 120/180ms; focus opens immediately.
+Hover previews preserve pinned state. `useSidebar().collapsed` remains persistent;
+`expanded` and `hoverExpanded` expose effective visibility. The sidebar trigger pins
+a preview open. Place the trigger or SidebarRail inside Sidebar to keep that
+control above an overlay backdrop. NavigationRail adds `expanded`, `defaultExpanded`,
+`onExpandedChange` and `expandedWidth`; its `width` is the compact width.
+
+Escape and backdrop clicks dismiss expansion. Focus inside keeps a preview open;
+Tab can leave these nonmodal desktop surfaces normally. Hover requires a fine
+pointer and is disabled for mobile sidebars and offcanvas/none collapse modes.
+Mobile Sidebar still uses the original Sheet. Logical sides, long labels and
+reduced-motion policy apply to both components.
+
 ## Input appearances
 
 Text fields and picker controls share `variant="outlined" | "filled" | "ghost" |
