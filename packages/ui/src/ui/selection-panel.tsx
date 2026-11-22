@@ -42,7 +42,6 @@ export function SelectionPanel({
     panelNode.current = node;
     setPanel(node);
   }, []);
-  const heading = React.useRef<HTMLHeadingElement>(null);
   useSelectionViewport(panel, mode === 'sheet' && !styles.unstyled);
   if (mode === 'popover') {
     const { className, style, ...props } = popoverProps ?? {};
@@ -78,7 +77,6 @@ export function SelectionPanel({
       open={open && ready}
       onOpenChange={onOpenChange}
       repositionInputs={false}
-      handleOnly
     >
       <SheetContent
         data-presentation="sheet"
@@ -93,8 +91,9 @@ export function SelectionPanel({
                 flexDirection: 'column',
                 overflow: 'hidden',
                 padding: 0,
-                height: 'min(640px, calc(var(--_ui-selection-height, 100dvh) * 0.85))',
-                maxHeight: 'calc(var(--_ui-selection-height, 100dvh) - 8px)',
+                height: 'auto',
+                maxHeight:
+                  'min(640px, calc(var(--_ui-selection-height, 100dvh) * 0.85), calc(var(--_ui-selection-height, 100dvh) - 8px))',
                 bottom: 'var(--_ui-selection-bottom, 0px)',
               }
             : undefined
@@ -106,7 +105,7 @@ export function SelectionPanel({
             '[cmdk-input], [data-selection-search]',
           );
           if (keyboard && search) search.focus({ preventScroll: true });
-          else heading.current?.focus({ preventScroll: true });
+          else panelNode.current?.focus({ preventScroll: true });
         }}
         onCloseAutoFocus={(event) => {
           event.preventDefault();
@@ -121,16 +120,12 @@ export function SelectionPanel({
         <SheetHeader
           {...styles('selection.header', 'ui-selection-header')}
           style={
-            !styles.unstyled ? { margin: 0, padding: '12px 20px', paddingInlineEnd: 56 } : undefined
+            !styles.unstyled ? { margin: 0, padding: '12px 20px', paddingInlineEnd: 64 } : undefined
           }
         >
-          <SheetTitle ref={heading} tabIndex={-1}>
-            {title}
-          </SheetTitle>
+          <SheetTitle>{title}</SheetTitle>
         </SheetHeader>
-        <div {...styles('selection.body', 'ui-selection-body')} data-vaul-no-drag>
-          {children}
-        </div>
+        <div {...styles('selection.body', 'ui-selection-body')}>{children}</div>
         {multiple && (
           <div {...styles('selection.footer', 'ui-selection-footer')}>
             <SheetClose asChild>

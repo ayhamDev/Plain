@@ -285,7 +285,7 @@ export const components: ComponentDefinition[] = [
       prop(
         'presentation',
         'popover | auto | sheet',
-        'Opt into a mobile bottom sheet with auto, or force either surface. Composes the library Sheet for animation and gestures while retaining Radix selection, keyboard and form behavior. The sheet engine loads on first use.',
+        'Opt into a mobile bottom sheet with auto, or force either surface. The library Sheet supports dragging from its handle, title, header and unused space while options retain selection and scrolling. Radix keyboard and form behavior are preserved; the sheet engine loads on first use.',
         'popover',
       ),
       prop(
@@ -321,7 +321,7 @@ export const components: ComponentDefinition[] = [
       prop(
         'presentation',
         'popover | auto | sheet',
-        'auto uses a bottom sheet below 768px. The existing popover is retained by default.',
+        'auto uses a bottom sheet below 768px. Drag its handle, title, header or unused space while search and the scrolling list keep their own gestures. Short lists fit their content. The existing popover is retained by default.',
         'popover',
       ),
       prop('sheetTitle', 'ReactNode', 'Sheet title; falls back to aria-label or placeholder.'),

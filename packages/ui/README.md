@@ -404,8 +404,11 @@ The country list mounts a small visible window with TanStack Virtual in both
 popover and sheet presentations. Search covers the entire list, the active
 option stays mounted, and opening scrolls the selected country into view.
 Select's sheet presentation composes the original library Sheet and loads that
-engine on first sheet use, preserving animated entry/exit, handle gestures,
-selection, native form values and focus return.
+engine on first sheet use, preserving animated entry/exit, selection, native form
+values and focus return. Selection sheets can be dragged from the handle, title,
+header and unused space. Search, options and scrolling lists keep their own
+gestures. Short lists fit their content; longer lists scroll within the available
+viewport, with the search and multiple-selection Done action remaining visible.
 
 - `@plain/ui/charts` with `@plain/ui/charts.css`: charts, heatmap and Gantt.
 - `@plain/ui/full-calendar` with `@plain/ui/full-calendar.css`: scheduling and an

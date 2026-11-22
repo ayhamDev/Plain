@@ -27,7 +27,7 @@ const rtl = query.get('dir') === 'rtl';
 const requested = query.get('presentation');
 const presentation: SelectionPresentation =
   requested === 'popover' || requested === 'sheet' ? requested : 'auto';
-const teams = Array.from({ length: 36 }, (_, index) => ({
+const teams = Array.from({ length: query.has('short') ? 4 : 36 }, (_, index) => ({
   value: `team-${index + 1}`,
   label: rtl
     ? `الفريق ${index + 1} — التصميم والتطوير وتجربة المستخدم`

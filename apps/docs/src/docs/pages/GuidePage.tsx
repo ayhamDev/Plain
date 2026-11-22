@@ -2051,13 +2051,14 @@ export function ArabicBooking() {
           inside RTL layouts.
         </p>
         <p>
-          Searchable sheets keep one scrolling list, reachable actions and keyboard-aware height. A
-          surface stays stable until it closes when the viewport changes. MultiSelect keeps the
-          original form input and ref, with filtering inside the sheet and a localized Done action.
-          Native Select retains Radix listbox semantics in either presentation. Every UI change
-          requires mobile, localization and RTL review: verify 320px reflow, long translations,
-          software-keyboard space, focus return and scoped direction instead of only reducing a
-          desktop popover's width.
+          Searchable sheets fit short content and keep longer lists in one scrolling region with
+          reachable actions and keyboard-aware height. Drag from the handle, title, header or unused
+          space while search and options retain their own gestures. A surface stays stable until it
+          closes when the viewport changes. MultiSelect keeps the original form input and ref, with
+          filtering inside the sheet and a localized Done action. Native Select retains Radix
+          listbox semantics in either presentation. Every UI change requires mobile, localization
+          and RTL review: verify 320px reflow, long translations, software-keyboard space, focus
+          return and scoped direction instead of only reducing a desktop popover's width.
         </p>
       </GuideSection>
       <GuideSection title="Dates, numbers and application content">

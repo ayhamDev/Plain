@@ -33,7 +33,6 @@ export function SelectSheet({
       open={open}
       onOpenChange={onOpenChange}
       maxWidth={640}
-      handleOnly
       repositionInputs={false}
     >
       <SheetContent
@@ -62,7 +61,7 @@ export function SelectSheet({
                 {...styles('select.sheet-header', '', undefined, unstyled)}
                 style={
                   !(unstyled ?? styles.unstyled)
-                    ? { flexShrink: 0, margin: 0, padding: '12px 20px', paddingInlineEnd: 56 }
+                    ? { flexShrink: 0, margin: 0, padding: '12px 20px', paddingInlineEnd: 64 }
                     : undefined
                 }
               >
@@ -76,7 +75,7 @@ export function SelectSheet({
                 aria-label={t('panel.close')}
                 {...styles(
                   'select.sheet-close',
-                  'ui-interactive absolute top-3 end-3 flex size-11 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
+                  'ui-interactive absolute top-5 end-3 flex size-11 items-center justify-center rounded-ui text-muted-foreground hover:bg-muted hover:text-foreground',
                   undefined,
                   unstyled,
                 )}

@@ -26,10 +26,13 @@
 .ui-selection-header {
   flex-shrink: 0;
   padding: 16px 20px;
-  padding-inline-end: 56px;
+  padding-inline-end: 64px;
 }
-.ui-selection-header h2 {
-  outline: none;
+.ui-selection-sheet > [data-ui='sheet'][data-slot='close'] {
+  inset-block-start: 20px;
+  inset-inline-end: 12px;
+  inline-size: 44px;
+  block-size: 44px;
 }
 .ui-selection-body {
   display: flex;
@@ -38,11 +41,11 @@
   min-block-size: 0;
   min-inline-size: 0;
   overflow: hidden;
-  padding-block-end: max(8px, env(safe-area-inset-bottom));
+  padding: 4px 16px max(8px, env(safe-area-inset-bottom));
 }
 .ui-selection-body [cmdk-list] {
   max-block-size: none;
-  padding: 8px;
+  padding: 4px;
 }
 .ui-selection-body [cmdk-item] {
   min-block-size: 44px;
@@ -58,13 +61,14 @@
 }
 .ui-selection-footer > button {
   inline-size: 100%;
+  min-block-size: 44px;
 }
 .ui-selection-search {
   flex: 0 0 auto;
-  inline-size: calc(100% - 32px);
+  inline-size: 100%;
   min-inline-size: 0;
   min-block-size: 44px;
-  margin: 0 16px 8px;
+  margin: 0 0 8px;
   padding: 8px 12px;
   border: 1px solid var(--ui-input-border);
   border-radius: var(--ui-input-radius);
@@ -90,6 +94,7 @@
 }
 .ui-select-sheet [data-slot='viewport'] {
   max-block-size: calc(var(--_ui-selection-height, 100dvh) * 0.75 - 48px);
+  padding: 4px 8px max(8px, env(safe-area-inset-bottom));
 }
 .ui-select-sheet [data-slot='item'] {
   min-block-size: 44px;

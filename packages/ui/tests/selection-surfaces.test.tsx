@@ -81,6 +81,45 @@ function SelectExample({ presentation }: { presentation?: SelectionPresentation 
 }
 
 describe('responsive selection surfaces', () => {
+  it.each(['select', 'combobox', 'multi-select'] as const)(
+    '%s starts a sheet drag from its heading while leaving options and search alone',
+    async (kind) => {
+      const user = userEvent.setup();
+      const capture = vi.spyOn(Element.prototype, 'setPointerCapture');
+      try {
+        render(
+          kind === 'select' ? (
+            <SelectExample presentation="sheet" />
+          ) : kind === 'combobox' ? (
+            <Combobox aria-label="Team" presentation="sheet" options={options} />
+          ) : (
+            <MultiSelect aria-label="Team" presentation="sheet" options={options} />
+          ),
+        );
+        await user.click(screen.getByRole('combobox', { name: 'Team' }));
+        const sheet = await screen.findByRole('dialog');
+        // JSDOM has no stylesheet-backed transform for Vaul's release calculation.
+        sheet.style.transform = 'none';
+        const heading = within(sheet).getByRole('heading');
+        capture.mockClear();
+        fireEvent.pointerDown(heading, { pointerId: 1, button: 0, pointerType: 'mouse' });
+        expect(capture.mock.instances).toEqual([heading]);
+        fireEvent.pointerUp(heading, { pointerId: 1, pointerType: 'mouse' });
+        capture.mockClear();
+        for (const control of [
+          within(sheet).getByRole('option', { name: 'Design' }),
+          ...within(sheet).queryAllByRole('combobox'),
+        ]) {
+          fireEvent.pointerDown(control, { pointerId: 2, button: 0, pointerType: 'mouse' });
+          fireEvent.pointerUp(control, { pointerId: 2, pointerType: 'mouse' });
+        }
+        expect(capture).not.toHaveBeenCalled();
+      } finally {
+        capture.mockRestore();
+      }
+    },
+  );
+
   it('opens phone country search in a mobile sheet, selects once and restores the stable trigger', async () => {
     const user = userEvent.setup();
     const change = vi.fn();

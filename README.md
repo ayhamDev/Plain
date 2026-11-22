@@ -211,7 +211,7 @@ All library-owned text, validation and accessible labels use this provider. `Pla
 <PhoneInput presentation="auto" defaultCountry="EG" />
 ```
 
-The selected surface stays stable while open, even during rotation or resize. Searchable sheets have a fixed header, one scrolling list and keyboard-aware height; multiple selection adds a localized Done action. Native Select keeps Radix listbox navigation, typeahead and form behavior in both presentations. Per-component `sheetTitle` overrides are application-owned text. Search, empty states, Done and dismissal labels inherit the language provider. Generic popovers remain compositional: review each interaction and use `Sheet` for focused mobile tasks. Mobile, localization and RTL review are required by the repository contribution instructions.
+The selected surface stays stable while open, even during rotation or resize. Searchable sheets fit short content and constrain longer lists to one scrolling region with keyboard-aware height; multiple selection adds a localized Done action. Drag from the handle, title, header or unused space; search, option selection and list scrolling retain their own gestures. Native Select keeps Radix listbox navigation, typeahead and form behavior in both presentations. Per-component `sheetTitle` overrides are application-owned text. Search, empty states, Done and dismissal labels inherit the language provider. Generic popovers remain compositional: review each interaction and use `Sheet` for focused mobile tasks. Mobile, localization and RTL review are required by the repository contribution instructions.
 
 ## Documentation
 

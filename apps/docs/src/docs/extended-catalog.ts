@@ -930,7 +930,7 @@ const fields: DataTableFilterField<Invoice>[] = [
       p(
         'presentation',
         'popover | auto | sheet',
-        'auto uses a mobile sheet with its own search and Done action. Selection stays linked to the original form and ref.',
+        'auto uses a mobile sheet with its own search and Done action. Short lists fit their content; longer lists scroll. Drag the handle, title, header or unused space without interfering with search and options. Selection stays linked to the original form and ref.',
         'popover',
       ),
       p(

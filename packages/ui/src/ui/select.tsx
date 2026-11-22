@@ -208,15 +208,27 @@ export const SelectContent = /* @__PURE__ */ React.forwardRef<
         ...props.style,
       }}
     >
-      <SelectPrimitive.ScrollUpButton
-        {...styles('select.scroll-up', 'flex justify-center py-1', undefined, unstyled)}
-      >
-        <ChevronUp {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
-      </SelectPrimitive.ScrollUpButton>
+      {!sheet && (
+        <SelectPrimitive.ScrollUpButton
+          {...styles('select.scroll-up', 'flex justify-center py-1', undefined, unstyled)}
+        >
+          <ChevronUp {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
+        </SelectPrimitive.ScrollUpButton>
+      )}
       <SelectPrimitive.Viewport
         tabIndex={sheet ? 0 : undefined}
         {...(sheet ? { role: 'listbox', 'aria-labelledby': titleId } : {})}
         {...styles('select.viewport', 'min-h-0 p-1', undefined, unstyled)}
+        onScroll={
+          sheet
+            ? (event) => {
+                // The Sheet owns sizing. Cancel Radix's item-aligned popup expansion,
+                // which otherwise rewrites scrollTop when keyboard focus moves to an edge.
+                // The native scroll event is not cancelable; scrolling itself is preserved.
+                event.preventDefault();
+              }
+            : undefined
+        }
         style={
           sheet && !(unstyled ?? styles.unstyled)
             ? {
@@ -228,11 +240,13 @@ export const SelectContent = /* @__PURE__ */ React.forwardRef<
       >
         {children}
       </SelectPrimitive.Viewport>
-      <SelectPrimitive.ScrollDownButton
-        {...styles('select.scroll-down', 'flex justify-center py-1', undefined, unstyled)}
-      >
-        <ChevronDown {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
-      </SelectPrimitive.ScrollDownButton>
+      {!sheet && (
+        <SelectPrimitive.ScrollDownButton
+          {...styles('select.scroll-down', 'flex justify-center py-1', undefined, unstyled)}
+        >
+          <ChevronDown {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
+        </SelectPrimitive.ScrollDownButton>
+      )}
     </SelectPrimitive.Content>
   );
   if (sheet && sheetActive)
