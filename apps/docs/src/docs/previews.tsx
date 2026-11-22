@@ -196,6 +196,53 @@ function qrPreviewProps(state: State): Omit<UI.QRCodeProps, 'value'> {
 }
 
 export const propPreviews: Record<string, PropPreview> = {
+  'phone-input': {
+    defaults: {
+      variant: 'outlined',
+      defaultCountry: 'US',
+      international: true,
+      validation: 'possible',
+      showCountrySelect: true,
+      showInternationalOption: true,
+      disabled: false,
+      readOnly: false,
+      required: false,
+    },
+    controls: [
+      options('variant', inputVariants),
+      options('defaultCountry', ['US', 'GB', 'EG', 'SA', 'DE']),
+      bool('international'),
+      options('validation', ['possible', 'valid', 'off']),
+      bool('showCountrySelect'),
+      bool('showInternationalOption'),
+      bool('disabled'),
+      bool('readOnly'),
+      bool('required'),
+    ],
+    render: (s) => (
+      <div style={{ width: '100%', maxWidth: 360 }}>
+        <UI.Field label="Phone number" description="Choose a country, then enter your number.">
+          <UI.PhoneInput
+            key={String(s.defaultCountry)}
+            name="phone"
+            defaultCountry={choice(s, 'defaultCountry', ['US', 'GB', 'EG', 'SA', 'DE'])}
+            variant={choice(s, 'variant', inputVariants)}
+            international={!!s.international}
+            validation={
+              s.validation === 'off' ? false : choice(s, 'validation', ['possible', 'valid'])
+            }
+            showCountrySelect={!!s.showCountrySelect}
+            showInternationalOption={!!s.showInternationalOption}
+            disabled={!!s.disabled}
+            readOnly={!!s.readOnly}
+            required={!!s.required}
+          />
+        </UI.Field>
+      </div>
+    ),
+    code: (s) =>
+      `<Field label="Phone number" description="Choose a country, then enter your number."><PhoneInput name="phone" ${attr({ ...s, validation: s.validation === 'off' ? false : s.validation })} /></Field>`,
+  },
   'qr-code': {
     defaults: {
       size: 192,

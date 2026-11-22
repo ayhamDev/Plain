@@ -7,6 +7,86 @@ const p = (
 ): PropDefinition => ({ name, type, description, defaultValue });
 export const refinementComponents: ComponentDefinition[] = [
   {
+    slug: 'phone-input',
+    name: 'Phone input',
+    category: 'Forms',
+    description:
+      'International phone numbers with searchable countries, live formatting and native form support.',
+    imports: ['Field', 'PhoneInput'],
+    code: '<Field label="Phone number" description="Include your country calling code."><PhoneInput name="phone" defaultCountry="US" defaultValue="+12025550123" autoComplete="tel" /></Field>',
+    props: [
+      p(
+        'value / defaultValue',
+        'string',
+        'International digits including +. Use an empty string to clear. Incomplete edits can emit partial numbers.',
+      ),
+      p(
+        'onValueChange',
+        '(value: string, details: PhoneInputDetails) => void',
+        'Normalized digits and inferred country, possible-length and strict-validity flags. Empty edits emit an empty string.',
+      ),
+      p(
+        'onChange',
+        'ChangeEventHandler<HTMLInputElement>',
+        'Native visible-input event, separate from onValueChange. preventDefault cancels the edit.',
+      ),
+      p(
+        'defaultCountry / onCountryChange',
+        'PhoneCountry / (country?: PhoneCountry) => void',
+        'ISO 3166-1 alpha-2 country code and effective country-change notification. Pasted international numbers infer their country.',
+      ),
+      p(
+        'countries',
+        'readonly PhoneCountry[]',
+        'Restrict the country choices, for example ["US", "GB", "EG"].',
+      ),
+      p(
+        'international',
+        'boolean',
+        'true includes the calling code; false uses national formatting.',
+        'true',
+      ),
+      p(
+        'showCountrySelect / showInternationalOption',
+        'boolean',
+        'Hide the country picker or omit its country-independent international choice.',
+        'true',
+      ),
+      p(
+        'countryLabels / locale',
+        'Partial<Record<PhoneCountry, string>> / string',
+        'Override country names or their display locale. Provider locale supplies the default.',
+      ),
+      p(
+        'validation',
+        'possible | valid | false',
+        'Native constraint validation by possible length (default), stricter digit patterns, or application-owned validation. required is independent.',
+        'possible',
+      ),
+      p(
+        'variant',
+        'outlined | filled | ghost | contrast',
+        'All shared input appearances and input.* theme tokens.',
+        'outlined',
+      ),
+      p(
+        'smartCaret / countryCallingCodeEditable',
+        'boolean',
+        'Caret-aware formatting and calling-code editing.',
+        'true',
+      ),
+      p(
+        'name / form / required / disabled / readOnly / ref',
+        'native input props',
+        'The ref, labels and events target the actual tel input. FormData receives exactly one international value under name. Disabled controls are excluded.',
+      ),
+    ],
+    accessibility:
+      'Field labels and descriptions attach to the native tel input. Country selection uses a searchable keyboard combobox with Escape dismissal and focus restoration. Read-only inputs retain selection and form submission while preventing country changes. Digits stay LTR in RTL layouts. Validation uses native constraint validity; supply Field error text for a persistent explanation.',
+    usage:
+      'Import PhoneInput from @plain/ui or @plain/ui/phone-input with the shared @plain/ui/styles.css. Locale and translated messages inherit from the providers; country names use Intl.DisplayNames. Values are canonical international digits, not the formatted display; native pattern/minLength/maxLength apply to that display. Number validity does not establish ownership. Formatting is powered by react-phone-number-input with full libphonenumber metadata; no external flag images are requested. Use phone-input.* styling slots, input.* tokens or unstyled composition. Native form reset restores uncontrolled defaults without emitting an edit; controlled state remains application-owned.',
+  },
+  {
     slug: 'item',
     name: 'Item',
     category: 'Layout',

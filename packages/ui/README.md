@@ -1097,6 +1097,55 @@ Touch refresh uses a separate visual pull capped at 40px and a 28px loading hold
 scaled down for short scroll areas. `refreshThreshold` still controls the gesture
 needed to activate refresh independently of that visual feedback.
 
+## Phone numbers
+
+```tsx
+import { Field, PhoneInput } from '@plain/ui';
+import '@plain/ui/styles.css';
+
+<Field label="Phone number" description="Include your country calling code.">
+  <PhoneInput
+    name="phone"
+    defaultCountry="US"
+    defaultValue="+12025550123"
+    onValueChange={(value, { country, possible, valid }) => {
+      console.log(value, country, possible, valid);
+    }}
+  />
+</Field>;
+```
+
+`PhoneInput` is also available from `@plain/ui/phone-input`. The searchable country
+picker uses localized country names, ISO codes and calling codes. Numbers format
+as you type; native `onChange` receives the actual input event, while
+`onValueChange` receives international digits including `+`, or `''` when empty.
+Incomplete numbers can emit partial international values. The `name` field submits
+that normalized value exactly once; refs, labels, ARIA, focus and native events
+target the visible `type="tel"` input. Native `pattern`, `minLength` and `maxLength`
+apply to the formatted display. Extensions are not supported.
+
+Use `value` for controlled state or `defaultValue` for an initial value.
+Native form reset restores uncontrolled defaults and country without emitting an
+edit; controlled state stays application-owned. `required`, `readOnly`, `disabled`
+and external `form` owners are supported. `validation="possible"` checks length by
+default; `"valid"` also checks numbering patterns, and `false` leaves validation to
+the application. Validity does not establish ownership. Use `Field error` for a
+persistent explanation alongside native constraint validation.
+
+`countries` restricts picker choices; `defaultCountry` seeds the country and
+`onCountryChange` reports changes. Pasted international numbers infer their country.
+Set `international={false}` for national formatting, `showCountrySelect={false}`
+to hide the picker, or `showInternationalOption={false}` to omit its international
+choice. `countryCallingCodeEditable` and `smartCaret` default to true.
+
+All four input variants (`outlined`, `filled`, `ghost`, `contrast`), `input.*` theme
+tokens, typed `phone-input.*` styling slots, `tooltip` and `unstyled` are supported.
+Country names inherit the provider locale; `locale` and `countryLabels` override
+their display. Internal `phone.*` messages use `LanguageProvider`/`PlainProvider`.
+Country menus inherit scoped themes and direction; telephone digits stay LTR.
+The implementation uses `react-phone-number-input/max` and full phone metadata;
+country selection does not download flag images.
+
 ## Develop
 
 Install from the monorepo root with `npm ci`. Run

@@ -154,6 +154,14 @@ export function ComponentExample({ slug }: { slug: string }) {
           <RefinementExample slug={slug} />
         </React.Suspense>
       );
+    case 'phone-input':
+      return (
+        <div className="demo-form-stack">
+          <UI.Field label="Phone number" description="Choose a country, then enter your number.">
+            <UI.PhoneInput name="phone" defaultCountry="US" defaultValue="+12025550123" />
+          </UI.Field>
+        </div>
+      );
     case 'input':
       return (
         <div className="demo-form-stack">

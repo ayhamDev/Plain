@@ -168,6 +168,8 @@ for (const heavy of [
   'vaul',
   'react-resizable-panels',
   '/qrcode/',
+  'react-phone-number-input',
+  'libphonenumber-js',
 ])
   assert(!modules.some((id) => id.includes(heavy)), `Button bundle retained ${heavy}`);
 const bundle = buttonEagerChunks.map((chunk) => chunk.code).join('\n');
@@ -311,6 +313,25 @@ for (const directory of [consumer, minimumConsumer]) {
   );
   const peerPalette = await import(
     pathToFileURL(join(directory, 'node_modules/@plain/ui/dist/ui/color-palette.js')).href
+  );
+  const peerPhone = await import(
+    pathToFileURL(join(directory, 'node_modules/@plain/ui/dist/ui/phone-input.js')).href
+  );
+  assert.equal(peerPhone.PhoneInput, peerLibrary.PhoneInput);
+  const phone = peerServer.renderToString(
+    peerReact.createElement(peerPhone.PhoneInput, {
+      name: 'phone',
+      defaultCountry: 'US',
+      defaultValue: '+12025550123',
+      'aria-label': 'Phone number',
+    }),
+  );
+  assert(
+    phone.includes('type="tel"') &&
+      phone.includes('+1 202 555 0123') &&
+      phone.includes('value="+12025550123"') &&
+      (phone.match(/name="phone"/g) ?? []).length === 1,
+    `React ${peerReact.version} did not render the formatted phone and canonical form value.`,
   );
   assert.equal(peerPalette.createColorPalette, peerLibrary.createColorPalette);
   const peerColors = peerPalette.createColorPalette({ color: '#2563eb', mode: 'dark' });

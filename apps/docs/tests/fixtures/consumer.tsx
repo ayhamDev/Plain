@@ -11,6 +11,7 @@ import {
   LayoutPresence,
   Field,
   Input,
+  PhoneInput,
   Textarea,
   Item,
   ItemContent,
@@ -53,6 +54,7 @@ import {
   type TooltipOptions,
 } from '@plain/ui';
 import { Button as ModularButton } from '@plain/ui/primitives';
+import { PhoneInput as ModularPhoneInput, type PhoneInputProps } from '@plain/ui/phone-input';
 import { Textarea as ModularTextarea, type TextareaProps } from '@plain/ui/forms';
 import { Item as ModularItem, ItemActions, type ItemProps } from '@plain/ui/item';
 import { ChartSkeleton as ModularChartSkeleton } from '@plain/ui/charts';
@@ -141,6 +143,27 @@ export function ConsumerApp() {
           <ModularTableSort table={table} tooltip={{ content: 'Reorder records', align: 'end' }} />
         </ModularTooltipProvider>
         <H1 size="2xl">Project workspace</H1>
+        <Field label="Primary phone">
+          <PhoneInput
+            name="phone"
+            defaultCountry="US"
+            defaultValue="+12025550123"
+            variant="filled"
+          />
+        </Field>
+        <Field label="Other phone">
+          <ModularPhoneInput
+            {...({
+              defaultCountry: 'EG',
+              validation: 'valid',
+              international: true,
+              countryLabels: { EG: 'Egypt' },
+            } satisfies PhoneInputProps)}
+            onValueChange={(value, details) =>
+              console.log(value, details.country, details.possible)
+            }
+          />
+        </Field>
         <PaletteConsumer />
         <Item defaultSelected onSelectedChange={(value) => console.log(value)}>
           <ItemContent>

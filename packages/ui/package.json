@@ -17,6 +17,10 @@
   "module": "./dist/ui/index.js",
   "types": "./dist/ui/index.d.ts",
   "exports": {
+    "./phone-input": {
+      "types": "./dist/ui/phone-input.d.ts",
+      "import": "./dist/ui/phone-input.js"
+    },
     "./color-palette": {
       "types": "./dist/ui/color-palette.d.ts",
       "import": "./dist/ui/color-palette.js"
@@ -192,6 +196,7 @@
     "qrcode": "^1.5.4",
     "radix-ui": "^1.6.7",
     "react-day-picker": "^10.0.2",
+    "react-phone-number-input": "^3.4.18",
     "react-resizable-panels": "^4.14.1",
     "recharts": "^3.10.1",
     "sonner": "^2.0.8",

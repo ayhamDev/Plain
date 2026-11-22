@@ -1,0 +1,76 @@
+@layer components {
+  .ui-phone-input {
+    gap: 8px;
+    min-block-size: var(--ui-input-height, var(--ui-control-height));
+    padding-inline: 4px 8px;
+  }
+  .ui-phone-country {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    max-inline-size: 45%;
+    min-block-size: calc(var(--ui-input-height, var(--ui-control-height)) - 8px);
+    border: 0;
+    border-radius: min(var(--ui-input-radius, var(--ui-radius)), 4px);
+    padding: 4px 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    transition: background-color var(--ui-duration-fast) var(--ui-ease-standard);
+  }
+  .ui-phone-country:hover:not(:disabled) {
+    background: color-mix(in srgb, currentColor 7%, transparent);
+  }
+  .ui-phone-country:focus-visible {
+    outline: 2px solid var(--ui-input-focus);
+    outline-offset: -2px;
+  }
+  .ui-phone-country:disabled {
+    cursor: default;
+  }
+  .ui-phone-country-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .ui-phone-country-icon,
+  .ui-phone-country-check {
+    flex: 0 0 auto;
+    inline-size: 16px;
+    block-size: 16px;
+  }
+  .ui-phone-country-icon {
+    color: var(--ui-muted-foreground);
+  }
+  .ui-phone-number {
+    min-block-size: calc(var(--ui-input-height, var(--ui-control-height)) - 8px);
+    text-align: start;
+    font-variant-numeric: tabular-nums;
+  }
+  .ui-phone-country-content {
+    inline-size: 320px;
+    max-inline-size: min(calc(100vw - 32px), var(--radix-popover-content-available-width));
+  }
+  .ui-phone-country-list {
+    overscroll-behavior: contain;
+  }
+  .ui-phone-country-option {
+    min-block-size: 40px;
+    gap: 8px;
+  }
+  .ui-phone-country-name {
+    flex: 1;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+  .ui-phone-calling-code {
+    flex: 0 0 auto;
+    color: var(--ui-muted-foreground);
+    font-variant-numeric: tabular-nums;
+  }
+}

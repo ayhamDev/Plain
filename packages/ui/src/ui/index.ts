@@ -13,6 +13,7 @@ export * from './slots';
 export * from './primitives';
 export * from './chart-skeleton';
 export * from './forms';
+export * from './phone-input';
 export * from './overlays';
 export * from './navigation';
 export * from './command';
