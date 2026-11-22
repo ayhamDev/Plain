@@ -1,7 +1,7 @@
 # Versioned Documentation
 
 `docs/versions.json` is the single release registry. `/` follows the current
-package version; `/v/0.2.0/` is its explicit URL. Archived versions have their
+package version; `/v/0.3.0/` is its explicit URL. Archived versions have their
 own HTML, hashed assets, library implementation, examples, search index, API
 tables and guides. They do not render current components behind an old label.
 

@@ -32,7 +32,7 @@ for (const [width, height, dir, mode] of [
     await expect(panel).toHaveAttribute('dir', dir);
     await bounded(panel, width, height);
     const geometry = await panel.evaluate((node) => {
-      const list = node.querySelector('[cmdk-list]')!;
+      const list = node.querySelector('[data-ui="phone-input"][data-slot="list"]')!;
       return {
         panelOverflow: node.scrollHeight - node.clientHeight,
         listOverflow: list.scrollHeight - list.clientHeight,
@@ -203,7 +203,7 @@ test('touch scrolling stays in the country list and native Select supports RTL t
       .getByRole('combobox', { name: /الدولة:/ })
       .tap();
     const sheet = page.getByRole('dialog', { name: 'الدولة', exact: true });
-    const list = sheet.locator('[cmdk-list]');
+    const list = sheet.locator('[data-ui="phone-input"][data-slot="list"]');
     const bounds = (await list.boundingBox())!;
     const panelY = (await sheet.boundingBox())!.y;
     const start = await list.evaluate((node) => node.scrollTop);

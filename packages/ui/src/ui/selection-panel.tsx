@@ -1,16 +1,9 @@
 import * as React from 'react';
-import {
-  PopoverContent,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetClose,
-  SheetHandle,
-} from './overlays';
-import { Button } from './primitives';
+import { PopoverContent } from './popover';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetHandle } from './sheet';
+import { Button } from './button';
 import { useTranslation } from './i18n';
-import { useStyles } from './styling';
+import { useStyles } from './style-context';
 import { useSelectionViewport, type SelectionMode } from './selection-presentation';
 
 interface SelectionPanelProps {

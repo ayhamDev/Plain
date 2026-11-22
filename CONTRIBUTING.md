@@ -33,6 +33,14 @@ typecheck, lint, formatting, build, package, and browser checks. For documentati
 alone, check formatting, links, and factual API claims. Record what ran and what
 remains unverified; scope browser QA to affected workflows.
 
+Keep runtime implementations focused and import sibling implementations directly.
+Public root/grouped entries are compatibility re-export barrels; every declared
+runtime entry is a build entry. Add narrow component exports for new families.
+Run `npm run check:bundles` when changing imports, package boundaries or engines.
+Its budgets compare direct and grouped/root imports, reject unrelated retained
+engines, check public export identities and verify optional CSS outputs. Do not
+raise a budget to hide an unexplained regression.
+
 Mobile interaction, localization and RTL review are required for UI changes.
 Choose a mobile surface before implementing desktop placement: searchable choices,
 filters and focused editing usually need a bottom sheet, with an explicit override
@@ -54,10 +62,9 @@ breaking changes may use an agreed minor release, with explicit migration notes;
 Repo-only documentation does not automatically require a package bump.
 
 The local Changesets CLI and scripts are installed: `npm run changeset` creates an
-entry and `npm run release:status` previews the plan. The 0.2 version is already
-assigned during integration, so its local record lives in the changelog/release
-note and an empty Changeset acknowledges integration without a pending bump.
-Add entries for subsequent release changes.
+entry and `npm run release:status` previews the plan. The current 0.3.0 version
+has already consumed its release Changesets; its record lives in the changelog
+and release note. Add entries for subsequent package changes.
 See [.changeset/README.md](.changeset/README.md) for the format and versioning rules.
 
 Maintainers follow [docs/releases/README.md](docs/releases/README.md) to version,

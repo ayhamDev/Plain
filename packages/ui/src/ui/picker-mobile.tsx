@@ -1,19 +1,12 @@
 import * as React from 'react';
-import { SheetContent, SheetHeader, SheetTitle, SheetDescription } from './overlays';
-import { useStyles } from './styling';
+import { useMediaQuery } from './media-query';
+import { SheetContent, SheetHeader, SheetTitle, SheetDescription } from './sheet';
+import { useStyles } from './style-context';
 
 const query = '(max-width: 767px)';
-const subscribe = (update: () => void) => {
-  const media = window.matchMedia(query);
-  media.addEventListener('change', update);
-  return () => media.removeEventListener('change', update);
-};
-const snapshot = () => window.matchMedia(query).matches;
-const serverSnapshot = () => false;
 
 /** Callers freeze this choice at open so rotation never swaps an active focus trap. */
-export const useCompactPicker = () =>
-  React.useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+export const useCompactPicker = () => useMediaQuery(query);
 
 interface PickerMobileProps extends Omit<React.ComponentProps<typeof SheetContent>, 'title'> {
   temporal?: boolean;

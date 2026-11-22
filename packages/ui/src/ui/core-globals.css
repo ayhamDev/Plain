@@ -1,0 +1,115 @@
+@source './';
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme inline {
+  --color-background: var(--ui-background);
+  --color-foreground: var(--ui-foreground);
+  --color-surface: var(--ui-surface);
+  --color-muted: var(--ui-muted);
+  --color-muted-foreground: var(--ui-muted-foreground);
+  --color-border: var(--ui-border);
+  --color-input-border: var(--ui-input-border);
+  --color-accent: var(--ui-accent);
+  --color-accent-foreground: var(--ui-accent-foreground);
+  --color-accent-soft: var(--ui-accent-soft);
+  --color-danger: var(--ui-danger);
+  --color-danger-soft: var(--ui-danger-soft);
+  --color-primary: var(--ui-primary);
+  --color-primary-foreground: var(--ui-primary-foreground);
+  --color-primary-container: var(--ui-primary-container);
+  --color-primary-container-foreground: var(--ui-primary-container-foreground);
+  --color-secondary: var(--ui-secondary);
+  --color-secondary-foreground: var(--ui-secondary-foreground);
+  --color-secondary-container: var(--ui-secondary-container);
+  --color-secondary-container-foreground: var(--ui-secondary-container-foreground);
+  --color-tertiary: var(--ui-tertiary);
+  --color-tertiary-foreground: var(--ui-tertiary-foreground);
+  --color-tertiary-container: var(--ui-tertiary-container);
+  --color-tertiary-container-foreground: var(--ui-tertiary-container-foreground);
+  --color-accent-soft-foreground: var(--ui-accent-soft-foreground);
+  --color-inverse: var(--ui-inverse);
+  --color-inverse-foreground: var(--ui-inverse-foreground);
+  --color-surface-low: var(--ui-surface-low);
+  --color-surface-high: var(--ui-surface-high);
+  --radius-ui: var(--ui-radius);
+  --font-sans: var(--ui-font);
+  --shadow-popover: var(--ui-shadow);
+}
+
+@layer base {
+  * {
+    border-color: var(--ui-border);
+    letter-spacing: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--ui-scrollbar-thumb, var(--ui-border))
+      var(--ui-scrollbar-track, transparent);
+  }
+  body {
+    margin: 0;
+    font-family: var(--ui-font);
+    color: var(--ui-foreground);
+    background: var(--ui-background);
+    -webkit-font-smoothing: antialiased;
+  }
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ui-focus-ring);
+    outline-offset: 3px;
+  }
+  ::selection {
+    background: var(--ui-accent-soft);
+    color: var(--ui-accent-soft-foreground);
+  }
+  ::-webkit-scrollbar {
+    width: var(--ui-scrollbar-width, 8px);
+    height: var(--ui-scrollbar-width, 8px);
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--ui-scrollbar-track, transparent);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--ui-scrollbar-thumb, var(--ui-border));
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--ui-muted-foreground);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@layer components {
+  .ui-control {
+    min-height: var(--ui-control-height);
+  }
+}
+:where([data-motion='none'], [data-motion='reduced']) *,
+:where([data-motion='none'], [data-motion='reduced']) *::before,
+:where([data-motion='none'], [data-motion='reduced']) *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

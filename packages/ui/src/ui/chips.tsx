@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Check, X } from 'lucide-react';
-import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
+import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './style-context';
 import { useTranslation } from './i18n';
 
 interface ChipContextValue {
@@ -8,7 +8,7 @@ interface ChipContextValue {
   change: (value: string) => void;
   disabled?: boolean;
 }
-const ChipContext = React.createContext<ChipContextValue | null>(null);
+const ChipContext = /* @__PURE__ */ React.createContext<ChipContextValue | null>(null);
 export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, PlainStyleProps {
   value?: string;
   selected?: boolean;
@@ -23,7 +23,7 @@ export interface ChipProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
   onRemove?: () => void;
   removeLabel?: string;
 }
-export const Chip = React.forwardRef<HTMLButtonElement, ChipProps>(
+export const Chip = /* @__PURE__ */ React.forwardRef<HTMLButtonElement, ChipProps>(
   (
     {
       value,
@@ -110,7 +110,7 @@ export interface ChipGroupProps
   onValueChange?: (value: string[]) => void;
   disabled?: boolean;
 }
-export const ChipGroup = React.forwardRef<HTMLDivElement, ChipGroupProps>(
+export const ChipGroup = /* @__PURE__ */ React.forwardRef<HTMLDivElement, ChipGroupProps>(
   (
     {
       type = 'multiple',

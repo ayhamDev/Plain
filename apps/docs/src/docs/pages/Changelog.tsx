@@ -13,20 +13,37 @@ export default function Changelog() {
       <div className="page-eyebrow">Always considered</div>
       <h1>Changelog</h1>
       <p className="page-lead">Small improvements. A better starting point.</p>
-      <section className="release-entry" id="unreleased">
+      <section className="release-entry" id="release-0-3">
         <div className="release-meta">
-          <Badge variant="outline">Unreleased</Badge>
-          <span>Working checkout</span>
+          <Badge variant="solid">v0.3.0</Badge>
+          <span>November 22, 2026</span>
+          <Badge variant="outline">Local release</Badge>
         </div>
-        <h2>Documentation that follows your release</h2>
+        <h2>Smaller imports, mobile workflows, richer composition</h2>
         <p>
-          Complete documentation snapshots replace changelog-only version switching. Live prop
-          playgrounds include Select positioning, chart configuration and layout/calendar states.
-          Chart tooltip values now use paired surface colors; dialogs have gentler entry and exit
-          timing, with reduced-motion support.
+          Focused component modules and optional CSS groups reduce production bundles while
+          preserving root and grouped imports. The third release brings {components.length}{' '}
+          documented component families and complete archives of earlier documentation.
         </p>
-        <Link to="/docs/versions" className="text-link">
-          Documentation versions
+        <ul className="release-list">
+          {[
+            'Virtualized phone-country search and animated library Sheets for mobile choices.',
+            'Month/year selectors, mobile date steps and time wheels, persistent range selection and 12/24-hour controls.',
+            'Detached DataTable controls, independent toolbar options, List selection modes and reusable Item rows.',
+            'Dropzone, customizable QRCode with draw reveal and circular layouts, segmented progress and composable empty states.',
+            'Theme-coordinated color utilities, activity heatmaps, refined Gantt timelines and shape-aware chart skeletons.',
+            'Provider localization, scoped RTL, local token overrides, tooltip props and shared input appearances.',
+            'Layout presence, quieter interaction states, expandable scrollbars and optional restrained desktop elasticity.',
+            'Production import/CSS guidance and bundle regression checks for the compiled package.',
+          ].map((item) => (
+            <li key={item}>
+              <Check size={15} aria-hidden="true" />
+              {item}
+            </li>
+          ))}
+        </ul>
+        <Link to="/docs/upgrade-0-3" className="text-link">
+          Upgrade to 0.3
           <ArrowRight size={14} aria-hidden="true" />
         </Link>
       </section>
@@ -43,7 +60,7 @@ export default function Changelog() {
         </p>
         <ul className="release-list">
           {[
-            `${components.length} documented component families with live examples and typed APIs.`,
+            '91 documented component families at the original 0.2 integration, with live examples and typed APIs.',
             'Original neutral defaults, opt-in seed-generated palettes and independent component overrides.',
             'Semantic typography: H1-H6, P, A, code, quotes and lists with native props and refs.',
             'Border, density, radius, contrast and motion policies; reusable component extensions.',

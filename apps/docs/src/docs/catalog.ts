@@ -285,7 +285,7 @@ export const components: ComponentDefinition[] = [
       prop(
         'presentation',
         'popover | auto | sheet',
-        'Opt into an adaptive mobile bottom sheet with auto, or force either surface. Retains Radix selection, keyboard and form behavior.',
+        'Opt into a mobile bottom sheet with auto, or force either surface. Composes the library Sheet for animation and gestures while retaining Radix selection, keyboard and form behavior. The sheet engine loads on first use.',
         'popover',
       ),
       prop(
@@ -1264,6 +1264,7 @@ export function componentCode(component: ComponentDefinition) {
     .join('\n')}\n    </>\n  );\n}`;
 }
 export const guideLinks = [
+  { slug: 'upgrade-0-3', title: 'Upgrade to 0.3' },
   { slug: 'introduction', title: 'Introduction' },
   { slug: 'installation', title: 'Installation' },
   { slug: 'versions', title: 'Documentation versions' },

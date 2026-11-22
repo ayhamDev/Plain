@@ -47,19 +47,15 @@ import {
   X,
 } from 'lucide-react';
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from './table';
-import {
-  Input,
-  Checkbox,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from './forms';
+import { Input } from './input';
+import { Checkbox } from './checkbox';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './select';
 import { numberFormatter, useTranslation } from './i18n';
 import { DataTableFilterValue } from './data-table-filter-value';
-import { Button, EmptyState, Spinner } from './primitives';
-import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
+import { Button } from './button';
+import { EmptyState } from './empty-state';
+import { Spinner } from './spinner';
+import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './style-context';
 import {
   tableQuery,
   testTableFilter,

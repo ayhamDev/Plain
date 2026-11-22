@@ -1436,6 +1436,7 @@ button {
   line-height: 25px;
   color: var(--ui-muted-foreground);
   margin-block: 12px;
+  overflow-wrap: anywhere;
 }
 .doc-section p code,
 .doc-section > code {

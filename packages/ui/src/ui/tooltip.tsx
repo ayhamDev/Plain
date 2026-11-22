@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Tooltip as TooltipPrimitive } from 'radix-ui';
-import { useStyles, usePortalContainer, type PlainStyleProps } from './styling';
+import { useStyles, usePortalContainer, type PlainStyleProps } from './style-context';
 import {
   TooltipSettingsContext,
   useTooltipProviderSettings,

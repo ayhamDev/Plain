@@ -1,36 +1,72 @@
 # P.UI Changelog
 
-Package history and pending release scope. Released entries describe verified
-local builds unless publication is explicitly recorded. Pending scope must be
-reconciled with the integrated package before release.
+## 0.3.0 — November 22, 2026
 
-## Unreleased
+Third local release of `@plain/ui`. Registry publication is a separate action.
 
-- Build complete documentation archives from immutable release revisions, with
-  isolated implementations, assets, API tables, guides, search and downloads.
-  Version switching retains available deep links; missing pages fall back to the
-  target release's appropriate index instead of its changelog. Register and freeze
-  future versions through `docs/versions.json` and the documented release workflow.
-- Add 54 interactive prop playgrounds with matching, typechecked copyable source,
-  including both Select positioning strategies and chart/layout/calendar states.
-- Add configurable native chart axes, grids, legends and tooltips, stacking, curves
-  and dashed series. Pair tooltip surface/foreground tokens to restore visible
-  values in dark mode; use slimmer bars and restrained legend text.
-- Use 320ms dialog entry and 200ms exit by default, with independent timing aliases
-  and subtle centered travel. Reduced/none motion remains supported.
+### Production imports and rendering
 
-- Refine opt-in seeded themes with low-chroma elevated surfaces and quieter structural borders;
-  keep the original 0.1 neutral defaults and standard Material text/action contrast.
-- Generate theme-coordinated categorical chart palettes rather than reusing action/error roles.
-  Infer distinct colors for composed series; add unique area gradients, restrained grids,
-  and compact configurable tooltip indicators with tabular values. Explicit colors/fills win.
+- Split component implementations and add direct component/chart entries while
+  retaining compatible root/grouped exports and component identities.
+- Separate chart engines and time-only controls from unrelated renderers. Preserve
+  optional tooltip, generated-theme and Sheet loading boundaries.
+- Add optional core, inputs, collections, calendar, sidebar, data-table and QR CSS
+  exports alongside the complete stylesheet. Keep CSS side effects and declarations.
+- Share responsive subscriptions, stabilize unchanged styling providers, virtualize
+  phone-country options and add production bundle/export regression checks.
+
+### Controls and composition
+
+- Add PhoneInput with localized country names/search, international formatting,
+  canonical form values, country restrictions, validation and selection presentation.
+- Use the original animated Sheet for Select sheet presentation, preserving Radix
+  keyboard/typeahead selection and form behavior; support optional responsive
+  surfaces for Select, Combobox and MultiSelect.
+- Add reusable Item, selectable List, Dropzone and customizable QRCode. QRCode uses
+  the final draw reveal with reduced-motion support, circular dot fields, module/
+  finder styles, gradients and center logos; superseded motion presets are removed.
+- Expose detached DataTable controls sharing a table instance. Allow independent
+  search/filter/sort/columns/pagination/selection visibility, remote operations and
+  ordinary/selection modes; avoid duplicate badges in simple-filter mode.
+- Add segmented/colorable Progress, card variants and richer empty-state slots,
+  unlimited composed actions and content, underlined/scrollable tabs, shared input
+  appearances, optional textarea resizing and first-class tooltip props.
+
+### Mobile, localization and motion
+
+- Add provider-wide English/Arabic messages, locale/time-zone formatting, custom
+  translations, RTL direction and scoped portal inheritance.
+- Use library month/year Select navigation, readable caption values, mobile date
+  sheets and date-then-time steps. Keep range pickers open for review. Time pickers
+  support one-minute defaults, stable wheels, whole-trigger activation and 12/24h APIs.
+- Improve full-viewport Sheet/Drawer sizing, corner transitions, content-safe drag
+  gestures and surface continuation during overdrag. Animate shared resize handles.
+- Match the documented Dialog entry/exit defaults of 320ms/200ms while retaining
+  component timing tokens and reduced-motion behavior.
+- Add layout presence for initial/add/remove lifecycles. Refine scroll-area thumb
+  expansion, configurable edge fades and optional restrained desktop elasticity.
+- Keep buttons stationary on hover/press, retain field focus outlines without
+  darkening resting borders, use quieter card states and inverse toast contrast.
+
+### Visualization and documentation
+
+- Refine Gantt timelines, dependencies, view modes and task details. Add activity
+  heatmap presentation and shape-aware chart skeletons with stable geometry.
+- Add deterministic theme-coordinated color utilities; default charts follow tonal
+  theme colors while explicit series colors remain authoritative.
+- Document 0.3 migration, production imports/CSS groups, current APIs and interactive
+  examples. Preserve pinned 0.2 and 0.1 documentation, search, previews and downloads.
+- Move source into independently versioned package/workspace boundaries. Blocks
+  and templates remain application-owned documentation source, not library exports.
+
+See the repository's docs/releases/0.3.0.md for validation and migration evidence.
 
 ### 0.2.0 Candidate
 
 P.UI is the product name; `@plain/ui` is the package, already assigned version
 `0.2.0` during integration. This entry records the integrated local candidate,
-not a registry publication. Final validation is recorded in [QA.md](QA.md).
-See [migration and review notes](docs/releases/0.2.0.md).
+not a registry publication. Final validation is recorded in [QA.md](../../QA.md).
+See [migration and review notes](../../docs/releases/0.2.0.md).
 
 #### Breaking Changes
 

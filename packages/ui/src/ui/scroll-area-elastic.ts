@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useMotionSettings } from './motion-policy';
-import type { TextDirection } from './styling';
+import type { TextDirection } from './style-context';
 
 /** Desktop wheel feedback only. Native scrolling owns the scroll position. */
 export function useScrollAreaElastic(

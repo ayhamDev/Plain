@@ -57,11 +57,50 @@
     max-inline-size: min(calc(100vw - 32px), var(--radix-popover-content-available-width));
   }
   .ui-phone-country-list {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    min-inline-size: 0;
+    overflow: auto;
     overscroll-behavior: contain;
+    scroll-padding-block: 8px;
+    contain: layout style;
+  }
+  .ui-phone-country-choices {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-block-size: 0;
+    min-inline-size: 0;
+  }
+  .ui-phone-country-search {
+    --ui-input-height: 44px;
+    flex-shrink: 0;
+    padding-inline: 8px;
+    border-block-end: 1px solid var(--ui-border);
+  }
+  .ui-phone-country-search [data-slot='root'] {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .ui-phone-country-empty {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--ui-muted-foreground);
   }
   .ui-phone-country-option {
-    min-block-size: 40px;
+    display: flex;
+    align-items: center;
+    min-block-size: 44px;
     gap: 8px;
+    padding: 10px 12px;
+    border-radius: min(var(--ui-radius), 4px);
+    font-size: 14px;
+    line-height: 24px;
+    cursor: default;
+  }
+  .ui-phone-country-option[data-active='true'] {
+    background: var(--ui-muted);
   }
   .ui-phone-country-name {
     flex: 1;

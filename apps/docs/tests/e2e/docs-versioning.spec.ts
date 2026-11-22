@@ -34,6 +34,28 @@ async function noOverflow(page: Page) {
   );
 }
 
+test('third-release docs retain a pinned 0.2 archive and a current upgrade path', async ({
+  page,
+  request,
+}) => {
+  const manifest = (await (await request.get('/docs-versions.json')).json()) as DocsVersionManifest;
+  expect(manifest.current).toBe('0.3.0');
+  const previous = manifest.versions.find((entry) => entry.version === '0.2.0')!;
+  expect(previous.status).toBe('archived');
+  expect(previous.ref).toBe('c479dbbee28a0248c6fb834291c01f5a03f6dc28');
+  expect(previous.routes).not.toContain('/docs/upgrade-0-3');
+  await page.goto('/v/0.3.0/docs/upgrade-0-3');
+  await expect(page.getByRole('heading', { name: 'Upgrade to 0.3', exact: true })).toBeVisible();
+  await expect(page.locator('main')).toContainText('plain-ui-0.3.0.tgz');
+  await choose(page, page.getByRole('combobox', { name: 'Library version', exact: true }), '0.2.0');
+  await expect(page).toHaveURL(/\/v\/0\.2\.0\/$/);
+  await expect(page.locator('script[type="module"]').first()).toHaveAttribute(
+    'src',
+    /\/v\/0\.2\.0\/assets\//,
+  );
+  expect((await request.get('/v/0.2.0/plain-ui-0.2.0.tgz')).ok()).toBe(true);
+});
+
 test('version switching preserves a page, query, fragment, reload, search and package identity', async ({
   page,
   baseURL,
@@ -198,6 +220,7 @@ for (const profile of [
       'item-aligned',
     );
     await expect(playground.getByRole('combobox', { name: 'side', exact: true })).toBeDisabled();
+    await team.evaluate((node) => node.scrollIntoView({ block: 'center' }));
     await team.click();
     const selected = (await page
       .getByRole('option', { name: 'Engineering', exact: true })

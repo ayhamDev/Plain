@@ -35,7 +35,8 @@ import {
 } from '@plain/ui';
 import { CodeBlock } from '../shared';
 import { useAppPreferences } from '../preferences';
-import { useDocsVersions, versionDestination } from '../versioning';
+import { currentDocsVersion, useDocsVersions, versionDestination } from '../versioning';
+import { UpgradeGuide } from './UpgradeGuide';
 import {
   InstanceOverridesExample,
   ScopedOverridesExample,
@@ -53,7 +54,12 @@ const guideInfo: Record<string, { title: string; description: string }> = {
   },
   installation: {
     title: 'Installation',
-    description: 'Use @plain/ui 0.2, its precompiled styles, and the optional entries you need.',
+    description: 'Use @plain/ui 0.3, its precompiled styles, and the optional entries you need.',
+  },
+  'upgrade-0-3': {
+    title: 'Upgrade to 0.3',
+    description:
+      'The third release: focused imports, mobile controls and composable application workflows.',
   },
   versions: {
     title: 'Documentation versions',
@@ -806,13 +812,14 @@ function Introduction() {
           ))}
         </div>
       </GuideSection>
-      <GuideSection title="What changes in 0.2">
+      <GuideSection title="What changes in 0.3">
         <p>
-          The package name changes from <code>@plainui/react</code> to <code>@plain/ui</code>.
-          Update JavaScript and stylesheet imports together. Version 0.2 adds layered color roles,
-          brand extensions, responsive and virtual layouts, date/time controls, optional charts and
-          scheduling, motion policies, blocks, and templates. Review Sheet direction at its root
-          when migrating to the Vaul-backed implementation.
+          Focused imports and optional CSS groups make production bundles smaller. Mobile selection
+          uses library sheets, phone countries are virtualized, and date/time controls support
+          mobile workflows. List, Item, detached DataTable controls, Dropzone, QRCode, provider
+          localization and theme-coordinated colors expand application composition.
+          <Link to="/docs/upgrade-0-3"> Read the 0.3 upgrade guide.</Link> The package name remains
+          <code> @plain/ui</code>; 0.1 consumers also need the historical package rename.
         </p>
       </GuideSection>
       <Alert>
@@ -831,14 +838,14 @@ function Installation() {
     <>
       <GuideSection title="1. Install the local package">
         <p>
-          This workspace describes the 0.2 release; it does not establish npm publication. Build and
+          This workspace describes the 0.3 release; it does not establish npm publication. Build and
           pack the repository, then install the resulting archive in a consuming project.
         </p>
-        <CodeBlock language="sh" title="In the P.UI workspace" code={`npm install\nnpm pack`} />
+        <CodeBlock language="sh" title="In the P.UI workspace" code={`npm ci\nnpm run pack:ui`} />
         <CodeBlock
           language="sh"
           title="In your React application"
-          code="npm install ./plain-ui-0.2.0.tgz"
+          code={`npm install ./plain-ui-${currentDocsVersion}.tgz`}
         />
         <p>
           React and React DOM are peers supporting React 18.3 or 19. Local build tooling requires
@@ -1754,10 +1761,11 @@ function VersionsGuide() {
       </GuideSection>
       <GuideSection title="Stable URLs and historical behavior">
         <p>
-          Unversioned URLs follow the current release. Use <code>/v/0.2.0/components/select</code>{' '}
-          for an explicit version, or <code>/v/0.1.0/components/select</code> for the original 0.1
-          implementation. Refresh, internal navigation, and search stay in the chosen version. The
-          current release tracks this checkout until it is frozen at a Git revision.
+          Unversioned URLs follow the current release. Use{' '}
+          <code>{`/v/${currentDocsVersion}/components/select`}</code> for an explicit version, or{' '}
+          <code>/v/0.1.0/components/select</code> for the original 0.1 implementation. Refresh,
+          internal navigation, and search stay in the chosen version. The current release tracks
+          this checkout until it is frozen at a Git revision.
         </p>
         <p>
           Archives are historical references, not backported fixes. The 0.1 package remains
@@ -2183,8 +2191,9 @@ function Performance() {
       <GuideSection title="Keep optional engines out of unrelated routes">
         <p>
           The package uses ESM modules and CSS side effects so bundlers can remove unused exports.
-          Use root imports for ordinary controls and the optional motion/charts/full-calendar
-          entries for the workflows that need them. Lazy-load reports, schedules, and secondary
+          Root and grouped imports remain supported. Direct component entries such as
+          @plain/ui/input, @plain/ui/number-input, @plain/ui/bar-chart and @plain/ui/time-picker
+          isolate the implementation you use. Lazy-load reports, schedules, and secondary
           application views; measure the production bundle rather than assuming an import style
           alone proves tree-shaking.
         </p>
@@ -2192,6 +2201,14 @@ function Performance() {
         <p>The Reports module is your application view, with a default component export.</p>
       </GuideSection>
       <GuideSection title="Static styles and generated roles">
+        <p>
+          Keep @plain/ui/styles.css for the complete core library. For a smaller styled entry,
+          import @plain/ui/core.css once and add feature CSS as needed. Inputs/choices use
+          inputs.css; collections use collections.css; date controls add calendar.css; sidebars,
+          data tables and QR codes have sidebar.css, data-table.css and qr-code.css. Charts and
+          scheduling retain their separate charts.css and full-calendar.css. Do not combine core.css
+          with styles.css.
+        </p>
         <p>
           Component CSS is precompiled. Providers update custom properties and data attributes;
           classes merge during render. createTheme computes color maps and optional CSS text, so
@@ -2206,6 +2223,12 @@ function Performance() {
           the dataset demands them. Virtual layouts reduce mounted content, not downloaded records.
           An accessible data table for a chart can also be large; choose aggregation, pagination, or
           an equivalent data alternative deliberately.
+        </p>
+        <p>
+          PhoneInput virtualizes its country options in both presentations while filtering the full
+          list and retaining the active descendant. Responsive components share one media-query
+          listener per query; fixed presentation and column settings do not subscribe. Theme color
+          generation and tooltip engines remain deferred until needed.
         </p>
         <p>
           Profile actual interactions, including hidden-tab reveal, panel resizing, filtering, and
@@ -2234,6 +2257,7 @@ export default function GuidePage() {
   const body: Record<string, React.ReactNode> = {
     introduction: <Introduction />,
     installation: <Installation />,
+    'upgrade-0-3': <UpgradeGuide />,
     versions: <VersionsGuide />,
     localization: <LocalizationGuide />,
     'data-tables': <DataTablesGuide />,
@@ -2264,7 +2288,7 @@ export default function GuidePage() {
           Explore the components
           <ArrowRight size={14} aria-hidden="true" />
         </Link>
-        <Badge variant="outline">v0.2.0</Badge>
+        <Badge variant="outline">v{currentDocsVersion}</Badge>
       </div>
     </article>
   );

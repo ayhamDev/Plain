@@ -336,8 +336,8 @@
   --ui-dialog-border: var(--ui-border);
   --ui-dialog-radius: var(--ui-radius-lg);
   --ui-dialog-shadow: var(--ui-shadow-lg);
-  --ui-dialog-duration-enter: var(--ui-duration-slow);
-  --ui-dialog-duration-exit: var(--ui-duration-normal);
+  --ui-dialog-duration-enter: 320ms;
+  --ui-dialog-duration-exit: 200ms;
   --ui-sheet-background: var(--ui-surface);
   --ui-sheet-foreground: var(--ui-foreground);
   --ui-sheet-border: var(--ui-border);

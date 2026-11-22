@@ -70,6 +70,28 @@ await writeFile(
   JSON.stringify({ name: 'plainui-package-check', private: true, type: 'module' }),
 );
 await copyFile(resolve('apps/docs/tests/fixtures/consumer.tsx'), join(consumer, 'consumer.tsx'));
+const publicEntries = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8')).exports;
+await writeFile(
+  join(consumer, 'public-entries.tsx'),
+  Object.entries(publicEntries)
+    .map(([name, target], index) => {
+      const specifier = name === '.' ? '@plain/ui' : '@plain/ui/' + name.slice(2);
+      return target.import
+        ? `import * as Entry${index} from ${JSON.stringify(specifier)}; void Entry${index};`
+        : `import ${JSON.stringify(specifier)};`;
+    })
+    .join('\n') + '\n',
+);
+for (const entry of [
+  'color-palette',
+  'color-theme',
+  'token-contract',
+  'chart-palette',
+  'table-filter',
+]) {
+  const code = await readFile(join(packageRoot, `dist/ui/${entry}.js`), 'utf8');
+  assert(!/^['"]use client['"]/.test(code), `${entry} must remain a server-safe utility entry`);
+}
 await writeFile(join(consumer, 'button-only.ts'), "export { Button } from '@plain/ui';\n");
 await writeFile(
   join(consumer, 'palette-only.ts'),

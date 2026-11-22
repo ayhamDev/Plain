@@ -7,9 +7,9 @@ import PhoneNumberInput, {
   parsePhoneNumber,
   type Country,
 } from 'react-phone-number-input/max';
-import { Check, ChevronDown, Globe } from 'lucide-react';
-import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from './command';
-import { Popover, PopoverTrigger } from './overlays';
+import { ChevronDown, Globe } from 'lucide-react';
+import { PhoneCountryList } from './phone-country-list';
+import { Popover, PopoverTrigger } from './popover';
 import { SelectionPanel } from './selection-panel';
 import { useSelectionPresentation, type SelectionPresentation } from './selection-presentation';
 import { inputVariantClass, type InputVariant } from './input-variants';
@@ -20,7 +20,7 @@ import {
   useDirection,
   useStyles,
   type PlainStyleProps,
-} from './styling';
+} from './style-context';
 
 export type PhoneCountry = Country;
 
@@ -154,7 +154,19 @@ function PhoneCountryPicker({
   const availableOpen = open && !disabled && !readOnly;
   const { mode, ready } = useSelectionPresentation(context.presentation, availableOpen);
   const popupId = React.useId();
-  const choices = options.filter((option) => !option.divider);
+  const choices = React.useMemo(() => options.filter((option) => !option.divider), [options]);
+  const countryOptions = React.useMemo(
+    () =>
+      choices.map((option) => ({
+        id: option.value ?? 'international',
+        label: option.label,
+        englishLabel: option.value
+          ? (context.englishNames.of(option.value) ?? option.value)
+          : option.label,
+        callingCode: option.value ? '+' + getCountryCallingCode(option.value) : '',
+      })),
+    [choices, context.englishNames],
+  );
   const label = choices.find((option) => option.value === value)?.label ?? t('phone.international');
   const callingCode = value ? `+${getCountryCallingCode(value)}` : '';
   if (!context.showCountrySelect) return null;
@@ -193,48 +205,18 @@ function PhoneCountryPicker({
         returnFocusRef={trigger}
         popoverProps={styles('phone-input.content', 'ui-phone-country-content')}
       >
-        <Command label={t('phone.searchCountry')} defaultValue={value ?? 'international'}>
-          <CommandInput
-            placeholder={t('phone.searchCountry')}
-            aria-label={t('phone.searchCountry')}
-          />
-          <CommandList
-            aria-label={t('phone.country')}
-            {...styles('phone-input.list', 'ui-phone-country-list')}
-            style={!styles.unstyled ? { maxHeight: mode === 'sheet' ? 'none' : 320 } : undefined}
-          >
-            <CommandEmpty>{t('phone.noCountries')}</CommandEmpty>
-            {choices.map((option) => (
-              <CommandItem
-                key={option.value ?? 'international'}
-                value={option.value ?? 'international'}
-                keywords={[
-                  option.label,
-                  option.value ? `+${getCountryCallingCode(option.value)}` : '',
-                  option.value ? (context.englishNames.of(option.value) ?? option.value) : '',
-                ]}
-                {...styles('phone-input.option', 'ui-phone-country-option')}
-                onSelect={() => {
-                  context.onSelectCountry(option.value);
-                  onChange(option.value);
-                  setOpen(false);
-                }}
-              >
-                <Check
-                  {...styles('phone-input.selected-icon', 'ui-phone-country-check')}
-                  aria-hidden="true"
-                  style={{ opacity: option.value === value ? 1 : 0 }}
-                />
-                <span {...styles('phone-input.option-name', 'ui-phone-country-name')}>
-                  {option.label}
-                </span>
-                <bdi dir="ltr" {...styles('phone-input.calling-code', 'ui-phone-calling-code')}>
-                  {option.value ? `+${getCountryCallingCode(option.value)}` : ''}
-                </bdi>
-              </CommandItem>
-            ))}
-          </CommandList>
-        </Command>
+        <PhoneCountryList
+          value={value ?? 'international'}
+          sheet={mode === 'sheet'}
+          options={countryOptions}
+          onDismiss={() => setOpen(false)}
+          onSelect={(id) => {
+            const country = id === 'international' ? undefined : (id as PhoneCountry);
+            context.onSelectCountry(country);
+            onChange(country);
+            setOpen(false);
+          }}
+        />
       </SelectionPanel>
     </Popover>
   );

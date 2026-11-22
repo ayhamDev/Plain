@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { TextDirection } from './styling';
+import type { TextDirection } from './style-context';
 
 export type ScrollAreaFadeEdge = 'top' | 'bottom' | 'start' | 'end';
 export interface ScrollAreaFadeOptions {

@@ -1,8 +1,9 @@
-import { MultiSelect } from './advanced';
-import { Input, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
-import { DatePicker } from './calendar';
+import { MultiSelect } from './multi-select';
+import { Input } from './input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './select';
+import { DatePicker } from './date-picker';
 import { dateFormatter, numberFormatter, useTranslation } from './i18n';
-import { useStyles } from './styling';
+import { useStyles } from './style-context';
 import { Chip } from './chips';
 import { TableMenu, type TableMenuPresentation } from './table-menu';
 import { filterOperators, type DataTableFilter, type DataTableFilterField } from './table-filter';

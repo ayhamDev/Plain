@@ -13,8 +13,7 @@ export function uiSourceAliases(): Alias[] {
     const target = conditions.import ?? conditions.default!;
     const source = target
       .replace('./dist/', './src/')
-      .replace('charts-styles.css', 'ui/charts.css')
-      .replace('full-calendar-styles.css', 'ui/full-calendar.css')
+      .replace(/^\.\/src\/([\w-]+)-styles\.css$/, './src/ui/$1.css')
       .replace('./src/tokens.css', './src/ui/tokens.css');
     const file = source.endsWith('.js')
       ? [source.replace(/\.js$/, '.ts'), source.replace(/\.js$/, '.tsx')].find((candidate) =>

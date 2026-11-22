@@ -48,7 +48,7 @@ test('development aliases cover public exports without leaking private entry poi
   }
   for (const name of [
     '@plain/ui/src/ui/forms',
-    '@plain/ui/table-filter',
+    '@plain/ui/phone-country-list',
     '@plain/icon',
     '@plain/ui/forms/private',
   ])

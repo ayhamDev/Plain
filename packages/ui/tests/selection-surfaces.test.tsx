@@ -33,7 +33,9 @@ beforeEach(() => {
   compact = true;
   originalMatchMedia = window.matchMedia;
   window.matchMedia = vi.fn((query: string) => ({
-    matches: query === '(max-width: 767px)' && compact,
+    get matches() {
+      return query === '(max-width: 767px)' && compact;
+    },
     media: query,
     onchange: null,
     addListener: vi.fn(),
@@ -145,7 +147,8 @@ describe('responsive selection surfaces', () => {
       );
       const trigger = screen.getByRole('combobox', { name: 'Team' });
       await user.click(trigger);
-      const list = screen.getByRole('listbox');
+      const list = await screen.findByRole('listbox');
+      await waitFor(() => expect(screen.getByRole('option', { name: 'Design' })).toHaveFocus());
       expect((screen.queryByRole('dialog') ?? list).classList.contains('ui-select-sheet')).toBe(
         presentation !== undefined,
       );
@@ -161,6 +164,30 @@ describe('responsive selection surfaces', () => {
       expect(new FormData(container.querySelector('form')!).get('team')).toBe('design');
     },
   );
+
+  it('preserves the Sheet header and option interaction when SelectContent has a tooltip', async () => {
+    const user = userEvent.setup();
+    render(
+      <Select presentation="sheet" defaultValue="design" sheetTitle="Choose team">
+        <SelectTrigger aria-label="Team">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent tooltip="Choose a team for this project">
+          <SelectItem value="design">Design</SelectItem>
+          <SelectItem value="engineering">Engineering</SelectItem>
+        </SelectContent>
+      </Select>,
+    );
+    const trigger = screen.getByRole('combobox', { name: 'Team' });
+    await user.click(trigger);
+    const sheet = await screen.findByRole('dialog', { name: 'Choose team' });
+    expect(within(sheet).getByRole('heading', { name: 'Choose team' })).toBeInTheDocument();
+    expect(sheet.querySelector('[data-vaul-handle]')).toBeInTheDocument();
+    await user.click(screen.getByRole('option', { name: 'Engineering' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(trigger).toHaveTextContent('Engineering');
+    expect(trigger).toHaveFocus();
+  });
 
   it('uses stable values for duplicate Combobox labels and supports localized sheet search', async () => {
     const user = userEvent.setup();

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Slot } from 'radix-ui';
 import { useMotionSettings } from './motion-policy';
-import { useStyles, type PlainStyleProps } from './styling';
+import { useStyles, type PlainStyleProps } from './style-context';
 
 export interface LayoutPresenceOptions {
   /** Animate children on first mount. Defaults to true. */

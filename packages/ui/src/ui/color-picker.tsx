@@ -2,10 +2,12 @@ import * as React from 'react';
 import { inputVariantClass, type InputVariant } from './input-variants';
 import { useTranslation } from './i18n';
 import { Check, Palette } from 'lucide-react';
-import { Input, Label, Slider } from './forms';
-import { Button } from './primitives';
-import { Popover, PopoverContent, PopoverTrigger } from './overlays';
-import { StyleProvider, useStyles, type PlainStyleProps } from './styling';
+import { Input } from './input';
+import { Label } from './label';
+import { Slider } from './slider';
+import { Button } from './button';
+import { Popover, PopoverContent, PopoverTrigger } from './popover';
+import { StyleProvider, useStyles, type PlainStyleProps } from './style-context';
 import { changeInput } from './utils';
 
 type HSV = { h: number; s: number; v: number };

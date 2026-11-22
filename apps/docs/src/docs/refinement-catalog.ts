@@ -11,14 +11,14 @@ export const refinementComponents: ComponentDefinition[] = [
     name: 'Phone input',
     category: 'Forms',
     description:
-      'International phone numbers with searchable countries, live formatting and native form support.',
+      'International phone numbers with virtualized country search, live formatting and native form support.',
     imports: ['Field', 'PhoneInput'],
     code: '<Field label="Phone number" description="Include your country calling code."><PhoneInput name="phone" defaultCountry="US" defaultValue="+12025550123" autoComplete="tel" /></Field>',
     props: [
       p(
         'presentation',
         'auto | popover | sheet',
-        'auto uses a bottom sheet below 768px and a bounded popover on larger screens. Overrides apply to country selection.',
+        'auto uses the library Sheet below 768px and a bounded popover on larger screens. Both surfaces virtualize country rows; search still covers every country.',
         'auto',
       ),
       p(
@@ -88,7 +88,7 @@ export const refinementComponents: ComponentDefinition[] = [
       ),
     ],
     accessibility:
-      'Field labels and descriptions attach to the native tel input. Country selection uses a searchable keyboard combobox with Escape dismissal and focus restoration. Mobile sheets keep search and the list in one bounded surface, above the software keyboard. Read-only inputs retain selection and form submission while preventing country changes. Digits and dialing codes stay LTR in RTL layouts. Validation uses native constraint validity; supply Field error text for a persistent explanation.',
+      'Field labels and descriptions attach to the native tel input. The virtualized country combobox supports arrows, Home/End, Page Up/Down, Enter and Escape. Its active option stays mounted and the selected country scrolls into view. Mobile sheets keep search and the list in one bounded surface, above the software keyboard. Read-only inputs retain selection and form submission while preventing country changes. Digits and dialing codes stay LTR in RTL layouts. Validation uses native constraint validity; supply Field error text for a persistent explanation.',
     usage:
       'Import PhoneInput from @plain/ui or @plain/ui/phone-input with the shared @plain/ui/styles.css. Locale and translated messages inherit from the providers; country names use Intl.DisplayNames. Values are canonical international digits, not the formatted display; native pattern/minLength/maxLength apply to that display. Number validity does not establish ownership. Formatting is powered by react-phone-number-input with full libphonenumber metadata; no external flag images are requested. Use phone-input.* styling slots, input.* tokens or unstyled composition. Native form reset restores uncontrolled defaults without emitting an edit; controlled state remains application-owned.',
   },

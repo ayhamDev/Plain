@@ -37,6 +37,7 @@ jobs:
       - run: npm run format:check
       - run: npm test
       - run: npm run verify:package
+      - run: npm run check:bundles
 
   browser:
     name: Documentation And Browser

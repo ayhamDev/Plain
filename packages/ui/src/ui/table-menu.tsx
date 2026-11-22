@@ -1,29 +1,14 @@
 import * as React from 'react';
-import { Button } from './primitives';
+import { useMediaQuery } from './media-query';
+import { Button } from './button';
 import { useTranslation } from './i18n';
-import { useStyles } from './styling';
+import { useStyles } from './style-context';
 import { cn } from './utils';
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  Sheet,
-  SheetTrigger,
-  SheetContent,
-  SheetTitle,
-  SheetFooter,
-  SheetClose,
-} from './overlays';
+import { Popover, PopoverTrigger, PopoverContent } from './popover';
+import { Sheet, SheetTrigger, SheetContent, SheetTitle, SheetFooter, SheetClose } from './sheet';
 
 export type TableMenuPresentation = 'auto' | 'popover' | 'sheet';
 const query = '(max-width: 640px)';
-const subscribe = (update: () => void) => {
-  const media = window.matchMedia(query);
-  media.addEventListener('change', update);
-  return () => media.removeEventListener('change', update);
-};
-const snapshot = () => window.matchMedia(query).matches;
-const serverSnapshot = () => false;
 
 export function TableMenu({
   label,
@@ -38,7 +23,7 @@ export function TableMenu({
   presentation?: TableMenuPresentation;
   contentProps?: React.ComponentProps<typeof PopoverContent>;
 }) {
-  const compact = React.useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+  const compact = useMediaQuery(query, presentation === 'auto');
   const [open, setOpen] = React.useState(false);
   const { t } = useTranslation();
   const { unstyled } = useStyles();

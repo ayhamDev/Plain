@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Checkbox } from './forms';
-import { Button, Skeleton } from './primitives';
-import { useStyles, StyleProvider, type PlainStyleProps } from './styling';
+import { Checkbox } from './checkbox';
+import { Button } from './button';
+import { Skeleton } from './skeleton';
+import { useStyles, StyleProvider, type PlainStyleProps } from './style-context';
 import { useTranslation } from './i18n';
 import { useCollectionMode, type CollectionModeProps } from './collection-mode';
 export type { CollectionMode, CollectionModeProps } from './collection-mode';

@@ -8,11 +8,14 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from './overlays';
-import { Button } from './primitives';
-import { Input, Field, Checkbox, Label } from './forms';
-import { DateTimePicker } from './date-time';
-import { DatePicker } from './calendar';
+} from './dialog';
+import { Button } from './button';
+import { Input } from './input';
+import { Field } from './field';
+import { Checkbox } from './checkbox';
+import { Label } from './label';
+import { DateTimePicker } from './date-time-picker';
+import { DatePicker } from './date-picker';
 import { useTranslation } from './i18n';
 import { calendarWall, calendarZone, type FullCalendarEvent } from './calendar-model';
 import type { CalendarSelection } from './full-calendar';

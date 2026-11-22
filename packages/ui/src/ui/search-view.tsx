@@ -1,19 +1,12 @@
 import * as React from 'react';
 import type { InputVariant } from './input-variants';
 import { Search, X } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from './overlays';
-import { Command, CommandInput, CommandList } from './command';
-import { Button } from './primitives';
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from './dialog';
+import { Popover, PopoverContent, PopoverTrigger } from './popover';
+import { Command, CommandInput, CommandList } from './command-parts';
+import { Button } from './button';
 import { useTranslation } from './i18n';
-import { StyleProvider, useStyles, type PlainStyleProps } from './styling';
+import { StyleProvider, useStyles, type PlainStyleProps } from './style-context';
 
 export interface SearchViewContext {
   query: string;

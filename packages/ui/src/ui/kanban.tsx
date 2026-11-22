@@ -19,14 +19,15 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, ArrowRightLeft } from 'lucide-react';
-import { Button, EmptyState } from './primitives';
+import { Button } from './button';
+import { EmptyState } from './empty-state';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from './overlays';
-import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
+} from './dropdown-menu';
+import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './style-context';
 import { numberFormatter, useTranslation } from './i18n';
 import { useMotionSettings } from './motion-policy';
 

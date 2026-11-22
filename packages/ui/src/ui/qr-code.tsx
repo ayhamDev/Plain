@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useStyles, type PlainStyleProps } from './styling';
+import { useStyles, type PlainStyleProps } from './style-context';
 import { useTranslation } from './i18n';
 import { useMotionSettings } from './motion-policy';
 import {

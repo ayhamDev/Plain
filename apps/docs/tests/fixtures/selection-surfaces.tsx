@@ -136,7 +136,20 @@ createRoot(document.getElementById('root')!).render(
       persist={false}
       locale={rtl ? 'ar' : 'en'}
       dir={rtl ? 'rtl' : 'ltr'}
-      theme={{ mode: query.get('mode') === 'dark' ? 'dark' : 'light', motion: 'none' }}
+      theme={{
+        mode: query.get('mode') === 'dark' ? 'dark' : 'light',
+        motion: query.get('motion') === 'system' ? 'system' : 'none',
+      }}
+      tokens={
+        query.get('surface') === 'custom'
+          ? {
+              'sheet.background': '#e7f0ff',
+              'sheet.radius': '18px',
+              'popover.background': '#fce8ff',
+              'popover.radius': '2px',
+            }
+          : undefined
+      }
     >
       <Fixture />
     </PlainProvider>

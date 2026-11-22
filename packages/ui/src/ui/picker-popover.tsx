@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { PopoverContent } from './overlays';
+import { PopoverContent } from './popover';
 
 const useLayoutEffect = typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect;
 

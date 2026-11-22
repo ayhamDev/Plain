@@ -2,15 +2,15 @@ import * as React from 'react';
 import type { RowData } from '@tanstack/react-table';
 import type { DataTableInstance } from './data-table';
 import type { CollectionMode } from './collection-mode';
-import { SearchInput, type SearchInputProps } from './advanced';
-import { Button, type ButtonProps } from './primitives';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
+import { SearchInput, type SearchInputProps } from './search-input';
+import { Button, type ButtonProps } from './button';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './select';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
-} from './overlays';
+} from './dropdown-menu';
 import { TableMenu, type TableMenuPresentation } from './table-menu';
 import { DataTableSimpleFilter, filterSummary } from './data-table-filter-value';
 import {
@@ -19,7 +19,7 @@ import {
   isActiveTableFilter,
   type DataTableFilterField,
 } from './table-filter';
-import { useStyles, StyleProvider, type PlainStyleProps } from './styling';
+import { useStyles, StyleProvider, type PlainStyleProps } from './style-context';
 import { numberFormatter, useTranslation } from './i18n';
 import { ArrowUpDown, SlidersHorizontal, RotateCcw, X } from 'lucide-react';
 

@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { EmptyState } from './primitives';
+import { EmptyState } from './empty-state';
 import { ChartSkeleton } from './chart-skeleton';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './table';
-import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './styling';
+import { StyleProvider, useStyles, useDirection, type PlainStyleProps } from './style-context';
 import { useTranslation, numberFormatter } from './i18n';
 
 export interface HeatmapDatum {
@@ -29,7 +29,7 @@ export interface HeatmapChartProps
   label?: string;
   loading?: boolean;
 }
-export const HeatmapChart = React.forwardRef<HTMLElement, HeatmapChartProps>(
+export const HeatmapChart = /* @__PURE__ */ React.forwardRef<HTMLElement, HeatmapChartProps>(
   (
     {
       data,

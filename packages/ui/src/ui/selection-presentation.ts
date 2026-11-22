@@ -1,20 +1,14 @@
 import * as React from 'react';
+import { useMediaQuery, mediaQueryMatches } from './media-query';
 
 export type SelectionPresentation = 'auto' | 'popover' | 'sheet';
 export type SelectionMode = 'popover' | 'sheet';
 const query = '(max-width: 767px)';
-const subscribe = (update: () => void) => {
-  const media = window.matchMedia(query);
-  media.addEventListener('change', update);
-  return () => media.removeEventListener('change', update);
-};
-const snapshot = () => window.matchMedia(query).matches;
-const serverSnapshot = () => false;
 const useLayoutEffect = typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect;
 
 /** Pick a surface before mounting its focus scope; keep it until the next opening. */
 export function useSelectionPresentation(presentation: SelectionPresentation, open: boolean) {
-  const compact = React.useSyncExternalStore(subscribe, snapshot, serverSnapshot);
+  const compact = useMediaQuery(query, presentation === 'auto');
   const candidate: SelectionMode =
     presentation === 'sheet' || (presentation === 'auto' && compact) ? 'sheet' : 'popover';
   const [session, setSession] = React.useState<{ open: boolean; mode: SelectionMode | null }>({
@@ -26,7 +20,7 @@ export function useSelectionPresentation(presentation: SelectionPresentation, op
       if (previous.open === open) return previous;
       if (!open) return { ...previous, open: false };
       const sheet =
-        presentation === 'sheet' || (presentation === 'auto' && window.matchMedia(query).matches);
+        presentation === 'sheet' || (presentation === 'auto' && mediaQueryMatches(query));
       return { open: true, mode: sheet ? 'sheet' : 'popover' };
     });
   }, [open, presentation]);

@@ -26,11 +26,9 @@ history, including the 0.1 local-release status and its original QA limitations.
    npm run release:status
    ```
 
-3. Compare the planned version with the manifest and release note. **0.2.0 is
-   already assigned during integration**; its empty Changeset acknowledges the
-   integration without a pending bump. Finalize its local record after QA. For a
-   subsequent release, run local versioning only when the plan assigns the intended
-   next version:
+3. Compare the planned version with the manifest and release note. **0.3.0 is
+   already assigned** and its Changesets are consumed. For a subsequent release,
+   run local versioning only when the plan assigns the agreed next version:
 
    ```sh
    npm run version:packages
@@ -39,8 +37,8 @@ history, including the 0.1 local-release status and its original QA limitations.
 
    Review the resulting version, lockfile, consumed Changesets, and generated
    package changelogs. Replace a matching `Unreleased` draft with the release entry
-   and reconcile its prose. When finalizing the already assigned 0.2 version,
-   promote its existing draft without another version bump. Preserve 0.1 history.
+   and reconcile its prose. Record validation of an assigned version without
+   another version bump. Preserve previous release history.
 
    Freeze the outgoing documentation at its final release commit and register the
    new current version in `docs/versions.json`. Follow the
@@ -57,6 +55,7 @@ history, including the 0.1 local-release status and its original QA limitations.
    npm test
    npm run build
    npm run verify:package
+   npm run check:bundles
    npm run test:e2e
    npm pack --workspace=@plain/ui --dry-run --ignore-scripts
    ```

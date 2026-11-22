@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Slot } from 'radix-ui';
-import { useStyles, type PlainStyleProps } from './styling';
+import { useStyles, type PlainStyleProps } from './style-context';
 import { useLayoutPresence, type LayoutPresenceProps } from './layout-presence';
 export {
   LayoutPresence,

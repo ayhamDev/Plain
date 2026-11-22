@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useDirection } from './styling';
+import { useDirection } from './style-context';
 
 const useLayoutEffect = typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect;
 

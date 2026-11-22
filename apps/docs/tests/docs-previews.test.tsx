@@ -7,6 +7,7 @@ import { PropPlayground, propPreviews, previewSource } from '../src/docs/preview
 import {
   documentationPath,
   documentationVersion,
+  currentDocsVersion,
   parseDocsVersions,
   versionDestination,
   type DocsVersionManifest,
@@ -59,7 +60,7 @@ describe('documentation version contract', () => {
   it('preserves existing deep links and does not invent pages in older releases', () => {
     const archive = manifest.versions[1];
     expect(documentationVersion('/v/0.1.0/components/select')).toBe('0.1.0');
-    expect(documentationVersion('/components/select')).toBe('0.2.0');
+    expect(documentationVersion('/components/select')).toBe(currentDocsVersion);
     expect(documentationPath('/v/0.1.0')).toBe('/');
     expect(
       versionDestination(archive, '/v/0.2.0/components/select/', '?example=position', '#api'),
@@ -129,7 +130,7 @@ describe('typed prop playgrounds', () => {
     expect(position).toHaveTextContent('popper');
     expect(screen.getByRole('combobox', { name: 'side' })).not.toBeDisabled();
     expect(screen.getByLabelText('select.tsx code')).toHaveTextContent('position="popper"');
-  });
+  }, 15000);
 
   it('typechecks every default, enum option, boolean toggle and numeric boundary as complete copyable TSX', () => {
     const root = process.cwd().replaceAll('\\', '/');

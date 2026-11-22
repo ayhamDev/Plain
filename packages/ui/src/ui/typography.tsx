@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useStyles, type PlainStyleProps } from './styling';
+import { useStyles, type PlainStyleProps } from './style-context';
 
 export interface TypographyOptions {
   tone?: 'default' | 'muted' | 'accent' | 'danger';
@@ -40,7 +40,7 @@ const sizes = { xs: 12, sm: 14, md: 16, lg: 18, xl: 20, '2xl': 24, '3xl': 30, '4
 const weights = { normal: 400, medium: 500, semibold: 600, bold: 700 } as const;
 
 function typography<T extends TypographyTag>(tag: T) {
-  const Component = React.forwardRef<
+  const Component = /* @__PURE__ */ React.forwardRef<
     HTMLElement,
     Omit<React.HTMLAttributes<HTMLElement>, keyof TypographyOptions> &
       TypographyOptions &

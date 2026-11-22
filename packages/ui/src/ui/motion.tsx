@@ -8,7 +8,7 @@ import {
   type Variants,
 } from 'motion/react';
 import { useMotionSettings } from './motion-policy';
-import { useStyles, type PlainStyleProps } from './styling';
+import { useStyles, type PlainStyleProps } from './style-context';
 
 const loadFeatures = () => import('./motion-features').then((module) => module.default);
 export const motionPresets = {
@@ -50,7 +50,7 @@ export function MotionProvider({
 }
 export type MotionProps = HTMLMotionProps<'div'> &
   PlainStyleProps & { preset?: keyof typeof motionPresets };
-export const Motion = React.forwardRef<HTMLDivElement, MotionProps>(
+export const Motion = /* @__PURE__ */ React.forwardRef<HTMLDivElement, MotionProps>(
   ({ preset = 'fade', initial, animate, exit, transition, className, unstyled, ...props }, ref) => {
     const styles = useStyles();
     const { enabled } = useMotionSettings();

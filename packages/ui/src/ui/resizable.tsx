@@ -7,10 +7,10 @@ import {
   usePanelCallbackRef,
   type PanelImperativeHandle,
 } from 'react-resizable-panels';
-import { Sheet, SheetContent, SheetTitle } from './overlays';
+import { Sheet, SheetContent, SheetTitle } from './sheet';
 import { GripVertical } from 'lucide-react';
 import { useTranslation } from './i18n';
-import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
+import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './style-context';
 import { useLayoutPresence, type LayoutPresenceProps } from './layout-presence';
 
 const ResizableContext = /* @__PURE__ */ React.createContext(0);

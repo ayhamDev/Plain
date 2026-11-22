@@ -44,7 +44,7 @@ No Tailwind installation, downloaded font, or application framework is required 
 
 ## Getting Started
 
-> **Release status:** `@plain/ui` is versioned at **0.2.0** and currently distributed as a local package archive. It is not published to npm. Build an archive from this checkout using the workflow below; upcoming package changes are tracked with [Changesets](docs/releases/README.md).
+> **Release status:** `@plain/ui` **0.3.0** is the third local release. It is distributed as a package archive and is not published to npm. See the [upgrade notes](docs/releases/0.3.0.md) and [production import guide](docs/performance/README.md).
 
 **Requirements:** React and React DOM **18.3 or 19**. For repository development and packing, use **Node 24.13.0** and **npm 11.6.2**, as pinned in [`.node-version`](.node-version) and [`package.json`](package.json).
 
@@ -60,7 +60,7 @@ npm run pack:ui
 Then install the generated archive in your React application, replacing the path with your checkout location:
 
 ```sh
-npm install /path/to/Plain/apps/docs/public/plain-ui-0.2.0.tgz
+npm install /path/to/Plain/apps/docs/public/plain-ui-0.3.0.tgz
 ```
 
 The package ships ESM modules, TypeScript declarations, and explicit CSS exports. Install from the archive, not the private workspace root.
@@ -105,24 +105,42 @@ export default function App() {
 
 Use the core package for everyday components. Charts, full-calendar scheduling, Kanban, and the optional Motion wrapper are **not** exported from the core barrel:
 
-| Import                    | Purpose                                                                 | Styles                               |
-| ------------------------- | ----------------------------------------------------------------------- | ------------------------------------ |
-| `@plain/ui`               | Core components, providers, styling utilities, and typography           | `@plain/ui/styles.css`               |
-| `@plain/ui/data-table`    | Typed filters, sorting, selection, pagination, and remote-table helpers | Core stylesheet                      |
-| `@plain/ui/layout`        | Responsive layout primitives and Resizable panels                       | Core stylesheet                      |
-| `@plain/ui/sidebar`       | AppShell, composable sidebars, navigation, and step flows               | Core stylesheet                      |
-| `@plain/ui/date-time`     | Time, date-time, and range controls                                     | Core stylesheet                      |
-| `@plain/ui/charts`        | Chart components, heatmap, and Gantt                                    | Core + `@plain/ui/charts.css`        |
-| `@plain/ui/full-calendar` | Scheduler and composable event dialog                                   | Core + `@plain/ui/full-calendar.css` |
-| `@plain/ui/kanban`        | Controlled lanes, drag-and-drop, and keyboard move actions              | Core stylesheet                      |
-| `@plain/ui/search-view`   | Docked, modal, and fullscreen search                                    | Core stylesheet                      |
-| `@plain/ui/motion`        | Lazy MotionProvider, Motion, Presence, and presets                      | No additional CSS                    |
+| Import                    | Purpose                                                                 | Styles                             |
+| ------------------------- | ----------------------------------------------------------------------- | ---------------------------------- |
+| `@plain/ui`               | Core components, providers, styling utilities, and typography           | `@plain/ui/styles.css`             |
+| `@plain/ui/data-table`    | Typed filters, sorting, selection, pagination, and remote-table helpers | `styles.css`                       |
+| `@plain/ui/layout`        | Responsive layout primitives and Resizable panels                       | `styles.css`                       |
+| `@plain/ui/sidebar`       | AppShell, composable sidebars, navigation, and step flows               | `styles.css`                       |
+| `@plain/ui/date-time`     | Time, date-time, and range controls                                     | `styles.css`                       |
+| `@plain/ui/charts`        | Chart components, heatmap, and Gantt                                    | `styles.css` + `charts.css`        |
+| `@plain/ui/full-calendar` | Scheduler and composable event dialog                                   | `styles.css` + `full-calendar.css` |
+| `@plain/ui/kanban`        | Controlled lanes, drag-and-drop, and keyboard move actions              | `styles.css`                       |
+| `@plain/ui/search-view`   | Docked, modal, and fullscreen search                                    | `styles.css`                       |
+| `@plain/ui/motion`        | Lazy MotionProvider, Motion, Presence, and presets                      | No additional CSS                  |
 
 Additional public entry points cover primitives, forms, overlays, navigation, calendar, command, table, List collections, advanced controls, virtualization, typography, i18n, chips, theme, tokens, styling, color generation, and component extension. See the [export map](packages/ui/package.json) and [collection examples](packages/ui/README.md#composable-collections-and-feedback).
 
 [QRCode](packages/ui/README.md#qr-code) is available from `@plain/ui` and `@plain/ui/qr-code`, with default animation, circular layouts, module/finder styles, gradients and center logos. The documentation playground includes a standalone SVG download.
 
 Dependencies are externalized and modules are tree-shakeable. Your imports and bundler determine browser bundle size; installation size is not a bundle-size promise.
+
+### Focused imports in 0.3
+
+Direct entries isolate components while root and grouped imports remain compatible:
+
+```tsx
+import { Input } from '@plain/ui/input';
+import { NumberInput } from '@plain/ui/number-input';
+import { BarChart } from '@plain/ui/bar-chart';
+import '@plain/ui/core.css';
+import '@plain/ui/inputs.css';
+import '@plain/ui/charts.css';
+```
+
+Use either the complete `styles.css` or `core.css` plus the feature styles your
+application needs. The [CSS recipes and bundle measurements](docs/performance/README.md)
+cover inputs, calendars, collections, sidebars, tables and QR codes. Run
+`npm run check:bundles` to check every public entry and production bundle budgets.
 
 ## Customization
 

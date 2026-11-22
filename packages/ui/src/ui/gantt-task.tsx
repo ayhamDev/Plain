@@ -1,6 +1,6 @@
 import type { Temporal } from 'temporal-polyfill';
-import { Popover, PopoverTrigger, PopoverContent } from './overlays';
-import { useDirection, useStyles } from './styling';
+import { Popover, PopoverTrigger, PopoverContent } from './popover';
+import { useDirection, useStyles } from './style-context';
 import { numberFormatter, useTranslation } from './i18n';
 import type { useGanttDrag } from './gantt-drag';
 import type { GanttTask, GanttChartProps } from './gantt';

@@ -21,7 +21,14 @@ import {
   ChartSkeleton as ChartsSkeleton,
 } from '../src/ui/charts';
 import { ChartSkeleton } from '../src/ui/chart-skeleton';
-import { LineChart as RechartsLineChart, XAxis, YAxis, CartesianGrid } from 'recharts';
+import {
+  LineChart as RechartsLineChart,
+  BarChart as RechartsBarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from 'recharts';
 import { StyleProvider } from '../src/ui/styling';
 import { LanguageProvider } from '../src/ui/i18n';
 import { MotionPolicyProvider } from '../src/ui/motion-policy';
@@ -54,6 +61,19 @@ const cases = [
 
 describe('chart loading', () => {
   afterEach(() => vi.restoreAllMocks());
+  it('infers a native chart composition from its stable series metadata', () => {
+    const { container } = render(
+      <Chart data={data} loading>
+        <RechartsBarChart data={data}>
+          <Bar dataKey="value" />
+        </RechartsBarChart>
+      </Chart>,
+    );
+    expect(container.querySelector('[data-ui="chart-skeleton"]')).toHaveAttribute(
+      'data-variant',
+      'bar',
+    );
+  });
   it.each(cases)(
     'uses a decorative %s placeholder without exposing stale plots or data',
     (variant, element) => {

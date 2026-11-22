@@ -1,16 +1,17 @@
 import * as React from 'react';
 import { Temporal } from 'temporal-polyfill';
 import { useVirtualizer, observeElementRect } from '@tanstack/react-virtual';
-import { Button, EmptyState } from './primitives';
+import { Button } from './button';
+import { EmptyState } from './empty-state';
 import { ChartSkeleton } from './chart-skeleton';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './select';
 import {
   useDirection,
   useStyles,
   DirectionProvider,
   StyleProvider,
   type PlainStyleProps,
-} from './styling';
+} from './style-context';
 import { dateFormatter, useTranslation } from './i18n';
 import { useMotionSettings } from './motion-policy';
 import { useGanttDrag } from './gantt-drag';

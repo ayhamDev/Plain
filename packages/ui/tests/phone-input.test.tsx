@@ -102,6 +102,25 @@ describe('PhoneInput', () => {
     expect(trigger).toHaveFocus();
   });
 
+  it('mounts a bounded country window while keyboard navigation and search reach the entire list', async () => {
+    const user = userEvent.setup();
+    const changed = vi.fn();
+    render(<PhoneInput defaultCountry="US" onCountryChange={changed} />);
+    await user.click(screen.getByRole('combobox', { name: /Country: United States/ }));
+    expect(screen.getAllByRole('option').length).toBeLessThan(30);
+    const list = screen.getByRole('listbox');
+    list.focus();
+    await user.keyboard('{End}');
+    const last = document.getElementById(list.getAttribute('aria-activedescendant')!);
+    expect(last).toHaveTextContent('Zimbabwe');
+    expect(last).toHaveAttribute('aria-posinset', last!.getAttribute('aria-setsize'));
+    await user.keyboard('{Enter}');
+    expect(changed).toHaveBeenLastCalledWith('ZW');
+    await user.click(screen.getByRole('combobox', { name: /Country: Zimbabwe/ }));
+    await user.type(screen.getByRole('combobox', { name: 'Search countries...' }), 'Egypt');
+    expect(screen.getByRole('option', { name: /Egypt/ })).toBeInTheDocument();
+  });
+
   it('updates controlled values and treats an explicit undefined as empty', async () => {
     const onValueChange = vi.fn();
     const { rerender } = render(<PhoneInput value={sample} onValueChange={onValueChange} />);

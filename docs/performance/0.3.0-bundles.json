@@ -1,0 +1,322 @@
+{
+  "version": "0.3.0",
+  "baseline": {
+    "version": "0.2.0",
+    "ref": "c479dbbee28a0248c6fb834291c01f5a03f6dc28"
+  },
+  "method": "Vite 8.3.1 production-minified ESM exports; React and ReactDOM external; dependencies included; CSS excluded from JS. Eager and deferred gzip concatenate their respective chunks; transfer gzip sums each independently compressed chunk.",
+  "runtimeEntries": 126,
+  "cases": {
+    "Button": {
+      "baselineGzip": 19637,
+      "eagerGzip": 16114,
+      "rootGzip": 16114,
+      "deferredGzip": 21041,
+      "totalGzip": 36396,
+      "transferGzip": 37445,
+      "limit": 18000
+    },
+    "Input": {
+      "baselineGzip": 66508,
+      "eagerGzip": 13715,
+      "rootGzip": 13715,
+      "deferredGzip": 21051,
+      "totalGzip": 34032,
+      "transferGzip": 34925,
+      "limit": 15000
+    },
+    "Badge": {
+      "baselineGzip": 19849,
+      "eagerGzip": 13958,
+      "rootGzip": 13923,
+      "deferredGzip": 21052,
+      "totalGzip": 34298,
+      "transferGzip": 35224,
+      "limit": 15500
+    },
+    "Card": {
+      "baselineGzip": 22669,
+      "eagerGzip": 16720,
+      "rootGzip": 16716,
+      "deferredGzip": 21032,
+      "totalGzip": 36983,
+      "transferGzip": 38008,
+      "limit": 18500
+    },
+    "Spinner": {
+      "baselineGzip": 26246,
+      "eagerGzip": 21522,
+      "rootGzip": 21511,
+      "deferredGzip": 21051,
+      "totalGzip": 41805,
+      "transferGzip": 42827,
+      "limit": 24000
+    },
+    "Checkbox": {
+      "baselineGzip": 66507,
+      "eagerGzip": 20173,
+      "rootGzip": 20147,
+      "deferredGzip": 17993,
+      "totalGzip": 37432,
+      "transferGzip": 38469,
+      "limit": 22000
+    },
+    "Select": {
+      "baselineGzip": 67643,
+      "eagerGzip": 57667,
+      "rootGzip": 57590,
+      "deferredGzip": 22189,
+      "totalGzip": 79079,
+      "transferGzip": 82056,
+      "limit": 60000
+    },
+    "NumberInput": {
+      "baselineGzip": 97344,
+      "eagerGzip": 22577,
+      "rootGzip": 22575,
+      "deferredGzip": 21052,
+      "totalGzip": 42810,
+      "transferGzip": 43843,
+      "limit": 24500
+    },
+    "Combobox": {
+      "baselineGzip": 87538,
+      "eagerGzip": 71416,
+      "rootGzip": 71441,
+      "deferredGzip": 5053,
+      "totalGzip": 75654,
+      "transferGzip": 76903,
+      "limit": 75000
+    },
+    "MultiSelect": {
+      "baselineGzip": 97342,
+      "eagerGzip": 67866,
+      "rootGzip": 67833,
+      "deferredGzip": 5054,
+      "totalGzip": 72101,
+      "transferGzip": 73297,
+      "limit": 72000
+    },
+    "Dialog": {
+      "baselineGzip": 79586,
+      "eagerGzip": 35539,
+      "rootGzip": 35539,
+      "deferredGzip": 16231,
+      "totalGzip": 51150,
+      "transferGzip": 52052,
+      "limit": 38000
+    },
+    "Sheet": {
+      "baselineGzip": 80132,
+      "eagerGzip": 50278,
+      "rootGzip": 50270,
+      "deferredGzip": 16231,
+      "totalGzip": 65863,
+      "transferGzip": 66848,
+      "limit": 54000
+    },
+    "Toast": {
+      "baselineGzip": 85032,
+      "eagerGzip": 30012,
+      "rootGzip": 30001,
+      "deferredGzip": 21041,
+      "totalGzip": 50245,
+      "transferGzip": 51263,
+      "limit": 33000
+    },
+    "Tabs": {
+      "baselineGzip": 50525,
+      "eagerGzip": 26019,
+      "rootGzip": 26019,
+      "deferredGzip": 18040,
+      "totalGzip": 43255,
+      "transferGzip": 44373,
+      "limit": 28500
+    },
+    "ScrollArea": {
+      "baselineGzip": 50503,
+      "eagerGzip": 34646,
+      "rootGzip": 34678,
+      "deferredGzip": 18860,
+      "totalGzip": 52786,
+      "transferGzip": 53827,
+      "limit": 38000
+    },
+    "Layout": {
+      "baselineGzip": 17901,
+      "eagerGzip": 17755,
+      "rootGzip": 17743,
+      "deferredGzip": 21042,
+      "totalGzip": 38040,
+      "transferGzip": 39045,
+      "limit": 20500
+    },
+    "PlainProvider": {
+      "baselineGzip": 25406,
+      "eagerGzip": 25531,
+      "rootGzip": 25541,
+      "deferredGzip": 0,
+      "totalGzip": 25531,
+      "transferGzip": 25531,
+      "limit": 28500
+    },
+    "Calendar": {
+      "baselineGzip": 127648,
+      "eagerGzip": 84401,
+      "rootGzip": 84246,
+      "deferredGzip": 22170,
+      "totalGzip": 105808,
+      "transferGzip": 108540,
+      "limit": 106000
+    },
+    "TimePicker": {
+      "baselineGzip": 158714,
+      "eagerGzip": 117704,
+      "rootGzip": 118196,
+      "deferredGzip": 5462,
+      "totalGzip": 122409,
+      "transferGzip": 125126,
+      "limit": 121000
+    },
+    "DateTimePicker": {
+      "baselineGzip": 158713,
+      "eagerGzip": 134217,
+      "rootGzip": 133983,
+      "deferredGzip": 5462,
+      "totalGzip": 138892,
+      "transferGzip": 141553,
+      "limit": 140000
+    },
+    "DataTable": {
+      "baselineGzip": 180683,
+      "eagerGzip": 157497,
+      "rootGzip": 157167,
+      "deferredGzip": 5459,
+      "totalGzip": 162218,
+      "transferGzip": 164889,
+      "limit": 165000
+    },
+    "VirtualList": {
+      "baselineGzip": 29751,
+      "eagerGzip": 29608,
+      "rootGzip": 29599,
+      "deferredGzip": 21041,
+      "totalGzip": 49843,
+      "transferGzip": 50956,
+      "limit": 33000
+    },
+    "Sidebar": {
+      "baselineGzip": 111393,
+      "eagerGzip": 82618,
+      "rootGzip": 82641,
+      "deferredGzip": 1450,
+      "totalGzip": 83598,
+      "transferGzip": 84297,
+      "limit": 88000
+    },
+    "QRCode": {
+      "baselineGzip": 34605,
+      "eagerGzip": 34418,
+      "rootGzip": 34395,
+      "deferredGzip": 21051,
+      "totalGzip": 54768,
+      "transferGzip": 55815,
+      "limit": 38000
+    },
+    "PhoneInput": {
+      "baselineGzip": 172298,
+      "eagerGzip": 163882,
+      "rootGzip": 164036,
+      "deferredGzip": 5053,
+      "totalGzip": 168112,
+      "transferGzip": 169239,
+      "limit": 172000
+    },
+    "BarChart": {
+      "baselineGzip": 186414,
+      "eagerGzip": 162476,
+      "rootGzip": 162672,
+      "deferredGzip": 21036,
+      "totalGzip": 182953,
+      "transferGzip": 183887,
+      "limit": 171000
+    },
+    "Heatmap": {
+      "baselineGzip": 35015,
+      "eagerGzip": 31494,
+      "rootGzip": 31470,
+      "deferredGzip": 21056,
+      "totalGzip": 51791,
+      "transferGzip": 52768,
+      "limit": 35000
+    },
+    "Gantt": {
+      "baselineGzip": 142267,
+      "eagerGzip": 105479,
+      "rootGzip": 105313,
+      "deferredGzip": 21897,
+      "totalGzip": 126710,
+      "transferGzip": 129637,
+      "limit": 127000
+    },
+    "FullCalendar": {
+      "baselineGzip": 105233,
+      "eagerGzip": 94196,
+      "rootGzip": 94196,
+      "deferredGzip": 21896,
+      "totalGzip": 115470,
+      "transferGzip": 118287,
+      "limit": 117000
+    }
+  },
+  "css": {
+    "baseline": {
+      "bytes": 196069,
+      "gzip": 33294
+    },
+    "./styles.css": {
+      "bytes": 196685,
+      "gzip": 33406
+    },
+    "./tokens.css": {
+      "bytes": 17766,
+      "gzip": 3132
+    },
+    "./charts.css": {
+      "bytes": 11046,
+      "gzip": 2567
+    },
+    "./full-calendar.css": {
+      "bytes": 8583,
+      "gzip": 2011
+    },
+    "./core.css": {
+      "bytes": 125933,
+      "gzip": 22080
+    },
+    "./inputs.css": {
+      "bytes": 25427,
+      "gzip": 4705
+    },
+    "./collections.css": {
+      "bytes": 5277,
+      "gzip": 1297
+    },
+    "./calendar.css": {
+      "bytes": 21465,
+      "gzip": 4390
+    },
+    "./sidebar.css": {
+      "bytes": 11054,
+      "gzip": 2370
+    },
+    "./data-table.css": {
+      "bytes": 5232,
+      "gzip": 1351
+    },
+    "./qr-code.css": {
+      "bytes": 1890,
+      "gzip": 557
+    }
+  }
+}

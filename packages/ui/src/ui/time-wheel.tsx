@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useStyles } from './styling';
+import { useStyles } from './style-context';
 import { useMotionSettings } from './motion-policy';
 
 type WheelOption = { value: string; label: string };

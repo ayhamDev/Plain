@@ -1,11 +1,12 @@
 import * as React from 'react';
+import { useMediaQuery } from './media-query';
 import { numberFormatter, useTranslation } from './i18n';
 import { RadioGroup, Slot } from 'radix-ui';
 import { Check, ChevronRight, PanelLeft, X } from 'lucide-react';
-import { Button } from './primitives';
-import { Input } from './forms';
-import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from './overlays';
-import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
+import { Button } from './button';
+import { Input } from './input';
+import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from './sheet';
+import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './style-context';
 import { useSelectionIndicator } from './selection-indicator';
 import { inertAttribute } from './utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './overlays';
@@ -86,7 +87,8 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
     const [contentId, setContentId] = React.useState(sidebarId ?? `sidebar-${generatedId}`);
     const [localCollapsed, updateCollapsed] = React.useState(defaultCollapsed);
     const [localMobileOpen, updateMobileOpen] = React.useState(defaultMobileOpen);
-    const [isMobile, setIsMobile] = React.useState(false);
+    const breakpoint = Number.isFinite(mobileBreakpoint) ? Math.max(1, mobileBreakpoint) : 768;
+    const isMobile = useMediaQuery(`(max-width: ${breakpoint - 1}px)`);
     const collapsed = collapsible !== 'none' && (controlledCollapsed ?? localCollapsed);
     const mobileOpen = controlledMobileOpen ?? localMobileOpen;
     const setCollapsed = React.useCallback(
@@ -103,14 +105,6 @@ export const SidebarProvider = /* @__PURE__ */ React.forwardRef<
       },
       [controlledMobileOpen, onMobileOpenChange],
     );
-    React.useEffect(() => {
-      const breakpoint = Number.isFinite(mobileBreakpoint) ? Math.max(1, mobileBreakpoint) : 768;
-      const media = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
-      const update = () => setIsMobile(media.matches);
-      update();
-      media.addEventListener('change', update);
-      return () => media.removeEventListener('change', update);
-    }, [mobileBreakpoint]);
     const toggle = React.useCallback(() => {
       if (isMobile) setMobileOpen(!mobileOpen);
       else if (collapsible !== 'none') setCollapsed(!collapsed);

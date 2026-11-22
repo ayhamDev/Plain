@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Slot } from 'radix-ui';
-import { StyleProvider, useStyles, type PlainStyleProps } from './styling';
+import { StyleProvider, useStyles, type PlainStyleProps } from './style-context';
 
 export interface ItemProps extends React.ButtonHTMLAttributes<HTMLElement>, PlainStyleProps {
   /** Compose onto a native button, link or application component. */

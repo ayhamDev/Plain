@@ -4,9 +4,10 @@ import { Temporal } from 'temporal-polyfill';
 import { ChevronLeft, ChevronRight, Printer, Plus } from 'lucide-react';
 import { dateFormatter, numberFormatter, useTranslation } from './i18n';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './table';
-import { Button, EmptyState } from './primitives';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './forms';
-import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
+import { Button } from './button';
+import { EmptyState } from './empty-state';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './select';
+import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './style-context';
 import { lightTokens, componentTokenAliases, tokensToStyle } from './token-contract';
 import {
   calendarDay,

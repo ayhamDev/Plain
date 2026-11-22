@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useStyles } from './styling';
+import { useStyles } from './style-context';
 
 const usePanelEffect = typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect;
 const appearanceAttributes = [

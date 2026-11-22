@@ -76,12 +76,6 @@
   outline: 2px solid var(--ui-input-focus);
   outline-offset: 2px;
 }
-.ui-select-sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: var(--ui-layer-overlay);
-  background: var(--ui-overlay);
-}
 .ui-select-sheet {
   position: fixed;
   inset-inline: 0;
@@ -101,10 +95,4 @@
   min-block-size: 44px;
   white-space: normal;
   overflow-wrap: anywhere;
-}
-.ui-select-sheet-heading {
-  flex-shrink: 0;
-  padding: 16px;
-  border-block-end: 1px solid var(--ui-border);
-  font-weight: 600;
 }

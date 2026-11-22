@@ -57,4 +57,6 @@ function GanttDataTableImpl<T>({
   );
 }
 // Scrolling/drag previews must not rebuild the complete nonvisual alternative.
-export const GanttDataTable = React.memo(GanttDataTableImpl) as typeof GanttDataTableImpl;
+export const GanttDataTable = /* @__PURE__ */ React.memo(
+  GanttDataTableImpl,
+) as typeof GanttDataTableImpl;

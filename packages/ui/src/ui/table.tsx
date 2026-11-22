@@ -1,4 +1,4 @@
-import { useStyles, type PlainStyleProps } from './styling';
+import { useStyles, type PlainStyleProps } from './style-context';
 import * as React from 'react';
 import { useTranslation } from './i18n';
 import { useLayoutPresence, type LayoutPresenceProps } from './layout-presence';

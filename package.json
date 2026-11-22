@@ -22,6 +22,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:workspaces": "node scripts/check-workspaces.mjs",
+    "check:bundles": "npm run build:lib && node scripts/check-bundles.mjs",
     "test": "node --test scripts/tests/*.test.mjs && turbo run test",
     "test:watch": "npm run test:watch --workspace=@plain/ui",
     "test:e2e": "npm run test:e2e --workspace=@plain/docs --",

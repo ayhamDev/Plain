@@ -337,6 +337,34 @@ in both modes. Native refs, handlers, disabled state and form behavior remain in
 
 ## Optional Entries
 
+0.3.0 adds direct component entries such as `@plain/ui/button`, `/input`,
+`/number-input`, `/select`, `/combobox`, `/time-picker`, `/date-picker`,
+`/virtual-list`, `/bar-chart`, `/line-chart` and `/gantt`. Provider and scoped
+styling are available from `/provider`, `/styling` and `/theme-scope`.
+Root and grouped imports retain the same exported component identities.
+
+Choose the complete `@plain/ui/styles.css`, or import `@plain/ui/core.css` once
+with the feature styles you need. Add `inputs.css` for advanced fields and
+selection surfaces; `collections.css` for List and Item; `calendar.css` for date
+controls; and `sidebar.css`, `data-table.css` or `qr-code.css` for those components.
+Charts still add `charts.css`; the scheduler adds `full-calendar.css` and calendar
+styles when its date editor is used. All CSS is compiled; consumers need no
+Tailwind configuration. Do not import both `core.css` and `styles.css`.
+
+```tsx
+import { PlainProvider } from '@plain/ui/provider';
+import { PhoneInput } from '@plain/ui/phone-input';
+import '@plain/ui/core.css';
+import '@plain/ui/inputs.css';
+```
+
+The country list mounts a small visible window with TanStack Virtual in both
+popover and sheet presentations. Search covers the entire list, the active
+option stays mounted, and opening scrolls the selected country into view.
+Select's sheet presentation composes the original library Sheet and loads that
+engine on first sheet use, preserving animated entry/exit, handle gestures,
+selection, native form values and focus return.
+
 - `@plain/ui/charts` with `@plain/ui/charts.css`: charts, heatmap and Gantt.
 - `@plain/ui/full-calendar` with `@plain/ui/full-calendar.css`: scheduling and an
   optional composable event editor.
@@ -1155,6 +1183,6 @@ country selection does not download flag images.
 Install from the monorepo root with `npm ci`. Run
 `npm run build --workspace=@plain/ui` or `npm run test --workspace=@plain/ui`.
 Changesets version this package independently; the root and docs app are private.
-Version 0.2.0 remains a local candidate, not a claim of npm publication.
+Version 0.3.0 is a local release, not a claim of npm publication.
 
 MIT. See `LICENSE` and `CHANGELOG.md` in this package.
