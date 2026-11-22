@@ -372,7 +372,14 @@ export const MultiSelect = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Mu
                 role="listbox"
                 aria-label={props['aria-label'] ?? t('common.options')}
                 aria-multiselectable="true"
-                {...styles('multi-select.list', 'ui-multi-select-list', undefined, unstyled)}
+                {...styles(
+                  'multi-select.list',
+                  mode === 'popover'
+                    ? 'ui-multi-select-list min-h-0 overflow-y-auto p-1'
+                    : 'ui-multi-select-list',
+                  undefined,
+                  unstyled,
+                )}
                 style={
                   mode === 'sheet' && !(unstyled ?? styles.unstyled)
                     ? { maxHeight: 'none', minHeight: 0, flex: '1 1 auto', overflowY: 'auto' }
