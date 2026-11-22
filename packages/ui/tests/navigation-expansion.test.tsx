@@ -68,6 +68,24 @@ afterEach(() => {
 });
 
 describe('temporary navigation expansion', () => {
+  it('resumes a closing preview immediately without changing the configured delay for a fresh hover', () => {
+    render(<Example hoverOpenDelay={100} hoverCloseDelay={150} />);
+    const sidebar = screen.getByRole('complementary');
+    pointer(sidebar, true);
+    tick(99);
+    expect(sidebar).toHaveAttribute('data-state', 'collapsed');
+    tick(1);
+    expect(sidebar).toHaveAttribute('data-state', 'expanded');
+    pointer(sidebar, false);
+    tick(150);
+    expect(sidebar).toHaveAttribute('data-state', 'collapsed');
+    Object.defineProperty(sidebar, 'getAnimations', {
+      value: () => [{ playState: 'running', transitionProperty: 'width' }],
+    });
+    pointer(sidebar, true);
+    expect(sidebar).toHaveAttribute('data-state', 'expanded');
+  });
+
   it('delays hover previews without changing controlled collapse state or hidden input semantics', () => {
     const change = vi.fn();
     render(

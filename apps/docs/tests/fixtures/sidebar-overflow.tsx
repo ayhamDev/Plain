@@ -22,6 +22,7 @@ function Fixture() {
     value: String(index),
     label: index === count - 1 ? 'Last workspace' : `Workspace ${index + 1}`,
     icon: <Folder />,
+    badge: index === 1 ? '3' : undefined,
   }));
   return (
     <main style={{ padding: 16 }}>

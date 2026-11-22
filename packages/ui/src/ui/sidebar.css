@@ -10,6 +10,9 @@
     min-block-size: 0;
     max-block-size: 100dvh;
     overflow: visible;
+    z-index: 0;
+    /* Keep the closing panel above its fading backdrop until motion completes. */
+    transition: z-index 0s calc(var(--ui-duration-slow) * var(--ui-motion-scale, 1));
   }
   .ui-navigation-expansion-frame[data-kind='navigation-rail'] {
     inline-size: var(--ui-navigation-rail-width, 64px);
@@ -23,6 +26,7 @@
   }
   .ui-navigation-expansion-frame[data-active] {
     z-index: calc(var(--ui-layer-overlay, 80) - 1);
+    transition-delay: 0s;
   }
   .ui-navigation-expansion-frame[data-variant='floating'] {
     margin: 8px;
@@ -46,7 +50,7 @@
     background: var(--ui-sidebar-overlay-background, var(--ui-overlay));
     opacity: 0;
     pointer-events: none;
-    transition: opacity calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1))
+    transition: opacity calc(var(--ui-duration-slow) * var(--ui-motion-scale, 1))
       var(--ui-ease-standard);
   }
   .ui-navigation-expansion-backdrop[data-scoped='false'] {
@@ -58,8 +62,10 @@
   }
   .ui-sidebar-desktop {
     transition:
-      inline-size calc(var(--ui-duration-slow) * var(--ui-motion-scale, 1)) var(--ui-ease-out),
-      margin-inline calc(var(--ui-duration-slow) * var(--ui-motion-scale, 1)) var(--ui-ease-out);
+      inline-size calc(var(--ui-duration-slow) * var(--ui-motion-scale, 1)) var(--ui-ease-standard),
+      margin-inline calc(var(--ui-duration-slow) * var(--ui-motion-scale, 1))
+        var(--ui-ease-standard),
+      box-shadow calc(var(--ui-duration-slow) * var(--ui-motion-scale, 1)) var(--ui-ease-standard);
     overflow: clip;
   }
   .ui-sidebar-desktop[data-variant='floating'] {
@@ -104,7 +110,9 @@
       background-color calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1))
         var(--ui-ease-standard),
       color calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1)) var(--ui-ease-standard),
-      column-gap calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1)) var(--ui-ease-standard);
+      column-gap calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1)) var(--ui-ease-standard),
+      padding-inline calc(var(--ui-duration-slow) * var(--ui-motion-scale, 1))
+        var(--ui-ease-standard);
   }
   .ui-sidebar-item-icon,
   .ui-sidebar-item > svg {
@@ -129,6 +137,7 @@
   }
   .ui-sidebar-item-label,
   .ui-sidebar-group-label,
+  .ui-sidebar-input,
   .ui-sidebar-item > :not(svg):not(.ui-sidebar-item-icon) {
     transition: opacity calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1))
       var(--ui-ease-standard);
@@ -136,6 +145,7 @@
   }
   .ui-sidebar[data-state='collapsed'] .ui-sidebar-item-label,
   .ui-sidebar[data-state='collapsed'] .ui-sidebar-group-label,
+  .ui-sidebar[data-state='collapsed'] .ui-sidebar-input,
   .ui-sidebar[data-state='collapsed'] .ui-sidebar-item > :not(svg):not(.ui-sidebar-item-icon) {
     opacity: 0;
     pointer-events: none;
@@ -157,8 +167,14 @@
     gap: 8px;
     align-items: center;
     min-inline-size: 0;
-    transition: opacity calc(var(--ui-duration-normal) * var(--ui-motion-scale, 1))
+    transition: opacity calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1))
       var(--ui-ease-standard);
+  }
+  .ui-sidebar-section-swap > [data-expanded-content]:not([aria-hidden='true']) {
+    transition-delay: calc(100ms * var(--ui-motion-scale, 1));
+  }
+  .ui-sidebar-section-swap > [data-collapsed-content]:not([aria-hidden='true']) {
+    transition-delay: calc(120ms * var(--ui-motion-scale, 1));
   }
   .ui-sidebar-section-swap > [aria-hidden='true'] {
     opacity: 0;
@@ -277,11 +293,24 @@
   .ui-sidebar[data-state='collapsed'] .ui-sidebar-rail {
     display: none;
   }
-  .ui-sidebar[data-state='collapsed'] .ui-sidebar-menu-sub,
+  .ui-sidebar[data-state='collapsed'] .ui-sidebar-menu-sub {
+    display: none;
+  }
+  .ui-sidebar-menu-action,
+  .ui-sidebar-menu-badge,
+  .ui-sidebar-group-action {
+    transition:
+      opacity calc(var(--ui-duration-fast) * var(--ui-motion-scale, 1)) var(--ui-ease-standard)
+        calc(80ms * var(--ui-motion-scale, 1)),
+      visibility 0s calc(80ms * var(--ui-motion-scale, 1));
+  }
   .ui-sidebar[data-state='collapsed'] .ui-sidebar-menu-action,
   .ui-sidebar[data-state='collapsed'] .ui-sidebar-menu-badge,
   .ui-sidebar[data-state='collapsed'] .ui-sidebar-group-action {
-    display: none;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition-delay: 0s;
   }
   .ui-sidebar[data-state='collapsed'] .ui-sidebar-input {
     opacity: 0;
@@ -418,8 +447,9 @@
     background: var(--ui-sidebar-background, var(--ui-surface-low));
     color: var(--ui-sidebar-foreground, var(--ui-foreground));
     box-sizing: border-box;
-    transition: inline-size calc(var(--ui-duration-slow) * var(--ui-motion-scale, 1))
-      var(--ui-ease-out);
+    transition:
+      inline-size calc(var(--ui-duration-slow) * var(--ui-motion-scale, 1)) var(--ui-ease-standard),
+      box-shadow calc(var(--ui-duration-slow) * var(--ui-motion-scale, 1)) var(--ui-ease-standard);
   }
   .ui-navigation-rail[data-state='expanded'] {
     inline-size: var(--ui-navigation-rail-expanded-width, var(--ui-sidebar-width, 248px));
@@ -431,18 +461,25 @@
   .ui-navigation-rail[data-state='expanded'][data-expansion-mode='overlay'] {
     max-inline-size: var(--_ui-navigation-max-width, calc(100vw - 16px));
   }
-  .ui-navigation-rail[data-state='expanded'] .ui-navigation-rail-items {
+  .ui-navigation-rail[data-expandable] .ui-navigation-rail-items {
     align-items: stretch;
   }
-  .ui-navigation-rail[data-state='expanded'] .ui-navigation-rail-item {
+  .ui-navigation-rail[data-expandable] .ui-navigation-rail-item {
     inline-size: 100%;
     min-block-size: 44px;
     block-size: auto;
     flex: 0 0 auto;
     justify-content: flex-start;
     gap: 12px;
-    padding-inline: 12px;
+    padding-inline: clamp(0px, calc((100% - 24px) / 2), 12px);
+    overflow: hidden;
     text-align: start;
+  }
+  .ui-navigation-rail[data-expandable] .ui-navigation-rail-label {
+    flex: 1 1 0;
+    inline-size: auto;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
   .ui-navigation-rail-label {
     flex: 0 0 0;
@@ -456,10 +493,8 @@
       var(--ui-ease-standard);
   }
   .ui-navigation-rail[data-state='expanded'] .ui-navigation-rail-label {
-    flex: 1 1 auto;
-    inline-size: auto;
-    overflow-wrap: anywhere;
     opacity: 1;
+    transition-delay: calc(80ms * var(--ui-motion-scale, 1));
   }
   .ui-navigation-rail[data-state='expanded'] .ui-navigation-rail-badge {
     position: static;
@@ -533,6 +568,11 @@
   .ui-navigation-rail-items > .ui-selection-indicator {
     background: var(--ui-accent-soft);
   }
+  .ui-navigation-rail[data-expandable] .ui-navigation-rail-items > .ui-selection-indicator {
+    /* The container already animates its width; don't chase each resize sample. */
+    inline-size: 100%;
+    transition-property: transform;
+  }
   .ui-navigation-rail-icon {
     flex: 0 0 24px;
     display: flex;
@@ -595,8 +635,16 @@
     .ui-navigation-rail,
     .ui-navigation-rail-label,
     .ui-navigation-expansion-backdrop,
+    .ui-navigation-expansion-frame,
     .ui-sidebar-desktop,
-    .ui-sidebar-item {
+    .ui-sidebar-item,
+    .ui-sidebar-item-label,
+    .ui-sidebar-group-label,
+    .ui-sidebar-input,
+    .ui-sidebar-section-swap > div,
+    .ui-sidebar-menu-action,
+    .ui-sidebar-menu-badge,
+    .ui-sidebar-group-action {
       transition: none;
     }
   }

@@ -1139,6 +1139,15 @@ export const NavigationRail = /* @__PURE__ */ React.forwardRef<HTMLElement, Navi
             data-hide-on-mobile={hideOnMobile}
             data-state={expansion.expanded ? 'expanded' : 'collapsed'}
             data-hover-expanded={expansion.hoverExpanded || undefined}
+            data-expandable={
+              expandOnHover ||
+              expansion.expanded ||
+              defaultExpanded ||
+              controlledExpanded !== undefined ||
+              expandedWidth !== undefined ||
+              expansionMode === 'overlay' ||
+              undefined
+            }
             data-expansion-mode={expansionMode}
             {...styles('navigation-rail.root', 'ui-navigation-rail', className, unstyled)}
             style={{

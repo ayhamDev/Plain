@@ -8,7 +8,7 @@ export interface NavigationExpansionProps {
   expandOnHover?: boolean;
   /** Overlay keeps the compact layout width reserved when expanded. */
   expansionMode?: 'inline' | 'overlay';
-  /** Milliseconds before a pointer preview opens/closes. Keyboard focus opens immediately. */
+  /** Delays for fresh pointer previews. Focus and re-entry during closing resume immediately. */
   hoverOpenDelay?: number;
   hoverCloseDelay?: number;
   /** Dim the navigation's enclosing SidebarProvider/AppShell in overlay mode. */
@@ -92,7 +92,18 @@ export function useNavigationExpansion({
         pointer.current = true;
         dismissed.current = false;
         clear();
-        if (!expanded) timer.current = setTimeout(() => setPreview(true), delay(hoverOpenDelay));
+        if (!expanded) {
+          const reversing = event.currentTarget
+            .getAnimations?.()
+            .some(
+              (animation) =>
+                animation.playState === 'running' &&
+                'transitionProperty' in animation &&
+                /^(inline-size|width)$/.test(String(animation.transitionProperty)),
+            );
+          if (reversing) setPreview(true);
+          else timer.current = setTimeout(() => setPreview(true), delay(hoverOpenDelay));
+        }
       },
       onPointerLeave(event: React.PointerEvent<HTMLElement>) {
         if (!automatic || event.pointerType !== 'mouse') return;
@@ -200,6 +211,7 @@ export function NavigationExpansionFrame({
         [
           '--ui-sidebar-overlay-background',
           '--ui-duration-normal',
+          '--ui-duration-slow',
           '--ui-motion-scale',
           '--ui-ease-standard',
         ]
