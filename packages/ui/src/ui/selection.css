@@ -1,0 +1,110 @@
+.ui-selection-content {
+  min-inline-size: 0;
+}
+.ui-selection-content [cmdk-root],
+.ui-selection-body [cmdk-root] {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-block-size: 0;
+  min-inline-size: 0;
+}
+.ui-selection-content [data-ui='command'][data-slot='wrapper'],
+.ui-selection-body [data-ui='command'][data-slot='wrapper'] {
+  flex-shrink: 0;
+}
+.ui-selection-content [cmdk-list],
+.ui-selection-body [cmdk-list] {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  overscroll-behavior: contain;
+  scroll-padding-block: 8px;
+}
+.ui-selection-handle {
+  flex-shrink: 0;
+}
+.ui-selection-header {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  padding-inline-end: 56px;
+}
+.ui-selection-header h2 {
+  outline: none;
+}
+.ui-selection-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-block-size: 0;
+  min-inline-size: 0;
+  overflow: hidden;
+  padding-block-end: max(8px, env(safe-area-inset-bottom));
+}
+.ui-selection-body [cmdk-list] {
+  max-block-size: none;
+  padding: 8px;
+}
+.ui-selection-body [cmdk-item] {
+  min-block-size: 44px;
+}
+.ui-selection-body .ui-multi-select-option {
+  min-block-size: 44px;
+  overflow-wrap: anywhere;
+}
+.ui-selection-footer {
+  flex-shrink: 0;
+  padding: 12px 16px max(16px, env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--ui-border);
+}
+.ui-selection-footer > button {
+  inline-size: 100%;
+}
+.ui-selection-search {
+  flex: 0 0 auto;
+  inline-size: calc(100% - 32px);
+  min-inline-size: 0;
+  min-block-size: 44px;
+  margin: 0 16px 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--ui-input-border);
+  border-radius: var(--ui-input-radius);
+  color: var(--ui-foreground);
+  background: var(--ui-input-background);
+  font: inherit;
+}
+.ui-selection-search:focus-visible {
+  outline: 2px solid var(--ui-input-focus);
+  outline-offset: 2px;
+}
+.ui-select-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--ui-layer-overlay);
+  background: var(--ui-overlay);
+}
+.ui-select-sheet {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-start: auto;
+  inset-block-end: var(--_ui-selection-bottom, 0px);
+  inline-size: min(100vw, 640px);
+  max-inline-size: 100vw;
+  margin-inline: auto;
+  max-block-size: calc(var(--_ui-selection-height, 100dvh) - 16px);
+  border-radius: var(--ui-sheet-radius, var(--ui-radius)) var(--ui-sheet-radius, var(--ui-radius)) 0
+    0;
+}
+.ui-select-sheet [data-slot='viewport'] {
+  max-block-size: calc(var(--_ui-selection-height, 100dvh) * 0.75 - 48px);
+}
+.ui-select-sheet [data-slot='item'] {
+  min-block-size: 44px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.ui-select-sheet-heading {
+  flex-shrink: 0;
+  padding: 16px;
+  border-block-end: 1px solid var(--ui-border);
+  font-weight: 600;
+}

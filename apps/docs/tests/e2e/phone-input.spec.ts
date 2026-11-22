@@ -49,12 +49,19 @@ for (const [width, mode, dir] of [
     const search = page.getByRole('combobox', {
       name: dir === 'rtl' ? 'البحث عن دولة...' : 'Search countries...',
     });
-    await expect(search).toBeFocused();
+    if (width >= 768) await expect(search).toBeFocused();
+    else await expect(search).not.toBeFocused();
     await search.fill('+44');
     const popup = page.getByRole('dialog', {
       name: dir === 'rtl' ? 'الدولة' : 'Country',
       exact: true,
     });
+    await expect
+      .poll(async () => {
+        const box = (await popup.boundingBox())!;
+        return box.y + box.height;
+      })
+      .toBeLessThanOrEqual(920);
     const box = await popup.boundingBox();
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.x + box!.width).toBeLessThanOrEqual(width);

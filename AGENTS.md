@@ -14,6 +14,15 @@ is needed.
 - Read current exports, types, and relevant component implementations before using
   an API. Skill references describe the foundation contract; current types
   determine what can compile as integration continues.
+- Every UI change requires a mobile interaction review. Choose a compact surface
+  deliberately: prefer bottom sheets for searchable choices, filters and focused
+  editing instead of shrinking desktop popovers. Keep presentation overrides when
+  callers need another surface. Check 320px reflow, long labels, safe areas,
+  keyboard-reduced height, focus restoration and a single intentional scroll region.
+- Localization and RTL are library contracts for every component. Route internal
+  text, validation, empty states and accessible names through the language provider;
+  use locale-aware formatting, logical layout and scoped portal direction. Verify
+  Arabic/RTL and custom messages alongside English/LTR for changed components.
 - Source ownership is `packages/ui` for the library and `apps/docs` for documentation.
   Shared build/test configuration lives in `tooling`. Install at the private root
   using the single npm lockfile. Import workspace APIs through their public package

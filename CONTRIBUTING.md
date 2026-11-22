@@ -33,6 +33,15 @@ typecheck, lint, formatting, build, package, and browser checks. For documentati
 alone, check formatting, links, and factual API claims. Record what ran and what
 remains unverified; scope browser QA to affected workflows.
 
+Mobile interaction, localization and RTL review are required for UI changes.
+Choose a mobile surface before implementing desktop placement: searchable choices,
+filters and focused editing usually need a bottom sheet, with an explicit override
+when another presentation is appropriate. Verify 320px reflow, long translated
+labels, safe areas, keyboard-reduced height, focus return and one scrolling body.
+Provider messages must cover internal text and accessible names. Exercise Arabic
+RTL and custom translations, including portals, rather than checking direction on
+the trigger alone. Record physical-device coverage separately from emulation.
+
 ## Changesets
 
 Add `.changeset/<unique-name>.md` for a releasable consumer change. Name each affected

@@ -903,6 +903,17 @@ const fields: DataTableFilterField<Invoice>[] = [
     '<Field label="Team"><MultiSelect defaultValue={["design"]} name="team" options={[\n  { value: "design", label: "Design" }, { value: "engineering", label: "Engineering" }, { value: "research", label: "Research" },\n]} /></Field>',
     [
       p('options', 'MultiSelectOption[]', 'Values, labels, icons and disabled choices.'),
+      p(
+        'presentation',
+        'popover | auto | sheet',
+        'auto uses a mobile sheet with its own search and Done action. Selection stays linked to the original form and ref.',
+        'popover',
+      ),
+      p(
+        'sheetTitle',
+        'ReactNode',
+        'Sheet title, falling back to aria-label or the localized options label.',
+      ),
       ...value,
       p('maxSelected', 'number', 'Maximum selected values.'),
       p('open / onOpenChange', 'boolean / callback', 'Control the options popover.'),

@@ -16,7 +16,13 @@ import { cn } from './utils';
 import { useModalInert } from './modal-accessibility';
 import { useTranslation } from './i18n';
 import { inputClass, inputVariantClass, type InputVariant } from './input-variants';
+import {
+  useSelectionPresentation,
+  useSelectionViewport,
+  type SelectionPresentation,
+} from './selection-presentation';
 export type { InputVariant } from './input-variants';
+export type { SelectionPresentation } from './selection-presentation';
 export type InputProps = React.InputHTMLAttributes<HTMLInputElement> &
   PlainStyleProps & { variant?: InputVariant };
 export const Input = /* @__PURE__ */ React.forwardRef<HTMLInputElement, InputProps>(
@@ -363,24 +369,40 @@ export const Slider = /* @__PURE__ */ React.forwardRef<
   );
 });
 Slider.displayName = 'Slider';
+export type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root> & {
+  presentation?: SelectionPresentation;
+  sheetTitle?: React.ReactNode;
+};
+const SelectPresentationContext = /* @__PURE__ */ React.createContext<{
+  sheet: boolean;
+  open: boolean;
+  title?: React.ReactNode;
+}>({ sheet: false, open: false });
 export function Select({
   open,
   defaultOpen = false,
   onOpenChange,
+  presentation = 'popover',
+  sheetTitle,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Root>) {
+}: SelectProps) {
   const [internalOpen, setInternalOpen] = React.useState(defaultOpen);
   const isOpen = open ?? internalOpen;
-  useModalInert(isOpen);
+  const { mode, ready } = useSelectionPresentation(presentation, isOpen);
+  useModalInert(isOpen && ready);
   return (
-    <SelectPrimitive.Root
-      open={isOpen}
-      onOpenChange={(next) => {
-        if (open === undefined) setInternalOpen(next);
-        onOpenChange?.(next);
-      }}
-      {...props}
-    />
+    <SelectPresentationContext.Provider
+      value={{ sheet: mode === 'sheet', open: isOpen && ready, title: sheetTitle }}
+    >
+      <SelectPrimitive.Root
+        open={isOpen && ready}
+        onOpenChange={(next) => {
+          if (open === undefined) setInternalOpen(next);
+          onOpenChange?.(next);
+        }}
+        {...props}
+      />
+    </SelectPresentationContext.Provider>
   );
 }
 export const SelectGroup = /* @__PURE__ */ React.forwardRef<
@@ -398,9 +420,11 @@ export const SelectTrigger = /* @__PURE__ */ React.forwardRef<
     PlainStyleProps & { variant?: InputVariant }
 >(({ className, children, unstyled, variant = 'outlined', ...props }, ref) => {
   const styles = useStyles();
+  const { sheet } = React.useContext(SelectPresentationContext);
   return styles.tooltip(
     <SelectPrimitive.Trigger
       ref={ref}
+      {...(sheet ? { 'aria-haspopup': 'dialog' as const } : {})}
       data-variant={variant}
       {...styles(
         'select.trigger',
@@ -431,38 +455,105 @@ export const SelectContent = /* @__PURE__ */ React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> & PlainStyleProps
 >(({ className, children, position = 'popper', sideOffset = 6, unstyled, ...props }, ref) => {
   const styles = useStyles();
-  return (
-    <SelectPrimitive.Portal container={usePortalContainer()}>
-      {styles.tooltip(
-        <SelectPrimitive.Content
-          ref={ref}
-          position={position}
-          sideOffset={sideOffset}
-          {...styles(
-            'select.content',
-            'ui-popup z-[var(--ui-layer-dropdown)] max-h-[var(--radix-select-content-available-height)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))]',
-            className,
-            unstyled,
-          )}
-          {...props}
-        >
-          <SelectPrimitive.ScrollUpButton
-            {...styles('select.scroll-up', 'flex justify-center py-1', undefined, unstyled)}
-          >
-            <ChevronUp {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
-          </SelectPrimitive.ScrollUpButton>
-          <SelectPrimitive.Viewport {...styles('select.viewport', 'p-1', undefined, unstyled)}>
-            {children}
-          </SelectPrimitive.Viewport>
-          <SelectPrimitive.ScrollDownButton
-            {...styles('select.scroll-down', 'flex justify-center py-1', undefined, unstyled)}
-          >
-            <ChevronDown {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
-          </SelectPrimitive.ScrollDownButton>
-        </SelectPrimitive.Content>,
+  const { t } = useTranslation();
+  const { sheet, open, title } = React.useContext(SelectPresentationContext);
+  const [panel, setPanel] = React.useState<HTMLDivElement | null>(null);
+  const panelRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      setPanel(node);
+      if (typeof ref === 'function') ref(node);
+      else if (ref) ref.current = node;
+    },
+    [ref],
+  );
+  useSelectionViewport(panel, sheet && open && !(unstyled ?? styles.unstyled));
+  const portal = usePortalContainer();
+  const titleId = React.useId();
+  const content = styles.tooltip(
+    <SelectPrimitive.Content
+      ref={panelRef}
+      position={sheet ? 'item-aligned' : position}
+      sideOffset={sideOffset}
+      {...styles(
+        'select.content',
+        'ui-popup z-[var(--ui-layer-dropdown)] max-h-[var(--radix-select-content-available-height)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[var(--ui-popover-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-popover-border,var(--ui-border))] bg-[var(--ui-popover-background,var(--ui-surface))] text-[var(--ui-popover-foreground,var(--ui-foreground))] shadow-[var(--ui-popover-shadow,var(--ui-shadow))]',
+        cn(sheet && 'ui-select-sheet', className),
         unstyled,
       )}
-    </SelectPrimitive.Portal>
+      {...props}
+      {...(sheet ? { role: 'dialog' as const, 'aria-modal': true } : {})}
+      aria-labelledby={
+        props['aria-labelledby'] ?? (sheet && !props['aria-label'] ? titleId : undefined)
+      }
+      aria-label={
+        props['aria-label'] ??
+        (sheet ? (typeof title === 'string' ? title : t('select.options')) : undefined)
+      }
+      style={{
+        ...(sheet && !(unstyled ?? styles.unstyled)
+          ? ({
+              position: 'fixed',
+              insetInline: 0,
+              top: 'auto',
+              bottom: 'var(--_ui-selection-bottom, 0px)',
+              width: 'min(100vw, 640px)',
+              maxWidth: '100vw',
+              marginInline: 'auto',
+              maxHeight: 'min(85dvh, calc(var(--_ui-selection-height, 100dvh) - 16px))',
+              display: 'flex',
+              flexDirection: 'column',
+            } as React.CSSProperties)
+          : {}),
+        ...props.style,
+      }}
+    >
+      {sheet && (
+        <div
+          id={titleId}
+          {...styles('select.sheet-heading', 'ui-select-sheet-heading', undefined, unstyled)}
+          role="heading"
+          aria-level={2}
+        >
+          {title ?? t('select.options')}
+        </div>
+      )}
+      <SelectPrimitive.ScrollUpButton
+        {...styles('select.scroll-up', 'flex justify-center py-1', undefined, unstyled)}
+      >
+        <ChevronUp {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
+      </SelectPrimitive.ScrollUpButton>
+      <SelectPrimitive.Viewport
+        tabIndex={sheet ? 0 : undefined}
+        {...(sheet ? { role: 'listbox', 'aria-labelledby': titleId } : {})}
+        {...styles('select.viewport', 'min-h-0 p-1', undefined, unstyled)}
+        style={
+          sheet && !(unstyled ?? styles.unstyled)
+            ? { maxHeight: 'calc(var(--_ui-selection-height, 100dvh) * 0.75 - 48px)' }
+            : undefined
+        }
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+      <SelectPrimitive.ScrollDownButton
+        {...styles('select.scroll-down', 'flex justify-center py-1', undefined, unstyled)}
+      >
+        <ChevronDown {...styles('select.scroll-icon', 'size-4', undefined, unstyled)} />
+      </SelectPrimitive.ScrollDownButton>
+    </SelectPrimitive.Content>,
+    unstyled,
+  );
+  return (
+    <>
+      {sheet && open && (
+        <SelectPrimitive.Portal container={portal}>
+          <div
+            {...styles('select.backdrop', 'ui-select-sheet-backdrop', undefined, unstyled)}
+            aria-hidden="true"
+          />
+        </SelectPrimitive.Portal>
+      )}
+      <SelectPrimitive.Portal container={portal}>{content}</SelectPrimitive.Portal>
+    </>
   );
 });
 SelectContent.displayName = 'SelectContent';

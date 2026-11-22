@@ -2033,6 +2033,25 @@ export function ArabicBooking() {
           formatting.
         </p>
       </GuideSection>
+      <GuideSection title="Mobile selection and portal direction">
+        <p>
+          PhoneInput country search uses a bottom sheet below 768px by default. Select, Combobox and
+          MultiSelect preserve their popover defaults and offer presentation="auto" to use the same
+          adaptive behavior. Force either presentation with "sheet" or "popover". Localized search,
+          empty states and dismissal labels follow the provider, including portals. Use sheetTitle
+          for an application-owned title. Phone digits and dialing codes retain LTR reading order
+          inside RTL layouts.
+        </p>
+        <p>
+          Searchable sheets keep one scrolling list, reachable actions and keyboard-aware height. A
+          surface stays stable until it closes when the viewport changes. MultiSelect keeps the
+          original form input and ref, with filtering inside the sheet and a localized Done action.
+          Native Select retains Radix listbox semantics in either presentation. Every UI change
+          requires mobile, localization and RTL review: verify 320px reflow, long translations,
+          software-keyboard space, focus return and scoped direction instead of only reducing a
+          desktop popover's width.
+        </p>
+      </GuideSection>
       <GuideSection title="Dates, numbers and application content">
         <p>
           Calendar names and numeric UI use Intl. A region or numbering extension chooses numeral

@@ -73,15 +73,19 @@ export const DialogContent = /* @__PURE__ */ React.forwardRef<
     showClose?: boolean;
   }) &
     PlainStyleProps
->(({ className, children, showClose = true, unstyled, ...props }, ref) => {
+>(({ className, children, showClose = true, unstyled, dir: localDirection, ...props }, ref) => {
   const styles = useStyles();
   const { t } = useTranslation();
+  const dir = useDirection(
+    localDirection === 'rtl' || localDirection === 'ltr' ? localDirection : undefined,
+  );
   return (
     <DialogPortal>
       <DialogOverlay unstyled={unstyled} />
       {styles.tooltip(
         <DialogPrimitive.Content
           ref={ref}
+          dir={localDirection ?? dir}
           {...styles(
             'dialog.content',
             cn(
@@ -552,8 +556,11 @@ AlertDialogTrigger.displayName = 'AlertDialogTrigger';
 export const AlertDialogContent = /* @__PURE__ */ React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content> & PlainStyleProps
->(({ className, unstyled, ...props }, ref) => {
+>(({ className, unstyled, dir: localDirection, ...props }, ref) => {
   const styles = useStyles();
+  const dir = useDirection(
+    localDirection === 'rtl' || localDirection === 'ltr' ? localDirection : undefined,
+  );
   return (
     <AlertDialogPrimitive.Portal container={usePortalContainer()}>
       <AlertDialogPrimitive.Overlay
@@ -567,6 +574,7 @@ export const AlertDialogContent = /* @__PURE__ */ React.forwardRef<
       {styles.tooltip(
         <AlertDialogPrimitive.Content
           ref={ref}
+          dir={localDirection ?? dir}
           {...styles(
             'alert-dialog.content',
             'ui-dialog fixed top-1/2 left-1/2 z-[var(--ui-layer-dialog)] max-h-[calc(100dvh-32px)] w-[calc(100%-32px)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto overscroll-contain rounded-[var(--ui-dialog-radius,var(--ui-radius))] border-[length:var(--ui-border-width,1px)] border-[var(--ui-dialog-border,var(--ui-border))] bg-[var(--ui-dialog-background,var(--ui-surface))] p-5 text-[var(--ui-dialog-foreground,var(--ui-foreground))] shadow-[var(--ui-dialog-shadow,var(--ui-shadow))] sm:p-6',
@@ -688,16 +696,21 @@ export const PopoverContent = /* @__PURE__ */ React.forwardRef<
       collisionPadding = 8,
       sticky = 'always',
       unstyled,
+      dir: localDirection,
       ...props
     },
     ref,
   ) => {
     const styles = useStyles();
+    const dir = useDirection(
+      localDirection === 'rtl' || localDirection === 'ltr' ? localDirection : undefined,
+    );
     return (
       <PopoverPrimitive.Portal container={usePortalContainer()}>
         {styles.tooltip(
           <PopoverPrimitive.Content
             ref={ref}
+            dir={dir}
             align={align}
             sideOffset={sideOffset}
             collisionPadding={collisionPadding}

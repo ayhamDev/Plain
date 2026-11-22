@@ -283,6 +283,17 @@ export const components: ComponentDefinition[] = [
       ...controlled,
       prop('name', 'string', 'Includes the value in native form submission.'),
       prop(
+        'presentation',
+        'popover | auto | sheet',
+        'Opt into an adaptive mobile bottom sheet with auto, or force either surface. Retains Radix selection, keyboard and form behavior.',
+        'popover',
+      ),
+      prop(
+        'sheetTitle',
+        'ReactNode',
+        'Title for the sheet. Uses a localized options label when omitted.',
+      ),
+      prop(
         'position',
         'popper | item-aligned',
         'Popper anchors beside the trigger; item-aligned centers the selected option over it. Side, align, and sideOffset apply only to popper.',
@@ -307,6 +318,13 @@ export const components: ComponentDefinition[] = [
       ...controlled,
       prop('placeholder', 'string', 'Text before selection.', 'Select an option'),
       prop('searchPlaceholder', 'string', 'The search input label.', 'Search options...'),
+      prop(
+        'presentation',
+        'popover | auto | sheet',
+        'auto uses a bottom sheet below 768px. The existing popover is retained by default.',
+        'popover',
+      ),
+      prop('sheetTitle', 'ReactNode', 'Sheet title; falls back to aria-label or placeholder.'),
       prop('name', 'string', 'A hidden input for native form submission.'),
     ],
     'Built on Radix Popover and cmdk. Type to filter, arrow keys to move, Enter to select, and Escape to close.',

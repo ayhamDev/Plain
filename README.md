@@ -174,6 +174,27 @@ export function LocalizedCalendar() {
 
 Use `messages` for individual string overrides and `translations` for additional locale dictionaries. `TranslationProvider` is an alias of `LanguageProvider`.
 
+All library-owned text, validation and accessible labels use this provider. `PlainProvider locale="ar-EG"` can configure language and automatic RTL together; `ThemeScope` can override locale, messages and direction locally, including portaled content. Translate application-owned labels and data in your application. Telephone numbers and calling codes retain LTR reading order within RTL layouts.
+
+### Mobile selection surfaces
+
+`PhoneInput` uses a bottom sheet below 768px and a bounded popover on larger screens. `Select`, `Combobox` and `MultiSelect` offer the same behavior through `presentation="auto"`; their default remains `"popover"`. Force either surface with `"sheet"` or `"popover"`.
+
+```tsx
+<Select presentation="auto" sheetTitle="Choose department">
+  <SelectTrigger aria-label="Department"><SelectValue /></SelectTrigger>
+  <SelectContent>
+    <SelectItem value="design">Design</SelectItem>
+    <SelectItem value="engineering">Engineering</SelectItem>
+  </SelectContent>
+</Select>
+<Combobox presentation="auto" aria-label="Department" options={departments} />
+<MultiSelect presentation="auto" aria-label="Departments" options={departments} />
+<PhoneInput presentation="auto" defaultCountry="EG" />
+```
+
+The selected surface stays stable while open, even during rotation or resize. Searchable sheets have a fixed header, one scrolling list and keyboard-aware height; multiple selection adds a localized Done action. Native Select keeps Radix listbox navigation, typeahead and form behavior in both presentations. Per-component `sheetTitle` overrides are application-owned text. Search, empty states, Done and dismissal labels inherit the language provider. Generic popovers remain compositional: review each interaction and use `Sheet` for focused mobile tasks. Mobile, localization and RTL review are required by the repository contribution instructions.
+
 ## Documentation
 
 Run the interactive documentation from the repository root:

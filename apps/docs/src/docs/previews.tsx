@@ -90,7 +90,12 @@ function SelectPreview({ state }: { state: State }) {
   return (
     <div style={{ width: '100%', maxWidth: 320 }}>
       <UI.Label htmlFor={id}>Team</UI.Label>
-      <UI.Select defaultValue="engineering" disabled={!!state.disabled}>
+      <UI.Select
+        defaultValue="engineering"
+        disabled={!!state.disabled}
+        presentation={choice(state, 'presentation', ['popover', 'auto', 'sheet'])}
+        sheetTitle="Choose team"
+      >
         <UI.SelectTrigger id={id} variant={choice(state, 'variant', inputVariants)}>
           <UI.SelectValue placeholder="Select department" />
         </UI.SelectTrigger>
@@ -198,6 +203,7 @@ function qrPreviewProps(state: State): Omit<UI.QRCodeProps, 'value'> {
 export const propPreviews: Record<string, PropPreview> = {
   'phone-input': {
     defaults: {
+      presentation: 'auto',
       variant: 'outlined',
       defaultCountry: 'US',
       international: true,
@@ -211,6 +217,7 @@ export const propPreviews: Record<string, PropPreview> = {
     controls: [
       options('variant', inputVariants),
       options('defaultCountry', ['US', 'GB', 'EG', 'SA', 'DE']),
+      options('presentation', ['auto', 'popover', 'sheet']),
       bool('international'),
       options('validation', ['possible', 'valid', 'off']),
       bool('showCountrySelect'),
@@ -227,6 +234,7 @@ export const propPreviews: Record<string, PropPreview> = {
             name="phone"
             defaultCountry={choice(s, 'defaultCountry', ['US', 'GB', 'EG', 'SA', 'DE'])}
             variant={choice(s, 'variant', inputVariants)}
+            presentation={choice(s, 'presentation', ['auto', 'popover', 'sheet'])}
             international={!!s.international}
             validation={
               s.validation === 'off' ? false : choice(s, 'validation', ['possible', 'valid'])
@@ -380,6 +388,7 @@ export const propPreviews: Record<string, PropPreview> = {
   },
   select: {
     defaults: {
+      presentation: 'popover',
       variant: 'outlined',
       position: 'popper',
       side: 'bottom',
@@ -390,6 +399,7 @@ export const propPreviews: Record<string, PropPreview> = {
     controls: [
       options('variant', inputVariants),
       options('position', ['popper', 'item-aligned']),
+      options('presentation', ['popover', 'auto', 'sheet']),
       { ...options('side', sides), when: { position: 'popper' } },
       { ...options('align', alignments), when: { position: 'popper' } },
       { ...number('sideOffset', 0, 24), when: { position: 'popper' } },
@@ -399,7 +409,7 @@ export const propPreviews: Record<string, PropPreview> = {
     code: (s) => `const id = React.useId();
 
 <Label htmlFor={id}>Team</Label>
-<Select defaultValue="engineering" disabled={${s.disabled}}>
+<Select defaultValue="engineering" disabled={${s.disabled}} presentation="${s.presentation}" sheetTitle="Choose team">
   <SelectTrigger id={id} variant="${s.variant}"><SelectValue placeholder="Select department" /></SelectTrigger>
   <SelectContent ${attr({ position: s.position, side: s.side, align: s.align, sideOffset: s.sideOffset })}>
     <SelectGroup><SelectLabel>Teams</SelectLabel>
@@ -522,8 +532,15 @@ export const propPreviews: Record<string, PropPreview> = {
       `<Slider orientation="${s.orientation}" step={${s.step}} disabled={${s.disabled}} defaultValue={${s.range ? '[25, 75]' : '[50]'}} thumbLabels={${s.range ? '["Minimum budget", "Maximum budget"]' : '["Budget"]'}} />`,
   },
   combobox: {
-    defaults: { variant: 'outlined', disabled: false, side: 'bottom', align: 'start' },
+    defaults: {
+      variant: 'outlined',
+      disabled: false,
+      side: 'bottom',
+      align: 'start',
+      presentation: 'popover',
+    },
     controls: [
+      options('presentation', ['popover', 'auto', 'sheet']),
       options('variant', inputVariants),
       bool('disabled'),
       options('side', sides),
@@ -531,6 +548,7 @@ export const propPreviews: Record<string, PropPreview> = {
     ],
     render: (s) => (
       <UI.Combobox
+        presentation={choice(s, 'presentation', ['popover', 'auto', 'sheet'])}
         variant={choice(s, 'variant', inputVariants)}
         options={departments}
         aria-label="Department"
@@ -541,7 +559,7 @@ export const propPreviews: Record<string, PropPreview> = {
       />
     ),
     code: (s) =>
-      `const options = ${optionSource};\n\n<Combobox variant="${s.variant}" options={options} aria-label="Department" defaultValue="engineering" disabled={${s.disabled}} contentProps={{ side: "${s.side}", align: "${s.align}" }} />`,
+      `const options = ${optionSource};\n\n<Combobox presentation="${s.presentation}" variant="${s.variant}" options={options} aria-label="Department" defaultValue="engineering" disabled={${s.disabled}} contentProps={{ side: "${s.side}", align: "${s.align}" }} />`,
   },
   badge: {
     defaults: { variant: 'accent' },
@@ -1084,8 +1102,15 @@ export const propPreviews: Record<string, PropPreview> = {
       `<Field label="Tags"><TagsInput ${attr(s)} defaultValue={["Design", "Research"]} /></Field>`,
   },
   'multi-select': {
-    defaults: { variant: 'outlined', disabled: false, maxSelected: 3, selectionDisplay: 'tags' },
+    defaults: {
+      variant: 'outlined',
+      disabled: false,
+      maxSelected: 3,
+      selectionDisplay: 'tags',
+      presentation: 'popover',
+    },
     controls: [
+      options('presentation', ['popover', 'auto', 'sheet']),
       options('variant', inputVariants),
       bool('disabled'),
       number('maxSelected', 1, 3),
@@ -1094,6 +1119,7 @@ export const propPreviews: Record<string, PropPreview> = {
     render: (s) =>
       field(
         <UI.MultiSelect
+          presentation={choice(s, 'presentation', ['popover', 'auto', 'sheet'])}
           variant={choice(s, 'variant', inputVariants)}
           options={departments}
           disabled={!!s.disabled}

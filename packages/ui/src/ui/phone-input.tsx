@@ -9,10 +9,18 @@ import PhoneNumberInput, {
 } from 'react-phone-number-input/max';
 import { Check, ChevronDown, Globe } from 'lucide-react';
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from './command';
-import { Popover, PopoverContent, PopoverTrigger } from './overlays';
+import { Popover, PopoverTrigger } from './overlays';
+import { SelectionPanel } from './selection-panel';
+import { useSelectionPresentation, type SelectionPresentation } from './selection-presentation';
 import { inputVariantClass, type InputVariant } from './input-variants';
 import { useTranslation } from './i18n';
-import { StyleProvider, useDirection, useStyles, type PlainStyleProps } from './styling';
+import {
+  DirectionProvider,
+  StyleProvider,
+  useDirection,
+  useStyles,
+  type PlainStyleProps,
+} from './styling';
 
 export type PhoneCountry = Country;
 
@@ -46,6 +54,8 @@ export interface PhoneInputProps
   /** Country-name locale. Internal messages follow LanguageProvider. */
   locale?: string;
   variant?: InputVariant;
+  /** auto uses a bottom sheet on mobile and a popover on larger screens. */
+  presentation?: SelectionPresentation;
 }
 
 const supportedCountries = /* @__PURE__ */ getCountries();
@@ -67,6 +77,7 @@ interface PhoneContextValue {
   showCountrySelect: boolean;
   tooltip: PhoneInputProps['tooltip'];
   englishNames: Intl.DisplayNames;
+  presentation: SelectionPresentation;
 }
 const PhoneContext = /* @__PURE__ */ React.createContext<PhoneContextValue | null>(null);
 
@@ -139,15 +150,19 @@ function PhoneCountryPicker({
   const { t } = useTranslation();
   const styles = useStyles();
   const [open, setOpen] = React.useState(false);
+  const trigger = React.useRef<HTMLButtonElement>(null);
+  const availableOpen = open && !disabled && !readOnly;
+  const { mode, ready } = useSelectionPresentation(context.presentation, availableOpen);
   const popupId = React.useId();
   const choices = options.filter((option) => !option.divider);
   const label = choices.find((option) => option.value === value)?.label ?? t('phone.international');
   const callingCode = value ? `+${getCountryCallingCode(value)}` : '';
   if (!context.showCountrySelect) return null;
   return (
-    <Popover open={open && !disabled && !readOnly} onOpenChange={setOpen}>
+    <Popover open={availableOpen && ready && mode === 'popover'} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
+          ref={trigger}
           {...styles('phone-input.country', 'ui-phone-country')}
           type="button"
           role="combobox"
@@ -160,7 +175,7 @@ function PhoneCountryPicker({
           onBlur={onBlur}
         >
           <span {...styles('phone-input.country-value', 'ui-phone-country-value')}>
-            {value ? <bdi>{value}</bdi> : <Globe aria-hidden="true" size={16} />}
+            {value ? <bdi dir="ltr">{value}</bdi> : <Globe aria-hidden="true" size={16} />}
           </span>
           <ChevronDown
             {...styles('phone-input.country-icon', 'ui-phone-country-icon')}
@@ -168,11 +183,15 @@ function PhoneCountryPicker({
           />
         </button>
       </PopoverTrigger>
-      <PopoverContent
+      <SelectionPanel
         id={popupId}
-        aria-label={t('phone.country')}
-        align="start"
-        {...styles('phone-input.content', 'ui-phone-country-content overflow-hidden p-0')}
+        open={availableOpen}
+        onOpenChange={setOpen}
+        mode={mode}
+        ready={ready}
+        title={t('phone.country')}
+        returnFocusRef={trigger}
+        popoverProps={styles('phone-input.content', 'ui-phone-country-content')}
       >
         <Command label={t('phone.searchCountry')} defaultValue={value ?? 'international'}>
           <CommandInput
@@ -181,10 +200,8 @@ function PhoneCountryPicker({
           />
           <CommandList
             aria-label={t('phone.country')}
-            {...styles(
-              'phone-input.list',
-              'ui-phone-country-list max-h-[min(18rem,calc(var(--radix-popover-content-available-height)-48px))]',
-            )}
+            {...styles('phone-input.list', 'ui-phone-country-list')}
+            style={!styles.unstyled ? { maxHeight: mode === 'sheet' ? 'none' : 320 } : undefined}
           >
             <CommandEmpty>{t('phone.noCountries')}</CommandEmpty>
             {choices.map((option) => (
@@ -211,14 +228,14 @@ function PhoneCountryPicker({
                 <span {...styles('phone-input.option-name', 'ui-phone-country-name')}>
                   {option.label}
                 </span>
-                <bdi {...styles('phone-input.calling-code', 'ui-phone-calling-code')}>
+                <bdi dir="ltr" {...styles('phone-input.calling-code', 'ui-phone-calling-code')}>
                   {option.value ? `+${getCountryCallingCode(option.value)}` : ''}
                 </bdi>
               </CommandItem>
             ))}
           </CommandList>
         </Command>
-      </PopoverContent>
+      </SelectionPanel>
     </Popover>
   );
 }
@@ -242,6 +259,7 @@ export const PhoneInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Pho
       countryLabels,
       locale,
       variant = 'outlined',
+      presentation = 'auto',
       name,
       form,
       disabled,
@@ -372,76 +390,79 @@ export const PhoneInput = /* @__PURE__ */ React.forwardRef<HTMLInputElement, Pho
       showCountrySelect,
       tooltip,
       englishNames,
+      presentation,
     };
     return (
       <StyleProvider unstyled={unstyled}>
-        <PhoneContext.Provider value={context}>
-          <PhoneNumberInput
-            key={resetEpoch}
-            {...nativeProps}
-            {...styles(
-              'phone-input.root',
-              `ui-input-control ui-phone-input ${inputVariantClass(variant)}`,
-              className,
-              unstyled,
+        <DirectionProvider dir={direction}>
+          <PhoneContext.Provider value={context}>
+            <PhoneNumberInput
+              key={resetEpoch}
+              {...nativeProps}
+              {...styles(
+                'phone-input.root',
+                `ui-input-control ui-phone-input ${inputVariantClass(variant)}`,
+                className,
+                unstyled,
+              )}
+              style={style}
+              containerComponentProps={{
+                'data-ui': 'phone-input',
+                'data-slot': 'root',
+                'data-variant': variant,
+                'data-disabled': disabled || undefined,
+                'data-readonly': readOnly || undefined,
+                dir: direction,
+              }}
+              aria-label={
+                nativeProps['aria-label'] ??
+                (nativeProps['aria-labelledby'] || nativeProps.id ? undefined : t('phone.number'))
+              }
+              aria-invalid={ariaInvalid ?? (touched && !!error ? true : undefined)}
+              form={form}
+              disabled={disabled}
+              readOnly={readOnly}
+              required={required}
+              autoComplete={nativeProps.autoComplete ?? 'tel'}
+              inputMode={nativeProps.inputMode ?? 'tel'}
+              value={number || undefined}
+              defaultCountry={defaultCountry}
+              countries={allowedCountries}
+              labels={labels}
+              locales={names.resolvedOptions().locale}
+              countrySelectComponent={PhoneCountryPicker}
+              inputComponent={PhoneNumberField}
+              focusInputOnCountrySelection={false}
+              addInternationalOption={showInternationalOption}
+              international={international}
+              countryCallingCodeEditable={countryCallingCodeEditable}
+              smartCaret={smartCaret}
+              onChange={(next) => {
+                const nextValue = next ?? '';
+                if (controlled) {
+                  pendingEdit.current = nextValue;
+                  noteEdit();
+                } else setLocalValue(nextValue);
+                onValueChange?.(nextValue, phoneDetails(nextValue, selectedCountry.current));
+              }}
+              onCountryChange={(country) => {
+                selectedCountry.current = country;
+                onCountryChange?.(country);
+              }}
+              onBlur={(event: React.FocusEvent<HTMLInputElement>) => {
+                setTouched(true);
+                onBlur?.(event);
+              }}
+              onInvalid={(event: React.InvalidEvent<HTMLInputElement>) => {
+                setTouched(true);
+                onInvalid?.(event);
+              }}
+            />
+            {name && (
+              <input type="hidden" name={name} form={form} value={number} disabled={disabled} />
             )}
-            style={style}
-            containerComponentProps={{
-              'data-ui': 'phone-input',
-              'data-slot': 'root',
-              'data-variant': variant,
-              'data-disabled': disabled || undefined,
-              'data-readonly': readOnly || undefined,
-              dir: direction,
-            }}
-            aria-label={
-              nativeProps['aria-label'] ??
-              (nativeProps['aria-labelledby'] || nativeProps.id ? undefined : t('phone.number'))
-            }
-            aria-invalid={ariaInvalid ?? (touched && !!error ? true : undefined)}
-            form={form}
-            disabled={disabled}
-            readOnly={readOnly}
-            required={required}
-            autoComplete={nativeProps.autoComplete ?? 'tel'}
-            inputMode={nativeProps.inputMode ?? 'tel'}
-            value={number || undefined}
-            defaultCountry={defaultCountry}
-            countries={allowedCountries}
-            labels={labels}
-            locales={names.resolvedOptions().locale}
-            countrySelectComponent={PhoneCountryPicker}
-            inputComponent={PhoneNumberField}
-            focusInputOnCountrySelection={false}
-            addInternationalOption={showInternationalOption}
-            international={international}
-            countryCallingCodeEditable={countryCallingCodeEditable}
-            smartCaret={smartCaret}
-            onChange={(next) => {
-              const nextValue = next ?? '';
-              if (controlled) {
-                pendingEdit.current = nextValue;
-                noteEdit();
-              } else setLocalValue(nextValue);
-              onValueChange?.(nextValue, phoneDetails(nextValue, selectedCountry.current));
-            }}
-            onCountryChange={(country) => {
-              selectedCountry.current = country;
-              onCountryChange?.(country);
-            }}
-            onBlur={(event: React.FocusEvent<HTMLInputElement>) => {
-              setTouched(true);
-              onBlur?.(event);
-            }}
-            onInvalid={(event: React.InvalidEvent<HTMLInputElement>) => {
-              setTouched(true);
-              onInvalid?.(event);
-            }}
-          />
-          {name && (
-            <input type="hidden" name={name} form={form} value={number} disabled={disabled} />
-          )}
-        </PhoneContext.Provider>
+          </PhoneContext.Provider>
+        </DirectionProvider>
       </StyleProvider>
     );
   },

@@ -55,7 +55,17 @@ import {
 } from '@plain/ui';
 import { Button as ModularButton } from '@plain/ui/primitives';
 import { PhoneInput as ModularPhoneInput, type PhoneInputProps } from '@plain/ui/phone-input';
-import { Textarea as ModularTextarea, type TextareaProps } from '@plain/ui/forms';
+import {
+  Textarea as ModularTextarea,
+  type TextareaProps,
+  Select as ModularSelect,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  type SelectionPresentation,
+} from '@plain/ui/forms';
+import { Combobox as ModularCombobox } from '@plain/ui/command';
 import { Item as ModularItem, ItemActions, type ItemProps } from '@plain/ui/item';
 import { ChartSkeleton as ModularChartSkeleton } from '@plain/ui/charts';
 import {
@@ -64,7 +74,7 @@ import {
   type ColorPaletteOptions,
 } from '@plain/ui/color-palette';
 import { TooltipProvider as ModularTooltipProvider, type TooltipValue } from '@plain/ui/overlays';
-import { Dropzone as ModularDropzone } from '@plain/ui/advanced';
+import { Dropzone as ModularDropzone, MultiSelect as ModularMultiSelect } from '@plain/ui/advanced';
 import { QRCode as ModularQRCode, type QRCodeProps } from '@plain/ui/qr-code';
 import { TimePicker as ModularTimePicker, type TimePickerMode } from '@plain/ui/date-time';
 import {
@@ -158,6 +168,7 @@ export function ConsumerApp() {
               validation: 'valid',
               international: true,
               countryLabels: { EG: 'Egypt' },
+              presentation: 'auto',
             } satisfies PhoneInputProps)}
             onValueChange={(value, details) =>
               console.log(value, details.country, details.possible)
@@ -165,6 +176,24 @@ export function ConsumerApp() {
           />
         </Field>
         <PaletteConsumer />
+        <ModularSelect presentation={'auto' satisfies SelectionPresentation} sheetTitle="Teams">
+          <SelectTrigger aria-label="Responsive team">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="design">Design</SelectItem>
+          </SelectContent>
+        </ModularSelect>
+        <ModularCombobox
+          presentation="sheet"
+          sheetTitle="Teams"
+          options={[{ value: 'design', label: 'Design' }]}
+        />
+        <ModularMultiSelect
+          presentation="auto"
+          sheetTitle="Teams"
+          options={[{ value: 'design', label: 'Design' }]}
+        />
         <Item defaultSelected onSelectedChange={(value) => console.log(value)}>
           <ItemContent>
             <ItemTitle>Public file</ItemTitle>
