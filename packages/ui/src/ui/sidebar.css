@@ -557,16 +557,22 @@
     text-decoration: none;
     transition: color calc(var(--ui-duration-fast) * var(--ui-motion-scale)) var(--ui-ease-standard);
   }
-  .ui-navigation-rail-item[aria-current],
   .ui-navigation-rail-item:hover {
     color: var(--ui-foreground);
+  }
+  .ui-navigation-rail-item[aria-current='page'] {
+    color: var(--ui-sidebar-accent-foreground, var(--ui-foreground));
+  }
+  .ui-navigation-rail-items:not([data-has-indicator])
+    > .ui-navigation-rail-item[aria-current='page'] {
+    background: var(--ui-sidebar-accent, var(--ui-accent-soft));
   }
   .ui-navigation-rail-item[aria-disabled] {
     opacity: 0.45;
     cursor: not-allowed;
   }
   .ui-navigation-rail-items > .ui-selection-indicator {
-    background: var(--ui-accent-soft);
+    background: var(--ui-sidebar-accent, var(--ui-accent-soft));
   }
   .ui-navigation-rail[data-expandable] .ui-navigation-rail-items > .ui-selection-indicator {
     /* The container already animates its width; don't chase each resize sample. */

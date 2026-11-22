@@ -8,9 +8,21 @@ const params = new URLSearchParams(location.search);
 const count = params.has('long') ? 50 : 4;
 const hover = params.get('hover');
 const expansionMode = params.get('mode') === 'overlay' ? 'overlay' : 'inline';
-const localPaint = params.has('local-paint')
-  ? ({ '--ui-sidebar-overlay-background': 'rgba(40, 80, 160, 0.25)' } as React.CSSProperties)
-  : undefined;
+const localPaint =
+  params.has('local-paint') || params.has('selected-colors')
+    ? ({
+        ...(params.has('local-paint')
+          ? { '--ui-sidebar-overlay-background': 'rgba(40, 80, 160, 0.25)' }
+          : {}),
+        ...(params.has('selected-colors')
+          ? {
+              '--ui-primary-container': 'var(--ui-sidebar-background, var(--ui-surface-low))',
+              '--ui-sidebar-accent': '#dbe9ff',
+              '--ui-sidebar-accent-foreground': '#123456',
+            }
+          : {}),
+      } as React.CSSProperties)
+    : undefined;
 function Fixture() {
   const [name, setName] = React.useState('Personal workspace');
   const [current, setCurrent] = React.useState('Overview');
