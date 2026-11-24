@@ -36,6 +36,7 @@ const serverSafe = new Set([
   'shape-geometry.ts',
   'shape-data.ts',
   'loading-shapes.ts',
+  'loading-animation.ts',
 ]);
 
 export default defineConfig({

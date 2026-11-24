@@ -169,8 +169,8 @@ test('the native loading timeline morphs, pauses and resumes without React frame
 }, info) => {
   await page.goto('/tests/fixtures/expressive-feedback.html');
   const loader = page.getByTestId('loader');
-  await expect(loader.locator('animate')).toHaveCount(1);
-  await expect(loader.locator('animateTransform')).toHaveCount(1);
+  await expect(loader.locator('animate[attributeName="d"]')).toHaveCount(7);
+  await expect(loader.locator('animateTransform')).toHaveCount(2);
   const lengths = await loader.locator('svg').evaluate((svg: SVGSVGElement) => {
     svg.pauseAnimations();
     return [0, 0.35, 0.7, 1.4].map((time) => {

@@ -4,6 +4,11 @@ Validated locally on **November 24, 2026**, on the working tree based on
 `94cadd1`. A pending minor Changeset records the additions. The package remains
 0.3.0; this work does not assign or publish a new release.
 
+LoadingIndicator's contours and motion were subsequently corrected; see the
+[Material loading motion verification](material-loading-motion.md) for its current
+implementation, bundle measurement and follow-up checks. The results below record
+the original integration.
+
 ## Implementation
 
 The requested Chesai UI reference was inspected read-only. Its linear example

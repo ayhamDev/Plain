@@ -122,7 +122,7 @@ export default function ExpressiveExample({ slug, state = {} }: { slug: string; 
             variant={state.variant === 'contained' ? 'contained' : 'default'}
             size={size}
             playing={activePlaying}
-            duration={Number(state.duration ?? 4667)}
+            duration={Number(state.duration ?? 4550)}
             startingShape={Number(state.startingShape ?? 0)}
             label="Preparing workspace"
           />

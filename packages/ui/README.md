@@ -60,8 +60,11 @@ CircularProgress supports standard/wavy rings, centered children, custom diamete
 stroke, gap, amplitude and frequency. A null or omitted value is indeterminate;
 determinate percentages use the language provider's locale.
 
-LoadingIndicator morphs through seven precomputed contours using a native SVG
-timeline. `playing` pauses/resumes it, `duration` sets the full cycle in
+LoadingIndicator preserves the seven original curved contours and uses a damped
+quarter turn plus a slower independent rotation. Each morph settles before the
+next 650ms step; the default seven-shape cycle is 4550ms. Native SVG timelines
+animate the matched paths without a runtime morphing engine. `playing`
+pauses/resumes them, `duration` sets the full cycle in
 milliseconds, and `startingShape` selects the initial contour. Reduced/none motion
 keeps a visible static shape; its status label uses the language provider. The
 existing Spinner remains available. Use `progress.track`, `progress.indicator`,

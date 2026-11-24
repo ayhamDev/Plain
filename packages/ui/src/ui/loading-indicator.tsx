@@ -4,12 +4,15 @@ import { useMotionSettings } from './motion-policy';
 import { useTranslation } from './i18n';
 import { finiteRange } from './progress-geometry';
 import { loadingShapePaths } from './loading-shapes';
+import {
+  loadingAnimation,
+  loadingCycleDuration,
+  loadingRotationDuration,
+} from './loading-animation';
 
 const subscribe = () => () => {};
 const clientReady = () => true;
 const serverReady = () => false;
-const times = Array.from({ length: 8 }, (_, i) => i / 7).join(';');
-const splines = Array.from({ length: 7 }, () => '0.2 0 0 1').join(';');
 
 export interface LoadingIndicatorProps
   extends React.HTMLAttributes<HTMLDivElement>, PlainStyleProps {
@@ -32,7 +35,7 @@ export const LoadingIndicator = /* @__PURE__ */ React.forwardRef<
       size = 'md',
       label,
       playing = true,
-      duration = 4667,
+      duration = loadingCycleDuration,
       startingShape = 0,
       className,
       style,
@@ -48,14 +51,14 @@ export const LoadingIndicator = /* @__PURE__ */ React.forwardRef<
     const animated = mounted && motion.enabled;
     const svg = React.useRef<SVGSVGElement>(null);
     const first = Math.round(finiteRange(startingShape, 0, 0, 6));
-    const paths = Array.from({ length: 8 }, (_, i) => loadingShapePaths[(i + first) % 7]).join(';');
+    const animation = animated ? loadingAnimation(first) : undefined;
     const diameter =
       typeof size === 'number' ? finiteRange(size, 48, 16, 512) : { sm: 32, md: 48, lg: 64 }[size];
-    const cycle = `${finiteRange(duration, 4667, 700, 60000)}ms`;
+    const cycle = finiteRange(duration, loadingCycleDuration, 700, 60000);
     React.useEffect(() => {
       if (playing) svg.current?.unpauseAnimations?.();
       else svg.current?.pauseAnimations?.();
-    }, [playing, animated]);
+    }, [playing, animated, first, cycle]);
     return styles.tooltip(
       <div
         ref={ref}
@@ -67,45 +70,110 @@ export const LoadingIndicator = /* @__PURE__ */ React.forwardRef<
         style={{ width: diameter, height: diameter, ...style }}
       >
         <svg
+          key={`${first}:${cycle}:${animated}`}
           ref={svg}
-          viewBox="0 0 100 100"
+          viewBox="0 0 48 48"
           aria-hidden="true"
           focusable="false"
           {...styles('loading-indicator.svg', 'ui-loading-indicator-svg', undefined, unstyled)}
         >
-          <g>
-            {animated && (
-              <animateTransform
-                attributeName="transform"
-                type="rotate"
-                from="0 50 50"
-                to="1080 50 50"
-                dur={cycle}
-                repeatCount="indefinite"
-              />
-            )}
-            <path
-              d={loadingShapePaths[first]}
-              fill="currentColor"
-              {...styles(
-                'loading-indicator.shape',
-                'ui-loading-indicator-shape',
-                undefined,
-                unstyled,
-              )}
-            >
+          <g transform="translate(24 24) scale(1.065) translate(-24 -24)">
+            <g data-loading-rotation="global">
               {animated && (
-                <animate
-                  attributeName="d"
-                  values={paths}
-                  keyTimes={times}
-                  keySplines={splines}
-                  calcMode="spline"
-                  dur={cycle}
+                <animateTransform
+                  attributeName="transform"
+                  type="rotate"
+                  from="0 24 24"
+                  to="360 24 24"
+                  dur={`${(loadingRotationDuration * cycle) / loadingCycleDuration}ms`}
                   repeatCount="indefinite"
                 />
               )}
-            </path>
+              <g data-loading-rotation="turn">
+                {animation && (
+                  <animateTransform
+                    attributeName="transform"
+                    type="rotate"
+                    values={animation.turn.values}
+                    keyTimes={animation.turn.times}
+                    keySplines={animation.turn.splines}
+                    calcMode="spline"
+                    dur={`${cycle * 4}ms`}
+                    repeatCount="indefinite"
+                  />
+                )}
+                {!animation ? (
+                  <path
+                    d={loadingShapePaths[first]}
+                    fill="currentColor"
+                    {...styles(
+                      'loading-indicator.shape',
+                      'ui-loading-indicator-shape',
+                      undefined,
+                      unstyled,
+                    )}
+                  />
+                ) : (
+                  animation.stages.map((stage) => (
+                    <React.Fragment key={stage.source}>
+                      <path
+                        d={stage.path}
+                        fill="currentColor"
+                        visibility="hidden"
+                        data-loading-contour={stage.source}
+                        data-loading-phase="morph"
+                        {...styles(
+                          'loading-indicator.shape',
+                          'ui-loading-indicator-shape',
+                          undefined,
+                          unstyled,
+                        )}
+                      >
+                        <animate
+                          attributeName="d"
+                          values={stage.values}
+                          keyTimes={stage.times}
+                          keySplines={stage.splines}
+                          calcMode="spline"
+                          dur={`${cycle}ms`}
+                          repeatCount="indefinite"
+                        />
+                        <animate
+                          attributeName="visibility"
+                          values={stage.morphVisibility.values}
+                          keyTimes={stage.morphVisibility.times}
+                          calcMode="discrete"
+                          dur={`${cycle}ms`}
+                          repeatCount="indefinite"
+                        />
+                      </path>
+                      <path
+                        d={stage.rest}
+                        fill="currentColor"
+                        visibility="hidden"
+                        data-loading-contour={stage.target}
+                        data-loading-phase="rest"
+                        {...styles(
+                          'loading-indicator.shape',
+                          'ui-loading-indicator-shape',
+                          undefined,
+                          unstyled,
+                        )}
+                      >
+                        <animate
+                          attributeName="visibility"
+                          values={stage.restVisibility.values}
+                          keyTimes={stage.restVisibility.times}
+                          calcMode="discrete"
+                          dur={`${cycle}ms`}
+                          repeatCount="indefinite"
+                        />
+                      </path>
+                    </React.Fragment>
+                  ))
+                )}
+              </g>
+            </g>
           </g>
         </svg>
         <span {...styles('loading-indicator.label', 'sr-only', undefined, unstyled)}>

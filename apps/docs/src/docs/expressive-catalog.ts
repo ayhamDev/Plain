@@ -102,14 +102,14 @@ export const expressiveComponents: ComponentDefinition[] = [
         'duration',
         'number',
         'Duration of the complete seven-shape cycle in milliseconds.',
-        '4667',
+        '4550',
       ),
       p('startingShape', 'number', 'Initial contour index, clamped to 0 through 6.', '0'),
     ],
     accessibility:
       'A role=status announces one localized label; the SVG is decorative. Reduced/none motion displays a static shape. The server renders a visible initial contour and starts animation only in the browser. Internal status text supports custom provider messages.',
     usage:
-      'Use for short, indeterminate waits. Keep Progress or CircularProgress for measurable tasks. Theme loading-indicator.color, loading-indicator.container and loading-indicator.contained-color. Native SVG interpolation uses precomputed contours and adds no animation engine.',
+      'Use for short, indeterminate waits. Original curved contours morph quickly and settle while a damped quarter turn combines with a slower rotation. The default cadence is 650ms per shape. Keep Progress or CircularProgress for measurable tasks. Theme loading-indicator.color, loading-indicator.container and loading-indicator.contained-color. Native SVG timelines add no animation engine.',
   },
   {
     slug: 'shape',

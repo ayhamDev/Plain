@@ -1,6 +1,6 @@
 # Third-party notices
 
-The normalized contours in `shape-data.ts` and `loading-shapes.ts` were adapted
+The shape contours in `shape-data.ts` and `loading-shapes.ts` were adapted
 from the Chesai UI reference requested for this integration. Its source project
 includes the following license notice:
 

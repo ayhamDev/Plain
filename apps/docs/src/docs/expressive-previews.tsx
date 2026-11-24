@@ -62,7 +62,7 @@ export const expressivePreviews: Record<string, PropPreview> = {
       `<CircularProgress value={${s.indeterminate ? 'null' : s.value}} variant="${s.variant}" size="${s.size}" gap={${s.gap}} thickness={${s.thickness}} amplitude={${s.amplitude}} frequency={${s.frequency}} aria-label="Upload progress" />`,
   },
   'loading-indicator': {
-    defaults: { variant: 'default', size: 'md', playing: true, duration: 4667, startingShape: 0 },
+    defaults: { variant: 'default', size: 'md', playing: true, duration: 4550, startingShape: 0 },
     controls: [
       { name: 'variant', options: ['default', 'contained'] },
       size,

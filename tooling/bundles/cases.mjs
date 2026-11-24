@@ -8,7 +8,8 @@ export const bundleCases = [
   ['Spinner', 'spinner', ['Spinner'], 24000],
   ['Progress', 'progress', ['Progress'], 29000],
   ['CircularProgress', 'circular-progress', ['CircularProgress'], 28000],
-  ['LoadingIndicator', 'loading-indicator', ['LoadingIndicator'], 27000],
+  // Includes original cubic holds, matched morphs and Material's two native rotation timelines.
+  ['LoadingIndicator', 'loading-indicator', ['LoadingIndicator'], 28000],
   ['Shape', 'shape', ['Shape'], 32000],
   ['ShapedButton', 'shaped-components', ['ShapedButton'], 35000],
   ['Checkbox', 'checkbox', ['Checkbox'], 22000],
