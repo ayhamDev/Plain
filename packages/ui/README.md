@@ -35,6 +35,48 @@ focus outline remains visible and uses `input.focus` or `select.focus`; error
 styling and explicitly chosen contrast variants remain available. Filled, ghost
 and theme-borderless fields do not gain a border when focused.
 
+## Expressive progress and shapes
+
+```tsx
+import { Progress, LinearProgress } from '@plain/ui/progress';
+import { CircularProgress } from '@plain/ui/circular-progress';
+import { LoadingIndicator } from '@plain/ui/loading-indicator';
+import { Shape, ShapedButton, ShapedImage } from '@plain/ui/shape';
+// Import styles.css, or core.css plus shape.css for the shaped components.
+
+<Progress value={64} gap={4} aria-label="Uploading files" />
+<LinearProgress variant="wavy" value={64} wavelength={24} amplitude={3} aria-label="Processing files" />
+<CircularProgress variant="wavy" value={64} size="lg" aria-label="Upload progress" />
+<LoadingIndicator variant="contained" label="Preparing workspace" />
+<Shape shape="softBurst" size={96} aria-label="Featured" />
+<ShapedButton shape="cookie6" aria-label="Add project">+</ShapedButton>
+<ShapedImage shape="arch" src="/workspace.jpg" alt="A workspace" size={160} />
+```
+
+Progress keeps its segmented storage API; LinearProgress is its alias. Both
+standard and wavy indicators separate the value from the remaining track with a
+pixel gap. Linear wavelengths and strokes stay consistent as the bar resizes.
+CircularProgress supports standard/wavy rings, centered children, custom diameter,
+stroke, gap, amplitude and frequency. A null or omitted value is indeterminate;
+determinate percentages use the language provider's locale.
+
+LoadingIndicator morphs through seven precomputed contours using a native SVG
+timeline. `playing` pauses/resumes it, `duration` sets the full cycle in
+milliseconds, and `startingShape` selects the initial contour. Reduced/none motion
+keeps a visible static shape; its status label uses the language provider. The
+existing Spinner remains available. Use `progress.track`, `progress.indicator`,
+`loading-indicator.color`, `loading-indicator.container` and
+`loading-indicator.contained-color` for local token overrides.
+
+Shape exposes 36 contours through `shapeNames`, `SHAPE_PATHS` and
+`getShapeClipPath`. ShapedIcon aliases Shape; ShapedIconButton aliases ShapedButton.
+ShapedContainer, ShapedImage, ShapedButton and ShapedBadge share the contours and
+respect reduced motion when their shape changes. ShapedImage retains native img
+props/ref and requires alt. Use ShapedButton for interactive content so its full
+hit target, focus outline, loading and disabled behavior remain intact.
+ShapedContainer clips decorative content; avoid putting focusable controls inside
+it. Color is neutral by default, and the shape family adds no animation engine.
+
 ## Hover navigation expansion
 
 Both navigation surfaces support optional temporary expansion and an overlay layout:

@@ -241,6 +241,12 @@
   --ui-radius-lg: calc(var(--ui-radius) * 1.5);
   --ui-chart-grid: var(--ui-border);
   --ui-chart-label: var(--ui-muted-foreground);
+  --ui-progress-track: var(--ui-muted);
+  --ui-progress-indicator: var(--ui-accent);
+  --ui-shape-color: var(--ui-accent);
+  --ui-loading-indicator-color: var(--ui-accent);
+  --ui-loading-indicator-container: var(--ui-accent-soft);
+  --ui-loading-indicator-contained-color: var(--ui-accent-soft-foreground);
   --ui-typography-font: var(--ui-font);
   --ui-typography-foreground: inherit;
   --ui-typography-muted: var(--ui-muted-foreground);

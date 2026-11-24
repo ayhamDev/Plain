@@ -11,6 +11,7 @@ export * from './theme';
 export * from './styling';
 export * from './slots';
 export * from './primitives';
+export * from './shape';
 export * from './chart-skeleton';
 export * from './forms';
 export * from './phone-input';

@@ -6,6 +6,11 @@ export const bundleCases = [
   ['Badge', 'badge', ['Badge'], 15500],
   ['Card', 'card', ['Card'], 18500],
   ['Spinner', 'spinner', ['Spinner'], 24000],
+  ['Progress', 'progress', ['Progress'], 29000],
+  ['CircularProgress', 'circular-progress', ['CircularProgress'], 28000],
+  ['LoadingIndicator', 'loading-indicator', ['LoadingIndicator'], 27000],
+  ['Shape', 'shape', ['Shape'], 32000],
+  ['ShapedButton', 'shaped-components', ['ShapedButton'], 35000],
   ['Checkbox', 'checkbox', ['Checkbox'], 22000],
   [
     'Select',
@@ -38,6 +43,11 @@ export const bundleCases = [
 ];
 
 export const unrelatedModules = {
+  Progress: ['flubber', '/motion/', 'recharts', 'react-day-picker', '/shape-data'],
+  CircularProgress: ['flubber', '/motion/', 'recharts', 'react-day-picker', '/shape-data'],
+  LoadingIndicator: ['flubber', '/motion/', 'recharts', 'react-day-picker', '/shape-data'],
+  Shape: ['flubber', '/motion/', 'recharts', 'react-day-picker', '/loading-shapes'],
+  ShapedButton: ['flubber', '/motion/', 'recharts', 'react-day-picker', '/loading-shapes'],
   Button: [
     'react-day-picker',
     '@tanstack/',

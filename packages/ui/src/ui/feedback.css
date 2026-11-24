@@ -1,6 +1,140 @@
 @layer components {
   .ui-progress-indicator {
+    position: relative;
+    z-index: 1;
     transition: width calc(240ms * var(--ui-motion-scale, 1)) var(--ui-ease-standard, ease);
+  }
+  .ui-progress:not([data-segmented]) {
+    background: transparent;
+  }
+  .ui-progress-indicator {
+    background-color: var(--ui-progress-indicator, var(--ui-accent));
+  }
+  .ui-progress-track,
+  .ui-progress-moving-track {
+    position: absolute;
+    inset-block: 0;
+    inline-size: 100%;
+    border-radius: 999px;
+    background: var(--ui-progress-track, var(--ui-muted));
+  }
+  .ui-progress-track {
+    transition: inset-inline-start calc(240ms * var(--ui-motion-scale, 1))
+      var(--ui-ease-standard, ease);
+  }
+  .ui-progress-moving-track {
+    inline-size: 1000%;
+  }
+  .ui-progress-wave {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    overflow: hidden;
+  }
+  .ui-progress-wave-track,
+  .ui-progress-wave-value {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ui-progress-wave-track {
+    stroke: var(--ui-progress-track, var(--ui-muted));
+  }
+  .ui-progress-wave-value {
+    stroke: var(--ui-progress-indicator, var(--ui-accent));
+  }
+  .ui-progress[dir='rtl'] .ui-progress-wave {
+    transform: scaleX(-1);
+  }
+  .ui-progress-wave-travel {
+    transform-box: view-box;
+    animation: ui-progress-wave-travel 1.8s linear infinite;
+  }
+  @keyframes ui-progress-wave-travel {
+    from {
+      transform: translateX(-40%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+  .ui-circular-progress {
+    position: relative;
+    display: inline-grid;
+    flex-shrink: 0;
+    vertical-align: middle;
+  }
+  .ui-circular-progress-svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  .ui-circular-progress[dir='rtl'] > .ui-circular-progress-svg {
+    transform: scaleX(-1);
+  }
+  .ui-circular-progress-track,
+  .ui-circular-progress-value {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition:
+      stroke-dasharray calc(var(--ui-duration-normal) * var(--ui-motion-scale))
+        var(--ui-ease-standard),
+      stroke-dashoffset calc(var(--ui-duration-normal) * var(--ui-motion-scale))
+        var(--ui-ease-standard);
+  }
+  .ui-circular-progress-track {
+    stroke: var(--ui-progress-track, var(--ui-muted));
+  }
+  .ui-circular-progress-value {
+    stroke: var(--ui-progress-indicator, var(--ui-accent));
+  }
+  .ui-circular-progress-content {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--ui-foreground);
+    font-size: 12px;
+    line-height: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+  .ui-circular-progress-rotate {
+    transform-origin: center;
+    animation: ui-circular-progress-rotate 1.6s linear infinite;
+  }
+  @keyframes ui-circular-progress-rotate {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .ui-loading-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    vertical-align: middle;
+    color: var(--ui-loading-indicator-color, var(--ui-accent));
+  }
+  .ui-loading-indicator[data-variant='contained'] {
+    background: var(--ui-loading-indicator-container, var(--ui-accent-soft));
+    border-radius: 50%;
+    color: var(--ui-loading-indicator-contained-color, var(--ui-accent-soft-foreground));
+  }
+  .ui-loading-indicator-svg {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+  }
+  .ui-progress[data-animated='false'] .ui-progress-indeterminate {
+    animation: none;
+    margin-inline-start: 30%;
+  }
+  .ui-progress[data-animated='false'] .ui-progress-wave-travel {
+    animation: none;
+    transform: translateX(30%);
+  }
+  .ui-circular-progress[data-animated='false'] .ui-circular-progress-rotate {
+    animation: none;
   }
   .ui-progress[data-segmented] {
     display: flex;
@@ -199,6 +333,13 @@
       animation: none;
       margin-inline-start: 30%;
     }
+    .ui-progress-wave-travel {
+      animation: none;
+      transform: translateX(30%);
+    }
+    .ui-circular-progress-rotate {
+      animation: none;
+    }
   }
   [data-motion='none'] .ui-progress-indeterminate,
   [data-motion='reduced'] .ui-progress-indeterminate {
@@ -212,6 +353,20 @@
     }
     .ui-progress-indicator {
       background: Highlight;
+    }
+    .ui-progress-track {
+      background: GrayText;
+    }
+    .ui-progress-wave-track,
+    .ui-circular-progress-track {
+      stroke: GrayText;
+    }
+    .ui-progress-wave-value,
+    .ui-circular-progress-value {
+      stroke: Highlight;
+    }
+    .ui-loading-indicator {
+      color: CanvasText;
     }
     input,
     textarea,

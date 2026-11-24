@@ -151,6 +151,12 @@ export const darkTokens: Partial<Record<keyof typeof lightTokens, string>> = {
 
 // Aliases are re-declared at every scope so they resolve against local root roles.
 export const componentTokenAliases = {
+  'progress.track': 'var(--ui-muted)',
+  'progress.indicator': 'var(--ui-accent)',
+  'shape.color': 'var(--ui-accent)',
+  'loading-indicator.color': 'var(--ui-accent)',
+  'loading-indicator.container': 'var(--ui-accent-soft)',
+  'loading-indicator.contained-color': 'var(--ui-accent-soft-foreground)',
   'typography.font': 'var(--ui-font)',
   'typography.foreground': 'inherit',
   'typography.muted': 'var(--ui-muted-foreground)',

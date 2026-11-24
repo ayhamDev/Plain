@@ -5,6 +5,7 @@ import { CodeBlock } from './shared';
 import { workspaceComponents as workspaceDefinitions } from './workspace-catalog';
 import { chartSampleData, donutSampleData } from './chart-samples';
 import { refinementPreviews } from './refinement-previews';
+import { expressivePreviews } from './expressive-previews';
 import { emptyStatePreview } from './empty-state-preview';
 import { ChartLoadingPreview } from './examples/ChartLoadingPreview';
 const WorkspacePreview = React.lazy(() => import('./examples/WorkspaceExample'));
@@ -1849,7 +1850,7 @@ for (const slug of [
   };
 }
 
-Object.assign(propPreviews, refinementPreviews);
+Object.assign(propPreviews, refinementPreviews, expressivePreviews);
 
 export function previewSource(preview: PropPreview, state: State) {
   const code = preview.code(state);

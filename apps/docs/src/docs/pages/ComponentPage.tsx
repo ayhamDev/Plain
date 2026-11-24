@@ -37,7 +37,7 @@ export default function ComponentPage() {
   const index = components.indexOf(component);
   const prev = components[index - 1];
   const next = components[index + 1];
-  const family = slug === 'field' ? 'field' : slug;
+  const family = slug === 'shaped-components' ? 'shaped-button' : slug;
   const slots = styleSlots.filter((slot) => slot.startsWith(`${family}.`));
   const styledPart =
     (
@@ -55,6 +55,7 @@ export default function ComponentPage() {
         'dropdown-menu': 'DropdownMenuContent',
         toast: 'Toaster',
         collapsible: 'CollapsibleTrigger',
+        'shaped-components': 'ShapedButton',
       } as Record<string, string>
     )[slug] ??
     component.name

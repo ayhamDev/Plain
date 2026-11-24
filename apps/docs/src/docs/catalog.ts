@@ -1,6 +1,7 @@
 import { workspaceComponents } from './workspace-catalog.ts';
 import { extendedComponents } from './extended-catalog.ts';
 import { refinementComponents, refinementProps } from './refinement-catalog.ts';
+import { expressiveComponents } from './expressive-catalog.ts';
 
 export type Category =
   | 'Actions'
@@ -957,6 +958,19 @@ export const components: ComponentDefinition[] = [
     [
       prop('value', 'number | null', 'Progress value; null means indeterminate.'),
       prop('max', 'number', 'Maximum value.', '100'),
+      prop(
+        'variant',
+        'standard | wavy',
+        'Flat or smooth waves with a fixed pixel wavelength. Segmented storage keeps its standard shape.',
+        'standard',
+      ),
+      prop('gap', 'number', 'Visible gap in pixels between the value and remaining track.', '4'),
+      prop(
+        'amplitude / wavelength / thickness',
+        'number',
+        'Wave height, wavelength and stroke thickness in pixels. Wavy progress flattens near completion.',
+      ),
+      prop('indeterminate', 'boolean', 'Alternative to value=null for ongoing work.', 'false'),
     ],
     'Radix exposes progressbar semantics, current value, and maximum. Supply an accessible name. Use nearby text to explain the ongoing task.',
   ),
@@ -1162,6 +1176,7 @@ export const components: ComponentDefinition[] = [
   ...extendedComponents,
   ...workspaceComponents,
   ...refinementComponents,
+  ...expressiveComponents,
 ];
 
 const emptyStateDefinition = components.find((component) => component.slug === 'empty-state')!;

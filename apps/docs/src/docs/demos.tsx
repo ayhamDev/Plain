@@ -23,6 +23,7 @@ const ExtendedExamples = React.lazy(() => import('./ExtendedExamples'));
 const SheetExample = React.lazy(() => import('./examples/SheetExample'));
 const RefinementExample = React.lazy(() => import('./examples/RefinementExample'));
 const TooltipPropExample = React.lazy(() => import('./examples/TooltipPropExample'));
+const ExpressiveExample = React.lazy(() => import('./examples/ExpressiveExample'));
 import { DepartmentSelect, PersonAvatar } from './showcase';
 
 export type Invoice = {
@@ -771,35 +772,14 @@ export function ComponentExample({ slug }: { slug: string }) {
         </div>
       );
     case 'progress':
+    case 'circular-progress':
+    case 'loading-indicator':
+    case 'shape':
+    case 'shaped-components':
       return (
-        <div className="demo-form-stack">
-          <div className="demo-between">
-            <UI.Label>Project completion</UI.Label>
-            <output>{slider[0]}%</output>
-          </div>
-          <UI.Progress value={slider[0]} aria-label="Project completion" />
-          <div style={{ marginBlock: 16 }}>
-            <UI.P size="sm" style={{ marginBottom: 12 }}>
-              Workspace storage
-            </UI.P>
-            <UI.Progress
-              aria-label="Workspace storage"
-              size="lg"
-              max={100}
-              formatValue={(value) => `${value} GB`}
-              segments={[
-                { id: 'documents', label: 'Documents', value: 24, color: 'var(--ui-chart-1)' },
-                { id: 'images', label: 'Images', value: 32, color: 'var(--ui-chart-2)' },
-                { id: 'video', label: 'Video', value: 18, color: 'var(--ui-chart-3)' },
-              ]}
-            />
-          </div>
-          <UI.Slider
-            value={slider}
-            onValueChange={setSlider}
-            aria-label="Adjust project completion"
-          />
-        </div>
+        <React.Suspense fallback={<UI.Spinner />}>
+          <ExpressiveExample slug={slug} />
+        </React.Suspense>
       );
     case 'skeleton':
       return (

@@ -1,0 +1,140 @@
+@layer components {
+  .ui-shape {
+    display: block;
+    flex-shrink: 0;
+    max-inline-size: 100%;
+    color: var(--ui-shape-color, var(--ui-accent));
+  }
+  .ui-shape[data-morph] > .ui-shape-path {
+    transition: d calc(var(--ui-duration-long) * var(--ui-motion-scale)) var(--ui-ease-standard);
+  }
+  .ui-shaped-container,
+  .ui-shaped-image {
+    display: block;
+    max-inline-size: 100%;
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    background: var(--ui-muted);
+    color: var(--ui-foreground);
+    object-fit: cover;
+  }
+  .ui-shaped-container {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  .ui-shaped-container[data-morph],
+  .ui-shaped-image[data-morph] {
+    transition: clip-path calc(var(--ui-duration-long) * var(--ui-motion-scale))
+      var(--ui-ease-standard);
+  }
+  .ui-shaped-button,
+  .ui-shaped-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    isolation: isolate;
+  }
+  .ui-shaped-button-background,
+  .ui-shaped-badge-background {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .ui-shaped-button-background {
+    color: var(--ui-button-background, var(--ui-foreground));
+  }
+  .ui-shaped-button[data-variant='accent'] > .ui-shaped-button-background {
+    color: var(--ui-accent);
+  }
+  .ui-shaped-button[data-variant='secondary'] > .ui-shaped-button-background {
+    color: var(--ui-muted);
+  }
+  .ui-shaped-button[data-variant='destructive'] > .ui-shaped-button-background {
+    color: var(--ui-danger);
+  }
+  .ui-shaped-button[data-variant='ghost'] > .ui-shaped-button-background {
+    color: transparent;
+  }
+  .ui-shaped-button[data-variant='outline'] > .ui-shaped-button-background {
+    color: var(--ui-border);
+  }
+  .ui-shaped-button[data-variant='outline'] .ui-shape-path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .ui-shaped-button:is([data-variant='secondary'], [data-variant='ghost']):hover
+    > .ui-shaped-button-background {
+    color: var(--ui-border);
+  }
+  .ui-shaped-button-content,
+  .ui-shaped-badge-content {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ui-shaped-badge {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    color: var(--ui-foreground);
+  }
+  .ui-shaped-badge-background {
+    color: var(--ui-badge-background, var(--ui-muted));
+  }
+  .ui-shaped-badge[data-variant='accent'] {
+    color: var(--ui-accent-soft-foreground);
+  }
+  .ui-shaped-badge[data-variant='accent'] > .ui-shaped-badge-background {
+    color: var(--ui-accent-soft);
+  }
+  .ui-shaped-badge[data-variant='solid'] {
+    color: var(--ui-background);
+  }
+  .ui-shaped-badge[data-variant='solid'] > .ui-shaped-badge-background {
+    color: var(--ui-foreground);
+  }
+  .ui-shaped-badge[data-variant='outline'] > .ui-shaped-badge-background {
+    color: var(--ui-outline);
+  }
+  .ui-shaped-badge[data-variant='outline'] .ui-shape-path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  :where([data-motion='none'], [data-motion='reduced'])
+    :is(.ui-shape-path, .ui-shaped-container, .ui-shaped-image) {
+    transition: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ui-shape[data-morph] > .ui-shape-path,
+    .ui-shaped-container[data-morph],
+    .ui-shaped-image[data-morph] {
+      transition: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .ui-shaped-button-background,
+    .ui-shaped-badge-background {
+      color: ButtonFace;
+    }
+    .ui-shaped-button .ui-shape-path,
+    .ui-shaped-badge .ui-shape-path {
+      stroke: ButtonText;
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+    .ui-shaped-button,
+    .ui-shaped-badge {
+      color: ButtonText;
+    }
+  }
+}

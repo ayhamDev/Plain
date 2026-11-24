@@ -32,6 +32,10 @@ const serverSafe = new Set([
   'calendar-model.ts',
   'gantt-model.ts',
   'table-filter.ts',
+  'progress-geometry.ts',
+  'shape-geometry.ts',
+  'shape-data.ts',
+  'loading-shapes.ts',
 ]);
 
 export default defineConfig({
@@ -70,9 +74,16 @@ export default defineConfig({
         'charts-styles': resolve(import.meta.dirname, 'src/ui/charts.css'),
         'full-calendar-styles': resolve(import.meta.dirname, 'src/ui/full-calendar.css'),
         ...Object.fromEntries(
-          ['core', 'inputs', 'collections', 'calendar', 'sidebar', 'data-table', 'qr-code'].map(
-            (name) => [`${name}-styles`, resolve(import.meta.dirname, `src/ui/${name}.css`)],
-          ),
+          [
+            'core',
+            'inputs',
+            'collections',
+            'calendar',
+            'sidebar',
+            'data-table',
+            'qr-code',
+            'shape',
+          ].map((name) => [`${name}-styles`, resolve(import.meta.dirname, `src/ui/${name}.css`)]),
         ),
       },
       formats: ['es'],

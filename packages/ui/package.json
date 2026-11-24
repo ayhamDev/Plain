@@ -11,6 +11,7 @@
     "dist",
     "README.md",
     "CHANGELOG.md",
+    "THIRD_PARTY_NOTICES.md",
     "LICENSE"
   ],
   "main": "./dist/ui/index.js",
@@ -188,6 +189,30 @@
     "./progress": {
       "types": "./dist/ui/progress.d.ts",
       "import": "./dist/ui/progress.js"
+    },
+    "./linear-progress": {
+      "types": "./dist/ui/linear-progress.d.ts",
+      "import": "./dist/ui/linear-progress.js"
+    },
+    "./circular-progress": {
+      "types": "./dist/ui/circular-progress.d.ts",
+      "import": "./dist/ui/circular-progress.js"
+    },
+    "./loading-indicator": {
+      "types": "./dist/ui/loading-indicator.d.ts",
+      "import": "./dist/ui/loading-indicator.js"
+    },
+    "./shape": {
+      "types": "./dist/ui/shape.d.ts",
+      "import": "./dist/ui/shape.js"
+    },
+    "./shaped-components": {
+      "types": "./dist/ui/shaped-components.d.ts",
+      "import": "./dist/ui/shaped-components.js"
+    },
+    "./shape.css": {
+      "types": "./dist/shape.css.d.ts",
+      "default": "./dist/shape-styles.css"
     },
     "./skeleton": {
       "types": "./dist/ui/skeleton.d.ts",
